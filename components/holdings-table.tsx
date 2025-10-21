@@ -71,7 +71,9 @@ export function HoldingsTable() {
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()
     const filtered = holdings.filter((h) =>
-      !q ? true : h.ticker.toLowerCase().includes(q) || h.name.toLowerCase().includes(q) || h.account.toLowerCase().includes(q),
+      !q
+        ? true
+        : h.ticker.toLowerCase().includes(q) || h.name.toLowerCase().includes(q) || h.account.toLowerCase().includes(q),
     )
     const mult = sortDir === "asc" ? 1 : -1
     return [...filtered].sort((a, b) => {
@@ -120,21 +122,55 @@ export function HoldingsTable() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm table-fixed">
             <colgroup>
-              <col className="w-[30%]" style={{ width: "30%" }} />
-              <col className="w-[10%]" style={{ width: "10%" }} />
-              <col className="w-[18%]" style={{ width: "18%" }} />
-              <col className="w-[22%]" style={{ width: "22%" }} />
-              <col className="w-[10%]" style={{ width: "10%" }} />
-              <col className="w-[10%]" style={{ width: "10%" }} />
+              <col style={{ width: "22%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "15%" }} />
+              <col style={{ width: "18%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "21%" }} />
             </colgroup>
             <thead className="sticky top-0 bg-card z-10">
               <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                <SortableTh label="Ticker" active={sortKey === "ticker"} dir={sortDir} onClick={() => toggleSort("ticker")} />
-                <SortableTh label="Quantity" className="text-right" active={sortKey === "qty"} dir={sortDir} onClick={() => toggleSort("qty")} />
-                <SortableTh label="Value" className="text-right" active={sortKey === "value"} dir={sortDir} onClick={() => toggleSort("value")} />
-                <SortableTh label="P/L" className="text-right" active={sortKey === "pl"} dir={sortDir} onClick={() => toggleSort("pl")} />
-                <SortableTh label="Weight" className="text-right" active={sortKey === "weight"} dir={sortDir} onClick={() => toggleSort("weight")} />
-                <SortableTh label="Account" active={sortKey === "account"} dir={sortDir} onClick={() => toggleSort("account")} />
+                <SortableTh
+                  label="Ticker"
+                  active={sortKey === "ticker"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("ticker")}
+                />
+                <SortableTh
+                  label="Quantity"
+                  className="text-right"
+                  active={sortKey === "qty"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("qty")}
+                />
+                <SortableTh
+                  label="Value"
+                  className="text-right"
+                  active={sortKey === "value"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("value")}
+                />
+                <SortableTh
+                  label="P/L"
+                  className="text-right"
+                  active={sortKey === "pl"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("pl")}
+                />
+                <SortableTh
+                  label="Weight"
+                  className="text-right"
+                  active={sortKey === "weight"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("weight")}
+                />
+                <SortableTh
+                  label="Account"
+                  active={sortKey === "account"}
+                  dir={sortDir}
+                  onClick={() => toggleSort("account")}
+                />
               </tr>
             </thead>
             <tbody>
@@ -156,7 +192,9 @@ export function HoldingsTable() {
                   </td>
                   <td className="py-4 px-3 text-right align-middle">
                     <div className="flex flex-col items-end gap-0.5">
-                      <p className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                      <p
+                        className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                      >
                         <MaskableValue
                           value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString()}`}
                           srLabel={`${holding.ticker} profit and loss`}
@@ -185,7 +223,9 @@ export function HoldingsTable() {
                     <p className="text-sm tabular-nums whitespace-nowrap text-foreground">{holding.weight}%</p>
                   </td>
                   <td className="py-4 px-3 align-middle">
-                    <Badge variant="outline" className="whitespace-nowrap">{holding.account}</Badge>
+                    <Badge variant="outline" className="whitespace-nowrap">
+                      {holding.account}
+                    </Badge>
                   </td>
                 </tr>
               ))}
@@ -197,7 +237,13 @@ export function HoldingsTable() {
   )
 }
 
-function SortableTh({ label, active, dir, onClick, className }: {
+function SortableTh({
+  label,
+  active,
+  dir,
+  onClick,
+  className,
+}: {
   label: string
   active?: boolean
   dir?: "asc" | "desc"
@@ -219,7 +265,11 @@ function SortableTh({ label, active, dir, onClick, className }: {
       >
         {label}
         {active ? (
-          dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+          dir === "asc" ? (
+            <ChevronUp className="h-3 w-3" />
+          ) : (
+            <ChevronDown className="h-3 w-3" />
+          )
         ) : (
           <span className="inline-block w-3 h-3" aria-hidden />
         )}

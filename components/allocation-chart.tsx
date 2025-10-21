@@ -7,17 +7,17 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
 const allocationData = {
   assetClass: [
-    { name: "Stocks", value: 65, color: "hsl(var(--chart-1))" },
-    { name: "Bonds", value: 20, color: "hsl(var(--chart-2))" },
-    { name: "Cash", value: 10, color: "hsl(var(--chart-3))" },
-    { name: "Crypto", value: 5, color: "hsl(var(--chart-4))" },
+    { name: "Stocks", value: 65, color: "hsl(217, 91%, 60%)" },
+    { name: "Bonds", value: 20, color: "hsl(142, 76%, 45%)" },
+    { name: "Cash", value: 10, color: "hsl(24, 95%, 53%)" },
+    { name: "Crypto", value: 5, color: "hsl(262, 83%, 58%)" },
   ],
   sector: [
-    { name: "Technology", value: 35, color: "hsl(var(--chart-1))" },
-    { name: "Healthcare", value: 25, color: "hsl(var(--chart-2))" },
-    { name: "Finance", value: 20, color: "hsl(var(--chart-3))" },
-    { name: "Consumer", value: 15, color: "hsl(var(--chart-4))" },
-    { name: "Other", value: 5, color: "hsl(var(--chart-5))" },
+    { name: "Technology", value: 35, color: "hsl(217, 91%, 60%)" },
+    { name: "Healthcare", value: 25, color: "hsl(142, 76%, 45%)" },
+    { name: "Finance", value: 20, color: "hsl(24, 95%, 53%)" },
+    { name: "Consumer", value: 15, color: "hsl(262, 83%, 58%)" },
+    { name: "Other", value: 5, color: "hsl(340, 82%, 52%)" },
   ],
 }
 

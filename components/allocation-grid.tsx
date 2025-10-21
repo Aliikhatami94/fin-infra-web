@@ -5,27 +5,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
 
 const assetClassData = [
-  { name: "US Stocks", value: 48, color: "oklch(0.4 0.1 250)" },
-  { name: "International", value: 22, color: "oklch(0.55 0.12 145)" },
-  { name: "Bonds", value: 18, color: "oklch(0.58 0.18 25)" },
-  { name: "Cash", value: 8, color: "oklch(0.5 0 0)" },
-  { name: "Crypto", value: 4, color: "oklch(0.6 0 0)" },
+  { name: "US Stocks", value: 48, color: "hsl(217, 91%, 60%)" },
+  { name: "International", value: 22, color: "hsl(142, 76%, 45%)" },
+  { name: "Bonds", value: 18, color: "hsl(24, 95%, 53%)" },
+  { name: "Cash", value: 8, color: "hsl(262, 83%, 58%)" },
+  { name: "Crypto", value: 4, color: "hsl(340, 82%, 52%)" },
 ]
 
 const sectorData = [
-  { name: "Technology", value: 35, color: "oklch(0.4 0.1 250)" },
-  { name: "Healthcare", value: 18, color: "oklch(0.55 0.12 145)" },
-  { name: "Finance", value: 15, color: "oklch(0.58 0.18 25)" },
-  { name: "Consumer", value: 12, color: "oklch(0.5 0 0)" },
-  { name: "Energy", value: 10, color: "oklch(0.6 0 0)" },
-  { name: "Other", value: 10, color: "oklch(0.7 0 0)" },
+  { name: "Technology", value: 35, color: "hsl(217, 91%, 60%)" },
+  { name: "Healthcare", value: 18, color: "hsl(142, 76%, 45%)" },
+  { name: "Finance", value: 15, color: "hsl(24, 95%, 53%)" },
+  { name: "Consumer", value: 12, color: "hsl(262, 83%, 58%)" },
+  { name: "Energy", value: 10, color: "hsl(340, 82%, 52%)" },
+  { name: "Other", value: 10, color: "hsl(45, 93%, 47%)" },
 ]
 
 const regionData = [
-  { name: "North America", value: 60, color: "oklch(0.4 0.1 250)" },
-  { name: "Europe", value: 20, color: "oklch(0.55 0.12 145)" },
-  { name: "Asia Pacific", value: 15, color: "oklch(0.58 0.18 25)" },
-  { name: "Emerging", value: 5, color: "oklch(0.5 0 0)" },
+  { name: "North America", value: 60, color: "hsl(217, 91%, 60%)" },
+  { name: "Europe", value: 20, color: "hsl(142, 76%, 45%)" },
+  { name: "Asia Pacific", value: 15, color: "hsl(24, 95%, 53%)" },
+  { name: "Emerging", value: 5, color: "hsl(262, 83%, 58%)" },
 ]
 
 export function AllocationGrid() {

@@ -43,8 +43,8 @@ export function PerformanceTimeline() {
             <AreaChart data={data}>
               <defs>
                 <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
@@ -81,7 +81,7 @@ export function PerformanceTimeline() {
               <Area
                 type="monotone"
                 dataKey="portfolio"
-                stroke="hsl(var(--primary))"
+                stroke="hsl(210, 100%, 60%)"
                 strokeWidth={2}
                 fill="url(#portfolioGradient)"
               />
@@ -89,7 +89,7 @@ export function PerformanceTimeline() {
                 <Line
                   type="monotone"
                   dataKey="benchmark"
-                  stroke="hsl(var(--muted-foreground))"
+                  stroke="hsl(0, 0%, 60%)"
                   strokeWidth={1.5}
                   strokeDasharray="5 5"
                   dot={false}

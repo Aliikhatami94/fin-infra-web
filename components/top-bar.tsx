@@ -12,20 +12,28 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Switch } from "@/components/ui/switch"
 import Link from "next/link"
 import { useTheme } from "next-themes"
-import { Monitor, Moon, Sun, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-react"
+import { Moon, Sun, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-react"
 import { usePrivacy } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
+import { useEffect, useState } from "react"
 
 export function TopBar() {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked } = usePrivacy()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark")
+  }
 
   return (
     <header className="fixed top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
@@ -67,6 +75,7 @@ export function TopBar() {
           >
             {masked ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
           </Button>
+
           <Select defaultValue="1M">
             <SelectTrigger className="w-32 rounded-full">
               <Calendar className="mr-2 h-4 w-4" />
@@ -90,7 +99,7 @@ export function TopBar() {
             </Badge>
           </Button>
 
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Avatar className="h-8 w-8">
@@ -125,29 +134,21 @@ export function TopBar() {
                   Billing
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Monitor className="mr-2 h-4 w-4" />
-                  Theme
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => setTheme("system")}>
-                    <Monitor className="mr-2 h-4 w-4" />
-                    System
-                    {theme === "system" && <span className="ml-auto">✓</span>}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("light")}>
-                    <Sun className="mr-2 h-4 w-4" />
-                    Light
-                    {theme === "light" && <span className="ml-auto">✓</span>}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    <Moon className="mr-2 h-4 w-4" />
-                    Dark
-                    {theme === "dark" && <span className="ml-auto">✓</span>}
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              <div className="flex items-center justify-between px-2 py-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Sun className="h-4 w-4" />
+                  <span>Theme</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={mounted && theme === "dark"}
+                    onCheckedChange={toggleTheme}
+                    aria-label="Toggle theme"
+                  />
+                  <Moon className="h-4 w-4" />
+                </div>
+              </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />

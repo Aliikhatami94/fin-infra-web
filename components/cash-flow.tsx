@@ -18,7 +18,9 @@ const CustomTooltip = ({ active, payload }: any) => {
       <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
         <p className="text-sm font-medium mb-2">{payload[0].payload.month}</p>
         <div className="space-y-1">
-          <p className="text-sm text-success">Income: ${payload[0].value.toLocaleString()}</p>
+          <p className="text-sm" style={{ color: "hsl(142, 76%, 45%)" }}>
+            Income: ${payload[0].value.toLocaleString()}
+          </p>
           <p className="text-sm text-muted-foreground">Expenses: ${payload[1].value.toLocaleString()}</p>
         </div>
       </div>
@@ -46,8 +48,8 @@ export function CashFlow() {
             />
             <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
-            <Bar dataKey="income" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expenses" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} opacity={0.5} />
+            <Bar dataKey="income" fill="hsl(142, 76%, 45%)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="expenses" fill="hsl(24, 95%, 53%)" radius={[4, 4, 0, 0]} opacity={0.7} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
