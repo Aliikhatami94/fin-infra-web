@@ -23,7 +23,7 @@ export default function TradingDashboard() {
       <TopBar />
       <Sidebar />
 
-      <main className="ml-64 mt-16 p-6">
+  <main id="main-content" className="ml-64 mt-16 p-6">
         <div className="mx-auto max-w-[1600px] space-y-6">
           {/* Hero Row - KPI Cards */}
           <section>

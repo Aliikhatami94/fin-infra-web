@@ -12,7 +12,7 @@ export default function TaxesPage() {
       <TopBar />
       <Sidebar />
 
-      <main className="ml-64 mt-16 p-6">
+  <main id="main-content" className="ml-64 mt-16 p-6">
         <div className="mx-auto max-w-[1600px] space-y-6">
           <h1 className="text-2xl font-semibold text-foreground">Taxes</h1>
 

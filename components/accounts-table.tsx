@@ -1,4 +1,4 @@
-"use client"
+import { MaskableValue } from "@/components/privacy-provider"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -56,37 +56,49 @@ export function AccountsTable() {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm table-fixed">
+            <colgroup>
+              <col className="w-[38%]" />
+              <col className="w-[12%]" />
+              <col className="w-[16%]" />
+              <col className="w-[14%]" />
+              <col className="w-[12%]" />
+              <col className="w-[8%]" />
+              <col className="w-[0%] sm:w-[4%]" />
+            </colgroup>
             <thead>
-              <tr className="border-b text-left text-sm text-muted-foreground">
-                <th className="pb-3 font-medium">Account Name</th>
-                <th className="pb-3 font-medium">Type</th>
-                <th className="pb-3 font-medium text-right">Balance</th>
-                <th className="pb-3 font-medium text-right">Change</th>
-                <th className="pb-3 font-medium">Last Sync</th>
-                <th className="pb-3 font-medium">Status</th>
-                <th className="pb-3"></th>
+              <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="py-3 px-3 text-left">Account</th>
+                <th className="py-3 px-3 text-left">Type</th>
+                <th className="py-3 px-3 text-right">Balance</th>
+                <th className="py-3 px-3 text-right">Change</th>
+                <th className="py-3 px-3 text-left">Last Sync</th>
+                <th className="py-3 px-3 text-left">Status</th>
+                <th className="py-3 px-1 text-right" aria-hidden />
               </tr>
             </thead>
             <tbody>
               {accounts.map((account) => (
                 <tr key={account.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                  <td className="py-4">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{account.name}</p>
-                      <p className="text-xs text-muted-foreground">{account.institution}</p>
+                  <td className="py-3 px-3 align-middle">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{account.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{account.institution}</p>
                     </div>
                   </td>
-                  <td className="py-4">
-                    <Badge variant="outline">{account.type}</Badge>
+                  <td className="py-3 px-3 align-middle">
+                    <Badge variant="outline" className="whitespace-nowrap">{account.type}</Badge>
                   </td>
-                  <td className="py-4 text-right">
-                    <p className="text-sm font-semibold tabular-nums text-foreground">
-                      ${Math.abs(account.balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  <td className="py-3 px-3 text-right align-middle">
+                    <p className="text-sm font-semibold tabular-nums font-mono text-foreground whitespace-nowrap">
+                      <MaskableValue
+                        value={`$${Math.abs(account.balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+                        srLabel={`${account.name} balance`}
+                      />
                     </p>
                   </td>
-                  <td className="py-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
+                  <td className="py-3 px-3 text-right align-middle">
+                    <div className="inline-flex items-center justify-end gap-1 whitespace-nowrap">
                       {account.change > 0 ? (
                         <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
                       ) : (
@@ -102,16 +114,16 @@ export function AccountsTable() {
                       </span>
                     </div>
                   </td>
-                  <td className="py-4">
-                    <p className="text-sm text-muted-foreground">{account.lastSync}</p>
+                  <td className="py-3 px-3 align-middle">
+                    <p className="text-sm text-muted-foreground whitespace-nowrap">{account.lastSync}</p>
                   </td>
-                  <td className="py-4">
-                    <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400">
+                  <td className="py-3 px-3 align-middle">
+                    <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400 whitespace-nowrap">
                       Active
                     </Badge>
                   </td>
-                  <td className="py-4">
-                    <Button variant="ghost" size="icon">
+                  <td className="py-3 px-1 text-right align-middle">
+                    <Button variant="ghost" size="icon" aria-label={`More actions for ${account.name}`}>
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </td>

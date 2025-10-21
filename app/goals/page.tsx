@@ -12,7 +12,7 @@ export default function GoalsPage() {
       <TopBar />
       <Sidebar />
 
-      <main className="ml-64 mt-16 p-6">
+  <main id="main-content" className="ml-64 mt-16 p-6">
         <div className="mx-auto max-w-[1600px] space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-foreground">Goals</h1>

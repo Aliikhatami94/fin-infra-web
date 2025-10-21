@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, DollarSign, Wallet, CreditCard, Activity } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { MaskableValue } from "@/components/privacy-provider"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const kpis = [
@@ -69,19 +70,23 @@ export function KPICards() {
         <TooltipProvider key={kpi.label}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Card className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 border border-border/50">
-                <CardContent className="p-4 h-[120px] flex flex-col justify-between">
+              <Card className="cursor-pointer transition-shadow hover:shadow-md border border-border/50">
+                <CardContent className="p-5 h-[120px] flex flex-col justify-between">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1 flex-1">
                       <p className="text-xs text-muted-foreground/70">{kpi.label}</p>
-                      <p className="text-2xl font-bold font-mono tabular-nums">{kpi.value}</p>
+                      <p className="text-2xl font-bold font-mono tabular-nums">
+                        <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
+                      </p>
                       <div className="flex items-center gap-1 text-xs">
                         {kpi.trend === "up" ? (
-                          <TrendingUp className="h-3 w-3 text-green-600" />
+                          <TrendingUp className="h-3 w-3 text-green-600/80" />
                         ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600" />
+                          <TrendingDown className="h-3 w-3 text-red-600/80" />
                         )}
-                        <span className={cn(kpi.trend === "up" ? "text-green-600" : "text-red-600")}>{kpi.change}</span>
+                        <span className={cn(kpi.trend === "up" ? "text-green-600/80" : "text-red-600/80")}> 
+                          <MaskableValue value={kpi.change} srLabel={`${kpi.label} change`} />
+                        </span>
                       </div>
                     </div>
                     <div className="h-12 w-16 ml-2">
@@ -90,8 +95,8 @@ export function KPICards() {
                           points={kpi.sparkline.map((val, i) => `${i * 11},${50 - val / 2}`).join(" ")}
                           fill="none"
                           stroke="currentColor"
-                          strokeWidth="2"
-                          className={cn(kpi.trend === "up" ? "text-green-600" : "text-red-600")}
+                          strokeWidth="1.5"
+                          className={cn(kpi.trend === "up" ? "text-green-600/60" : "text-red-600/60")}
                         />
                       </svg>
                     </div>

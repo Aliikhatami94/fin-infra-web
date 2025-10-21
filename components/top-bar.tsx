@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Search, Calendar } from "lucide-react"
+import { Bell, Search, Calendar, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -20,9 +20,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Monitor, Moon, Sun, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-react"
+import { usePrivacy } from "@/components/privacy-provider"
+import { CommandMenu } from "@/components/command-menu"
 
 export function TopBar() {
   const { setTheme, theme } = useTheme()
+  const { masked, toggleMasked } = usePrivacy()
 
   return (
     <header className="fixed top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
@@ -37,11 +40,33 @@ export function TopBar() {
         <div className="flex flex-1 items-center justify-center px-4 md:px-8">
           <div className="relative w-full max-w-sm md:max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search AAPL, Coinbase, rent..." className="w-full pl-9 pr-4" />
+            <Input
+              aria-label="Search or jump"
+              placeholder="Search or jump…  (⌘K)"
+              className="w-full pl-9 pr-4"
+              onFocus={(e) => {
+                // Lightly encourage the command menu for global actions
+                // Prevent virtual keyboard pop on mobile; keep as input for desktop
+              }}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                  e.preventDefault()
+                }
+              }}
+            />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-pressed={!masked}
+            aria-label={masked ? "Show amounts" : "Hide amounts"}
+            onClick={toggleMasked}
+          >
+            {masked ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+          </Button>
           <Select defaultValue="1M">
             <SelectTrigger className="w-32 rounded-full">
               <Calendar className="mr-2 h-4 w-4" />
@@ -58,7 +83,7 @@ export function TopBar() {
             </SelectContent>
           </Select>
 
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
             <Bell className="h-5 w-5" />
             <Badge className="absolute -right-1 -top-1 h-5 min-w-5 px-1 text-xs bg-primary text-primary-foreground">
               3
@@ -132,6 +157,7 @@ export function TopBar() {
           </DropdownMenu>
         </div>
       </div>
+      <CommandMenu />
     </header>
   )
 }

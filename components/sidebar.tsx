@@ -56,13 +56,14 @@ export function Sidebar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary text-primary-foreground pl-2"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground hover:scale-[1.02]",
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
+                  aria-current={isActive ? "page" : undefined}
                 >
-                  <item.icon className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+                  <item.icon className="h-5 w-5 shrink-0" />
                   {!collapsed && (
                     <>
                       <span className="flex-1">{item.name}</span>
@@ -83,7 +84,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="flex items-center gap-3 p-4">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
+                <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User avatar" />
                 <AvatarFallback>JD</AvatarFallback>
               </Avatar>
               <div className="flex-1 overflow-hidden">
@@ -93,7 +94,14 @@ export function Sidebar() {
             </div>
           )}
           <div className="p-2">
-            <Button variant="ghost" size="sm" onClick={() => setCollapsed(!collapsed)} className="w-full justify-start">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCollapsed(!collapsed)}
+              className="w-full justify-start"
+              aria-pressed={collapsed}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
               <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
               {!collapsed && <span className="ml-2">Collapse</span>}
             </Button>

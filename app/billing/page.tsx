@@ -11,7 +11,7 @@ export default function BillingPage() {
     <div className="min-h-screen bg-background">
       <DashboardHeader />
 
-      <main className="container mx-auto p-4 lg:p-6 max-w-4xl">
+  <main id="main-content" className="container mx-auto p-4 lg:p-6 max-w-4xl">
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
