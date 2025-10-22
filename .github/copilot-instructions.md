@@ -1,0 +1,109 @@
+# copilot-instructions.md
+
+## What this repo is
+- A Next.js 15 + React 19 TypeScript application: a stock/finance trading dashboard with rich UI components (Radix UI, shadcn/ui style), charts, AI insights, and an app-router layout.
+- Tailwind CSS v4 drives styling (via `@tailwindcss/postcss`) with design tokens defined in `app/globals.css`. Many reusable components live under `components/`.
+- Deployed on Vercel and synchronized with v0.app; changes made in v0 can auto-sync back to this repository.
+
+## Product goal
+- Deliver a responsive, accessible trading dashboard that surfaces portfolio data, charts, watchlists, and insights with a modern, fast UX.
+- Keep the codebase simple to extend: new pages/components should follow the existing app-router and UI patterns, with minimal boilerplate.
+- Maintain a cohesive design system via Tailwind tokens, utility classes, and shared UI primitives in `components/ui`.
+
+## Tech stack
+- Next.js 15 (App Router) and React 19; TypeScript strict mode enabled.
+- Styling: Tailwind CSS v4 + `tw-animate-css`; shadcn/ui conventions (see `components.json`).
+- UI primitives and patterns: Radix UI, lucide-react icons, sonner toasts, recharts, framer-motion.
+- Analytics: `@vercel/analytics` wired in `app/layout.tsx`.
+
+## Dev setup and checks
+- Package manager: pnpm (pnpm-lock.yaml present). Node 18.18+ or 20+ recommended for Next.js 15.
+- Install deps, run dev server, build, and lint using the existing scripts:
+	- Install: `pnpm install`
+	- Dev: `pnpm dev` (starts Next.js in development mode)
+	- Build: `pnpm build` (Next build; note ESLint/TS build errors are ignored during build per `next.config.mjs`)
+	- Start: `pnpm start` (serve the production build)
+	- Lint: `pnpm lint` (eslint .)
+- Optional typecheck during development (not a script): `pnpm exec tsc -p tsconfig.json --noEmit`.
+
+## Project scripts (from package.json)
+- `dev`: next dev
+- `build`: next build
+- `start`: next start
+- `lint`: eslint .
+
+## Architecture map
+- App router (`app/`)
+	- Global layout at `app/layout.tsx` imports `app/globals.css` and sets up providers: Theme, Privacy, DateRange, and Vercel Analytics.
+	- Routes are organized into segments like `(auth)/`, `(dashboard)/`, and `insights/`, with `page.tsx` files defining pages.
+- Components (`components/`)
+	- Feature components: tables, charts, KPI cards, panels, modals, insights, etc.
+	- UI primitives in `components/ui/` following shadcn conventions.
+	- Shared providers (e.g., `theme-provider.tsx`, `privacy-provider.tsx`, `date-range-provider.tsx`).
+- Utilities (`lib/`): small helpers like `utils.ts`, `motion-variants.ts`, `color-utils.ts`.
+- Styles
+	- Tailwind v4 is configured via PostCSS (`postcss.config.mjs`).
+	- Global tokens, CSS variables, and base styles live in `app/globals.css` (preferred) and `styles/globals.css` (legacy or alternate theme tokens).
+- Types (`types/`): ambient type declarations as needed.
+
+## UI system and conventions
+- Tailwind v4 usage
+	- Use design tokens from `:root` in `app/globals.css`. Prefer utility classes and pre-defined helpers like `.card-standard`, `.text-heading`, etc.
+	- Dark mode uses the `dark` class on `<html>` via the `ThemeProvider`.
+- shadcn/ui configuration
+	- See `components.json` for style preset, aliases, and paths. Aliases include:
+		- `components` → `@/components`
+		- `ui` → `@/components/ui`
+		- `utils` → `@/lib/utils`
+		- `lib` → `@/lib`
+		- `hooks` → `@/hooks`
+- Radix UI primitives are used for accessibility and composability (dialogs, popovers, menus, etc.).
+- Charts with Recharts; animations with framer-motion; icons via lucide-react.
+- Client vs Server Components
+	- Use Server Components by default in `app/` routes. Add `"use client"` only where interactivity, hooks, or browser APIs are needed.
+
+## Data & state
+- This template is primarily UI-focused; there is no backend in this repo.
+- Local state: React state and context providers (Theme, Privacy, DateRange). Add additional context providers in `app/layout.tsx` if cross-app state is needed.
+- External data fetching can use Next.js route handlers (`app/api/*`) or client-side requests; add as needed.
+
+## Deployment
+- Vercel is the primary target. The repo is linked to a Vercel project and v0.app project per `README.md`.
+- Image optimization is disabled (`images.unoptimized = true`). ESLint and TypeScript build-time errors are ignored during `next build` per `next.config.mjs`.
+
+## Typical workflows (copy/paste ready)
+- Install and run locally
+	- `pnpm install`
+	- `pnpm dev` → open http://localhost:3000
+- Create a new page (App Router)
+	- Add `app/my-page/page.tsx` exporting a React component (Server Component by default).
+- Add a client component
+	- Create `components/my-widget.tsx` with `"use client"` if it uses state/effects or browser APIs.
+- Use a UI primitive
+	- Import from `@/components/ui/*` or compose your own using Radix primitives and Tailwind utilities.
+- Typecheck and lint before commit
+	- `pnpm exec tsc -p tsconfig.json --noEmit`
+	- `pnpm lint`
+
+## Contribution expectations
+- Follow existing file structure and naming conventions; colocate page-specific components near their route or place reusable ones under `components/`.
+- Keep UI consistent with the design tokens in `app/globals.css`; prefer shared utilities and variants.
+- Maintain TypeScript strictness; add or refine types in `types/` when introducing new patterns.
+- If you add new aliases or shared modules, update imports to use the `@/*` path aliases defined in `tsconfig.json`.
+- No tests exist yet; if you introduce business logic beyond presentation, add lightweight tests (e.g., Vitest + React Testing Library) and a `test` script in `package.json`.
+
+## Agent workflow expectations
+- Plan first: before any edits, write a clear, step-by-step task plan and keep it updated as you progress.
+- Hard gates between stages: Do not Implement until Research and Design are completed and recorded. Do not mark Verify until checks are green. Do not update Docs until Verify has passed. Follow this order: Research → Design → Implement → Verify → Docs.
+- For UI-only changes, Verify by running the dev server locally and lint/typecheck; for logic changes, add minimal tests and run them.
+- When adding new components, prefer small, composable pieces and reuse `components/ui` primitives.
+
+## Quality gates
+- Build: `pnpm build` must complete without runtime errors.
+- Lint/Typecheck: `pnpm lint` and `pnpm exec tsc -p tsconfig.json --noEmit` should pass locally.
+- Tests: if present, all test suites must pass before merging.
+
+## Notes
+- ESLint and TypeScript build errors are ignored during `next build` for deployment speed; still fix issues locally before merging.
+- Tailwind v4 uses the PostCSS plugin; there is no separate `tailwind.config.*` in this repo. Theme tokens live in CSS.
+- The repo contains both `app/globals.css` (primary) and `styles/globals.css` (alternate/legacy tokens). Prefer the former, as it is imported by `app/layout.tsx`.
