@@ -1,3 +1,5 @@
+"use client"
+
 import dynamic from "next/dynamic"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
