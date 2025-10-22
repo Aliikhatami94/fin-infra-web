@@ -1,26 +1,28 @@
 "use client"
 
-import { Sidebar } from "@/components/sidebar"
-import { TopBar } from "@/components/top-bar"
-import { ConnectedAccounts } from "@/components/connected-accounts"
 import { AccountsTable } from "@/components/accounts-table"
+import { AccountsKPICards } from "@/components/accounts-kpi-cards"
+import { AIInsightsBanner } from "@/components/ai-insights-banner"
 
 export default function AccountsPage() {
+  const totalCash = 12450.32 + 45230.0 + 32000.0
+  const totalCreditDebt = 2340.12 + 1234.56
+  const totalInvestments = 187650.45
+
   return (
-    <div className="min-h-screen bg-background">
-      <TopBar />
-      <Sidebar />
-
-  <main id="main-content" className="ml-64 mt-16 p-6">
-        <div className="mx-auto max-w-[1600px] space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-foreground">Accounts</h1>
-          </div>
-
-          <ConnectedAccounts />
-          <AccountsTable />
+    <div className="mx-auto w-full max-w-[1600px] space-y-6 page-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-display font-semibold text-foreground">Accounts</h1>
+          <p className="text-body text-muted-foreground mt-1">Manage your linked bank accounts and credit cards</p>
         </div>
-      </main>
+      </div>
+
+      <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
+
+      <AIInsightsBanner />
+
+      <AccountsTable />
     </div>
   )
 }

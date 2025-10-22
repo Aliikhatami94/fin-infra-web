@@ -10,25 +10,21 @@
   --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
-  /* Simplified primary color to neutral blue */
   --primary: oklch(0.4 0.1 250);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.96 0 0);
   --secondary-foreground: oklch(0.25 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.5 0 0);
-  /* Subtle accent color */
   --accent: oklch(0.96 0 0);
   --accent-foreground: oklch(0.25 0 0);
   --destructive: oklch(0.58 0.18 25);
   --destructive-foreground: oklch(0.99 0 0);
-  /* Muted success color */
   --success: oklch(0.55 0.12 145);
   --success-foreground: oklch(0.99 0 0);
   --border: oklch(0.93 0 0);
   --input: oklch(0.93 0 0);
   --ring: oklch(0.4 0.1 250);
-  /* Simplified chart colors to use primary and muted tones */
   --chart-1: oklch(0.4 0.1 250);
   --chart-2: oklch(0.55 0.12 145);
   --chart-3: oklch(0.58 0.18 25);
@@ -43,6 +39,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  --color-positive: hsl(142, 76%, 36%);
+  --color-negative: hsl(0, 84%, 60%);
+  --color-warning: hsl(38, 92%, 50%);
+  --color-info: hsl(221, 83%, 53%);
 }
 
 .dark {
@@ -80,11 +81,15 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+
+  --color-positive: hsl(142, 71%, 45%);
+  --color-negative: hsl(0, 72%, 51%);
+  --color-warning: hsl(38, 92%, 50%);
+  --color-info: hsl(221, 83%, 53%);
 }
 
 @theme inline {
-  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", monospace;
+  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -101,8 +106,6 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -134,5 +137,70 @@
   }
   .font-mono {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Added unified design system utilities */
+  /* Standard card styling - use this for all card components */
+  .card-standard {
+    @apply rounded-xl border border-border/30 bg-card shadow-sm;
+    @apply transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)];
+    @apply hover:shadow-md hover:border-border/60;
+  }
+
+  /* Page fade-in animation */
+  .page-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  /* Card lift on hover */
+  .card-lift {
+    @apply transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)];
+    @apply hover:-translate-y-0.5;
+  }
+
+  /* Smooth transitions for all interactive elements */
+  .transition-smooth {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Typography scale */
+  .text-display {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .text-heading {
+    @apply text-xl font-semibold;
+  }
+
+  .text-subheading {
+    @apply text-lg font-medium;
+  }
+
+  .text-body {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Spacing scale - 8px grid system */
+  .spacing-section {
+    @apply space-y-8;
+  }
+
+  .spacing-card {
+    @apply space-y-6;
+  }
+
+  .spacing-content {
+    @apply space-y-4;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

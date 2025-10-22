@@ -5,20 +5,20 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Search, CheckCircle2, Loader2 } from "lucide-react"
+import { Search, CheckCircle2, Loader2, Building2, CreditCard } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 const popularBanks = [
-  { name: "Chase", logo: "🏦" },
-  { name: "Bank of America", logo: "🏦" },
-  { name: "Wells Fargo", logo: "🏦" },
-  { name: "Citi", logo: "🏦" },
-  { name: "Capital One", logo: "🏦" },
-  { name: "US Bank", logo: "🏦" },
-  { name: "PNC Bank", logo: "🏦" },
-  { name: "TD Bank", logo: "🏦" },
-  { name: "American Express", logo: "💳" },
-  { name: "Discover", logo: "💳" },
+  { name: "Chase", type: "bank" },
+  { name: "Bank of America", type: "bank" },
+  { name: "Wells Fargo", type: "bank" },
+  { name: "Citi", type: "bank" },
+  { name: "Capital One", type: "bank" },
+  { name: "US Bank", type: "bank" },
+  { name: "PNC Bank", type: "bank" },
+  { name: "TD Bank", type: "bank" },
+  { name: "American Express", type: "card" },
+  { name: "Discover", type: "card" },
 ]
 
 interface PlaidLinkDialogProps {
@@ -82,12 +82,16 @@ export function PlaidLinkDialog({ open, onOpenChange }: PlaidLinkDialogProps) {
                     <button
                       key={bank.name}
                       onClick={() => handleBankSelect(bank.name)}
-                      className="w-full flex items-center gap-3 p-4 border rounded-lg hover:bg-accent transition-colors text-left"
+                      className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-accent transition-colors text-left"
                     >
-                      <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center text-xl">
-                        {bank.logo}
+                      <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center">
+                        {bank.type === "bank" ? (
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        )}
                       </div>
-                      <span className="font-medium">{bank.name}</span>
+                      <span className="font-medium text-sm">{bank.name}</span>
                     </button>
                   ))}
                 </div>

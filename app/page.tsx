@@ -9,62 +9,53 @@ import { Bot } from "lucide-react"
 import { KPICards } from "@/components/kpi-cards"
 import { AllocationChart } from "@/components/allocation-chart"
 import { PerformanceTimeline } from "@/components/performance-timeline"
-import { Sidebar } from "@/components/sidebar"
-import { TopBar } from "@/components/top-bar"
 import { RecentActivity } from "@/components/recent-activity"
 import { AIInsights } from "@/components/ai-insights"
 
 export default function TradingDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [allocationFilter, setAllocationFilter] = useState<string | null>(null)
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopBar />
-      <Sidebar />
+    <div className="mx-auto w-full max-w-[1600px] space-y-6">
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Overview</h2>
+        <KPICards />
+      </section>
 
-  <main id="main-content" className="ml-64 mt-16 p-6">
-        <div className="mx-auto max-w-[1600px] space-y-6">
-          {/* Hero Row - KPI Cards */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Overview</h2>
-            <KPICards />
-          </section>
-
-          {/* Portfolio Health Row */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Portfolio Health</h2>
-            <div className="grid gap-6 lg:grid-cols-2">
-              <AllocationChart />
-              <PerformanceTimeline />
-            </div>
-          </section>
-
-          {/* Cash & Liabilities Row */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Cash & Liabilities</h2>
-            <CashFlow />
-          </section>
-
-          {/* Holdings Row */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Holdings</h2>
-            <Portfolio />
-          </section>
-
-          {/* Recent Activity */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Recent Activity</h2>
-            <RecentActivity />
-          </section>
-
-          {/* AI Insights */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Insights</h2>
-            <AIInsights />
-          </section>
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Portfolio Health</h2>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <AllocationChart onFilterChange={setAllocationFilter} activeFilter={allocationFilter} />
+          <PerformanceTimeline />
         </div>
-      </main>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Cash & Liabilities</h2>
+        <CashFlow />
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Holdings</h2>
+        {allocationFilter && (
+          <p className="text-sm text-muted-foreground mb-3">
+            Showing holdings for: <span className="font-medium text-foreground">{allocationFilter}</span>
+          </p>
+        )}
+        <Portfolio />
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Recent Activity</h2>
+        <RecentActivity />
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Insights</h2>
+        <AIInsights />
+      </section>
 
       <Button
         onClick={() => setIsChatOpen(!isChatOpen)}

@@ -1,8 +1,27 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Target, Home, Plane, GraduationCap } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Badge } from "@/components/ui/badge"
+import {
+  Target,
+  Home,
+  Plane,
+  GraduationCap,
+  MoreVertical,
+  TrendingUp,
+  TrendingDown,
+  Pause,
+  CheckCircle2,
+  Edit,
+  Plus,
+  Link,
+} from "lucide-react"
+import { motion } from "framer-motion"
+import { GoalDetailModal } from "./goal-detail-modal"
 
 const goals = [
   {
@@ -13,6 +32,10 @@ const goals = [
     target: 30000,
     percent: 60,
     eta: "8 months",
+    monthlyTarget: 500,
+    fundingSource: "High-Yield Savings",
+    acceleration: 5, // positive = accelerating
+    status: "active",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-500/10",
   },
@@ -24,6 +47,10 @@ const goals = [
     target: 100000,
     percent: 25,
     eta: "3.5 years",
+    monthlyTarget: 600,
+    fundingSource: "Investment Account",
+    acceleration: -3, // negative = decelerating
+    status: "active",
     color: "text-green-600 dark:text-green-400",
     bgColor: "bg-green-500/10",
   },
@@ -35,6 +62,10 @@ const goals = [
     target: 8000,
     percent: 56,
     eta: "6 months",
+    monthlyTarget: 100,
+    fundingSource: "Checking Account",
+    acceleration: 0,
+    status: "active",
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-500/10",
   },
@@ -46,38 +77,258 @@ const goals = [
     target: 50000,
     percent: 24,
     eta: "5 years",
+    monthlyTarget: 0,
+    fundingSource: "529 Plan",
+    acceleration: 0,
+    status: "paused",
     color: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-500/10",
   },
+  {
+    id: 5,
+    name: "Car Fund",
+    icon: Target,
+    current: 20000,
+    target: 20000,
+    percent: 100,
+    eta: "Complete",
+    monthlyTarget: 0,
+    fundingSource: "Savings Account",
+    acceleration: 0,
+    status: "completed",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bgColor: "bg-emerald-500/10",
+  },
 ]
 
-export function GoalsGrid() {
+function CircularProgress({
+  percent,
+  size = 120,
+  strokeWidth = 8,
+}: { percent: number; size?: number; strokeWidth?: number }) {
+  const radius = (size - strokeWidth) / 2
+  const circumference = radius * 2 * Math.PI
+  const offset = circumference - (percent / 100) * circumference
+
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      {goals.map((goal) => (
-        <Card key={goal.id} className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${goal.bgColor}`}>
-                <goal.icon className={`h-6 w-6 ${goal.color}`} />
-              </div>
-              <div className="flex-1 space-y-3">
-                <div>
-                  <h3 className="font-semibold text-foreground">{goal.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    ${goal.current.toLocaleString()} of ${goal.target.toLocaleString()}
-                  </p>
-                </div>
-                <Progress value={goal.percent} className="h-2" />
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-semibold text-foreground">{goal.percent}% complete</span>
-                  <span className="text-muted-foreground">ETA: {goal.eta}</span>
-                </div>
+    <svg width={size} height={size} className="transform -rotate-90">
+      {/* Background circle */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        fill="none"
+        className="text-muted/20"
+      />
+      {/* Progress circle */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        fill="none"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        className={
+          percent >= 100
+            ? "text-green-500"
+            : percent >= 75
+              ? "text-blue-500"
+              : percent >= 50
+                ? "text-yellow-500"
+                : "text-orange-500"
+        }
+        style={{ transition: "stroke-dashoffset 0.5s ease" }}
+      />
+    </svg>
+  )
+}
+
+export function GoalsGrid() {
+  const [selectedGoal, setSelectedGoal] = useState<(typeof goals)[0] | null>(null)
+
+  const activeGoals = goals.filter((g) => g.status === "active")
+  const pausedGoals = goals.filter((g) => g.status === "paused")
+  const completedGoals = goals.filter((g) => g.status === "completed")
+
+  const renderGoalCard = (goal: (typeof goals)[0]) => (
+    <motion.div
+      key={goal.id}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className="card-standard card-lift cursor-pointer group" onClick={() => setSelectedGoal(goal)}>
+        <CardContent className="p-6">
+          <div className="flex gap-6">
+            <div className="relative shrink-0">
+              <CircularProgress percent={goal.percent} size={100} strokeWidth={6} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <goal.icon className={`h-6 w-6 ${goal.color} mb-1`} />
+                <span className="text-lg font-bold">{goal.percent}%</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+
+            <div className="flex-1 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground">{goal.name}</h3>
+                    {goal.status === "completed" && (
+                      <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Complete
+                      </Badge>
+                    )}
+                    {goal.status === "paused" && (
+                      <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-200">
+                        <Pause className="h-3 w-3 mr-1" />
+                        Paused
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-2xl font-bold tabular-nums">
+                    ${goal.current.toLocaleString()}
+                    <span className="text-sm font-normal text-muted-foreground">
+                      {" "}
+                      / ${goal.target.toLocaleString()}
+                    </span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">Target: {goal.eta}</p>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>Adjust Target</DropdownMenuItem>
+                    <DropdownMenuItem>Make One-Time Contribution</DropdownMenuItem>
+                    <DropdownMenuItem>{goal.status === "paused" ? "Resume Goal" : "Pause Goal"}</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {goal.status === "active" && goal.acceleration !== 0 && (
+                <div
+                  className={`flex items-center gap-2 text-sm p-2 rounded-lg ${
+                    goal.acceleration > 0
+                      ? "bg-green-500/10 text-green-700 dark:text-green-400"
+                      : "bg-red-500/10 text-red-700 dark:text-red-400"
+                  }`}
+                >
+                  {goal.acceleration > 0 ? (
+                    <TrendingUp className="h-4 w-4 shrink-0" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 shrink-0" />
+                  )}
+                  <span className="text-xs">
+                    {goal.acceleration > 0
+                      ? `You're ahead of schedule by ${Math.abs(goal.acceleration)} months`
+                      : `You're behind schedule by ${Math.abs(goal.acceleration)} months`}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 pt-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 bg-transparent"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  Edit Goal
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 bg-transparent"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Funds
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                >
+                  <Link className="h-3 w-3" />
+                </Button>
+              </div>
+
+              {/* Funding source info */}
+              {goal.status === "active" && (
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+                  <span>Funded by: {goal.fundingSource}</span>
+                  <span className="font-medium text-foreground">${goal.monthlyTarget}/mo</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+
+  return (
+    <>
+      <Accordion type="multiple" defaultValue={["active", "completed"]} className="space-y-4">
+        <AccordionItem value="active" className="border-none">
+          <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+            Active Goals ({activeGoals.length})
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid gap-6 md:grid-cols-2 pt-4">{activeGoals.map(renderGoalCard)}</div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {pausedGoals.length > 0 && (
+          <AccordionItem value="paused" className="border-none">
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+              On Hold ({pausedGoals.length})
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="grid gap-6 md:grid-cols-2 pt-4">{pausedGoals.map(renderGoalCard)}</div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {completedGoals.length > 0 && (
+          <AccordionItem value="completed" className="border-none">
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+              Fully Funded ({completedGoals.length})
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="grid gap-6 md:grid-cols-2 pt-4">{completedGoals.map(renderGoalCard)}</div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+      </Accordion>
+
+      {selectedGoal && (
+        <GoalDetailModal
+          goal={selectedGoal}
+          open={!!selectedGoal}
+          onOpenChange={(open) => !open && setSelectedGoal(null)}
+        />
+      )}
+    </>
   )
 }

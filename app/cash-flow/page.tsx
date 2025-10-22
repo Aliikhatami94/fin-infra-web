@@ -1,29 +1,30 @@
 "use client"
 
-import { Sidebar } from "@/components/sidebar"
-import { TopBar } from "@/components/top-bar"
+import { useState } from "react"
+import { CashFlowKPIs } from "@/components/cash-flow-kpis"
 import { CashFlowChart } from "@/components/cash-flow-chart"
 import { CategoriesChart } from "@/components/categories-chart"
 import { RecurringExpenses } from "@/components/recurring-expenses"
+import { RecentTransactions } from "@/components/recent-transactions"
 
 export default function CashFlowPage() {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+
   return (
-    <div className="min-h-screen bg-background">
-      <TopBar />
-      <Sidebar />
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold text-foreground">Cash Flow</h1>
 
-  <main id="main-content" className="ml-64 mt-16 p-6">
-        <div className="mx-auto max-w-[1600px] space-y-6">
-          <h1 className="text-2xl font-semibold text-foreground">Cash Flow</h1>
+      <div className="space-y-6">
+        <CashFlowKPIs />
+        <CashFlowChart />
+      </div>
 
-          <CashFlowChart />
+      <CategoriesChart selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <CategoriesChart />
-            <RecurringExpenses />
-          </div>
-        </div>
-      </main>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <RecurringExpenses selectedCategory={selectedCategory} />
+        <RecentTransactions selectedCategory={selectedCategory} />
+      </div>
     </div>
   )
 }

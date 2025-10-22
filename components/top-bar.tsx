@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Search, Calendar, Eye, EyeOff } from "lucide-react"
+import { Bell, Search, Calendar, Eye, EyeOff, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -21,10 +21,12 @@ import { Moon, Sun, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-
 import { usePrivacy } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
+import { useDateRange } from "@/components/date-range-provider"
 
-export function TopBar() {
+export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked } = usePrivacy()
+  const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -37,21 +39,25 @@ export function TopBar() {
 
   return (
     <header className="fixed top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
-      <div className="flex h-16 items-center justify-between px-6">
-        <div className="flex items-center gap-6">
-          <h1 className="text-xl font-bold tracking-tight">FinanceHub</h1>
-          <Badge variant="outline" className="font-mono text-xs">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-3 md:gap-6">
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick} aria-label="Open menu">
+            <Menu className="h-5 w-5" />
+          </Button>
+
+          <h1 className="text-lg md:text-xl font-bold tracking-tight">FinanceHub</h1>
+          <Badge variant="outline" className="font-mono text-xs hidden sm:inline-flex">
             Live
           </Badge>
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-4 md:px-8">
+        <div className="flex flex-1 items-center justify-center px-2 md:px-4 lg:px-8">
           <div className="relative w-full max-w-sm md:max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               aria-label="Search or jump"
-              placeholder="Search or jump…  (⌘K)"
-              className="w-full pl-9 pr-4"
+              placeholder="Search…"
+              className="w-full pl-9 pr-4 text-sm"
               onFocus={(e) => {
                 // Lightly encourage the command menu for global actions
                 // Prevent virtual keyboard pop on mobile; keep as input for desktop
@@ -65,30 +71,31 @@ export function TopBar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <Button
             variant="ghost"
             size="icon"
             aria-pressed={!masked}
             aria-label={masked ? "Show amounts" : "Hide amounts"}
             onClick={toggleMasked}
+            className="hidden sm:flex"
           >
             {masked ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
           </Button>
 
-          <Select defaultValue="1M">
-            <SelectTrigger className="w-32 rounded-full">
+          <Select value={dateRange} onValueChange={(value) => setDateRange(value as any)}>
+            <SelectTrigger className="w-24 md:w-32 rounded-full hidden sm:flex">
               <Calendar className="mr-2 h-4 w-4" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="1W">1 Week</SelectItem>
+              <SelectItem value="1D">1 Day</SelectItem>
+              <SelectItem value="5D">5 Days</SelectItem>
               <SelectItem value="1M">1 Month</SelectItem>
+              <SelectItem value="6M">6 Months</SelectItem>
               <SelectItem value="YTD">YTD</SelectItem>
               <SelectItem value="1Y">1 Year</SelectItem>
-              <SelectItem value="max">Max</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
+              <SelectItem value="ALL">All Time</SelectItem>
             </SelectContent>
           </Select>
 

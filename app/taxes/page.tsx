@@ -1,26 +1,76 @@
 "use client"
 
-import { Sidebar } from "@/components/sidebar"
-import { TopBar } from "@/components/top-bar"
+import { useState } from "react"
 import { TaxSummary } from "@/components/tax-summary"
 import { CapitalGainsTable } from "@/components/capital-gains-table"
 import { TaxDocuments } from "@/components/tax-documents"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { TrendingDown, AlertCircle, Clock } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function TaxesPage() {
+  const [taxYear, setTaxYear] = useState("2025")
+  const [gainsFilter, setGainsFilter] = useState<string | null>(null)
+
   return (
-    <div className="min-h-screen bg-background">
-      <TopBar />
-      <Sidebar />
-
-  <main id="main-content" className="ml-64 mt-16 p-6">
-        <div className="mx-auto max-w-[1600px] space-y-6">
-          <h1 className="text-2xl font-semibold text-foreground">Taxes</h1>
-
-          <TaxSummary />
-          <CapitalGainsTable />
-          <TaxDocuments />
+    <div className="mx-auto w-full max-w-[1600px]">
+      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 mb-6 bg-background/90 backdrop-blur-sm border-b border-border/20 px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl md:text-2xl font-semibold text-foreground">Tax Planning & Estimates</h1>
+            <Select value={taxYear} onValueChange={setTaxYear}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Select tax year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2025">2025 Tax Year</SelectItem>
+                <SelectItem value="2024-compare">
+                  <div className="flex items-center gap-2">
+                    <span>Compare: 2025 vs 2024</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="2024">2024 Tax Year</SelectItem>
+                <SelectItem value="2023">2023 Tax Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button variant="destructive" className="gap-2 bg-orange-600 hover:bg-orange-700">
+            <TrendingDown className="h-4 w-4" />
+            Plan Tax Loss Harvesting
+          </Button>
         </div>
-      </main>
+      </div>
+
+      <div className="space-y-8">
+        <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
+          <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+          <AlertDescription className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <p className="font-semibold text-orange-900 dark:text-orange-100">
+                Tax-Loss Harvesting Opportunities Available
+              </p>
+              <p className="text-sm text-orange-800 dark:text-orange-200 mt-1">
+                5 positions identified with potential savings of $3,200. Review and act before December 31st to offset
+                capital gains.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 text-sm font-medium text-orange-700 dark:text-orange-300">
+                <Clock className="h-4 w-4" />
+                <span>Act by Dec 31</span>
+              </div>
+              <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
+                Review Positions
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+
+        <TaxSummary onFilterChange={setGainsFilter} />
+        <CapitalGainsTable initialFilter={gainsFilter} />
+        <TaxDocuments />
+      </div>
     </div>
   )
 }

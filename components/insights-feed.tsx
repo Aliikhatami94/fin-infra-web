@@ -1,7 +1,6 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { InsightCard } from "@/components/insight-card"
 import { TrendingUp, AlertTriangle, Lightbulb, Target, DollarSign, PieChart } from "lucide-react"
 
 const allInsights = [
@@ -11,9 +10,10 @@ const allInsights = [
     icon: DollarSign,
     title: "Dining expenses increased",
     description: "You spent 18% more on dining this month compared to your average. Consider reviewing your budget.",
-    color: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-500/10",
     category: "Spending Trends",
+    variant: "spending" as const,
+    trend: 18,
+    isPinned: false,
   },
   {
     id: 2,
@@ -21,9 +21,10 @@ const allInsights = [
     icon: PieChart,
     title: "Portfolio rebalancing suggested",
     description: "Your US Tech allocation has grown to 48%. Consider rebalancing to maintain diversification.",
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-500/10",
     category: "Investment Health",
+    variant: "investment" as const,
+    trend: 48,
+    isPinned: false,
   },
   {
     id: 3,
@@ -31,9 +32,10 @@ const allInsights = [
     icon: Target,
     title: "Emergency fund milestone reached",
     description: "Congratulations! You've reached 60% of your emergency fund goal, ahead of schedule by 2 months.",
-    color: "text-green-600 dark:text-green-400",
-    bgColor: "bg-green-500/10",
     category: "Goals Forecast",
+    variant: "goals" as const,
+    trend: 60,
+    isPinned: true,
   },
   {
     id: 4,
@@ -41,9 +43,9 @@ const allInsights = [
     icon: TrendingUp,
     title: "Subscription savings opportunity",
     description: "You have 3 unused subscriptions totaling $45/month. Cancel them to save $540 annually.",
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-500/10",
     category: "Spending Trends",
+    variant: "spending" as const,
+    isPinned: false,
   },
   {
     id: 5,
@@ -51,9 +53,10 @@ const allInsights = [
     icon: AlertTriangle,
     title: "High volatility detected",
     description: "Your portfolio volatility is in the 78th percentile. Consider adding more stable assets.",
-    color: "text-red-600 dark:text-red-400",
-    bgColor: "bg-red-500/10",
     category: "Investment Health",
+    variant: "alert" as const,
+    trend: 78,
+    isPinned: false,
   },
   {
     id: 6,
@@ -62,40 +65,50 @@ const allInsights = [
     title: "Increase savings rate",
     description:
       "By increasing your monthly savings by $200, you could reach your house down payment goal 8 months earlier.",
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-500/10",
     category: "Goals Forecast",
+    variant: "goals" as const,
+    isPinned: false,
   },
 ]
 
 interface InsightsFeedProps {
   filter: "all" | "spending" | "investment" | "goals"
+  searchQuery?: string
+  timeRange?: string
 }
 
-export function InsightsFeed({ filter }: InsightsFeedProps) {
-  const filteredInsights = filter === "all" ? allInsights : allInsights.filter((insight) => insight.type === filter)
+export function InsightsFeed({ filter, searchQuery = "", timeRange = "30d" }: InsightsFeedProps) {
+  let filteredInsights = filter === "all" ? allInsights : allInsights.filter((insight) => insight.type === filter)
+
+  if (searchQuery) {
+    filteredInsights = filteredInsights.filter(
+      (insight) =>
+        insight.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        insight.description.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
+  }
+
+  filteredInsights = [...filteredInsights].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1
+    if (!a.isPinned && b.isPinned) return 1
+    return 0
+  })
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {filteredInsights.map((insight) => (
-        <Card key={insight.id} className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${insight.bgColor}`}>
-                <insight.icon className={`h-6 w-6 ${insight.color}`} />
-              </div>
-              <div className="flex-1 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">{insight.title}</h3>
-                  <Badge variant="outline" className="text-xs">
-                    {insight.category}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{insight.description}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+      {filteredInsights.map((insight, index) => (
+        <InsightCard
+          key={insight.id}
+          id={insight.id}
+          icon={insight.icon}
+          title={insight.title}
+          description={insight.description}
+          category={insight.category}
+          variant={insight.variant}
+          trend={insight.trend}
+          index={index}
+          isPinned={insight.isPinned}
+        />
       ))}
     </div>
   )

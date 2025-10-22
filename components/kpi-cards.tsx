@@ -5,6 +5,8 @@ import { TrendingUp, TrendingDown, DollarSign, Wallet, CreditCard, Activity } fr
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import Link from "next/link"
+import { motion } from "framer-motion"
 
 const kpis = [
   {
@@ -63,46 +65,85 @@ const kpis = [
   },
 ]
 
+const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+
+  const points = data
+    .map((value, index) => {
+      const x = (index / (data.length - 1)) * 100
+      const y = 100 - ((value - min) / range) * 100
+      return `${x},${y}`
+    })
+    .join(" ")
+
+  return (
+    <svg className="w-20 h-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export function KPICards() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-      {kpis.map((kpi) => (
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      {kpis.map((kpi, index) => (
         <TooltipProvider key={kpi.label}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Card className="cursor-pointer transition-shadow hover:shadow-md border border-border/50">
-                <CardContent className="p-5 h-[120px] flex flex-col justify-between">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1 flex-1">
-                      <p className="text-xs text-muted-foreground/70">{kpi.label}</p>
-                      <p className="text-2xl font-bold font-mono tabular-nums">
-                        <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
-                      </p>
-                      <div className="flex items-center gap-1 text-xs">
-                        {kpi.trend === "up" ? (
-                          <TrendingUp className="h-3 w-3 text-green-600/80" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600/80" />
-                        )}
-                        <span className={cn(kpi.trend === "up" ? "text-green-600/80" : "text-red-600/80")}> 
-                          <MaskableValue value={kpi.change} srLabel={`${kpi.label} change`} />
-                        </span>
+              <Link href={kpi.label === "Net Worth" ? "/net-worth-detail" : "#"}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                >
+                  <Card className="cursor-pointer card-standard card-lift">
+                    <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                          <p className="text-2xl font-bold font-mono tabular-nums truncate">
+                            <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
+                          </p>
+                        </div>
+                        <div
+                          className={cn(
+                            "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
+                            kpi.trend === "up" ? "bg-green-500/10" : "bg-red-500/10",
+                          )}
+                        >
+                          <kpi.icon className={cn("h-5 w-5", kpi.trend === "up" ? "text-green-600" : "text-red-600")} />
+                        </div>
                       </div>
-                    </div>
-                    <div className="h-12 w-16 ml-2">
-                      <svg viewBox="0 0 100 50" className="h-full w-full">
-                        <polyline
-                          points={kpi.sparkline.map((val, i) => `${i * 11},${50 - val / 2}`).join(" ")}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          className={cn(kpi.trend === "up" ? "text-green-600/60" : "text-red-600/60")}
+                      <div className="flex items-end justify-between">
+                        <div className="flex items-center gap-1 text-xs">
+                          {kpi.trend === "up" ? (
+                            <TrendingUp className="h-3 w-3 text-green-600/80" />
+                          ) : (
+                            <TrendingDown className="h-3 w-3 text-red-600/80" />
+                          )}
+                          <span className={cn(kpi.trend === "up" ? "text-green-600/80" : "text-red-600/80")}>
+                            <MaskableValue value={kpi.change} srLabel={`${kpi.label} change`} />
+                          </span>
+                        </div>
+                        <Sparkline
+                          data={kpi.sparkline}
+                          color={kpi.trend === "up" ? "rgb(22, 163, 74)" : "rgb(220, 38, 38)"}
                         />
-                      </svg>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Link>
             </TooltipTrigger>
             <TooltipContent>
               <p className="text-xs">Last synced: {kpi.lastSynced}</p>

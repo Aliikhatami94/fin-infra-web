@@ -1,11 +1,32 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Plus, Pencil, ArrowUpDown, ArrowUp, ArrowDown, Check, X, Search, Settings } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
-const budgets = [
+type Budget = {
+  category: string
+  budget: number
+  actual: number
+  variance: number
+  percent: number
+}
+
+const initialBudgets: Budget[] = [
   { category: "Housing", budget: 2200, actual: 2200, variance: 0, percent: 100 },
   { category: "Food & Dining", budget: 800, actual: 920, variance: -120, percent: 115 },
   { category: "Transportation", budget: 450, actual: 380, variance: 70, percent: 84 },
@@ -14,40 +35,278 @@ const budgets = [
   { category: "Utilities", budget: 250, actual: 240, variance: 10, percent: 96 },
 ]
 
+type SortField = "category" | "budget" | "actual" | "variance"
+type SortDirection = "asc" | "desc"
+
 export function BudgetTable() {
+  const [budgets, setBudgets] = useState<Budget[]>(initialBudgets)
+  const [sortField, setSortField] = useState<SortField>("category")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [editValue, setEditValue] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
+  const [rolloverEnabled, setRolloverEnabled] = useState(false)
+  const [warningThreshold, setWarningThreshold] = useState("90")
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortDirection("asc")
+    }
+  }
+
+  const sortedBudgets = [...budgets].sort((a, b) => {
+    const aValue = a[sortField]
+    const bValue = b[sortField]
+    const modifier = sortDirection === "asc" ? 1 : -1
+
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      return aValue.localeCompare(bValue) * modifier
+    }
+    return ((aValue as number) - (bValue as number)) * modifier
+  })
+
+  const filteredBudgets = sortedBudgets.filter((budget) =>
+    budget.category.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  const handleEdit = (index: number, budget: Budget) => {
+    setEditingIndex(index)
+    setEditValue(budget.budget.toString())
+  }
+
+  const handleSave = (index: number) => {
+    const newBudgets = [...budgets]
+    const newBudget = Number.parseFloat(editValue)
+    if (!isNaN(newBudget)) {
+      newBudgets[index].budget = newBudget
+      newBudgets[index].variance = newBudget - newBudgets[index].actual
+      newBudgets[index].percent = (newBudgets[index].actual / newBudget) * 100
+      setBudgets(newBudgets)
+    }
+    setEditingIndex(null)
+  }
+
+  const handleCancel = () => {
+    setEditingIndex(null)
+    setEditValue("")
+  }
+
+  const handleAdvancedEdit = (budget: Budget) => {
+    setEditingBudget(budget)
+    setEditDialogOpen(true)
+  }
+
+  const handleSaveAdvanced = () => {
+    // Save advanced settings logic here
+    setEditDialogOpen(false)
+  }
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
+    return sortDirection === "asc" ? (
+      <ArrowUp className="ml-1 h-3.5 w-3.5 text-foreground" />
+    ) : (
+      <ArrowDown className="ml-1 h-3.5 w-3.5 text-foreground" />
+    )
+  }
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Budget by Category</CardTitle>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Budget
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {budgets.map((budget, index) => (
-            <div key={index} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-foreground">{budget.category}</span>
-                <div className="flex items-center gap-4">
-                  <span className="text-muted-foreground">
-                    ${budget.actual} / ${budget.budget}
-                  </span>
-                  <span
-                    className={`font-semibold tabular-nums ${
-                      budget.variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {budget.variance >= 0 ? "+" : ""}${budget.variance}
-                  </span>
+    <>
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle className="text-lg font-semibold">Budget by Category</CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search categories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 h-9 w-[200px]"
+                />
+              </div>
+              <Button size="sm" variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Category
+              </Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 text-xs font-medium text-muted-foreground">
+            <button
+              onClick={() => handleSort("category")}
+              className="flex items-center text-left hover:text-foreground"
+            >
+              CATEGORY
+              <SortIcon field="category" />
+            </button>
+            <button onClick={() => handleSort("budget")} className="flex items-center hover:text-foreground">
+              BUDGET VS. ACTUAL
+              <SortIcon field="budget" />
+            </button>
+            <button onClick={() => handleSort("variance")} className="flex items-center hover:text-foreground">
+              DIFF
+              <SortIcon field="variance" />
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredBudgets.map((budget, index) => (
+              <div
+                key={index}
+                className="group space-y-3 rounded-lg border border-transparent p-4 transition-all hover:border-border hover:bg-muted/30"
+              >
+                <div className="grid grid-cols-[1fr_auto_auto] gap-4 items-center">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-foreground">{budget.category}</span>
+                    <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => handleEdit(index, budget)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => handleAdvancedEdit(budget)}
+                      >
+                        <Settings className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="text-right min-w-[100px]">
+                    {editingIndex === index ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="h-7 w-20 text-sm"
+                          autoFocus
+                        />
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleSave(index)}>
+                          <Check className="h-3.5 w-3.5 text-green-600" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleCancel}>
+                          <X className="h-3.5 w-3.5 text-red-600" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-0.5">
+                        <div className="text-xs text-muted-foreground tabular-nums">
+                          ${budget.budget.toLocaleString()}
+                        </div>
+                        <div className="text-sm font-medium tabular-nums text-foreground">
+                          ${budget.actual.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right min-w-[80px] flex items-center justify-end gap-1">
+                    {budget.variance >= 0 ? (
+                      <ArrowUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                    ) : (
+                      <ArrowDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                    )}
+                    <span
+                      className={`text-sm font-semibold tabular-nums ${
+                        budget.variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      ${Math.abs(budget.variance)}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Progress
+                      value={Math.min(budget.percent, 100)}
+                      className="h-2.5 flex-1"
+                      indicatorClassName={
+                        budget.percent > 100
+                          ? "bg-red-500"
+                          : budget.percent > 90
+                            ? "bg-orange-500"
+                            : budget.percent > 75
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                      }
+                    />
+                    {budget.percent > 100 && (
+                      <Badge variant="destructive" className="text-xs px-2 py-0 h-5">
+                        Over budget
+                      </Badge>
+                    )}
+                    {budget.percent > 90 && budget.percent <= 100 && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs px-2 py-0 h-5 bg-orange-500/10 text-orange-700 dark:text-orange-400 border-0"
+                      >
+                        At limit
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
                 </div>
               </div>
-              <Progress value={budget.percent} className="h-2" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Budget Settings</DialogTitle>
+            <DialogDescription>Configure advanced settings for {editingBudget?.category} budget</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="budget-amount">Budget Amount</Label>
+              <Input
+                id="budget-amount"
+                type="number"
+                defaultValue={editingBudget?.budget}
+                placeholder="Enter budget amount"
+              />
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="rollover">Enable Rollover</Label>
+                <p className="text-sm text-muted-foreground">Carry unused budget to next month</p>
+              </div>
+              <Switch id="rollover" checked={rolloverEnabled} onCheckedChange={setRolloverEnabled} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="warning">Warning Threshold (%)</Label>
+              <Input
+                id="warning"
+                type="number"
+                value={warningThreshold}
+                onChange={(e) => setWarningThreshold(e.target.value)}
+                placeholder="90"
+              />
+              <p className="text-xs text-muted-foreground">Get notified when spending reaches this percentage</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveAdvanced}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

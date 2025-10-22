@@ -21,9 +21,20 @@ const allocationData = {
   ],
 }
 
-export function AllocationChart() {
+interface AllocationChartProps {
+  onFilterChange?: (filter: string | null) => void
+  activeFilter?: string | null
+}
+
+export function AllocationChart({ onFilterChange, activeFilter }: AllocationChartProps) {
   const [view, setView] = useState<"assetClass" | "sector">("assetClass")
   const data = allocationData[view]
+
+  const handleSegmentClick = (entry: any) => {
+    if (onFilterChange) {
+      onFilterChange(activeFilter === entry.name ? null : entry.name)
+    }
+  }
 
   return (
     <Card>
@@ -41,15 +52,38 @@ export function AllocationChart() {
             </TabsList>
           </Tabs>
         </div>
+        {activeFilter && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Filtering by: <span className="font-medium text-foreground">{activeFilter}</span>
+            <button onClick={() => onFilterChange?.(null)} className="ml-2 text-primary hover:underline">
+              Clear
+            </button>
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-6">
           <div className="h-48 w-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={2}
+                  dataKey="value"
+                  onClick={handleSegmentClick}
+                  className="cursor-pointer"
+                >
                   {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      opacity={activeFilter && activeFilter !== entry.name ? 0.3 : 1}
+                      className="transition-opacity hover:opacity-80"
+                    />
                   ))}
                 </Pie>
                 <Tooltip
@@ -59,6 +93,7 @@ export function AllocationChart() {
                         <div className="rounded-lg border bg-card p-2 shadow-sm">
                           <div className="text-sm font-medium">{payload[0].name}</div>
                           <div className="text-xs text-muted-foreground">{payload[0].value}%</div>
+                          <div className="text-xs text-muted-foreground mt-1">Click to filter</div>
                         </div>
                       )
                     }
@@ -70,13 +105,23 @@ export function AllocationChart() {
           </div>
           <div className="flex-1 space-y-2">
             {data.map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-sm">
+              <button
+                key={item.name}
+                onClick={() => handleSegmentClick(item)}
+                className="flex items-center justify-between text-sm w-full hover:bg-muted/50 p-1 rounded transition-colors"
+              >
                 <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.color }} />
-                  <span>{item.name}</span>
+                  <div
+                    className="h-3 w-3 rounded-sm transition-opacity"
+                    style={{
+                      backgroundColor: item.color,
+                      opacity: activeFilter && activeFilter !== item.name ? 0.3 : 1,
+                    }}
+                  />
+                  <span className={activeFilter === item.name ? "font-medium" : ""}>{item.name}</span>
                 </div>
                 <span className="font-mono font-medium">{item.value}%</span>
-              </div>
+              </button>
             ))}
           </div>
         </div>

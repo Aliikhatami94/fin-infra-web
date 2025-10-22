@@ -1,9 +1,11 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { DocumentCard } from "@/components/document-card"
+import { DocumentSkeleton } from "@/components/document-skeleton"
+import { FolderOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { FileText, Download, Eye } from "lucide-react"
+import { Upload } from "lucide-react"
+import { useMemo } from "react"
 
 const documents = [
   {
@@ -50,42 +52,61 @@ const documents = [
   },
 ]
 
-export function DocumentsGrid() {
+interface DocumentsGridProps {
+  isLoading?: boolean
+  searchQuery?: string
+  selectedTypes?: string[]
+}
+
+export function DocumentsGrid({ isLoading = false, searchQuery = "", selectedTypes = [] }: DocumentsGridProps) {
+  const filteredDocuments = useMemo(() => {
+    return documents.filter((doc) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.institution.toLowerCase().includes(searchQuery.toLowerCase())
+
+      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(doc.type)
+
+      return matchesSearch && matchesType
+    })
+  }, [searchQuery, selectedTypes])
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <DocumentSkeleton key={i} />
+        ))}
+      </div>
+    )
+  }
+
+  if (filteredDocuments.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
+        <FolderOpen className="h-12 w-12 mb-4 opacity-60" />
+        <p className="text-sm mb-2">
+          {searchQuery || selectedTypes.length > 0 ? "No documents found" : "No documents yet"}
+        </p>
+        <p className="text-xs mb-4">
+          {searchQuery || selectedTypes.length > 0
+            ? "Try adjusting your search or filters"
+            : "Upload your first document to get started"}
+        </p>
+        {!searchQuery && selectedTypes.length === 0 && (
+          <Button>
+            <Upload className="mr-2 h-4 w-4" /> Upload Document
+          </Button>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {documents.map((doc, index) => (
-        <Card key={index} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted">
-                  <FileText className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-foreground line-clamp-2">{doc.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{doc.institution}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Badge variant="outline" className="text-xs">
-                    {doc.type}
-                  </Badge>
-                  <p className="text-xs text-muted-foreground">{doc.date}</p>
-                  <p className="text-xs text-muted-foreground">{doc.size}</p>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+      {filteredDocuments.map((doc, index) => (
+        <DocumentCard key={index} {...doc} index={index} />
       ))}
     </div>
   )

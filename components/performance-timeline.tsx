@@ -2,16 +2,20 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Line } from "recharts"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
+import { useDateRange } from "@/components/date-range-provider"
 
-const generateData = () => {
+const generateData = (days: number) => {
   const data = []
   let value = 100000
-  for (let i = 0; i < 365; i++) {
+  for (let i = 0; i < days; i++) {
     value += (Math.random() - 0.45) * 1000
     data.push({
-      date: new Date(2024, 0, i + 1).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      date: new Date(Date.now() - (days - i - 1) * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
       portfolio: value,
       benchmark: 100000 + i * 300,
     })
@@ -21,7 +25,20 @@ const generateData = () => {
 
 export function PerformanceTimeline() {
   const [showBenchmark, setShowBenchmark] = useState(false)
-  const data = generateData()
+  const { dateRange } = useDateRange()
+
+  const data = useMemo(() => {
+    const daysMap = {
+      "1D": 1,
+      "5D": 5,
+      "1M": 30,
+      "6M": 180,
+      YTD: Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (1000 * 60 * 60 * 24)),
+      "1Y": 365,
+      ALL: 730,
+    }
+    return generateData(daysMap[dateRange])
+  }, [dateRange])
 
   return (
     <Card>
@@ -53,7 +70,7 @@ export function PerformanceTimeline() {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                interval={60}
+                interval={Math.floor(data.length / 6)}
               />
               <YAxis
                 stroke="hsl(var(--muted-foreground))"
@@ -67,10 +84,14 @@ export function PerformanceTimeline() {
                   if (active && payload && payload.length) {
                     return (
                       <div className="rounded-lg border bg-card p-3 shadow-sm">
-                        <p className="text-xs text-muted-foreground">{payload[0].payload.date}</p>
-                        <p className="text-sm font-medium">Portfolio: ${payload[0].value?.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mb-1">{payload[0].payload.date}</p>
+                        <p className="text-sm font-medium">
+                          Portfolio: ${payload[0].value?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </p>
                         {showBenchmark && payload[1] && (
-                          <p className="text-sm text-muted-foreground">SPY: ${payload[1].value?.toLocaleString()}</p>
+                          <p className="text-sm text-muted-foreground">
+                            SPY: ${payload[1].value?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </p>
                         )}
                       </div>
                     )
