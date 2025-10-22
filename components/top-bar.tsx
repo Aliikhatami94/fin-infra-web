@@ -22,6 +22,7 @@ import { usePrivacy } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
 import { useDateRange } from "@/components/date-range-provider"
+import { BRAND } from "@/lib/brand"
 
 export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { setTheme, theme } = useTheme()
@@ -45,7 +46,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             <Menu className="h-5 w-5" />
           </Button>
 
-          <h1 className="text-lg md:text-xl font-bold tracking-tight">FinanceHub</h1>
+          <h1 className="text-lg md:text-xl font-bold tracking-tight">{BRAND.name}</h1>
           <Badge variant="outline" className="font-mono text-xs hidden sm:inline-flex">
             Live
           </Badge>

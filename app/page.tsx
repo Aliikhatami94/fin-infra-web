@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { VantaBackground } from "@/components/vanta-background"
 import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock } from "lucide-react"
+import { BRAND } from "@/lib/brand"
 
 export default function LandingPage() {
   return (
@@ -15,7 +16,7 @@ export default function LandingPage() {
               <div className="flex h-14 items-center justify-between">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-foreground" />
-                  <span className="text-lg font-semibold tracking-tight">TradeHub</span>
+                  <span className="text-lg font-semibold tracking-tight">{BRAND.name}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -102,7 +103,7 @@ export default function LandingPage() {
                 trading?
               </h2>
               <p className="mb-10 text-xl font-light text-muted-foreground lg:text-2xl">
-                Join thousands of traders who trust TradeHub
+                Join thousands of traders who trust {BRAND.name}
               </p>
               <Link href="/sign-in">
                 <Button
@@ -121,9 +122,9 @@ export default function LandingPage() {
             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-muted-foreground">TradeHub</span>
+                <span className="text-sm font-medium text-muted-foreground">{BRAND.name}</span>
               </div>
-              <p className="text-xs font-light text-muted-foreground">© 2025 TradeHub. All rights reserved.</p>
+              <p className="text-xs font-light text-muted-foreground">© 2025 {BRAND.name}. All rights reserved.</p>
             </div>
           </div>
         </footer>

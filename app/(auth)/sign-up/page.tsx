@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useState } from "react"
+import { BRAND } from "@/lib/brand"
 
 export default function SignUpPage() {
   const [name, setName] = useState("")
@@ -46,7 +47,7 @@ export default function SignUpPage() {
                   />
                 </svg>
               </div>
-              <span className="text-xl font-semibold">Wealth</span>
+              <span className="text-xl font-semibold">{BRAND.name}</span>
             </div>
           </Link>
           <h1 className="mt-8 text-3xl font-semibold tracking-tight">Create your account</h1>

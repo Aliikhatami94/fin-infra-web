@@ -5,14 +5,15 @@ import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PrivacyProvider } from "../components/privacy-provider"
 import { DateRangeProvider } from "@/components/date-range-provider"
+import { BRAND } from "@/lib/brand"
 import "./globals.css"
 
-const _inter = Inter({ subsets: ["latin"] })
-const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] })
+const _inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
-  title: "TradeHub - Stock Trading Dashboard",
-  description: "Professional stock trading dashboard",
+  title: `${BRAND.name} - ${BRAND.tagline}`,
+  description: BRAND.description,
   generator: "v0.app",
 }
 
@@ -23,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans antialiased`}>
+      <body className={`${_inter.className} ${_inter.variable} ${_jetbrainsMono.variable} font-sans antialiased`}>
         {/* Skip to content for keyboard users */}
         <a
           href="#main-content"
