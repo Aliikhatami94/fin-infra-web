@@ -22,12 +22,23 @@ import { usePrivacy } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
 import { useDateRange } from "@/components/date-range-provider"
+import { BRAND } from "@/lib/brand"
 
 export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked } = usePrivacy()
   const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
+
+  const isDateRangeValue = (value: string): value is typeof dateRange => {
+    return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
+  }
+
+  const handleDateRangeChange = (value: string) => {
+    if (isDateRangeValue(value)) {
+      setDateRange(value)
+    }
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -45,7 +56,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             <Menu className="h-5 w-5" />
           </Button>
 
-          <h1 className="text-lg md:text-xl font-bold tracking-tight">FinanceHub</h1>
+          <h1 className="text-lg md:text-xl font-bold tracking-tight">{BRAND.name}</h1>
           <Badge variant="outline" className="font-mono text-xs hidden sm:inline-flex">
             Live
           </Badge>
@@ -83,7 +94,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             {masked ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
           </Button>
 
-          <Select value={dateRange} onValueChange={(value) => setDateRange(value as any)}>
+          <Select value={dateRange} onValueChange={handleDateRangeChange}>
             <SelectTrigger className="w-24 md:w-32 rounded-full hidden sm:flex">
               <Calendar className="mr-2 h-4 w-4" />
               <SelectValue />

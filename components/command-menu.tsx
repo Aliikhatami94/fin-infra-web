@@ -15,7 +15,7 @@ import {
 import { usePrivacy } from "@/components/privacy-provider"
 
 const routes = [
-  { label: "Overview", href: "/" },
+  { label: "Overview", href: "/overview" },
   { label: "Accounts", href: "/accounts" },
   { label: "Portfolio", href: "/portfolio" },
   { label: "Cash Flow", href: "/cash-flow" },

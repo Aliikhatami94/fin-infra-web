@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navigation = [
-  { name: "Overview", href: "/", icon: LayoutDashboard },
+  { name: "Overview", href: "/overview", icon: LayoutDashboard },
   { name: "Accounts", href: "/accounts", icon: Building2, badge: 2 },
   { name: "Portfolio", href: "/portfolio", icon: Wallet },
   { name: "Crypto", href: "/crypto", icon: Bitcoin },
@@ -90,7 +90,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="space-y-1 px-2">
               {navigation.map((item) => {
-                const isActive = pathname === item.href
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/" && pathname.startsWith(`${item.href}/`))
                 return (
                   <Link
                     key={item.name}

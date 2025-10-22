@@ -4,11 +4,21 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import type { TooltipContentProps } from "recharts"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { motion, AnimatePresence } from "framer-motion"
 
-const data = [
+interface CryptoDatum {
+  date: string
+  btc: number
+  eth: number
+  other: number
+  stablecoins: number
+  transaction: { type: "buy" | "sell"; amount: string } | null
+}
+
+const data: CryptoDatum[] = [
   { date: "Jan", btc: 8500, eth: 3200, other: 2100, stablecoins: 500, transaction: null },
   { date: "Feb", btc: 9200, eth: 3800, other: 2400, stablecoins: 600, transaction: { type: "buy", amount: "$1,200" } },
   { date: "Mar", btc: 10100, eth: 4200, other: 2800, stablecoins: 700, transaction: null },
@@ -17,15 +27,19 @@ const data = [
   { date: "Jun", btc: 12400, eth: 5100, other: 3400, stablecoins: 900, transaction: { type: "buy", amount: "$2,000" } },
 ]
 
-const timeRanges = ["1D", "7D", "30D", "6M", "1Y", "All"]
+const timeRanges = ["1D", "7D", "30D", "6M", "1Y", "All"] as const
+
+type TimeRange = (typeof timeRanges)[number]
 
 interface CryptoChartProps {
   showStablecoins: boolean
   onToggleStablecoins: (value: boolean) => void
 }
 
+type CryptoTooltipProps = TooltipContentProps<number, string>
+
 export function CryptoChart({ showStablecoins, onToggleStablecoins }: CryptoChartProps) {
-  const [selectedRange, setSelectedRange] = useState("30D")
+  const [selectedRange, setSelectedRange] = useState<TimeRange>("30D")
 
   return (
     <Card className="card-standard">
@@ -71,22 +85,32 @@ export function CryptoChart({ showStablecoins, onToggleStablecoins }: CryptoChar
                   <XAxis dataKey="date" className="text-xs" />
                   <YAxis className="text-xs" />
                   <Tooltip
-                    content={({ active, payload }) => {
+                    content={({ active, payload }: CryptoTooltipProps) => {
                       if (active && payload && payload.length) {
-                        const data = payload[0].payload
+                        const datum = payload[0]?.payload as CryptoDatum | undefined
+                        if (!datum) {
+                          return null
+                        }
+
                         return (
                           <div className="bg-background border rounded-lg p-3 shadow-lg">
-                            <p className="text-sm font-semibold mb-2">{data.date}</p>
-                            {payload.map((entry: any) => (
-                              <div key={entry.name} className="flex items-center justify-between gap-4 text-xs">
-                                <span style={{ color: entry.color }}>{entry.name}:</span>
-                                <span className="font-semibold">${entry.value.toLocaleString()}</span>
-                              </div>
-                            ))}
-                            {data.transaction && (
+                            <p className="text-sm font-semibold mb-2">{datum.date}</p>
+                            {payload.map((entry) => {
+                              if (!entry?.name) {
+                                return null
+                              }
+                              const value = typeof entry.value === "number" ? entry.value : Number(entry.value ?? 0)
+                              return (
+                                <div key={entry.name} className="flex items-center justify-between gap-4 text-xs">
+                                  <span style={{ color: entry.color ?? "inherit" }}>{entry.name}:</span>
+                                  <span className="font-semibold">${value.toLocaleString()}</span>
+                                </div>
+                              )
+                            })}
+                            {datum.transaction && (
                               <div className="mt-2 pt-2 border-t text-xs">
-                                <span className={data.transaction.type === "buy" ? "text-green-600" : "text-red-600"}>
-                                  {data.transaction.type === "buy" ? "Buy" : "Sell"}: {data.transaction.amount}
+                                <span className={datum.transaction.type === "buy" ? "text-green-600" : "text-red-600"}>
+                                  {datum.transaction.type === "buy" ? "Buy" : "Sell"}: {datum.transaction.amount}
                                 </span>
                               </div>
                             )}

@@ -3,13 +3,28 @@
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, Info, DollarSign, TrendingUpIcon, Activity, Target } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { RiskMetricModal } from "@/components/risk-metric-modal"
 
-const kpis = [
+type RiskMetricKey = "sharpe" | "beta" | "volatility"
+
+interface KPI {
+  label: string
+  value: string
+  change: string
+  baselineValue: string
+  positive: boolean
+  tooltip: string
+  icon: LucideIcon
+  lastSynced: string
+  source: string
+}
+
+const kpis: KPI[] = [
   {
     label: "Total Value",
     value: "$187,650.45",
@@ -78,22 +93,32 @@ const kpis = [
   },
 ]
 
+const riskMetricLabelToKey: Record<string, RiskMetricKey> = {
+  "Sharpe Ratio": "sharpe",
+  Beta: "beta",
+  Volatility: "volatility",
+}
+
 export function PortfolioKPIs() {
-  const [selectedMetric, setSelectedMetric] = useState<"sharpe" | "beta" | "volatility" | null>(null)
+  const [selectedMetric, setSelectedMetric] = useState<RiskMetricKey | null>(null)
 
   return (
     <TooltipProvider>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon
-          const isRiskMetric = ["Sharpe Ratio", "Beta", "Volatility"].includes(kpi.label)
-          const metricKey = kpi.label === "Sharpe Ratio" ? "sharpe" : kpi.label === "Beta" ? "beta" : "volatility"
+          const metricKey = riskMetricLabelToKey[kpi.label]
+          const isRiskMetric = metricKey !== undefined
 
           return (
             <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
               <Card
                 className={`card-standard card-lift ${isRiskMetric ? "cursor-pointer" : ""}`}
-                onClick={() => isRiskMetric && setSelectedMetric(metricKey as any)}
+                onClick={() => {
+                  if (metricKey) {
+                    setSelectedMetric(metricKey)
+                  }
+                }}
               >
                 <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
                   <div className="mb-2">

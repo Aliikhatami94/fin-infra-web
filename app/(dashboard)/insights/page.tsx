@@ -6,10 +6,19 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search } from "lucide-react"
 
+type InsightFilter = "all" | "spending" | "investment" | "goals"
+
 export default function InsightsPage() {
-  const [activeTab, setActiveTab] = useState("all")
+  const [activeTab, setActiveTab] = useState<InsightFilter>("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [timeRange, setTimeRange] = useState("30d")
+
+  const tabs: ReadonlyArray<{ value: InsightFilter; label: string }> = [
+    { value: "all", label: "All Insights" },
+    { value: "spending", label: "Spending Trends" },
+    { value: "investment", label: "Investment Health" },
+    { value: "goals", label: "Goals Forecast" },
+  ]
 
   return (
     <div className="mx-auto w-full max-w-[1600px]">
@@ -51,12 +60,7 @@ export default function InsightsPage() {
       <div className="space-y-6">
         <div className="relative">
           <div className="flex gap-8 border-b border-border/30 overflow-x-auto">
-            {[
-              { value: "all", label: "All Insights" },
-              { value: "spending", label: "Spending Trends" },
-              { value: "investment", label: "Investment Health" },
-              { value: "goals", label: "Goals Forecast" },
-            ].map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
@@ -85,7 +89,7 @@ export default function InsightsPage() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <InsightsFeed filter={activeTab as any} searchQuery={searchQuery} timeRange={timeRange} />
+            <InsightsFeed filter={activeTab} searchQuery={searchQuery} timeRange={timeRange} />
           </motion.div>
         </AnimatePresence>
       </div>
