@@ -4,6 +4,8 @@ import { useState } from "react"
 import { TaxSummary } from "@/components/tax-summary"
 import { CapitalGainsTable } from "@/components/capital-gains-table"
 import { TaxDocuments } from "@/components/tax-documents"
+import { TaxScenarioTool } from "@/components/tax-scenario-tool"
+import { TaxYearComparison } from "@/components/tax-year-comparison"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TrendingDown, AlertCircle, Clock } from "lucide-react"
@@ -12,6 +14,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 export default function TaxesPage() {
   const [taxYear, setTaxYear] = useState("2025")
   const [gainsFilter, setGainsFilter] = useState<string | null>(null)
+
+  const isComparisonMode = taxYear === "2024-compare"
 
   return (
     <div className="mx-auto w-full max-w-[1600px]">
@@ -67,7 +71,10 @@ export default function TaxesPage() {
           </AlertDescription>
         </Alert>
 
-        <TaxSummary onFilterChange={setGainsFilter} />
+        {isComparisonMode ? <TaxYearComparison /> : <TaxSummary onFilterChange={setGainsFilter} />}
+
+        <TaxScenarioTool />
+
         <CapitalGainsTable initialFilter={gainsFilter} />
         <TaxDocuments />
       </div>

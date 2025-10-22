@@ -1,9 +1,10 @@
 "use client"
 
 import { DocumentsGrid } from "@/components/documents-grid"
+import { DocumentsAIInsights } from "@/components/documents-ai-insights"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Upload, Search, Filter } from "lucide-react"
+import { Upload, Search, Filter, Download, Trash2, ArrowUpDown, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import {
   DropdownMenu,
@@ -12,12 +13,17 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
 
 export default function DocumentsPage() {
   const [scrolled, setScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState<"date" | "name" | "size">("date")
+  const [selectedDocuments, setSelectedDocuments] = useState<number[]>([])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,6 +44,23 @@ export default function DocumentsPage() {
     setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
   }
 
+  const clearFilters = () => {
+    setSelectedTypes([])
+    setSearchQuery("")
+  }
+
+  const handleBulkDownload = () => {
+    console.log("[v0] Bulk downloading documents:", selectedDocuments)
+    // Implement bulk download logic
+    setSelectedDocuments([])
+  }
+
+  const handleBulkDelete = () => {
+    console.log("[v0] Bulk deleting documents:", selectedDocuments)
+    // Implement bulk delete logic
+    setSelectedDocuments([])
+  }
+
   return (
     <>
       <div
@@ -49,6 +72,26 @@ export default function DocumentsPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <h1 className="text-lg md:text-xl font-semibold text-foreground">Documents</h1>
             <div className="flex gap-2 items-center w-full sm:w-auto">
+              {selectedDocuments.length > 0 && (
+                <>
+                  <Badge variant="secondary" className="mr-2">
+                    {selectedDocuments.length} selected
+                  </Badge>
+                  <Button variant="outline" size="sm" onClick={handleBulkDownload} className="gap-2 bg-transparent">
+                    <Download className="h-4 w-4" />
+                    <span className="hidden sm:inline">Download</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    className="gap-2 bg-transparent text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Delete</span>
+                  </Button>
+                </>
+              )}
               <div className="relative flex-1 sm:flex-initial">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -58,6 +101,23 @@ export default function DocumentsPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                    <ArrowUpDown className="h-4 w-4" />
+                    <span className="hidden sm:inline">Sort</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                    <DropdownMenuRadioItem value="date">Date</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="size">Size</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2 bg-transparent">
@@ -90,11 +150,42 @@ export default function DocumentsPage() {
               </Button>
             </div>
           </div>
+          {(selectedTypes.length > 0 || searchQuery) && (
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <span className="text-xs text-muted-foreground">Active filters:</span>
+              {searchQuery && (
+                <Badge variant="secondary" className="gap-1">
+                  Search: {searchQuery}
+                  <button onClick={() => setSearchQuery("")} className="ml-1 hover:text-foreground">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedTypes.map((type) => (
+                <Badge key={type} variant="secondary" className="gap-1">
+                  {type}
+                  <button onClick={() => toggleType(type)} className="ml-1 hover:text-foreground">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs">
+                Clear all
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="mx-auto max-w-[1600px] p-4 md:p-8 space-y-6">
-        <DocumentsGrid searchQuery={searchQuery} selectedTypes={selectedTypes} />
+        <DocumentsAIInsights />
+        <DocumentsGrid
+          searchQuery={searchQuery}
+          selectedTypes={selectedTypes}
+          sortBy={sortBy}
+          selectedDocuments={selectedDocuments}
+          onSelectionChange={setSelectedDocuments}
+        />
       </div>
     </>
   )

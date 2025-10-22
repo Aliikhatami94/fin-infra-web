@@ -3,7 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Download, CheckCircle2, AlertCircle, Clock } from "lucide-react"
+import { FileText, Download, CheckCircle2, AlertCircle, Clock, ExternalLink } from "lucide-react"
+import Link from "next/link"
 
 const documents = [
   { name: "1099-DIV Fidelity", year: 2024, size: "245 KB", status: "received" },
@@ -53,9 +54,17 @@ export function TaxDocuments() {
   }
 
   return (
-    <Card>
+    <Card className="card-standard card-lift">
       <CardHeader>
-        <CardTitle>Tax Documents</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Tax Documents</CardTitle>
+          <Link href="/documents">
+            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+              <ExternalLink className="h-4 w-4" />
+              View All Documents
+            </Button>
+          </Link>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

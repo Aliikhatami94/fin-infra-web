@@ -22,6 +22,7 @@ const kpis = [
     icon: DollarSign,
     lastSynced: "2 minutes ago",
     source: "Plaid",
+    href: "/accounts",
   },
   {
     label: "Investable Assets",
@@ -33,6 +34,7 @@ const kpis = [
     icon: Wallet,
     lastSynced: "2 minutes ago",
     source: "Plaid",
+    href: "/portfolio",
   },
   {
     label: "Cash Available",
@@ -44,6 +46,7 @@ const kpis = [
     icon: DollarSign,
     lastSynced: "5 minutes ago",
     source: "Teller",
+    href: "/accounts",
   },
   {
     label: "Debt Balance",
@@ -55,6 +58,7 @@ const kpis = [
     icon: CreditCard,
     lastSynced: "1 hour ago",
     source: "Plaid",
+    href: "/accounts",
   },
   {
     label: "Today's P/L",
@@ -66,6 +70,7 @@ const kpis = [
     icon: Activity,
     lastSynced: "Just now",
     source: "Live",
+    href: "/portfolio",
   },
   {
     label: "Credit Score",
@@ -77,6 +82,7 @@ const kpis = [
     icon: Activity,
     lastSynced: "1 week ago",
     source: "Experian",
+    href: "/accounts",
   },
 ]
 
@@ -114,7 +120,7 @@ export function KPICards() {
         <TooltipProvider key={kpi.label}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link href={kpi.label === "Net Worth" ? "/net-worth-detail" : "#"}>
+              <Link href={kpi.href}>
                 <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants}>
                   <Card className="cursor-pointer card-standard card-lift">
                     <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
@@ -165,7 +171,7 @@ export function KPICards() {
               </Link>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="text-xs">Last synced: {kpi.lastSynced}</p>
+              <p className="text-xs">Click to view details • Last synced: {kpi.lastSynced}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

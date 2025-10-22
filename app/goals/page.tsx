@@ -3,12 +3,14 @@
 import { useState } from "react"
 import { GoalsSummaryKPIs } from "@/components/goals-summary-kpis"
 import { GoalsGrid } from "@/components/goals-grid"
+import { GoalsAIInsights } from "@/components/goals-ai-insights"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus } from "lucide-react"
+import { GoalRecommendations } from "@/components/goal-recommendations"
 
 export default function GoalsPage() {
   const [showAddGoal, setShowAddGoal] = useState(false)
@@ -25,6 +27,10 @@ export default function GoalsPage() {
         </div>
 
         <GoalsSummaryKPIs />
+
+        <GoalsAIInsights />
+
+        <GoalRecommendations />
 
         <GoalsGrid />
 

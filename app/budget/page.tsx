@@ -4,6 +4,7 @@ import { useState } from "react"
 import { BudgetSummary } from "@/components/budget-summary"
 import { BudgetTable } from "@/components/budget-table"
 import { BudgetChart } from "@/components/budget-chart"
+import { BudgetAIInsights } from "@/components/budget-ai-insights"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -58,6 +59,8 @@ export default function BudgetPage() {
         </div>
 
         <BudgetSummary />
+
+        <BudgetAIInsights />
 
         <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
           <BudgetTable />

@@ -5,12 +5,15 @@ import { CryptoKPIs } from "@/components/crypto-kpis"
 import { CryptoChart } from "@/components/crypto-chart"
 import { CryptoTable } from "@/components/crypto-table"
 import { CryptoRiskSection } from "@/components/crypto-risk-section"
+import { CryptoAIInsights } from "@/components/crypto-ai-insights"
+import { ExchangeAnalytics } from "@/components/exchange-analytics"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Fuel, Plus } from "lucide-react"
 
 export default function CryptoPage() {
   const [selectedExchange, setSelectedExchange] = useState<"All" | "Coinbase" | "Binance">("All")
+  const [showStablecoins, setShowStablecoins] = useState(false)
 
   return (
     <>
@@ -44,8 +47,10 @@ export default function CryptoPage() {
         </div>
 
         <CryptoKPIs />
-        <CryptoChart />
-        <CryptoTable selectedExchange={selectedExchange} />
+        <CryptoAIInsights />
+        <CryptoChart showStablecoins={showStablecoins} onToggleStablecoins={setShowStablecoins} />
+        <ExchangeAnalytics selectedExchange={selectedExchange} />
+        <CryptoTable selectedExchange={selectedExchange} showStablecoins={showStablecoins} />
         <CryptoRiskSection />
       </div>
 

@@ -6,16 +6,20 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 
 interface DocumentCardProps {
+  id: number
   name: string
   institution: string
   type: string
   date: string
   size: string
   index: number
+  isSelected?: boolean
+  onSelectionChange?: (selected: boolean) => void
 }
 
 const getDocumentIcon = (type: string) => {
@@ -32,7 +36,17 @@ const getTypeColor = (type: string) => {
   return "bg-gray-500/15 text-gray-700 dark:text-gray-300 border-gray-500/30"
 }
 
-export function DocumentCard({ name, institution, type, date, size, index }: DocumentCardProps) {
+export function DocumentCard({
+  id,
+  name,
+  institution,
+  type,
+  date,
+  size,
+  index,
+  isSelected = false,
+  onSelectionChange,
+}: DocumentCardProps) {
   const Icon = getDocumentIcon(type)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
@@ -40,9 +54,19 @@ export function DocumentCard({ name, institution, type, date, size, index }: Doc
     <motion.div
       {...createStaggeredCardVariants(index, 0)}
       {...cardHoverVariants}
-      className="group relative p-6 border border-border/30 rounded-xl bg-card shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-300 card-standard card-lift"
+      className={`group relative p-6 border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300 card-standard card-lift ${
+        isSelected ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-border/60"
+      }`}
     >
-      <div className="flex justify-between items-start mb-3">
+      <div className="absolute top-4 left-4 z-10">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={onSelectionChange}
+          className="bg-background border-2"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+      <div className="flex justify-between items-start mb-3 ml-8">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
             <Icon className="h-5 w-5 text-primary" />
@@ -75,7 +99,7 @@ export function DocumentCard({ name, institution, type, date, size, index }: Doc
         </DropdownMenu>
       </div>
 
-      <div className="flex justify-between items-center text-xs">
+      <div className="flex justify-between items-center text-xs ml-8">
         <Badge variant="outline" className={getTypeColor(type)}>
           {type}
         </Badge>
@@ -99,17 +123,38 @@ export function DocumentCard({ name, institution, type, date, size, index }: Doc
                   <span>{date}</span>
                   <span>•</span>
                   <span>{size}</span>
-                </div>
-              </DialogHeader>
-              <div className="flex-1 bg-muted/30 rounded-md flex items-center justify-center mt-4">
-                <div className="text-center space-y-2">
-                  <FileText className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                  <p className="text-sm text-muted-foreground">Document preview</p>
-                  <p className="text-xs text-muted-foreground/70">PDF viewer would be integrated here</p>
-                  <Button size="sm" variant="outline" className="mt-4 bg-transparent">
+                  <Button size="sm" variant="outline" className="ml-auto bg-transparent">
                     <Download className="mr-2 h-4 w-4" />
                     Download
                   </Button>
+                </div>
+              </DialogHeader>
+              <div className="flex-1 bg-muted/30 rounded-md flex items-center justify-center mt-4 overflow-hidden">
+                <div className="text-center space-y-2 p-8">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                  <p className="text-sm text-muted-foreground">Document Preview</p>
+                  <p className="text-xs text-muted-foreground/70 max-w-md">
+                    In a production environment, this would display the actual document content using a PDF viewer or
+                    image preview component.
+                  </p>
+                  <div className="pt-4 space-y-2 text-left max-w-md mx-auto">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Document Type:</span>
+                      <span className="font-medium">{type}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Institution:</span>
+                      <span className="font-medium">{institution}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Date:</span>
+                      <span className="font-medium">{date}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">File Size:</span>
+                      <span className="font-medium">{size}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </DialogContent>

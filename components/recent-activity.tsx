@@ -1,8 +1,9 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowUpRight, ArrowDownRight, RefreshCw } from "lucide-react"
+import { ArrowUpRight, ArrowDownRight, RefreshCw, ShoppingCart } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
 const activities = [
@@ -13,8 +14,13 @@ const activities = [
     description: "Purchased 10 shares of AAPL",
     amount: -1850.0,
     date: "2 hours ago",
+    dateGroup: "Today",
     icon: ArrowDownRight,
     color: "blue",
+    actions: [
+      { label: "View Details", variant: "default" as const },
+      { label: "Sell", variant: "outline" as const },
+    ],
   },
   {
     id: 2,
@@ -23,8 +29,10 @@ const activities = [
     description: "Chase Checking synced",
     amount: null,
     date: "5 hours ago",
+    dateGroup: "Today",
     icon: RefreshCw,
     color: "gray",
+    actions: [{ label: "Refresh Now", variant: "outline" as const }],
   },
   {
     id: 3,
@@ -33,40 +41,53 @@ const activities = [
     description: "Dividend received from MSFT",
     amount: 45.32,
     date: "1 day ago",
+    dateGroup: "Yesterday",
     icon: ArrowUpRight,
     color: "green",
+    actions: [{ label: "Reinvest", variant: "default" as const }],
   },
   {
     id: 4,
+    type: "subscription",
+    category: "expense",
+    description: "Netflix subscription renewed",
+    amount: -15.99,
+    date: "2 days ago",
+    dateGroup: "This Week",
+    icon: ShoppingCart,
+    color: "red",
+    actions: [
+      { label: "View Details", variant: "outline" as const },
+      { label: "Cancel Subscription", variant: "destructive" as const },
+    ],
+  },
+  {
+    id: 5,
     type: "transaction",
     category: "investment",
     description: "Sold 5 shares of TSLA",
     amount: 1275.5,
-    date: "2 days ago",
+    date: "3 days ago",
+    dateGroup: "This Week",
     icon: ArrowUpRight,
     color: "green",
-  },
-  {
-    id: 5,
-    type: "sync",
-    category: "sync",
-    description: "Bank of America Credit Card synced",
-    amount: null,
-    date: "3 days ago",
-    icon: RefreshCw,
-    color: "gray",
+    actions: [{ label: "View Tax Impact", variant: "outline" as const }],
   },
 ]
 
-const colorMap = {
-  blue: "bg-blue-500",
-  green: "bg-green-500",
-  red: "bg-red-500",
-  gray: "bg-gray-400",
-}
-
 export function RecentActivity() {
   const [selectedActivity, setSelectedActivity] = useState<(typeof activities)[0] | null>(null)
+
+  const groupedActivities = activities.reduce(
+    (acc, activity) => {
+      if (!acc[activity.dateGroup]) {
+        acc[activity.dateGroup] = []
+      }
+      acc[activity.dateGroup].push(activity)
+      return acc
+    },
+    {} as Record<string, typeof activities>,
+  )
 
   return (
     <>
@@ -75,56 +96,86 @@ export function RecentActivity() {
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="relative space-y-6">
-            {/* Timeline line */}
-            <div className="absolute left-5 top-2 bottom-2 w-0.5 bg-border" />
-
-            {activities.map((activity, index) => (
-              <div
-                key={activity.id}
-                onClick={() => setSelectedActivity(activity)}
-                className="relative flex items-start gap-4 cursor-pointer hover:bg-muted/50 -mx-2 px-2 py-2 rounded-lg transition-colors group"
-              >
-                {/* Timeline dot */}
-                <div
-                  className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                    activity.type === "sync"
-                      ? "bg-gray-100 dark:bg-gray-800"
-                      : activity.amount && activity.amount > 0
-                        ? "bg-green-100 dark:bg-green-900/30"
-                        : "bg-red-100 dark:bg-red-900/30"
-                  }`}
-                >
-                  <activity.icon
-                    className={`h-5 w-5 ${
-                      activity.type === "sync"
-                        ? "text-gray-500"
-                        : activity.amount && activity.amount > 0
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-red-600 dark:text-red-400"
-                    }`}
-                  />
+          <div className="space-y-6">
+            {Object.entries(groupedActivities).map(([dateGroup, groupActivities]) => (
+              <div key={dateGroup} className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{dateGroup}</span>
+                  <div className="h-px flex-1 bg-border" />
                 </div>
 
-                <div className="flex-1 min-w-0 pt-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                        {activity.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{activity.date}</p>
-                    </div>
-                    {activity.amount !== null && (
-                      <p
-                        className={`text-sm font-semibold tabular-nums shrink-0 ${
-                          activity.amount > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                <div className="relative space-y-4">
+                  {/* Timeline line */}
+                  <div className="absolute left-5 top-2 bottom-2 w-0.5 bg-border" />
+
+                  {groupActivities.map((activity) => (
+                    <div
+                      key={activity.id}
+                      onClick={() => setSelectedActivity(activity)}
+                      className="relative flex items-start gap-4 cursor-pointer hover:bg-muted/50 -mx-2 px-2 py-2 rounded-lg transition-colors group"
+                    >
+                      {/* Timeline dot with icon */}
+                      <div
+                        className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                          activity.type === "sync"
+                            ? "bg-gray-100 dark:bg-gray-800"
+                            : activity.amount && activity.amount > 0
+                              ? "bg-green-100 dark:bg-green-900/30"
+                              : "bg-red-100 dark:bg-red-900/30"
                         }`}
                       >
-                        {activity.amount > 0 ? "+" : ""}$
-                        {Math.abs(activity.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                      </p>
-                    )}
-                  </div>
+                        <activity.icon
+                          className={`h-5 w-5 ${
+                            activity.type === "sync"
+                              ? "text-gray-500"
+                              : activity.amount && activity.amount > 0
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="flex-1 min-w-0 pt-1">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                              {activity.description}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{activity.date}</p>
+                            <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {activity.actions.map((action, idx) => (
+                                <Button
+                                  key={idx}
+                                  size="sm"
+                                  variant={action.variant}
+                                  className="h-7 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    console.log(`[v0] Action clicked: ${action.label}`)
+                                  }}
+                                >
+                                  {action.label}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          {activity.amount !== null && (
+                            <p
+                              className={`text-sm font-semibold tabular-nums shrink-0 ${
+                                activity.amount > 0
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-red-600 dark:text-red-400"
+                              }`}
+                            >
+                              {activity.amount > 0 ? "+" : ""}$
+                              {Math.abs(activity.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}

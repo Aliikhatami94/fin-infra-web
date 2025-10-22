@@ -18,7 +18,11 @@ const holdings = [
 
 type SortKey = "symbol" | "shares" | "price" | "value" | "day" | "pl" | "alloc"
 
-export function Portfolio() {
+interface PortfolioProps {
+  filter?: string | null
+}
+
+export function Portfolio({ filter }: PortfolioProps) {
   const [query, setQuery] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("value")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
@@ -38,8 +42,13 @@ export function Portfolio() {
 
     const filtered = enriched.filter((h) => {
       const q = query.trim().toLowerCase()
-      if (!q) return true
-      return h.symbol.toLowerCase().includes(q) || h.name.toLowerCase().includes(q)
+      const matchesQuery = !q || h.symbol.toLowerCase().includes(q) || h.name.toLowerCase().includes(q)
+
+      // If there's an active filter, only show matching holdings
+      // This is a placeholder - in a real app, holdings would have category metadata
+      const matchesFilter = !filter || true // Placeholder: all holdings match for demo
+
+      return matchesQuery && matchesFilter
     })
 
     const sorted = [...filtered].sort((a, b) => {
@@ -58,12 +67,12 @@ export function Portfolio() {
         case "pl":
           return mult * (a.gain - b.gain)
         case "alloc":
-          return mult * ((a.value) - (b.value))
+          return mult * (a.value - b.value)
       }
     })
 
     return { totalValue, totalCost, totalGain, totalGainPercent, rows: sorted }
-  }, [query, sortKey, sortDir])
+  }, [query, sortKey, sortDir, filter])
 
   const { totalValue, totalCost, totalGain, totalGainPercent, rows } = computed
 
@@ -91,9 +100,7 @@ export function Portfolio() {
                 srLabel="Total portfolio value"
               />
             </p>
-            <p
-              className={`text-sm font-semibold ${totalGainPercent >= 0 ? "text-success" : "text-destructive"}`}
-            >
+            <p className={`text-sm font-semibold ${totalGainPercent >= 0 ? "text-success" : "text-destructive"}`}>
               {totalGainPercent >= 0 ? "+" : ""}
               {totalGainPercent.toFixed(2)}% ($
               {totalGain.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
@@ -184,7 +191,9 @@ export function Portfolio() {
                         </div>
                       </td>
                       <td className="py-3 text-right tabular-nums">{h.shares}</td>
-                      <td className="py-3 hidden md:table-cell text-right tabular-nums">${h.currentPrice.toLocaleString()}</td>
+                      <td className="py-3 hidden md:table-cell text-right tabular-nums">
+                        ${h.currentPrice.toLocaleString()}
+                      </td>
                       <td className="py-3 text-right font-mono">
                         <MaskableValue
                           value={`$${h.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -198,7 +207,12 @@ export function Portfolio() {
                           ) : (
                             <TrendingDown className="h-3.5 w-3.5 text-destructive" />
                           )}
-                          <span className={cn("tabular-nums font-medium", h.change >= 0 ? "text-success" : "text-destructive")}> 
+                          <span
+                            className={cn(
+                              "tabular-nums font-medium",
+                              h.change >= 0 ? "text-success" : "text-destructive",
+                            )}
+                          >
                             {h.change >= 0 ? "+" : ""}
                             {h.change}%
                           </span>
@@ -259,7 +273,11 @@ function SortableTh({
       >
         {label}
         {active ? (
-          dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+          dir === "asc" ? (
+            <ChevronUp className="h-3 w-3" />
+          ) : (
+            <ChevronDown className="h-3 w-3" />
+          )
         ) : (
           <span className="inline-block w-3 h-3" aria-hidden />
         )}

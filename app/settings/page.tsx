@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SettingsGroup } from "@/components/settings-group"
 import { AnimatedSwitch } from "@/components/animated-switch"
 import { ThemeSelector } from "@/components/theme-selector"
@@ -19,15 +19,67 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
+  Eye,
+  Database,
+  UserX,
+  Trash2,
 } from "lucide-react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function SettingsPage() {
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [pushNotifications, setPushNotifications] = useState(true)
-  const [priceAlerts, setPriceAlerts] = useState(true)
-  const [tradeConfirmations, setTradeConfirmations] = useState(true)
-  const [twoFactor, setTwoFactor] = useState(false)
+  const initialState = {
+    emailNotifications: true,
+    pushNotifications: true,
+    priceAlerts: true,
+    tradeConfirmations: true,
+    twoFactor: false,
+    analyticsConsent: true,
+    marketingConsent: false,
+    dataSharing: true,
+  }
+
+  const [emailNotifications, setEmailNotifications] = useState(initialState.emailNotifications)
+  const [pushNotifications, setPushNotifications] = useState(initialState.pushNotifications)
+  const [priceAlerts, setPriceAlerts] = useState(initialState.priceAlerts)
+  const [tradeConfirmations, setTradeConfirmations] = useState(initialState.tradeConfirmations)
+  const [twoFactor, setTwoFactor] = useState(initialState.twoFactor)
+  const [analyticsConsent, setAnalyticsConsent] = useState(initialState.analyticsConsent)
+  const [marketingConsent, setMarketingConsent] = useState(initialState.marketingConsent)
+  const [dataSharing, setDataSharing] = useState(initialState.dataSharing)
+  const [hasChanges, setHasChanges] = useState(false)
+
+  useEffect(() => {
+    const changed =
+      emailNotifications !== initialState.emailNotifications ||
+      pushNotifications !== initialState.pushNotifications ||
+      priceAlerts !== initialState.priceAlerts ||
+      tradeConfirmations !== initialState.tradeConfirmations ||
+      twoFactor !== initialState.twoFactor ||
+      analyticsConsent !== initialState.analyticsConsent ||
+      marketingConsent !== initialState.marketingConsent ||
+      dataSharing !== initialState.dataSharing
+    setHasChanges(changed)
+  }, [
+    emailNotifications,
+    pushNotifications,
+    priceAlerts,
+    tradeConfirmations,
+    twoFactor,
+    analyticsConsent,
+    marketingConsent,
+    dataSharing,
+  ])
+
+  const handleReset = () => {
+    setEmailNotifications(initialState.emailNotifications)
+    setPushNotifications(initialState.pushNotifications)
+    setPriceAlerts(initialState.priceAlerts)
+    setTradeConfirmations(initialState.tradeConfirmations)
+    setTwoFactor(initialState.twoFactor)
+    setAnalyticsConsent(initialState.analyticsConsent)
+    setMarketingConsent(initialState.marketingConsent)
+    setDataSharing(initialState.dataSharing)
+  }
 
   const connectedAccounts = [
     { name: "Coinbase", status: "connected", lastSync: "2 hours ago" },
@@ -207,6 +259,57 @@ export default function SettingsPage() {
           </div>
         </SettingsGroup>
 
+        {/* Accessibility & Privacy section */}
+        <SettingsGroup
+          title="Accessibility & Privacy"
+          description="Manage your data sharing preferences and privacy settings"
+          icon={<Eye className="h-5 w-5" />}
+        >
+          <div className="flex items-center justify-between py-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="analytics-consent" className="font-medium">
+                Analytics & Performance
+              </Label>
+              <p className="text-sm text-muted-foreground">Help us improve by sharing anonymous usage data</p>
+            </div>
+            <AnimatedSwitch id="analytics-consent" checked={analyticsConsent} onCheckedChange={setAnalyticsConsent} />
+          </div>
+
+          <div className="flex items-center justify-between py-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="marketing-consent" className="font-medium">
+                Marketing Communications
+              </Label>
+              <p className="text-sm text-muted-foreground">Receive product updates and offers</p>
+            </div>
+            <AnimatedSwitch id="marketing-consent" checked={marketingConsent} onCheckedChange={setMarketingConsent} />
+          </div>
+
+          <div className="flex items-center justify-between py-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="data-sharing" className="font-medium">
+                Data Sharing with Partners
+              </Label>
+              <p className="text-sm text-muted-foreground">Share aggregated data with financial service providers</p>
+            </div>
+            <AnimatedSwitch id="data-sharing" checked={dataSharing} onCheckedChange={setDataSharing} />
+          </div>
+
+          <div className="space-y-3 py-4">
+            <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+              <Database className="h-4 w-4" />
+              Download My Data
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2 bg-transparent text-red-600 hover:text-red-700"
+            >
+              <UserX className="h-4 w-4" />
+              Delete My Account
+            </Button>
+          </div>
+        </SettingsGroup>
+
         <SettingsGroup
           title="Connected Accounts"
           description="Manage your linked brokers and financial institutions"
@@ -237,6 +340,11 @@ export default function SettingsPage() {
                     <RefreshCw className="h-3 w-3" />
                     Refresh
                   </Button>
+                  {/* Disconnect button */}
+                  <Button variant="ghost" size="sm" className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+                    <Trash2 className="h-3 w-3" />
+                    Disconnect
+                  </Button>
                 </div>
               </div>
             ))}
@@ -247,12 +355,27 @@ export default function SettingsPage() {
           </div>
         </SettingsGroup>
 
-        <div className="fixed bottom-0 left-0 right-0 lg:left-64 bg-background/95 backdrop-blur-md border-t border-border/20 px-6 py-4 flex justify-between items-center z-30">
-          <Button variant="ghost" size="lg">
-            Reset to Defaults
-          </Button>
-          <Button size="lg">Save All Settings</Button>
-        </div>
+        <AnimatePresence>
+          {hasChanges && (
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="fixed bottom-0 left-0 right-0 lg:left-64 bg-background/95 backdrop-blur-md border-t border-border/20 px-6 py-4 flex justify-between items-center z-30 shadow-lg"
+            >
+              <Button variant="ghost" size="lg" onClick={handleReset}>
+                Reset to Defaults
+              </Button>
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="text-xs">
+                  Unsaved changes
+                </Badge>
+                <Button size="lg">Save All Settings</Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   )

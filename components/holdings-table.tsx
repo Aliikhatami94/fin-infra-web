@@ -3,23 +3,31 @@
 import { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, ChevronDown, ChevronUp, Building2 } from "lucide-react"
+import {
+  TrendingUp,
+  TrendingDown,
+  ChevronDown,
+  ChevronUp,
+  Building2,
+  MoreVertical,
+  Eye,
+  EyeOff,
+  TrendingUpIcon,
+} from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-  Line,
-  LineChart,
-} from "recharts"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 import { Fragment } from "react"
+import { ResponsiveContainer, LineChart, Line, AreaChart, Area, XAxis, YAxis } from "recharts"
 
 const holdings = [
   {
@@ -184,16 +192,11 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle>Holdings</CardTitle>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupBy)}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Group by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No grouping</SelectItem>
-                  <SelectItem value="account">Group by Account</SelectItem>
-                  <SelectItem value="asset-class">Group by Asset Class</SelectItem>
-                </SelectContent>
-              </Select>
+              <select value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)}>
+                <option value="none">No grouping</option>
+                <option value="account">Group by Account</option>
+                <option value="asset-class">Group by Asset Class</option>
+              </select>
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -208,55 +211,37 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm table-fixed">
               <colgroup>
-                <col style={{ width: "22%" }} />
+                <col style={{ width: "20%" }} />
                 <col style={{ width: "12%" }} />
                 <col style={{ width: "15%" }} />
                 <col style={{ width: "18%" }} />
                 <col style={{ width: "12%" }} />
-                <col style={{ width: "21%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "5%" }} />
               </colgroup>
               <thead className="sticky top-0 bg-card z-10">
                 <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                  <SortableTh
-                    label="Ticker"
-                    active={sortKey === "ticker"}
-                    dir={sortDir}
-                    onClick={() => toggleSort("ticker")}
-                  />
-                  <SortableTh
-                    label="Quantity"
-                    className="text-right"
-                    active={sortKey === "qty"}
-                    dir={sortDir}
-                    onClick={() => toggleSort("qty")}
-                  />
-                  <SortableTh
-                    label="Value"
-                    className="text-right"
-                    active={sortKey === "value"}
-                    dir={sortDir}
-                    onClick={() => toggleSort("value")}
-                  />
-                  <SortableTh
-                    label="P/L"
-                    className="text-right"
-                    active={sortKey === "pl"}
-                    dir={sortDir}
-                    onClick={() => toggleSort("pl")}
-                  />
-                  <SortableTh
-                    label="Weight"
-                    className="text-right"
-                    active={sortKey === "weight"}
-                    dir={sortDir}
-                    onClick={() => toggleSort("weight")}
-                  />
-                  <SortableTh
-                    label="Account"
-                    active={sortKey === "account"}
-                    dir={sortDir}
-                    onClick={() => toggleSort("account")}
-                  />
+                  <th className="py-3 px-3" onClick={() => toggleSort("ticker")}>
+                    Ticker
+                  </th>
+                  <th className="py-3 px-3 text-right" onClick={() => toggleSort("qty")}>
+                    Quantity
+                  </th>
+                  <th className="py-3 px-3 text-right" onClick={() => toggleSort("value")}>
+                    Value
+                  </th>
+                  <th className="py-3 px-3 text-right" onClick={() => toggleSort("pl")}>
+                    P/L
+                  </th>
+                  <th className="py-3 px-3 text-right" onClick={() => toggleSort("weight")}>
+                    Weight
+                  </th>
+                  <th className="py-3 px-3" onClick={() => toggleSort("account")}>
+                    Account
+                  </th>
+                  <th className="py-3 px-3 text-right">
+                    <span className="text-xs uppercase tracking-wide">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -264,7 +249,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                   <Fragment key={group || "no-group"}>
                     {group && (
                       <tr className="bg-muted/30">
-                        <td colSpan={6} className="py-3 px-3 font-semibold text-sm text-foreground">
+                        <td colSpan={7} className="py-3 px-3 font-semibold text-sm text-foreground">
                           <div className="flex items-center gap-2">
                             <Building2 className="h-4 w-4" />
                             {group}
@@ -351,6 +336,31 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                           <Badge variant="outline" className="whitespace-nowrap">
                             {holding.account}
                           </Badge>
+                        </td>
+                        <td className="py-4 px-3 text-right align-middle">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">Open menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setSelectedHolding(holding)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <TrendingUpIcon className="mr-2 h-4 w-4" />
+                                Sell Position
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-muted-foreground">
+                                <EyeOff className="mr-2 h-4 w-4" />
+                                Exclude from Analytics
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     ))}
@@ -499,21 +509,6 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                         tickFormatter={(value) => `$${value.toFixed(0)}`}
-                      />
-                      <RechartsTooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div className="rounded-lg border bg-card p-3 shadow-sm">
-                                <p className="text-xs text-muted-foreground">{payload[0].payload.date}</p>
-                                <p className="text-sm font-medium">
-                                  ${payload[0].value?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                </p>
-                              </div>
-                            )
-                          }
-                          return null
-                        }}
                       />
                       <Area
                         type="monotone"

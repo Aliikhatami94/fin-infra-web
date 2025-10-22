@@ -1,23 +1,38 @@
 "use client"
 
+import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import { TrendingUp } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine } from "recharts"
+import { TrendingUp, Edit, Calendar, DollarSign, TargetIcon, LinkIcon } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-const projectionData = [
-  { month: "Jan", amount: 18000 },
-  { month: "Feb", amount: 18500 },
-  { month: "Mar", amount: 19000 },
-  { month: "Apr", amount: 19500 },
-  { month: "May", amount: 20000 },
-  { month: "Jun", amount: 20500 },
-  { month: "Jul", amount: 21000 },
-  { month: "Aug", amount: 21500 },
-  { month: "Sep", amount: 22000 },
-  { month: "Oct", amount: 22500 },
-  { month: "Nov", amount: 23000 },
-  { month: "Dec", amount: 23500 },
+const contributionData = [
+  { month: "Jan", actual: 18000, projected: null },
+  { month: "Feb", actual: 18500, projected: null },
+  { month: "Mar", actual: 19000, projected: null },
+  { month: "Apr", actual: 19500, projected: null },
+  { month: "May", actual: 20000, projected: null },
+  { month: "Jun", actual: 20500, projected: null },
+  { month: "Jul", actual: 21000, projected: null },
+  { month: "Aug", actual: null, projected: 21500 },
+  { month: "Sep", actual: null, projected: 22000 },
+  { month: "Oct", actual: null, projected: 22500 },
+  { month: "Nov", actual: null, projected: 23000 },
+  { month: "Dec", actual: null, projected: 23500 },
+]
+
+const recentContributions = [
+  { date: "Jul 15, 2024", amount: 500, source: "High-Yield Savings" },
+  { date: "Jun 15, 2024", amount: 500, source: "High-Yield Savings" },
+  { date: "May 15, 2024", amount: 500, source: "High-Yield Savings" },
+  { date: "Apr 15, 2024", amount: 500, source: "High-Yield Savings" },
+  { date: "Mar 15, 2024", amount: 500, source: "High-Yield Savings" },
 ]
 
 interface GoalDetailModalProps {
@@ -38,9 +53,19 @@ interface GoalDetailModalProps {
 }
 
 export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalProps) {
+  const [isEditingTarget, setIsEditingTarget] = useState(false)
+  const [isEditingAccount, setIsEditingAccount] = useState(false)
+  const [newTarget, setNewTarget] = useState(goal.target.toString())
+  const [newAccount, setNewAccount] = useState(goal.fundingSource)
+
+  const monthsRemaining = Math.ceil((goal.target - goal.current) / goal.monthlyTarget)
+  const predictedDate = new Date()
+  predictedDate.setMonth(predictedDate.getMonth() + monthsRemaining)
+  const formattedPredictedDate = predictedDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className={`flex h-10 w-10 items-center justify-center rounded-full ${goal.bgColor}`}>
@@ -50,74 +75,258 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
           </div>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Current Progress */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Current Progress</span>
-              <span className="text-sm font-medium">
-                ${goal.current.toLocaleString()} / ${goal.target.toLocaleString()}
-              </span>
-            </div>
-            <Progress value={goal.percent} className="h-3" />
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold">{goal.percent}% Complete</span>
-              <span className="text-muted-foreground">ETA: {goal.eta}</span>
-            </div>
-          </div>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="contributions">Contributions</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
 
-          {/* Goal Details */}
-          <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Monthly Target</p>
-              <p className="text-lg font-semibold">${goal.monthlyTarget}/mo</p>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Current Progress */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Current Progress</span>
+                <span className="text-sm font-medium">
+                  ${goal.current.toLocaleString()} / ${goal.target.toLocaleString()}
+                </span>
+              </div>
+              <Progress value={goal.percent} className="h-3" />
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold">{goal.percent}% Complete</span>
+                <span className="text-muted-foreground">ETA: {goal.eta}</span>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Funding Source</p>
-              <p className="text-lg font-semibold">{goal.fundingSource}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Remaining</p>
-              <p className="text-lg font-semibold">${(goal.target - goal.current).toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Months to Goal</p>
-              <p className="text-lg font-semibold">{goal.eta}</p>
-            </div>
-          </div>
 
-          {/* Projection Chart */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-green-600" />
-              <h3 className="font-semibold">Savings Projection</h3>
+            <div className="rounded-lg border bg-blue-500/5 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
+                  <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold mb-1">Predicted Completion</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Based on your current contribution rate of ${goal.monthlyTarget}/month, you'll reach your goal by{" "}
+                    <span className="font-medium text-foreground">{formattedPredictedDate}</span>
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="bg-background">
+                      {monthsRemaining} months remaining
+                    </Badge>
+                    <Badge variant="outline" className="bg-background">
+                      ${(goal.target - goal.current).toLocaleString()} to go
+                    </Badge>
+                  </div>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Based on your current contribution rate of ${goal.monthlyTarget}/month
-            </p>
-            <div className="h-64 w-full rounded-lg border p-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={projectionData}>
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                    tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--background))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "6px",
+
+            {/* Goal Details */}
+            <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Monthly Target</p>
+                <p className="text-lg font-semibold">${goal.monthlyTarget}/mo</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Funding Source</p>
+                <p className="text-lg font-semibold">{goal.fundingSource}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Remaining</p>
+                <p className="text-lg font-semibold">${(goal.target - goal.current).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Avg. Monthly Growth</p>
+                <p className="text-lg font-semibold text-[var(--color-positive)]">+${goal.monthlyTarget}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <h3 className="font-semibold">Savings Projection</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Historical contributions and projected growth to reach ${goal.target.toLocaleString()}
+              </p>
+              <div className="h-64 w-full rounded-lg border p-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={contributionData}>
+                    <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--background))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "6px",
+                      }}
+                      formatter={(value: number) => [`$${value.toLocaleString()}`, "Amount"]}
+                    />
+                    <ReferenceLine
+                      y={goal.target}
+                      stroke="hsl(var(--muted-foreground))"
+                      strokeDasharray="3 3"
+                      label={{ value: "Target", position: "right", fill: "hsl(var(--muted-foreground))" }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="actual"
+                      stroke="hsl(217, 91%, 60%)"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      name="Actual"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="projected"
+                      stroke="hsl(217, 91%, 60%)"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      name="Projected"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="contributions" className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="font-semibold">Recent Contributions</h3>
+              <p className="text-sm text-muted-foreground">Your contribution history for this goal</p>
+            </div>
+
+            <div className="space-y-2">
+              {recentContributions.map((contribution, index) => (
+                <div key={index} className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10">
+                      <DollarSign className="h-4 w-4 text-[var(--color-positive)]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">${contribution.amount.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{contribution.source}</p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{contribution.date}</span>
+                </div>
+              ))}
+            </div>
+
+            <Button className="w-full">
+              <DollarSign className="mr-2 h-4 w-4" />
+              Make One-Time Contribution
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">Target Amount</h3>
+                  <p className="text-sm text-muted-foreground">Adjust your savings goal</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setIsEditingTarget(!isEditingTarget)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  {isEditingTarget ? "Cancel" : "Edit"}
+                </Button>
+              </div>
+
+              {isEditingTarget ? (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-target">New Target Amount</Label>
+                    <Input
+                      id="new-target"
+                      type="number"
+                      value={newTarget}
+                      onChange={(e) => setNewTarget(e.target.value)}
+                      placeholder="30000"
+                    />
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      setIsEditingTarget(false)
+                      // Save logic here
                     }}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, "Amount"]}
-                  />
-                  <Line type="monotone" dataKey="amount" stroke="hsl(217, 91%, 60%)" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
+                  >
+                    <TargetIcon className="mr-2 h-4 w-4" />
+                    Update Target
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-lg border p-4">
+                  <p className="text-2xl font-bold">${goal.target.toLocaleString()}</p>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">Funding Source</h3>
+                  <p className="text-sm text-muted-foreground">Change the account linked to this goal</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setIsEditingAccount(!isEditingAccount)}>
+                  <LinkIcon className="h-4 w-4 mr-2" />
+                  {isEditingAccount ? "Cancel" : "Change"}
+                </Button>
+              </div>
+
+              {isEditingAccount ? (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="funding-source">Select Account</Label>
+                    <Select value={newAccount} onValueChange={setNewAccount}>
+                      <SelectTrigger id="funding-source">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="High-Yield Savings">High-Yield Savings</SelectItem>
+                        <SelectItem value="Checking Account">Checking Account</SelectItem>
+                        <SelectItem value="Investment Account">Investment Account</SelectItem>
+                        <SelectItem value="529 Plan">529 Plan</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      setIsEditingAccount(false)
+                      // Save logic here
+                    }}
+                  >
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Update Funding Source
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-lg border p-4">
+                  <p className="font-medium">{goal.fundingSource}</p>
+                  <p className="text-sm text-muted-foreground">Current balance: $45,230</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-semibold">Monthly Contribution</h3>
+                <p className="text-sm text-muted-foreground">Automatic monthly transfer amount</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="monthly-contribution">Amount per month</Label>
+                <Input id="monthly-contribution" type="number" defaultValue={goal.monthlyTarget} placeholder="500" />
+              </div>
+              <Button className="w-full">Save Changes</Button>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   )

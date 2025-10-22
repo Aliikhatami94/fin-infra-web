@@ -5,6 +5,8 @@ import { PortfolioKPIs } from "@/components/portfolio-kpis"
 import { AllocationGrid } from "@/components/allocation-grid"
 import { HoldingsTable } from "@/components/holdings-table"
 import { PerformanceComparison } from "@/components/performance-comparison"
+import { PortfolioAIInsights } from "@/components/portfolio-ai-insights"
+import { RebalancingPreview } from "@/components/rebalancing-preview"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
@@ -17,6 +19,11 @@ export default function PortfolioPage() {
         <h1 className="text-2xl font-semibold text-foreground">Portfolio</h1>
 
         <PortfolioKPIs />
+
+        <PortfolioAIInsights />
+
+        <RebalancingPreview />
+
         <PerformanceComparison />
         <AllocationGrid onFilterChange={setAllocationFilter} />
         <HoldingsTable allocationFilter={allocationFilter} />

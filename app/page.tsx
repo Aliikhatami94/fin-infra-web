@@ -44,7 +44,7 @@ export default function TradingDashboard() {
             Showing holdings for: <span className="font-medium text-foreground">{allocationFilter}</span>
           </p>
         )}
-        <Portfolio />
+        <Portfolio filter={allocationFilter} />
       </section>
 
       <section>

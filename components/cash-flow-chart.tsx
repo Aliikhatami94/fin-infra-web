@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Bar, CartesianGrid, Line, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts"
-import { Calendar } from "lucide-react"
+import { Calendar, TrendingUp } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 const monthlyData = [
   { month: "Jan", inflow: 8500, outflow: 6200, net: 2300 },
@@ -14,6 +15,7 @@ const monthlyData = [
   { month: "Apr", inflow: 8500, outflow: 7100, net: 1400 },
   { month: "May", inflow: 8500, outflow: 6800, net: 1700 },
   { month: "Jun", inflow: 10200, outflow: 6400, net: 3800 },
+  { month: "Jul", inflow: 8800, outflow: 6300, net: 2500, isProjection: true },
 ]
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -21,10 +23,18 @@ const CustomTooltip = ({ active, payload }: any) => {
     const inflow = payload.find((p: any) => p.dataKey === "inflow")?.value || 0
     const outflow = payload.find((p: any) => p.dataKey === "outflow")?.value || 0
     const net = payload.find((p: any) => p.dataKey === "net")?.value || 0
+    const isProjection = payload[0]?.payload?.isProjection
 
     return (
       <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <p className="text-sm font-medium mb-2">{payload[0].payload.month}</p>
+        <div className="flex items-center gap-2 mb-2">
+          <p className="text-sm font-medium">{payload[0].payload.month}</p>
+          {isProjection && (
+            <Badge variant="secondary" className="text-xs">
+              Forecast
+            </Badge>
+          )}
+        </div>
         <div className="space-y-1">
           <p className="text-sm text-green-500">
             Inflow: ${inflow.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -42,9 +52,18 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null
 }
 
-export function CashFlowChart() {
+interface CashFlowChartProps {
+  onMonthClick?: (month: string | null) => void
+  selectedMonth?: string | null
+}
+
+export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProps) {
   const [period, setPeriod] = useState("month")
   const [account, setAccount] = useState("all")
+
+  const historicalData = monthlyData.filter((d) => !d.isProjection)
+  const avgNet = historicalData.reduce((sum, d) => sum + d.net, 0) / historicalData.length
+  const projectionData = monthlyData.find((d) => d.isProjection)
 
   return (
     <Card>
@@ -79,6 +98,25 @@ export function CashFlowChart() {
             </Button>
           </div>
         </div>
+        {projectionData && (
+          <div className="flex items-center gap-2 mt-2 p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+            <TrendingUp className="h-4 w-4 text-blue-500" />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">July Forecast:</span> Net flow of $
+              {projectionData.net.toLocaleString()} based on 6-month average
+            </p>
+          </div>
+        )}
+        {selectedMonth && (
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant="secondary" className="text-xs">
+              Filtered: {selectedMonth}
+            </Badge>
+            <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => onMonthClick?.(null)}>
+              Clear
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={350}>
@@ -93,9 +131,50 @@ export function CashFlowChart() {
             <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
             <Legend />
-            <Bar dataKey="inflow" fill="hsl(142, 76%, 45%)" name="Inflow" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="outflow" fill="hsl(24, 95%, 53%)" name="Outflow" radius={[4, 4, 0, 0]} opacity={0.8} />
-            <Line type="monotone" dataKey="net" stroke="hsl(210, 100%, 60%)" strokeWidth={3} name="Net Flow" />
+            <Bar
+              dataKey="inflow"
+              fill="hsl(142, 76%, 45%)"
+              name="Inflow"
+              radius={[4, 4, 0, 0]}
+              onClick={(data) => onMonthClick?.(data.month)}
+              cursor="pointer"
+              opacity={(entry) => (entry.isProjection ? 0.5 : selectedMonth && entry.month !== selectedMonth ? 0.3 : 1)}
+            />
+            <Bar
+              dataKey="outflow"
+              fill="hsl(24, 95%, 53%)"
+              name="Outflow"
+              radius={[4, 4, 0, 0]}
+              onClick={(data) => onMonthClick?.(data.month)}
+              cursor="pointer"
+              opacity={(entry) =>
+                entry.isProjection ? 0.5 : selectedMonth && entry.month !== selectedMonth ? 0.3 : 0.8
+              }
+            />
+            <Line
+              type="monotone"
+              dataKey="net"
+              stroke="hsl(210, 100%, 60%)"
+              strokeWidth={3}
+              name="Net Flow"
+              strokeDasharray={(entry) => (entry.isProjection ? "5 5" : "0")}
+              dot={(props) => {
+                const { cx, cy, payload } = props
+                if (payload.isProjection) {
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={4}
+                      fill="hsl(210, 100%, 60%)"
+                      stroke="hsl(var(--background))"
+                      strokeWidth={2}
+                    />
+                  )
+                }
+                return null
+              }}
+            />
           </ComposedChart>
         </ResponsiveContainer>
       </CardContent>

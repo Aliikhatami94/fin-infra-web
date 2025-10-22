@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, Info, DollarSign, TrendingUpIcon, Activity, Target } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { RiskMetricModal } from "@/components/risk-metric-modal"
 
 const kpis = [
   {
@@ -77,14 +79,22 @@ const kpis = [
 ]
 
 export function PortfolioKPIs() {
+  const [selectedMetric, setSelectedMetric] = useState<"sharpe" | "beta" | "volatility" | null>(null)
+
   return (
     <TooltipProvider>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon
+          const isRiskMetric = ["Sharpe Ratio", "Beta", "Volatility"].includes(kpi.label)
+          const metricKey = kpi.label === "Sharpe Ratio" ? "sharpe" : kpi.label === "Beta" ? "beta" : "volatility"
+
           return (
             <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
-              <Card className="card-standard card-lift">
+              <Card
+                className={`card-standard card-lift ${isRiskMetric ? "cursor-pointer" : ""}`}
+                onClick={() => isRiskMetric && setSelectedMetric(metricKey as any)}
+              >
                 <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
                   <div className="mb-2">
                     <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
@@ -137,6 +147,11 @@ export function PortfolioKPIs() {
           )
         })}
       </div>
+      <RiskMetricModal
+        open={!!selectedMetric}
+        onOpenChange={(open) => !open && setSelectedMetric(null)}
+        metric={selectedMetric}
+      />
     </TooltipProvider>
   )
 }

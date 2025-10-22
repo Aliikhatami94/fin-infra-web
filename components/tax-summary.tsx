@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { BarChart, Bar, ResponsiveContainer, Cell } from "recharts"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { LastSyncBadge } from "@/components/last-sync-badge"
 
 const capitalGainsData = [
   { name: "ST", value: 4200, color: "hsl(25, 95%, 53%)" },
@@ -36,6 +37,7 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <p className="text-sm font-medium text-muted-foreground mb-2">Estimated Tax Liability</p>
+                <LastSyncBadge timestamp="1 hour ago" source="IRS" />
                 <p className="text-3xl font-semibold tabular-nums text-foreground">$18,450</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-950">
@@ -70,6 +72,7 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <p className="text-sm font-medium text-muted-foreground">Capital Gains YTD</p>
+                  <LastSyncBadge timestamp="10 min ago" source="Broker" />
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -127,7 +130,10 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
           <CardContent className="p-6">
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Dividends YTD</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-sm font-medium text-muted-foreground">Dividends YTD</p>
+                  <LastSyncBadge timestamp="10 min ago" source="Broker" />
+                </div>
                 <p className="text-3xl font-semibold tabular-nums text-foreground">$2,850</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-950">
@@ -160,7 +166,10 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
           <CardContent className="p-6">
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Potential Tax Savings</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-sm font-medium text-muted-foreground">Potential Tax Savings</p>
+                  <LastSyncBadge timestamp="10 min ago" source="Broker" />
+                </div>
                 <p className="text-3xl font-semibold tabular-nums text-green-600 dark:text-green-400">$3,200</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-950">

@@ -1,8 +1,11 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { TrendingUp, AlertTriangle, Lightbulb, Target } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 
 const insights = [
   {
@@ -15,6 +18,19 @@ const insights = [
     bgColor: "bg-green-500/10",
     borderColor: "border-green-500/30",
     progress: 85,
+    isPinned: true,
+  },
+  {
+    id: 3,
+    type: "goal",
+    icon: Target,
+    title: "Emergency fund milestone",
+    description: "You've reached 60% of your emergency fund goal, ahead of schedule by 2 months.",
+    color: "text-purple-600 dark:text-purple-400",
+    bgColor: "bg-purple-500/10",
+    borderColor: "border-purple-500/30",
+    progress: 60,
+    isPinned: true,
   },
   {
     id: 2,
@@ -26,9 +42,10 @@ const insights = [
     bgColor: "bg-orange-500/10",
     borderColor: "border-orange-500/30",
     progress: 48,
+    isPinned: false,
   },
   {
-    id: 3,
+    id: 4,
     type: "tip",
     icon: Lightbulb,
     title: "Tax optimization",
@@ -37,25 +54,28 @@ const insights = [
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/30",
     progress: 60,
-  },
-  {
-    id: 4,
-    type: "goal",
-    icon: Target,
-    title: "Goal on track",
-    description: "Your emergency fund goal is 65% complete. You're ahead of schedule by 2 months.",
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-500/10",
-    borderColor: "border-purple-500/30",
-    progress: 65,
+    isPinned: false,
   },
 ]
 
 export function AIInsights() {
+  const displayInsights =
+    insights.filter((i) => i.isPinned).length > 0 ? insights.filter((i) => i.isPinned) : insights.slice(0, 4)
+
   return (
     <div className="relative">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-foreground">AI Insights</h2>
+        <Link
+          href="/insights"
+          className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+        >
+          View all
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
       <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
-        {insights.map((insight) => (
+        {displayInsights.map((insight) => (
           <Card
             key={insight.id}
             className={`min-w-[300px] md:min-w-[350px] snap-start hover:shadow-md transition-all cursor-pointer border-l-4 ${insight.borderColor}`}
@@ -66,7 +86,14 @@ export function AIInsights() {
                   <insight.icon className={`h-5 w-5 ${insight.color}`} />
                 </div>
                 <div className="flex-1 space-y-2">
-                  <h3 className="text-sm font-semibold text-foreground">{insight.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-foreground">{insight.title}</h3>
+                    {insight.isPinned && (
+                      <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                        Pinned
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">{insight.description}</p>
                   <div className="pt-2">
                     <div className="flex items-center justify-between text-xs mb-1">

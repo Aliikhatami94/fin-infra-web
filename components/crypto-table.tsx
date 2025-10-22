@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, ArrowUpDown } from "lucide-react"
+import { TrendingUp, TrendingDown, ArrowUpDown, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Area, AreaChart, ResponsiveContainer } from "recharts"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const cryptos = [
   {
@@ -19,6 +20,8 @@ const cryptos = [
     change24h: 9.2,
     exchange: "Coinbase",
     trend: [42000, 43000, 42500, 44000, 44500, 45230],
+    isStablecoin: false,
+    staking: null,
   },
   {
     coin: "ETH",
@@ -30,6 +33,8 @@ const cryptos = [
     change24h: 7.8,
     exchange: "Coinbase",
     trend: [2900, 3000, 2950, 3100, 3120, 3150],
+    isStablecoin: false,
+    staking: { enabled: true, apy: 4.2, rewards: 0.218 },
   },
   {
     coin: "SOL",
@@ -41,6 +46,8 @@ const cryptos = [
     change24h: -3.2,
     exchange: "Binance",
     trend: [102, 100, 99, 98, 97, 98.5],
+    isStablecoin: false,
+    staking: null,
   },
   {
     coin: "AVAX",
@@ -52,6 +59,8 @@ const cryptos = [
     change24h: 5.4,
     exchange: "Binance",
     trend: [33, 34, 33.5, 35, 35.5, 35.2],
+    isStablecoin: false,
+    staking: null,
   },
   {
     coin: "USDC",
@@ -63,6 +72,8 @@ const cryptos = [
     change24h: 0,
     exchange: "Coinbase",
     trend: [1, 1, 1, 1, 1, 1],
+    isStablecoin: true,
+    staking: { enabled: true, apy: 5.5, rewards: 169.0 },
   },
 ]
 
@@ -70,14 +81,19 @@ type SortField = "coin" | "value" | "pl" | "weight"
 
 interface CryptoTableProps {
   selectedExchange: "All" | "Coinbase" | "Binance"
+  showStablecoins: boolean
 }
 
-export function CryptoTable({ selectedExchange }: CryptoTableProps) {
+export function CryptoTable({ selectedExchange, showStablecoins }: CryptoTableProps) {
   const router = useRouter()
   const [sortField, setSortField] = useState<SortField>("value")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
 
-  const filteredCryptos = selectedExchange === "All" ? cryptos : cryptos.filter((c) => c.exchange === selectedExchange)
+  const filteredCryptos = cryptos.filter((c) => {
+    const exchangeMatch = selectedExchange === "All" || c.exchange === selectedExchange
+    const stablecoinMatch = showStablecoins || !c.isStablecoin
+    return exchangeMatch && stablecoinMatch
+  })
 
   const totalValue = filteredCryptos.reduce((sum, c) => sum + c.value, 0)
 
@@ -172,6 +188,7 @@ export function CryptoTable({ selectedExchange }: CryptoTableProps) {
                   </Button>
                 </th>
                 <th className="pb-3 font-medium text-right">24h %</th>
+                <th className="pb-3 font-medium text-right">Staking</th>
                 <th className="pb-3 font-medium">Exchange</th>
               </tr>
             </thead>
@@ -266,6 +283,32 @@ export function CryptoTable({ selectedExchange }: CryptoTableProps) {
                         </div>
                       </div>
                     </td>
+                    <td className="py-4 text-right">
+                      {crypto.staking ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-end gap-1 cursor-help">
+                                <Sparkles className="h-3 w-3 text-amber-500" />
+                                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                                  {crypto.staking.apy}%
+                                </span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-xs space-y-1">
+                                <p>Staking APY: {crypto.staking.apy}%</p>
+                                <p>
+                                  Rewards earned: {crypto.staking.rewards} {crypto.coin}
+                                </p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
                     <td className="py-4">
                       <Badge variant="outline">{crypto.exchange}</Badge>
                     </td>
@@ -350,6 +393,35 @@ export function CryptoTable({ selectedExchange }: CryptoTableProps) {
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">Weight</p>
                     <p className="text-sm font-medium tabular-nums">{weight.toFixed(1)}%</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                  <div className="flex items-center gap-2">
+                    {crypto.staking ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center justify-end gap-1 cursor-help">
+                              <Sparkles className="h-3 w-3 text-amber-500" />
+                              <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                                {crypto.staking.apy}%
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="text-xs space-y-1">
+                              <p>Staking APY: {crypto.staking.apy}%</p>
+                              <p>
+                                Rewards earned: {crypto.staking.rewards} {crypto.coin}
+                              </p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </div>
                 </div>
               </div>

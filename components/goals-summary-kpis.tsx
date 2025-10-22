@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, DollarSign, Target } from "lucide-react"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { LastSyncBadge } from "@/components/last-sync-badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const sparklineData = [
   { month: "Jan", value: 42000 },
@@ -65,7 +67,10 @@ export function GoalsSummaryKPIs() {
           <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Total Goal Progress</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm text-muted-foreground">Total Goal Progress</p>
+                  <LastSyncBadge timestamp="5 min ago" source="Manual" />
+                </div>
                 <p className="text-2xl font-bold tabular-nums">
                   ${(totalSaved / 1000).toFixed(0)}k
                   <span className="text-base font-normal text-muted-foreground">
@@ -80,7 +85,17 @@ export function GoalsSummaryKPIs() {
             </div>
             <div className="flex items-end justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-[var(--color-positive)]">+{percentComplete}%</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-sm font-medium text-[var(--color-positive)]">+{percentComplete}%</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Previous: $54,000</p>
+                      <p className="text-xs">Current: ${totalSaved.toLocaleString()}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <span className="text-xs text-muted-foreground">complete</span>
               </div>
               <MiniSparkline data={sparklineData} color="hsl(217, 91%, 60%)" />
@@ -94,7 +109,10 @@ export function GoalsSummaryKPIs() {
           <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Monthly Contribution</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm text-muted-foreground">Monthly Contribution</p>
+                  <LastSyncBadge timestamp="5 min ago" source="Manual" />
+                </div>
                 <p className="text-2xl font-bold tabular-nums">
                   ${monthlyContribution.toLocaleString()}
                   <span className="text-base font-normal text-muted-foreground">/mo</span>
@@ -106,7 +124,17 @@ export function GoalsSummaryKPIs() {
             </div>
             <div className="flex items-end justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-[var(--color-warning)]">{contributionRate}%</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="text-sm font-medium text-[var(--color-warning)]">{contributionRate}%</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Target: ${targetContribution.toLocaleString()}/mo</p>
+                      <p className="text-xs">Current: ${monthlyContribution.toLocaleString()}/mo</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <span className="text-xs text-muted-foreground">of target</span>
               </div>
               <MiniSparkline data={contributionData} color="var(--color-positive)" />
@@ -120,7 +148,10 @@ export function GoalsSummaryKPIs() {
           <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Funding Status</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm text-muted-foreground">Funding Status</p>
+                  <LastSyncBadge timestamp="5 min ago" source="Manual" />
+                </div>
                 <p className="text-2xl font-bold">On Track</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">

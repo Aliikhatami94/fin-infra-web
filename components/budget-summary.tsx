@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Plus, ArrowDown, ArrowUp, DollarSign, TrendingDown, Wallet } from "lucide-react"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { LastSyncBadge } from "@/components/last-sync-badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const sparklineData = {
   budgeted: [6200, 6300, 6400, 6500, 6500, 6500, 6500],
@@ -88,6 +90,7 @@ export function BudgetSummary() {
                         </div>
                       )}
                       <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
+                      <LastSyncBadge timestamp="3 min ago" source="Plaid" />
                     </div>
                     <div className="space-y-2">
                       <p className={`text-3xl font-bold tabular-nums tracking-tight ${item.color}`}>{item.value}</p>
@@ -98,11 +101,21 @@ export function BudgetSummary() {
                               className={`h-3.5 w-3.5 ${item.trend === "down" ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
                             />
                           )}
-                          <span
-                            className={`font-medium ${item.trend === "down" ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
-                          >
-                            {item.subtext}
-                          </span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <span
+                                  className={`font-medium ${item.trend === "down" ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
+                                >
+                                  {item.subtext}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Last Month: $6,150</p>
+                                <p className="text-xs">This Month: $5,840</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       )}
                       {item.badge && (

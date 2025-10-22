@@ -6,49 +6,68 @@ import { FolderOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Upload } from "lucide-react"
 import { useMemo } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const documents = [
   {
+    id: 1,
     name: "Chase Statement - December 2024",
     institution: "Chase",
     type: "Statement",
     date: "Dec 31, 2024",
+    dateValue: new Date("2024-12-31"),
     size: "1.2 MB",
+    sizeValue: 1.2,
   },
   {
+    id: 2,
     name: "Fidelity Tax Form 1099",
     institution: "Fidelity",
     type: "Tax Document",
     date: "Jan 15, 2025",
+    dateValue: new Date("2025-01-15"),
     size: "245 KB",
+    sizeValue: 0.245,
   },
   {
+    id: 3,
     name: "Annual Investment Report 2024",
     institution: "Fidelity",
     type: "Report",
     date: "Dec 31, 2024",
+    dateValue: new Date("2024-12-31"),
     size: "3.8 MB",
+    sizeValue: 3.8,
   },
   {
+    id: 4,
     name: "Chase Statement - November 2024",
     institution: "Chase",
     type: "Statement",
     date: "Nov 30, 2024",
+    dateValue: new Date("2024-11-30"),
     size: "1.1 MB",
+    sizeValue: 1.1,
   },
   {
+    id: 5,
     name: "Robinhood Trade Confirmation",
     institution: "Robinhood",
     type: "Confirmation",
     date: "Dec 15, 2024",
+    dateValue: new Date("2024-12-15"),
     size: "156 KB",
+    sizeValue: 0.156,
   },
   {
+    id: 6,
     name: "BofA Credit Card Statement",
     institution: "Bank of America",
     type: "Statement",
     date: "Dec 31, 2024",
+    dateValue: new Date("2024-12-31"),
     size: "890 KB",
+    sizeValue: 0.89,
   },
 ]
 
@@ -56,11 +75,21 @@ interface DocumentsGridProps {
   isLoading?: boolean
   searchQuery?: string
   selectedTypes?: string[]
+  sortBy?: "date" | "name" | "size"
+  selectedDocuments?: number[]
+  onSelectionChange?: (selected: number[]) => void
 }
 
-export function DocumentsGrid({ isLoading = false, searchQuery = "", selectedTypes = [] }: DocumentsGridProps) {
-  const filteredDocuments = useMemo(() => {
-    return documents.filter((doc) => {
+export function DocumentsGrid({
+  isLoading = false,
+  searchQuery = "",
+  selectedTypes = [],
+  sortBy = "date",
+  selectedDocuments = [],
+  onSelectionChange,
+}: DocumentsGridProps) {
+  const filteredAndSortedDocuments = useMemo(() => {
+    const filtered = documents.filter((doc) => {
       const matchesSearch =
         searchQuery === "" ||
         doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -70,7 +99,32 @@ export function DocumentsGrid({ isLoading = false, searchQuery = "", selectedTyp
 
       return matchesSearch && matchesType
     })
-  }, [searchQuery, selectedTypes])
+
+    filtered.sort((a, b) => {
+      if (sortBy === "date") {
+        return b.dateValue.getTime() - a.dateValue.getTime()
+      } else if (sortBy === "name") {
+        return a.name.localeCompare(b.name)
+      } else if (sortBy === "size") {
+        return b.sizeValue - a.sizeValue
+      }
+      return 0
+    })
+
+    return filtered
+  }, [searchQuery, selectedTypes, sortBy])
+
+  const allSelected =
+    filteredAndSortedDocuments.length > 0 && selectedDocuments.length === filteredAndSortedDocuments.length
+  const someSelected = selectedDocuments.length > 0 && selectedDocuments.length < filteredAndSortedDocuments.length
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      onSelectionChange?.([])
+    } else {
+      onSelectionChange?.(filteredAndSortedDocuments.map((doc) => doc.id))
+    }
+  }
 
   if (isLoading) {
     return (
@@ -82,7 +136,7 @@ export function DocumentsGrid({ isLoading = false, searchQuery = "", selectedTyp
     )
   }
 
-  if (filteredDocuments.length === 0) {
+  if (filteredAndSortedDocuments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
         <FolderOpen className="h-12 w-12 mb-4 opacity-60" />
@@ -104,10 +158,34 @@ export function DocumentsGrid({ isLoading = false, searchQuery = "", selectedTyp
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-      {filteredDocuments.map((doc, index) => (
-        <DocumentCard key={index} {...doc} index={index} />
-      ))}
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 px-2">
+        <Checkbox
+          checked={allSelected}
+          onCheckedChange={toggleSelectAll}
+          className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
+        />
+        <span className="text-sm text-muted-foreground">
+          {allSelected ? "Deselect all" : someSelected ? `${selectedDocuments.length} selected` : "Select all"}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+        {filteredAndSortedDocuments.map((doc, index) => (
+          <DocumentCard
+            key={doc.id}
+            {...doc}
+            index={index}
+            isSelected={selectedDocuments.includes(doc.id)}
+            onSelectionChange={(selected) => {
+              if (selected) {
+                onSelectionChange?.([...selectedDocuments, doc.id])
+              } else {
+                onSelectionChange?.(selectedDocuments.filter((id) => id !== doc.id))
+              }
+            }}
+          />
+        ))}
+      </div>
     </div>
   )
 }
