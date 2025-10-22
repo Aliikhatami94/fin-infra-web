@@ -160,28 +160,28 @@ export function CapitalGainsTable({ initialFilter }: CapitalGainsTableProps) {
           <div className="flex flex-wrap gap-2">
             <Badge
               variant={filter === "all" ? "default" : "outline"}
-              className="cursor-pointer transition-smooth hover:scale-105"
+              className="cursor-pointer transition-smooth"
               onClick={() => setFilter("all")}
             >
               All Transactions
             </Badge>
             <Badge
               variant={filter === "losses-only" ? "default" : "outline"}
-              className="cursor-pointer transition-smooth hover:scale-105"
+              className="cursor-pointer transition-smooth"
               onClick={() => setFilter("losses-only")}
             >
               Losses Only
             </Badge>
             <Badge
               variant={filter === "short-term-losses" ? "default" : "outline"}
-              className="cursor-pointer transition-smooth hover:scale-105"
+              className="cursor-pointer transition-smooth"
               onClick={() => setFilter("short-term-losses")}
             >
               Short-Term Losses
             </Badge>
             <Badge
               variant={filter === "long-term-gains" ? "default" : "outline"}
-              className="cursor-pointer transition-smooth hover:scale-105"
+              className="cursor-pointer transition-smooth"
               onClick={() => setFilter("long-term-gains")}
             >
               Long-Term Gains
@@ -190,10 +190,10 @@ export function CapitalGainsTable({ initialFilter }: CapitalGainsTableProps) {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto max-h-[520px] overflow-y-auto" onScroll={handleScroll}>
+        <div className="hidden md:block overflow-x-auto max-h-[520px] overflow-y-auto" onScroll={handleScroll}>
           <table className="w-full">
             <thead
-              className={`sticky top-0 bg-background z-10 border-b transition-all duration-200 ${
+              className={`sticky top-0 bg-background z-10 border-b transition-smooth ${
                 isScrolled ? "shadow-md" : "shadow-sm"
               }`}
             >
@@ -270,6 +270,50 @@ export function CapitalGainsTable({ initialFilter }: CapitalGainsTableProps) {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="md:hidden space-y-3 p-6">
+          {sortedGains.map((gain, index) => (
+            <div key={index} className="card-standard card-lift p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{gain.asset}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{gain.dateSold}</p>
+                </div>
+                {getHoldingPeriodBadge(gain.type, gain.monthsHeld)}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Gain/Loss</p>
+                  <p
+                    className={`text-base font-bold tabular-nums ${gain.gain > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                  >
+                    {gain.gain > 0 ? "+" : ""}$
+                    {Math.abs(gain.gain).toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground mb-1">Holding Period</p>
+                  <p className="text-sm text-foreground">{gain.holdingPeriod}</p>
+                </div>
+              </div>
+
+              {gain.gain < 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950 bg-transparent"
+                >
+                  <Scissors className="h-3 w-3" />
+                  Harvest Loss
+                </Button>
+              )}
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

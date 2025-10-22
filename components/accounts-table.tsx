@@ -194,7 +194,7 @@ export function AccountsTable() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-        <Card className="border-border/30 shadow-sm">
+        <Card className="card-standard">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>All Accounts</CardTitle>
@@ -205,7 +205,7 @@ export function AccountsTable() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm table-fixed">
                 <colgroup>
                   <col className="w-[36%]" />
@@ -269,8 +269,7 @@ export function AccountsTable() {
                       <React.Fragment key={account.id}>
                         <motion.tr
                           onClick={() => handleRowClick(account.id)}
-                          className="border-b last:border-0 hover:bg-muted/40 transition-colors cursor-pointer"
-                          whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+                          className="border-b last:border-0 hover:bg-muted/40 transition-smooth cursor-pointer"
                         >
                           <td className="py-3 px-3 align-middle">
                             <div className="flex items-center gap-3 min-w-0">
@@ -420,7 +419,7 @@ export function AccountsTable() {
                     key={account.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="border border-border/30 rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow cursor-pointer"
+                    className="card-standard card-lift cursor-pointer p-4 space-y-3"
                     onClick={() => handleRowClick(account.id)}
                   >
                     <div className="flex items-start justify-between">
@@ -502,7 +501,6 @@ export function AccountsTable() {
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
                           className="pt-3 border-t border-border/30 space-y-2"
                         >
                           <h4 className="text-sm font-semibold">Recent Activity</h4>
@@ -535,7 +533,7 @@ export function AccountsTable() {
 
       <Button
         size="lg"
-        className="fixed bottom-6 right-6 rounded-full shadow-lg md:hidden z-50 h-14 w-14 p-0"
+        className="fixed bottom-6 right-6 rounded-full shadow-md md:hidden z-50 h-14 w-14 p-0"
         onClick={() => setIsPlaidOpen(true)}
         aria-label="Connect new account"
       >

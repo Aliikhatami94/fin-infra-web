@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, DollarSign, Target } from "lucide-react"
 import { motion } from "framer-motion"
+import { createStaggeredCardVariants } from "@/lib/motion-variants"
 
 const sparklineData = [
   { month: "Jan", value: 42000 },
@@ -59,7 +60,7 @@ export function GoalsSummaryKPIs() {
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
+      <motion.div {...createStaggeredCardVariants(0, 0)}>
         <Card className="card-standard card-lift">
           <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
             <div className="flex items-start justify-between">
@@ -79,7 +80,7 @@ export function GoalsSummaryKPIs() {
             </div>
             <div className="flex items-end justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">+{percentComplete}%</span>
+                <span className="text-sm font-medium text-[var(--color-positive)]">+{percentComplete}%</span>
                 <span className="text-xs text-muted-foreground">complete</span>
               </div>
               <MiniSparkline data={sparklineData} color="hsl(217, 91%, 60%)" />
@@ -88,7 +89,7 @@ export function GoalsSummaryKPIs() {
         </Card>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <motion.div {...createStaggeredCardVariants(1, 0)}>
         <Card className="card-standard card-lift">
           <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
             <div className="flex items-start justify-between">
@@ -100,21 +101,21 @@ export function GoalsSummaryKPIs() {
                 </p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
-                <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <DollarSign className="h-5 w-5 text-[var(--color-positive)]" />
               </div>
             </div>
             <div className="flex items-end justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-orange-600 dark:text-orange-400">{contributionRate}%</span>
+                <span className="text-sm font-medium text-[var(--color-warning)]">{contributionRate}%</span>
                 <span className="text-xs text-muted-foreground">of target</span>
               </div>
-              <MiniSparkline data={contributionData} color="hsl(142, 76%, 36%)" />
+              <MiniSparkline data={contributionData} color="var(--color-positive)" />
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <motion.div {...createStaggeredCardVariants(2, 0)}>
         <Card className="card-standard card-lift">
           <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
             <div className="flex items-start justify-between">
@@ -123,7 +124,7 @@ export function GoalsSummaryKPIs() {
                 <p className="text-2xl font-bold">On Track</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
-                <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <TrendingUp className="h-5 w-5 text-[var(--color-positive)]" />
               </div>
             </div>
             <div className="space-y-1">

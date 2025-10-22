@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Pin, PinOff } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { createStaggeredCardVariants } from "@/lib/motion-variants"
 
 interface InsightCardProps {
   id: number
@@ -67,18 +68,13 @@ export function InsightCard({
 
   const handlePin = () => {
     setPinned(!pinned)
-    // In a real app, this would update the backend
     console.log(`[v0] Insight ${id} ${!pinned ? "pinned" : "unpinned"}`)
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1, ease: [0.35, 0.2, 0.14, 0.95] }}
-    >
+    <motion.div {...createStaggeredCardVariants(index, 0)}>
       <Card
-        className={`group relative p-6 rounded-xl border ${pinned ? "border-primary/40 shadow-sm" : "border-border/30"} ${styles.hoverBorder} hover:shadow-md transition-all duration-300 ease-[cubic-bezier(.35,.2,.14,.95)] cursor-pointer hover:-translate-y-0.5`}
+        className={`group relative p-6 rounded-xl border ${pinned ? "border-primary/40 shadow-sm" : "border-border/30"} ${styles.hoverBorder} card-standard card-lift cursor-pointer hover:-translate-y-0.5`}
       >
         <Button
           variant="ghost"

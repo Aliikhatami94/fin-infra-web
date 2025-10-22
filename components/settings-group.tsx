@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import type { ReactNode } from "react"
+import { cardHoverVariants } from "@/lib/motion-variants"
 
 interface SettingsGroupProps {
   title: string
@@ -16,7 +17,7 @@ export function SettingsGroup({ title, description, icon, children }: SettingsGr
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      whileHover={{ y: -1 }}
+      {...cardHoverVariants}
       className="p-6 md:p-8 rounded-xl border border-border/30 bg-card shadow-sm transition-all duration-300 ease-[cubic-bezier(0.35,0.2,0.14,0.95)] hover:shadow-md hover:border-border/50"
     >
       <div className="flex items-center gap-2 mb-1">

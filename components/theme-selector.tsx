@@ -6,6 +6,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Monitor, Moon, Sun } from "lucide-react"
+import { cardHoverVariants } from "@/lib/motion-variants"
 
 type Theme = "light" | "dark" | "system"
 
@@ -23,7 +24,7 @@ export function ThemeSelector() {
       {themes.map((theme) => (
         <motion.button
           key={theme.value}
-          whileHover={{ y: -2 }}
+          {...cardHoverVariants}
           whileTap={{ scale: 0.98 }}
           className={cn(
             "rounded-lg border transition-all duration-300 p-4 flex flex-col items-center gap-3",

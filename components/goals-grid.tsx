@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { GoalDetailModal } from "./goal-detail-modal"
+import { createStaggeredCardVariants } from "@/lib/motion-variants"
 
 const goals = [
   {
@@ -155,13 +156,8 @@ export function GoalsGrid() {
   const pausedGoals = goals.filter((g) => g.status === "paused")
   const completedGoals = goals.filter((g) => g.status === "completed")
 
-  const renderGoalCard = (goal: (typeof goals)[0]) => (
-    <motion.div
-      key={goal.id}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-    >
+  const renderGoalCard = (goal: (typeof goals)[0], index: number) => (
+    <motion.div key={goal.id} {...createStaggeredCardVariants(index, 0)}>
       <Card className="card-standard card-lift cursor-pointer group" onClick={() => setSelectedGoal(goal)}>
         <CardContent className="p-6">
           <div className="flex gap-6">
@@ -295,7 +291,9 @@ export function GoalsGrid() {
             Active Goals ({activeGoals.length})
           </AccordionTrigger>
           <AccordionContent>
-            <div className="grid gap-6 md:grid-cols-2 pt-4">{activeGoals.map(renderGoalCard)}</div>
+            <div className="grid gap-6 md:grid-cols-2 pt-4">
+              {activeGoals.map((goal, index) => renderGoalCard(goal, index))}
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -305,7 +303,9 @@ export function GoalsGrid() {
               On Hold ({pausedGoals.length})
             </AccordionTrigger>
             <AccordionContent>
-              <div className="grid gap-6 md:grid-cols-2 pt-4">{pausedGoals.map(renderGoalCard)}</div>
+              <div className="grid gap-6 md:grid-cols-2 pt-4">
+                {pausedGoals.map((goal, index) => renderGoalCard(goal, index))}
+              </div>
             </AccordionContent>
           </AccordionItem>
         )}
@@ -316,7 +316,9 @@ export function GoalsGrid() {
               Fully Funded ({completedGoals.length})
             </AccordionTrigger>
             <AccordionContent>
-              <div className="grid gap-6 md:grid-cols-2 pt-4">{completedGoals.map(renderGoalCard)}</div>
+              <div className="grid gap-6 md:grid-cols-2 pt-4">
+                {completedGoals.map((goal, index) => renderGoalCard(goal, index))}
+              </div>
             </AccordionContent>
           </AccordionItem>
         )}

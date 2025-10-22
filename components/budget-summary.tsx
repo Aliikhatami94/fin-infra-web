@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Plus, ArrowDown, ArrowUp, DollarSign, TrendingDown, Wallet } from "lucide-react"
 import { motion } from "framer-motion"
+import { createStaggeredCardVariants } from "@/lib/motion-variants"
 
 const sparklineData = {
   budgeted: [6200, 6300, 6400, 6500, 6500, 6500, 6500],
@@ -75,12 +76,7 @@ export function BudgetSummary() {
         const TrendIcon = item.trend === "down" ? ArrowDown : ArrowUp
         const Icon = item.icon
         return (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-          >
+          <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
             <Card className="card-standard card-lift">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -99,21 +95,18 @@ export function BudgetSummary() {
                         <div className="flex items-center gap-1.5 text-xs">
                           {item.trend && (
                             <TrendIcon
-                              className={`h-3.5 w-3.5 ${item.trend === "down" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                              className={`h-3.5 w-3.5 ${item.trend === "down" ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
                             />
                           )}
                           <span
-                            className={`font-medium ${item.trend === "down" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                            className={`font-medium ${item.trend === "down" ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
                           >
                             {item.subtext}
                           </span>
                         </div>
                       )}
                       {item.badge && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-green-500/10 text-green-700 dark:text-green-400 border-0"
-                        >
+                        <Badge variant="secondary" className="bg-green-500/10 text-[var(--color-positive)] border-0">
                           {item.badge}
                         </Badge>
                       )}
@@ -123,9 +116,9 @@ export function BudgetSummary() {
                             data={item.sparkline}
                             color={
                               item.color.includes("green")
-                                ? "hsl(142, 76%, 45%)"
+                                ? "var(--color-positive)"
                                 : item.color.includes("red")
-                                  ? "hsl(0, 84%, 60%)"
+                                  ? "var(--color-negative)"
                                   : "hsl(var(--primary))"
                             }
                           />

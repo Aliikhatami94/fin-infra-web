@@ -3,29 +3,26 @@
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Sparkles, TrendingDown, Target } from "lucide-react"
+import { createStaggeredCardVariants } from "@/lib/motion-variants"
 
 export function AIInsightsBanner() {
   const insights = [
     {
       icon: TrendingDown,
       text: "Your credit utilization decreased 4% this month. Excellent trend.",
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-500/10",
+      color: "text-[var(--color-positive)]",
+      bgColor: "bg-[var(--color-positive)]/10",
     },
     {
       icon: Target,
       text: "You're on track to reach your emergency fund goal 2 months early.",
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-500/10",
+      color: "text-[var(--color-info)]",
+      bgColor: "bg-[var(--color-info)]/10",
     },
   ]
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3, duration: 0.5 }}
-    >
+    <motion.div {...createStaggeredCardVariants(0, 0.3)}>
       <Card className="border-border/30 bg-gradient-to-r from-purple-500/5 to-blue-500/5">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">

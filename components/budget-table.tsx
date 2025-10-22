@@ -157,15 +157,118 @@ export function BudgetTable() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredBudgets.map((budget, index) => (
-              <div
-                key={index}
-                className="group space-y-3 rounded-lg border border-transparent p-4 transition-all hover:border-border hover:bg-muted/30"
-              >
-                <div className="grid grid-cols-[1fr_auto_auto] gap-4 items-center">
-                  <div className="flex items-center gap-3">
+            <div className="hidden md:block space-y-4">
+              {filteredBudgets.map((budget, index) => (
+                <div
+                  key={index}
+                  className="group space-y-3 rounded-lg border border-transparent p-4 transition-all hover:border-border hover:bg-muted/30"
+                >
+                  <div className="grid grid-cols-[1fr_auto_auto] gap-4 items-center">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-foreground">{budget.category}</span>
+                      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleEdit(index, budget)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleAdvancedEdit(budget)}
+                        >
+                          <Settings className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-right min-w-[100px]">
+                      {editingIndex === index ? (
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="h-7 w-20 text-sm"
+                            autoFocus
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleSave(index)}>
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleCancel}>
+                            <X className="h-3.5 w-3.5 text-red-600" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-0.5">
+                          <div className="text-xs text-muted-foreground tabular-nums">
+                            ${budget.budget.toLocaleString()}
+                          </div>
+                          <div className="text-sm font-medium tabular-nums text-foreground">
+                            ${budget.actual.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right min-w-[80px] flex items-center justify-end gap-1">
+                      {budget.variance >= 0 ? (
+                        <ArrowUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <ArrowDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                      )}
+                      <span
+                        className={`text-sm font-semibold tabular-nums ${
+                          budget.variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        ${Math.abs(budget.variance)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Progress
+                        value={Math.min(budget.percent, 100)}
+                        className="h-2.5 flex-1"
+                        indicatorClassName={
+                          budget.percent > 100
+                            ? "bg-red-500"
+                            : budget.percent > 90
+                              ? "bg-orange-500"
+                              : budget.percent > 75
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
+                        }
+                      />
+                      {budget.percent > 100 && (
+                        <Badge variant="destructive" className="text-xs px-2 py-0 h-5">
+                          Over budget
+                        </Badge>
+                      )}
+                      {budget.percent > 90 && budget.percent <= 100 && (
+                        <Badge
+                          variant="secondary"
+                          className="text-xs px-2 py-0 h-5 bg-orange-500/10 text-orange-700 dark:text-orange-400 border-0"
+                        >
+                          At limit
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="md:hidden space-y-3">
+              {filteredBudgets.map((budget, index) => (
+                <div key={index} className="card-standard card-lift p-4 space-y-3">
+                  <div className="flex items-start justify-between">
                     <span className="font-medium text-foreground">{budget.category}</span>
-                    <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -184,82 +287,51 @@ export function BudgetTable() {
                       </Button>
                     </div>
                   </div>
-                  <div className="text-right min-w-[100px]">
-                    {editingIndex === index ? (
-                      <div className="flex items-center gap-1">
-                        <Input
-                          type="number"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          className="h-7 w-20 text-sm"
-                          autoFocus
-                        />
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleSave(index)}>
-                          <Check className="h-3.5 w-3.5 text-green-600" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleCancel}>
-                          <X className="h-3.5 w-3.5 text-red-600" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-0.5">
-                        <div className="text-xs text-muted-foreground tabular-nums">
-                          ${budget.budget.toLocaleString()}
-                        </div>
-                        <div className="text-sm font-medium tabular-nums text-foreground">
-                          ${budget.actual.toLocaleString()}
-                        </div>
-                      </div>
-                    )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Budget</p>
+                      <p className="text-base font-semibold tabular-nums">${budget.budget.toLocaleString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground mb-1">Actual</p>
+                      <p className="text-base font-semibold tabular-nums">${budget.actual.toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div className="text-right min-w-[80px] flex items-center justify-end gap-1">
-                    {budget.variance >= 0 ? (
-                      <ArrowUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                    ) : (
-                      <ArrowDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
-                    )}
-                    <span
-                      className={`text-sm font-semibold tabular-nums ${
-                        budget.variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                      }`}
-                    >
-                      ${Math.abs(budget.variance)}
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Progress
-                      value={Math.min(budget.percent, 100)}
-                      className="h-2.5 flex-1"
-                      indicatorClassName={
-                        budget.percent > 100
-                          ? "bg-red-500"
-                          : budget.percent > 90
-                            ? "bg-orange-500"
-                            : budget.percent > 75
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                      }
-                    />
-                    {budget.percent > 100 && (
-                      <Badge variant="destructive" className="text-xs px-2 py-0 h-5">
-                        Over budget
-                      </Badge>
-                    )}
-                    {budget.percent > 90 && budget.percent <= 100 && (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs px-2 py-0 h-5 bg-orange-500/10 text-orange-700 dark:text-orange-400 border-0"
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Progress
+                        value={Math.min(budget.percent, 100)}
+                        className="h-2.5 flex-1"
+                        indicatorClassName={
+                          budget.percent > 100
+                            ? "bg-red-500"
+                            : budget.percent > 90
+                              ? "bg-orange-500"
+                              : budget.percent > 75
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
+                        }
+                      />
+                      {budget.percent > 100 && (
+                        <Badge variant="destructive" className="text-xs px-2 py-0 h-5">
+                          Over
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
+                      <span
+                        className={`font-semibold tabular-nums ${budget.variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                       >
-                        At limit
-                      </Badge>
-                    )}
+                        {budget.variance >= 0 ? "+" : ""}${Math.abs(budget.variance)}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-xs text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

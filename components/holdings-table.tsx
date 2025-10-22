@@ -205,7 +205,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm table-fixed">
               <colgroup>
                 <col style={{ width: "22%" }} />
@@ -358,6 +358,97 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="md:hidden space-y-3">
+            {groupedRows.map(({ group, items }) => (
+              <div key={group || "no-group"} className="space-y-3">
+                {group && (
+                  <div className="flex items-center gap-2 px-2 py-1 bg-muted/30 rounded-md">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground">{group}</span>
+                  </div>
+                )}
+                {items.map((holding) => (
+                  <div
+                    key={holding.ticker}
+                    onClick={() => setSelectedHolding(holding)}
+                    className="card-standard card-lift cursor-pointer p-4 space-y-3"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-lg flex-shrink-0">
+                          {holding.logo}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-foreground truncate">{holding.ticker}</p>
+                          <p className="text-xs text-muted-foreground truncate">{holding.name}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="whitespace-nowrap ml-2">
+                        {holding.account}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Value</p>
+                        <p className="text-base font-semibold tabular-nums font-mono">
+                          <MaskableValue
+                            value={`$${holding.value.toLocaleString()}`}
+                            srLabel={`${holding.ticker} value`}
+                          />
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground mb-1">P/L</p>
+                        <p
+                          className={`text-base font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                        >
+                          <MaskableValue
+                            value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString()}`}
+                            srLabel={`${holding.ticker} profit and loss`}
+                          />
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                      <div className="flex items-center gap-1">
+                        {holding.plPercent > 0 ? (
+                          <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                        )}
+                        <span
+                          className={`text-sm tabular-nums ${holding.plPercent > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                        >
+                          {holding.plPercent > 0 ? "+" : ""}
+                          {holding.plPercent}%
+                        </span>
+                        <div className="ml-2 w-12 h-6">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={holding.sparkline.map((val, i) => ({ value: val }))}>
+                              <Line
+                                type="monotone"
+                                dataKey="value"
+                                stroke={holding.plPercent > 0 ? "hsl(142, 76%, 45%)" : "hsl(0, 84%, 60%)"}
+                                strokeWidth={1.5}
+                                dot={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Weight</p>
+                        <p className="text-sm font-medium tabular-nums">{holding.weight}%</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

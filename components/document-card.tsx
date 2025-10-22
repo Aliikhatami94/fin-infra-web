@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useState } from "react"
+import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 
 interface DocumentCardProps {
   name: string
@@ -37,11 +38,9 @@ export function DocumentCard({ name, institution, type, date, size, index }: Doc
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, delay: index * 0.05, ease: "easeOut" }}
-      whileHover={{ y: -2, scale: 1.01 }}
-      className="group relative p-6 border border-border/30 rounded-xl bg-card shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-300"
+      {...createStaggeredCardVariants(index, 0)}
+      {...cardHoverVariants}
+      className="group relative p-6 border border-border/30 rounded-xl bg-card shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-300 card-standard card-lift"
     >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -84,10 +83,7 @@ export function DocumentCard({ name, institution, type, date, size, index }: Doc
           <span>{date}</span>
           <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
             <DialogTrigger asChild>
-              <button
-                className="opacity-70 hover:opacity-100 hover:-translate-y-0.5 transition-all duration-200"
-                aria-label="View document"
-              >
+              <button className="opacity-70 hover:opacity-100 transition-smooth" aria-label="View document">
                 <Eye className="h-4 w-4" />
               </button>
             </DialogTrigger>
@@ -118,10 +114,7 @@ export function DocumentCard({ name, institution, type, date, size, index }: Doc
               </div>
             </DialogContent>
           </Dialog>
-          <button
-            className="opacity-70 hover:opacity-100 hover:-translate-y-0.5 transition-all duration-200"
-            aria-label="Download document"
-          >
+          <button className="opacity-70 hover:opacity-100 transition-smooth" aria-label="Download document">
             <Download className="h-4 w-4" />
           </button>
           <span className="text-muted-foreground/70">{size}</span>

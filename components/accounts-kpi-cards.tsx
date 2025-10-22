@@ -4,6 +4,9 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Wallet, CreditCard, TrendingUp, TrendingDown } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { LastSyncBadge } from "@/components/last-sync-badge"
+import { createStaggeredCardVariants } from "@/lib/motion-variants"
 
 interface AccountsKPICardsProps {
   totalCash: number
@@ -54,79 +57,102 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       title: "Total Cash",
       value: totalCash,
       trend: 2.3,
+      baselineValue: totalCash / 1.023,
       icon: Wallet,
       color: "text-blue-600 dark:text-blue-400",
       bgColor: "bg-blue-500/10",
       sparklineColor: "rgb(37, 99, 235)",
+      lastSynced: "3 min ago",
+      source: "Plaid",
     },
     {
       title: "Total Credit Debt",
       value: totalCreditDebt,
       trend: -1.2,
+      baselineValue: totalCreditDebt / 0.988,
       icon: CreditCard,
       color: "text-red-600 dark:text-red-400",
       bgColor: "bg-red-500/10",
       sparklineColor: "rgb(220, 38, 38)",
+      lastSynced: "3 min ago",
+      source: "Plaid",
     },
     {
       title: "Total Investments",
       value: totalInvestments,
       trend: 5.1,
+      baselineValue: totalInvestments / 1.051,
       icon: TrendingUp,
       color: "text-green-600 dark:text-green-400",
       bgColor: "bg-green-500/10",
       sparklineColor: "rgb(22, 163, 74)",
+      lastSynced: "5 min ago",
+      source: "Teller",
     },
   ]
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      {kpis.map((kpi, index) => {
-        const Icon = kpi.icon
-        const sparklineData = generateSparklineData(kpi.trend)
+    <TooltipProvider>
+      <div className="grid gap-4 md:grid-cols-3">
+        {kpis.map((kpi, index) => {
+          const Icon = kpi.icon
+          const sparklineData = generateSparklineData(kpi.trend)
 
-        return (
-          <motion.div
-            key={kpi.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.5 }}
-          >
-            <Card className="card-standard card-lift">
-              <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">{kpi.title}</p>
-                    <p className="text-2xl font-bold tracking-tight tabular-nums font-mono truncate">
-                      <MaskableValue
-                        value={`$${Math.abs(kpi.value).toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
-                        srLabel={`${kpi.title} value`}
-                      />
-                    </p>
+          return (
+            <motion.div key={kpi.title} {...createStaggeredCardVariants(index, 0)}>
+              <Card className="card-standard card-lift">
+                <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
+                  <div className="mb-2">
+                    <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                   </div>
-                  <div className={`h-10 w-10 rounded-lg ${kpi.bgColor} flex items-center justify-center shrink-0`}>
-                    <Icon className={`h-5 w-5 ${kpi.color}`} />
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground">{kpi.title}</p>
+                      <p className="text-2xl font-bold tracking-tight tabular-nums font-mono truncate">
+                        <MaskableValue
+                          value={`$${Math.abs(kpi.value).toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+                          srLabel={`${kpi.title} value`}
+                        />
+                      </p>
+                    </div>
+                    <div className={`h-10 w-10 rounded-lg ${kpi.bgColor} flex items-center justify-center shrink-0`}>
+                      <Icon className={`h-5 w-5 ${kpi.color}`} />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-end justify-between">
-                  <div className="flex items-center gap-1 text-xs">
-                    {kpi.trend > 0 ? (
-                      <TrendingUp className="h-3 w-3 text-green-500" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3 text-red-500" />
-                    )}
-                    <span className={`font-medium ${kpi.trend > 0 ? "text-green-500" : "text-red-500"}`}>
-                      {kpi.trend > 0 ? "+" : ""}
-                      {kpi.trend}%
-                    </span>
+                  <div className="flex items-end justify-between">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1 text-xs cursor-help">
+                          {kpi.trend > 0 ? (
+                            <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
+                          ) : (
+                            <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
+                          )}
+                          <span
+                            className={`font-medium ${kpi.trend > 0 ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
+                          >
+                            {kpi.trend > 0 ? "+" : ""}
+                            {kpi.trend}%
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">
+                          vs. last month:{" "}
+                          <span className="font-mono">
+                            ${Math.abs(kpi.baselineValue).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </span>
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Sparkline data={sparklineData} color={kpi.sparklineColor} />
                   </div>
-                  <Sparkline data={sparklineData} color={kpi.sparklineColor} />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )
-      })}
-    </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )
+        })}
+      </div>
+    </TooltipProvider>
   )
 }

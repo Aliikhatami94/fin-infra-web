@@ -120,7 +120,7 @@ export function CryptoTable({ selectedExchange }: CryptoTableProps) {
         <CardTitle>Holdings</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto -mx-6 px-6">
+        <div className="hidden md:block overflow-x-auto -mx-6 px-6">
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-b text-left text-sm text-muted-foreground">
@@ -274,6 +274,87 @@ export function CryptoTable({ selectedExchange }: CryptoTableProps) {
               })}
             </tbody>
           </table>
+        </div>
+
+        <div className="md:hidden space-y-3">
+          {sortedCryptos.map((crypto) => {
+            const plAmount = (crypto.price - crypto.costBasis) * crypto.amount
+            const plPercent = ((crypto.price - crypto.costBasis) / crypto.costBasis) * 100
+            const weight = (crypto.value / totalValue) * 100
+
+            return (
+              <div
+                key={crypto.coin}
+                onClick={() => router.push(`/crypto/${crypto.coin.toLowerCase()}`)}
+                className="card-standard card-lift cursor-pointer p-4 space-y-3"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      {crypto.coin.slice(0, 2)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground truncate">{crypto.coin}</p>
+                      <p className="text-xs text-muted-foreground truncate">{crypto.name}</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="whitespace-nowrap ml-2">
+                    {crypto.exchange}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Value</p>
+                    <p className="text-base font-semibold tabular-nums font-mono">${crypto.value.toLocaleString()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground mb-1">P/L</p>
+                    <p
+                      className={`text-base font-semibold tabular-nums font-mono ${plAmount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                    >
+                      {plAmount >= 0 ? "+" : ""}$
+                      {plAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                  <div className="flex items-center gap-2">
+                    <ResponsiveContainer width={40} height={20}>
+                      <AreaChart data={crypto.trend.map((val, i) => ({ value: val }))}>
+                        <Area
+                          type="monotone"
+                          dataKey="value"
+                          stroke={crypto.change24h >= 0 ? "hsl(142, 76%, 36%)" : "hsl(0, 84%, 60%)"}
+                          fill={crypto.change24h >= 0 ? "hsl(142, 76%, 36%)" : "hsl(0, 84%, 60%)"}
+                          fillOpacity={0.3}
+                          strokeWidth={1.5}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                    <div className="flex items-center gap-1">
+                      {crypto.change24h > 0 ? (
+                        <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                      ) : crypto.change24h < 0 ? (
+                        <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                      ) : null}
+                      <span
+                        className={`text-sm font-medium tabular-nums ${crypto.change24h > 0 ? "text-green-600 dark:text-green-400" : crypto.change24h < 0 ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}`}
+                      >
+                        {crypto.change24h > 0 ? "+" : ""}
+                        {crypto.change24h}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Weight</p>
+                    <p className="text-sm font-medium tabular-nums">{weight.toFixed(1)}%</p>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </CardContent>
     </Card>
