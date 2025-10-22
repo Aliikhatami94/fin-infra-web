@@ -37,7 +37,7 @@ const regionData: AllocationSlice[] = [
   { name: "Emerging", value: 5, amount: 9500, color: "hsl(262, 83%, 58%)" },
 ]
 
-interface AllocationGridProps {
+export interface AllocationGridProps {
   onFilterChange?: (filter: string | null) => void
 }
 

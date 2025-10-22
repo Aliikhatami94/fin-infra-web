@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { isActiveRoute } from "@/lib/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navigation = [
@@ -90,9 +91,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="space-y-1 px-2">
               {navigation.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(`${item.href}/`))
+                const active = isActiveRoute(pathname, item.href)
                 return (
                   <Link
                     key={item.name}
@@ -100,11 +99,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                     onClick={onMobileClose}
                     className={cn(
                       "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
+                      active
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
-                    aria-current={isActive ? "page" : undefined}
+                    aria-current={active ? "page" : undefined}
                   >
                     <item.icon className="h-5 w-5 shrink-0" />
                     {!collapsed && (

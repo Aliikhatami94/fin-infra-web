@@ -11,9 +11,10 @@ import { AnimatePresence, motion } from "framer-motion"
 import type { MouseEvent } from "react"
 
 import { AccountDetailPanel } from "./account-detail-panel"
-import { bankLogos, defaultBankIcon, mockTransactions, sharedIcons, typeColors } from "./data"
+import { bankLogos, defaultBankIcon, mockTransactions, sharedIcons, typeColors } from "@/lib/mock"
 import { MiniSparkline } from "./mini-sparkline"
 import type { Account } from "./types"
+import { formatCurrency, formatNumber } from "@/lib/format"
 
 const {
   AlertCircle,
@@ -91,7 +92,7 @@ export function AccountRow({
         <td className="py-3 px-3 text-right align-middle">
           <p className="text-sm font-semibold tabular-nums font-mono text-foreground whitespace-nowrap">
             <MaskableValue
-              value={`$${Math.abs(account.balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+              value={formatCurrency(Math.abs(account.balance), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               srLabel={`${account.name} balance`}
             />
           </p>
@@ -109,8 +110,7 @@ export function AccountRow({
                 account.change > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
               }`}
             >
-              {account.change > 0 ? "+" : ""}
-              {account.change}%
+              {formatNumber(account.change, { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "exceptZero" })}%
             </span>
           </div>
         </td>

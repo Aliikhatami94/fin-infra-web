@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Fragment } from "react"
 
 import { AccountRow } from "./account-row"
-import { sharedIcons } from "./data"
+import { sharedIcons } from "@/lib/mock"
 import type { Account, GroupBy, SortField } from "./types"
 
 const { ArrowUpDown, ChevronDown, ChevronRight } = sharedIcons

@@ -9,15 +9,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { AnimatePresence, motion } from "framer-motion"
 
-import {
-  bankLogos,
-  defaultBankIcon,
-  mockTransactions,
-  sharedIcons,
-  typeColors,
-} from "./data"
+import { bankLogos, defaultBankIcon, mockTransactions, sharedIcons, typeColors } from "@/lib/mock"
 import { MiniSparkline } from "./mini-sparkline"
 import type { Account, GroupBy } from "./types"
+import { formatCurrency, formatNumber } from "@/lib/format"
 
 const {
   Calendar,
@@ -117,9 +112,10 @@ export function AccountsListMobile({
                         <p className="text-xs text-muted-foreground mb-1">Balance</p>
                         <p className="text-lg font-semibold tabular-nums font-mono">
                           <MaskableValue
-                            value={`$${Math.abs(account.balance).toLocaleString("en-US", {
+                            value={formatCurrency(Math.abs(account.balance), {
                               minimumFractionDigits: 2,
-                            })}`}
+                              maximumFractionDigits: 2,
+                            })}
                             srLabel={`${account.name} balance`}
                           />
                         </p>
@@ -133,8 +129,11 @@ export function AccountsListMobile({
                               account.change > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                             }`}
                           >
-                            {account.change > 0 ? "+" : ""}
-                            {account.change}%
+                            {formatNumber(account.change, {
+                              minimumFractionDigits: 1,
+                              maximumFractionDigits: 1,
+                              signDisplay: "exceptZero",
+                            })}%
                           </span>
                         </div>
                       </div>
@@ -211,10 +210,12 @@ export function AccountsListMobile({
                                   <span className="text-sm font-medium">{account.nextBillDue}</span>
                                 </div>
                                 <span className="text-sm font-semibold tabular-nums font-mono">
-                                  $
-                                  {account.nextBillAmount?.toLocaleString("en-US", {
-                                    minimumFractionDigits: 2,
-                                  })}
+                                  {typeof account.nextBillAmount === "number"
+                                    ? formatCurrency(account.nextBillAmount, {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      })
+                                    : ""}
                                 </span>
                               </div>
                             </div>
@@ -236,7 +237,7 @@ export function AccountsListMobile({
                                         txn.amount > 0 ? "text-green-600 dark:text-green-400" : ""
                                       }`}
                                     >
-                                      {txn.amount > 0 ? "+" : ""}${Math.abs(txn.amount).toFixed(2)}
+                                      {formatCurrency(txn.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
                                     </span>
                                   </div>
                                 )

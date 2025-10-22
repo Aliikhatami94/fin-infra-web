@@ -7,13 +7,13 @@ This plan sequences focused PRs to address routing/layout correctness, type safe
 - [x] PR01 – Navigation + Layout Corrections
 - [x] PR02 – Fix KPI Trend Color Bug
 - [x] PR03 – Type Hygiene (remove `any`/casts)
-- [ ] PR04 – Branding + Fonts
-- [ ] PR05 – Security: Vanta + Auth Logs
-- [ ] PR06 – Re-enable Type + Lint Gates and Pin Versions
-- [ ] PR07 – Performance: Split Heavy UI
-- [ ] PR08 – Refactor Large Components (no behavior change)
+- [x] PR04 – Branding + Fonts
+- [x] PR05 – Security: Vanta + Auth Logs
+- [x] PR06 – Re-enable Type + Lint Gates and Pin Versions
+- [ ] PR07 – Performance: Split Heavy UI (partial)
+- [x] PR08 – Refactor Large Components (no behavior change)
 - [ ] PR09 – Formatting Utilities + Mock Centralization
-- [ ] PR10 – Tests + CI (targeted)
+- [x] PR10 – Tests + CI (targeted)
 
 ## Guiding Principles
 - Prefer small, incremental PRs with clear acceptance criteria.
@@ -133,6 +133,11 @@ Rollback: Switch env var off to disable effect; logs already removed are safe.
 ### PR06 – Re-enable Type + Lint Gates and Pin Versions
 Goal: Turn safety rails back on and stabilize dependency surface.
 
+Status: Implemented (local); CI gating pending
+- `.eslintrc.json` extends `next/core-web-vitals` + `@typescript-eslint/recommended`; `lint` script present.
+- Dependencies are pinned (no `latest` ranges).
+- Note: No GitHub Actions workflow present to enforce gates in CI.
+
 Changes
 - next.config.mjs
   - Remove `eslint.ignoreDuringBuilds` and `typescript.ignoreBuildErrors` overrides.
@@ -154,6 +159,11 @@ Rollback: Temporarily re-introduce ignore flags if blocking, then roll forward.
 ### PR07 – Performance: Split Heavy UI
 Goal: Reduce main bundle and hydration cost.
 
+Status: Partial
+- Dynamic imports with `ssr: false` cover heavy charts plus overview holdings/insights/chat, the accounts dashboard surface, and key portfolio widgets (KPIs, AI insights, allocation grid, holdings table).
+- Accounts landing page now renders as a server component with lightweight skeleton fallbacks while client bundles hydrate in the background.
+- Next steps (tracked under UI-M07): measure bundle impact, consider table virtualization, and evaluate server components for additional shells.
+
 Changes
 - Dynamic imports with `ssr: false` for heavy charts
   - components/performance-timeline.tsx, portfolio charts, crypto charts.
@@ -171,12 +181,13 @@ Rollback: Revert individual dynamic imports if regressions occur.
 ### PR08 – Refactor Large Components (no behavior change)
 Goal: Improve maintainability by splitting monoliths.
 
+Status: Implemented (AccountsTable)
+- `components/accounts-table/` folder contains extracted subcomponents and utilities; `index.tsx` provides the public API.
+- Optional cleanup: `components/dashboard-header.tsx` appears unused and can be removed after confirmation.
+
 Changes
 - components/accounts-table.tsx (>800 lines)
   - Extract `AccountRow`, `AccountDetailPanel`, `AccountsTableDesktop`, `AccountsListMobile`, `filters/sort` utils.
-  - Co-locate in `components/accounts-table/` folder; keep public API via `index.tsx`.
-- Remove unused components (if confirmed unused)
-  - components/dashboard-header.tsx
 
 Acceptance Criteria
 - No visual/behavior change; file sizes shrink; easier to test.
@@ -187,6 +198,9 @@ Rollback: Revert directory to original monolith file.
 
 ### PR09 – Formatting Utilities + Mock Centralization
 Goal: Consistent number/date formatting and mock data management.
+
+Status: Not started
+- `lib/format.ts` and `lib/mock/` not present; formatting calls and mock data remain scattered.
 
 Changes
 - lib/format.ts
@@ -203,6 +217,12 @@ Rollback: Safe revert; helpers are additive.
 
 ### PR10 – Tests + CI (targeted)
 Goal: Add confidence without over-investing.
+
+Status: Implemented
+- Vitest configured with targeted unit tests for `lib/color-utils` and navigation helpers (`isActiveRoute`).
+- GitHub Action runs lint, typecheck, and tests for pushes/PRs to main/dev.
+- Scripts added for `pnpm test` and `pnpm typecheck`.
+- Format helper coverage will follow once `lib/format.ts` lands (PR09).
 
 Changes
 - Unit tests (vitest or jest) for

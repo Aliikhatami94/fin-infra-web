@@ -2,27 +2,13 @@
 
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
-import { Sparkles, AlertCircle, FileText } from "lucide-react"
+import { Sparkles } from "lucide-react"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { Button } from "@/components/ui/button"
+import { documentInsights } from "@/lib/mock"
 
 export function DocumentsAIInsights() {
-  const insights = [
-    {
-      icon: AlertCircle,
-      text: "Missing Q4 2024 tax documents from 2 brokers. Upload by March 15 to avoid delays.",
-      color: "text-[var(--color-warning)]",
-      bgColor: "bg-[var(--color-warning)]/10",
-      action: "Upload Now",
-    },
-    {
-      icon: FileText,
-      text: "Your 2024 tax documents are ready for review. Estimated refund: $2,340.",
-      color: "text-[var(--color-positive)]",
-      bgColor: "bg-[var(--color-positive)]/10",
-      action: "Review",
-    },
-  ]
+  const insights = documentInsights
 
   return (
     <motion.div {...createStaggeredCardVariants(0, 0.3)}>

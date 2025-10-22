@@ -8,13 +8,10 @@ import { TrendingUp, TrendingDown, ChevronDown, ChevronUp } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { portfolioHoldings as holdings } from "@/lib/mock"
+import { formatCurrency, formatNumber } from "@/lib/format"
 
-const holdings = [
-  { symbol: "AAPL", name: "Apple Inc.", shares: 50, avgPrice: 178.5, currentPrice: 185.75, change: 4.06 },
-  { symbol: "MSFT", name: "Microsoft Corp.", shares: 30, avgPrice: 380.2, currentPrice: 385.5, change: 1.39 },
-  { symbol: "GOOGL", name: "Alphabet Inc.", shares: 25, avgPrice: 138.9, currentPrice: 142.3, change: 2.45 },
-  { symbol: "TSLA", name: "Tesla Inc.", shares: 15, avgPrice: 245.8, currentPrice: 238.5, change: -2.97 },
-]
+// holdings are provided via centralized mocks
 
 type SortKey = "symbol" | "shares" | "price" | "value" | "day" | "pl" | "alloc"
 
@@ -95,15 +92,11 @@ export function Portfolio({ filter }: PortfolioProps) {
           </div>
           <div className="text-right space-y-1">
             <p className="text-3xl font-bold tracking-tight font-mono">
-              <MaskableValue
-                value={`$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                srLabel="Total portfolio value"
-              />
+              <MaskableValue value={formatCurrency(totalValue, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} srLabel="Total portfolio value" />
             </p>
             <p className={`text-sm font-semibold ${totalGainPercent >= 0 ? "text-success" : "text-destructive"}`}>
-              {totalGainPercent >= 0 ? "+" : ""}
-              {totalGainPercent.toFixed(2)}% ($
-              {totalGain.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+              {formatNumber(totalGainPercent, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}% (
+              {formatCurrency(totalGain, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
             </p>
           </div>
         </div>
@@ -191,14 +184,9 @@ export function Portfolio({ filter }: PortfolioProps) {
                         </div>
                       </td>
                       <td className="py-3 text-right tabular-nums">{h.shares}</td>
-                      <td className="py-3 hidden md:table-cell text-right tabular-nums">
-                        ${h.currentPrice.toLocaleString()}
-                      </td>
+                      <td className="py-3 hidden md:table-cell text-right tabular-nums">{formatCurrency(h.currentPrice)}</td>
                       <td className="py-3 text-right font-mono">
-                        <MaskableValue
-                          value={`$${h.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                          srLabel={`${h.symbol} value`}
-                        />
+                        <MaskableValue value={formatCurrency(h.value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} srLabel={`${h.symbol} value`} />
                       </td>
                       <td className="py-3 text-right">
                         <div className="inline-flex items-center gap-1">
@@ -213,17 +201,13 @@ export function Portfolio({ filter }: PortfolioProps) {
                               h.change >= 0 ? "text-success" : "text-destructive",
                             )}
                           >
-                            {h.change >= 0 ? "+" : ""}
-                            {h.change}%
+                            {formatNumber(h.change, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}%
                           </span>
                         </div>
                       </td>
                       <td className="py-3 hidden sm:table-cell text-right font-mono">
                         <MaskableValue
-                          value={`${h.gain >= 0 ? "+" : ""}$${Math.abs(h.gain).toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })} (${h.gainPct.toFixed(2)}%)`}
+                          value={`${formatCurrency(h.gain, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })} (${formatNumber(h.gainPct, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%)`}
                           srLabel={`${h.symbol} profit and loss`}
                         />
                       </td>
