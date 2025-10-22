@@ -78,7 +78,7 @@ const CustomTooltip = ({ active, payload }: CashFlowTooltipProps) => {
   return null
 }
 
-interface CashFlowChartProps {
+export interface CashFlowChartProps {
   onMonthClick?: (month: string | null) => void
   selectedMonth?: string | null
 }

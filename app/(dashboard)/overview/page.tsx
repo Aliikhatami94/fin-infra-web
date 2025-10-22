@@ -1,19 +1,48 @@
 "use client"
 
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import { Portfolio } from "@/components/portfolio"
 import { AIChatSidebar } from "@/components/ai-chat-sidebar"
-import { CashFlow } from "@/components/cash-flow"
 import { Button } from "@/components/ui/button"
 import { Bot } from "lucide-react"
 import { KPICards } from "@/components/kpi-cards"
-import { AllocationChart } from "@/components/allocation-chart"
-import { PerformanceTimeline } from "@/components/performance-timeline"
 import { RecentActivity } from "@/components/recent-activity"
 import { AIInsights } from "@/components/ai-insights"
+import { ChartCardSkeleton } from "@/components/chart-skeleton"
+import type { AllocationChartProps } from "@/components/allocation-chart"
+
+const AllocationChart = dynamic<AllocationChartProps>(
+  () => import("@/components/allocation-chart").then((mod) => mod.AllocationChart),
+  {
+    ssr: false,
+    loading: () => <ChartCardSkeleton title="Portfolio Allocation" />,
+  },
+)
+
+const PerformanceTimeline = dynamic(
+  () => import("@/components/performance-timeline").then((mod) => mod.PerformanceTimeline),
+  {
+    ssr: false,
+    loading: () => <ChartCardSkeleton title="Performance Timeline" />,
+  },
+)
+
+const CashFlow = dynamic(
+  () => import("@/components/cash-flow").then((mod) => mod.CashFlow),
+  {
+    ssr: false,
+    loading: () => (
+      <ChartCardSkeleton
+        title="Cash Flow"
+        description="Income vs expenses with net cash flow trend"
+        contentHeight="h-72"
+      />
+    ),
+  },
+)
 
 export default function OverviewPage() {
-  const [activeTab, setActiveTab] = useState("overview")
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [allocationFilter, setAllocationFilter] = useState<string | null>(null)
 
