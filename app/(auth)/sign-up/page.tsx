@@ -19,15 +19,12 @@ export default function SignUpPage() {
     e.preventDefault()
     // TODO: Implement registration logic
     if (password !== confirmPassword) {
-      console.log("Passwords do not match")
       return
     }
-    console.log("Sign up with:", { name, email, password })
   }
 
-  const handleOAuthSignUp = (provider: "google" | "github") => {
+  const handleOAuthSignUp = (_provider: "google" | "github") => {
     // TODO: Implement OAuth logic
-    console.log("Sign up with:", provider)
   }
 
   return (

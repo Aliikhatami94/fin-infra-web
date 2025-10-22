@@ -18,12 +18,10 @@ export default function ResetPasswordPage() {
     e.preventDefault()
 
     if (password !== confirmPassword) {
-      console.error("Passwords do not match")
       return
     }
 
     // TODO: Implement password reset logic
-    console.log("Reset password to:", password)
     setIsSubmitted(true)
   }
 

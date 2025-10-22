@@ -16,12 +16,10 @@ export default function SignInPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // TODO: Implement authentication logic
-    console.log("Sign in with:", { email, password })
   }
 
-  const handleOAuthSignIn = (provider: "google" | "github") => {
+  const handleOAuthSignIn = (_provider: "google" | "github") => {
     // TODO: Implement OAuth logic
-    console.log("Sign in with:", provider)
   }
 
   return (
