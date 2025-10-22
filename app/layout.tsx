@@ -5,7 +5,6 @@ import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PrivacyProvider } from "../components/privacy-provider"
 import { DateRangeProvider } from "@/components/date-range-provider"
-import { DashboardLayout } from "@/components/dashboard-layout"
 import "./globals.css"
 
 const _inter = Inter({ subsets: ["latin"] })
@@ -34,9 +33,7 @@ export default function RootLayout({
         </a>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <PrivacyProvider>
-            <DateRangeProvider>
-              <DashboardLayout>{children}</DashboardLayout>
-            </DateRangeProvider>
+            <DateRangeProvider>{children}</DateRangeProvider>
           </PrivacyProvider>
         </ThemeProvider>
         <Analytics />
