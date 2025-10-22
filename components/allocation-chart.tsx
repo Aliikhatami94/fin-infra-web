@@ -5,7 +5,6 @@ import type { TooltipContentProps } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
-import { motion, AnimatePresence } from "framer-motion"
 
 type AllocationView = "assetClass" | "sector" | "region"
 
@@ -37,7 +36,7 @@ const allocationData: Record<AllocationView, AllocationDataPoint[]> = {
   ],
 }
 
-interface AllocationChartProps {
+export interface AllocationChartProps {
   onFilterChange?: (filter: string | null) => void
   activeFilter?: string | null
 }
@@ -109,65 +108,56 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
         )}
       </CardHeader>
       <CardContent>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={view}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="flex items-center gap-6"
-          >
-            <div className="h-48 w-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                    onClick={(_, index) => handleSegmentClick(data[index])}
-                    className="cursor-pointer"
-                  >
-                    {data.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        opacity={activeFilter && activeFilter !== entry.name ? 0.3 : 1}
-                        className="transition-opacity hover:opacity-80"
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={renderTooltip} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex-1 space-y-2">
-              {data.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => handleSegmentClick(item)}
-                  className="flex items-center justify-between text-sm w-full hover:bg-muted/50 p-1 rounded transition-colors"
+        <div className="flex items-center gap-6">
+          <div className="h-48 w-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={2}
+                  dataKey="value"
+                  onClick={(_, index) => handleSegmentClick(data[index])}
+                  className="cursor-pointer"
                 >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-3 w-3 rounded-sm transition-opacity"
-                      style={{
-                        backgroundColor: item.color,
-                        opacity: activeFilter && activeFilter !== item.name ? 0.3 : 1,
-                      }}
+                  {data.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      opacity={activeFilter && activeFilter !== entry.name ? 0.3 : 1}
+                      className="transition-opacity hover:opacity-80"
                     />
-                    <span className={activeFilter === item.name ? "font-medium" : ""}>{item.name}</span>
-                  </div>
-                  <span className="font-mono font-medium">{item.value}%</span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+                  ))}
+                </Pie>
+                <Tooltip content={renderTooltip} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex-1 space-y-2">
+            {data.map((item) => (
+              <button
+                key={item.name}
+                onClick={() => handleSegmentClick(item)}
+                className="flex items-center justify-between text-sm w-full hover:bg-muted/50 p-1 rounded transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-3 w-3 rounded-sm transition-opacity"
+                    style={{
+                      backgroundColor: item.color,
+                      opacity: activeFilter && activeFilter !== item.name ? 0.3 : 1,
+                    }}
+                  />
+                  <span className={activeFilter === item.name ? "font-medium" : ""}>{item.name}</span>
+                </div>
+                <span className="font-mono font-medium">{item.value}%</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </CardContent>
     </Card>
   )

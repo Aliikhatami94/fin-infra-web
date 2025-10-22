@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import { CryptoKPIs } from "@/components/crypto-kpis"
-import { CryptoChart } from "@/components/crypto-chart"
 import { CryptoTable } from "@/components/crypto-table"
 import { CryptoRiskSection } from "@/components/crypto-risk-section"
 import { CryptoAIInsights } from "@/components/crypto-ai-insights"
@@ -10,6 +10,16 @@ import { ExchangeAnalytics } from "@/components/exchange-analytics"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Fuel, Plus } from "lucide-react"
+import { ChartCardSkeleton } from "@/components/chart-skeleton"
+import type { CryptoChartProps } from "@/components/crypto-chart"
+
+const CryptoChart = dynamic<CryptoChartProps>(
+  () => import("@/components/crypto-chart").then((mod) => mod.CryptoChart),
+  {
+    ssr: false,
+    loading: () => <ChartCardSkeleton title="Portfolio Value Over Time" contentHeight="h-[350px]" />,
+  },
+)
 
 export default function CryptoPage() {
   const [selectedExchange, setSelectedExchange] = useState<"All" | "Coinbase" | "Binance">("All")

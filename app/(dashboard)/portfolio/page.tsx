@@ -1,14 +1,23 @@
 "use client"
 
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import { PortfolioKPIs } from "@/components/portfolio-kpis"
 import { AllocationGrid } from "@/components/allocation-grid"
 import { HoldingsTable } from "@/components/holdings-table"
-import { PerformanceComparison } from "@/components/performance-comparison"
 import { PortfolioAIInsights } from "@/components/portfolio-ai-insights"
 import { RebalancingPreview } from "@/components/rebalancing-preview"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { ChartCardSkeleton } from "@/components/chart-skeleton"
+
+const PerformanceComparison = dynamic(
+  () => import("@/components/performance-comparison").then((mod) => mod.PerformanceComparison),
+  {
+    ssr: false,
+    loading: () => <ChartCardSkeleton title="Performance vs SPY" contentHeight="h-[400px]" />,
+  },
+)
 
 export default function PortfolioPage() {
   const [allocationFilter, setAllocationFilter] = useState<string | null>(null)
