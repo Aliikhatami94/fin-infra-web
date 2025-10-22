@@ -3,9 +3,18 @@
 import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
+import type { TooltipContentProps } from "recharts"
 import { Button } from "@/components/ui/button"
 
-const generateChartData = (timeframe: string) => {
+type Timeframe = "1D" | "1W" | "1M" | "3M" | "1Y" | "ALL"
+
+interface StockChartPoint {
+  time: string
+  fullDate: string
+  price: number
+}
+
+const generateChartData = (timeframe: Timeframe): StockChartPoint[] => {
   const basePrice = 178.5
   const currentPrice = 185.75
 
@@ -107,13 +116,19 @@ const generateChartData = (timeframe: string) => {
   }
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+type StockTooltipProps = TooltipContentProps<number, string>
+
+const CustomTooltip = ({ active, payload }: StockTooltipProps) => {
   if (active && payload && payload.length) {
+    const dataPoint = payload[0]?.payload as StockChartPoint | undefined
+    const rawValue = payload[0]?.value
+    const price = typeof rawValue === "number" ? rawValue : Number(rawValue ?? 0)
+
     return (
       <div className="rounded-lg border bg-background p-2.5 shadow-md">
         <div className="flex flex-col gap-1">
-          <p className="text-xs text-muted-foreground">{payload[0].payload.fullDate}</p>
-          <p className="text-base font-semibold font-mono">${payload[0].value.toFixed(2)}</p>
+          <p className="text-xs text-muted-foreground">{dataPoint?.fullDate}</p>
+          <p className="text-base font-semibold font-mono">${price.toFixed(2)}</p>
         </div>
       </div>
     )
@@ -121,10 +136,10 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null
 }
 
-const timeframes = ["1D", "1W", "1M", "3M", "1Y", "ALL"]
+const timeframes: Timeframe[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"]
 
 export function StockChart() {
-  const [activeTimeframe, setActiveTimeframe] = useState("1D")
+  const [activeTimeframe, setActiveTimeframe] = useState<Timeframe>("1D")
 
   const chartData = useMemo(() => generateChartData(activeTimeframe), [activeTimeframe])
 
@@ -188,7 +203,7 @@ export function StockChart() {
                 width={50}
               />
               <Tooltip
-                content={<CustomTooltip />}
+                content={CustomTooltip}
                 cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1, strokeDasharray: "5 5" }}
               />
               <Area

@@ -25,6 +25,10 @@ export default function DocumentsPage() {
   const [sortBy, setSortBy] = useState<"date" | "name" | "size">("date")
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([])
 
+  const isSortOption = (value: string): value is typeof sortBy => {
+    return value === "date" || value === "name" || value === "size"
+  }
+
   useEffect(() => {
     const handleScroll = () => {
       const mainContent = document.getElementById("main-content")
@@ -111,7 +115,14 @@ export default function DocumentsPage() {
                 <DropdownMenuContent align="end" className="w-40">
                   <DropdownMenuLabel>Sort by</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                  <DropdownMenuRadioGroup
+                    value={sortBy}
+                    onValueChange={(value) => {
+                      if (isSortOption(value)) {
+                        setSortBy(value)
+                      }
+                    }}
+                  >
                     <DropdownMenuRadioItem value="date">Date</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="size">Size</DropdownMenuRadioItem>

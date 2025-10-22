@@ -30,6 +30,16 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
 
+  const isDateRangeValue = (value: string): value is typeof dateRange => {
+    return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
+  }
+
+  const handleDateRangeChange = (value: string) => {
+    if (isDateRangeValue(value)) {
+      setDateRange(value)
+    }
+  }
+
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -84,7 +94,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             {masked ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
           </Button>
 
-          <Select value={dateRange} onValueChange={(value) => setDateRange(value as any)}>
+          <Select value={dateRange} onValueChange={handleDateRangeChange}>
             <SelectTrigger className="w-24 md:w-32 rounded-full hidden sm:flex">
               <Calendar className="mr-2 h-4 w-4" />
               <SelectValue />

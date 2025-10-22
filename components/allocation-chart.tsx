@@ -1,12 +1,21 @@
 "use client"
 
 import { useState } from "react"
+import type { TooltipContentProps } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { motion, AnimatePresence } from "framer-motion"
 
-const allocationData = {
+type AllocationView = "assetClass" | "sector" | "region"
+
+interface AllocationDataPoint extends Record<string, unknown> {
+  name: string
+  value: number
+  color: string
+}
+
+const allocationData: Record<AllocationView, AllocationDataPoint[]> = {
   assetClass: [
     { name: "Stocks", value: 65, color: "hsl(217, 91%, 60%)" },
     { name: "Bonds", value: 20, color: "hsl(142, 76%, 45%)" },
@@ -33,13 +42,41 @@ interface AllocationChartProps {
   activeFilter?: string | null
 }
 
+const isAllocationView = (value: string): value is AllocationView => {
+  return value === "assetClass" || value === "sector" || value === "region"
+}
+
+const renderTooltip = ({ active, payload }: TooltipContentProps<number, string>) => {
+  if (active && payload && payload.length) {
+    const dataPoint = payload[0]?.payload as AllocationDataPoint | undefined
+    if (!dataPoint) {
+      return null
+    }
+
+    return (
+      <div className="rounded-lg border bg-card p-2 shadow-sm">
+        <div className="text-sm font-medium">{dataPoint.name}</div>
+        <div className="text-xs text-muted-foreground">{dataPoint.value}%</div>
+        <div className="text-xs text-muted-foreground mt-1">Click to filter</div>
+      </div>
+    )
+  }
+  return null
+}
+
 export function AllocationChart({ onFilterChange, activeFilter }: AllocationChartProps) {
-  const [view, setView] = useState<"assetClass" | "sector" | "region">("assetClass")
+  const [view, setView] = useState<AllocationView>("assetClass")
   const data = allocationData[view]
 
-  const handleSegmentClick = (entry: any) => {
+  const handleSegmentClick = (entry: AllocationDataPoint) => {
     if (onFilterChange) {
       onFilterChange(activeFilter === entry.name ? null : entry.name)
+    }
+  }
+
+  const handleViewChange = (value: string) => {
+    if (isAllocationView(value)) {
+      setView(value)
     }
   }
 
@@ -48,7 +85,7 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Portfolio Allocation</CardTitle>
-          <Tabs value={view} onValueChange={(v) => setView(v as any)}>
+          <Tabs value={view} onValueChange={handleViewChange}>
             <TabsList className="h-8">
               <TabsTrigger value="assetClass" className="text-xs">
                 Asset Class
@@ -92,7 +129,7 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
                     outerRadius={80}
                     paddingAngle={2}
                     dataKey="value"
-                    onClick={handleSegmentClick}
+                    onClick={(_, index) => handleSegmentClick(data[index])}
                     className="cursor-pointer"
                   >
                     {data.map((entry, index) => (
@@ -104,20 +141,7 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
                       />
                     ))}
                   </Pie>
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="rounded-lg border bg-card p-2 shadow-sm">
-                            <div className="text-sm font-medium">{payload[0].name}</div>
-                            <div className="text-xs text-muted-foreground">{payload[0].value}%</div>
-                            <div className="text-xs text-muted-foreground mt-1">Click to filter</div>
-                          </div>
-                        )
-                      }
-                      return null
-                    }}
-                  />
+                  <Tooltip content={renderTooltip} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

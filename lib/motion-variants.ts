@@ -1,6 +1,9 @@
 "use client"
 
+import { cubicBezier } from "framer-motion"
 import type { Variants } from "framer-motion"
+
+const easeCurve = cubicBezier(0.4, 0, 0.2, 1)
 
 /**
  * Centralized Framer Motion variants for consistent animations across the dashboard
@@ -20,7 +23,7 @@ export const cardHoverVariants = {
     y: -4,
     transition: {
       duration: 0.2,
-      ease: [0.4, 0, 0.2, 1], // cubic-bezier matching Tailwind's ease-out
+      ease: easeCurve,
     },
   },
 }
@@ -45,7 +48,7 @@ export const itemVariants: Variants = {
     y: 0,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
 }
@@ -58,7 +61,7 @@ export const tabContentVariants: Variants = {
     x: 0,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
   exit: {
@@ -66,7 +69,7 @@ export const tabContentVariants: Variants = {
     x: 10,
     transition: {
       duration: 0.2,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
 }
@@ -79,7 +82,7 @@ export const modalVariants: Variants = {
     scale: 1,
     transition: {
       duration: 0.2,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
   exit: {
@@ -87,7 +90,7 @@ export const modalVariants: Variants = {
     scale: 0.95,
     transition: {
       duration: 0.15,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
 }
@@ -99,14 +102,14 @@ export const slideInRightVariants: Variants = {
     x: 0,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
   exit: {
     x: "100%",
     transition: {
       duration: 0.25,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
 }
@@ -118,14 +121,14 @@ export const fadeVariants: Variants = {
     opacity: 1,
     transition: {
       duration: 0.2,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
   exit: {
     opacity: 0,
     transition: {
       duration: 0.15,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
 }
@@ -146,7 +149,7 @@ export const createStaggeredCardVariants = (index: number, baseDelay = 0) => ({
     transition: {
       duration: 0.3,
       delay: baseDelay + index * 0.1,
-      ease: [0.4, 0, 0.2, 1],
+      ease: easeCurve,
     },
   },
 })

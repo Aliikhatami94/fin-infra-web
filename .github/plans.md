@@ -2,6 +2,19 @@
 
 This plan sequences focused PRs to address routing/layout correctness, type safety, accessibility, security, performance, and maintainability. Each PR is small, verifiable, and reversible. Follow the order to minimize risk and avoid cascading conflicts.
 
+## Progress Tracker
+
+- [x] PR01 – Navigation + Layout Corrections
+- [x] PR02 – Fix KPI Trend Color Bug
+- [x] PR03 – Type Hygiene (remove `any`/casts)
+- [ ] PR04 – Branding + Fonts
+- [ ] PR05 – Security: Vanta + Auth Logs
+- [ ] PR06 – Re-enable Type + Lint Gates and Pin Versions
+- [ ] PR07 – Performance: Split Heavy UI
+- [ ] PR08 – Refactor Large Components (no behavior change)
+- [ ] PR09 – Formatting Utilities + Mock Centralization
+- [ ] PR10 – Tests + CI (targeted)
+
 ## Guiding Principles
 - Prefer small, incremental PRs with clear acceptance criteria.
 - Fix root causes, not symptoms (no band-aids).

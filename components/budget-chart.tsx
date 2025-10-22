@@ -3,9 +3,17 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts"
+import type { TooltipContentProps } from "recharts"
 import { Button } from "@/components/ui/button"
 
-const data = [
+interface BudgetDatum {
+  category: string
+  budget: number
+  actual: number
+  variance: number
+}
+
+const data: BudgetDatum[] = [
   { category: "Housing", budget: 2200, actual: 2200, variance: 0 },
   { category: "Food", budget: 800, actual: 920, variance: -120 },
   { category: "Transport", budget: 450, actual: 380, variance: 70 },
@@ -17,14 +25,17 @@ const data = [
 export function BudgetChart() {
   const [viewMode, setViewMode] = useState<"comparison" | "variance">("comparison")
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const comparisonTooltip = ({ active, payload, label }: TooltipContentProps<number, string>) => {
     if (active && payload && payload.length) {
-      const budget = payload[0]?.value || 0
-      const actual = payload[1]?.value || 0
+      const budgetPayload = payload.find((item) => item.dataKey === "budget")?.value
+      const actualPayload = payload.find((item) => item.dataKey === "actual")?.value
+      const budget = typeof budgetPayload === "number" ? budgetPayload : Number(budgetPayload ?? 0)
+      const actual = typeof actualPayload === "number" ? actualPayload : Number(actualPayload ?? 0)
       const variance = budget - actual
+      const category = typeof label === "string" ? label : String(label)
       return (
         <div className="rounded-lg border bg-card p-3 shadow-lg">
-          <p className="font-semibold text-foreground mb-2">{label}</p>
+          <p className="font-semibold text-foreground mb-2">{category}</p>
           <div className="space-y-1 text-sm">
             <div className="flex items-center justify-between gap-4">
               <span className="text-muted-foreground">Budget:</span>
@@ -42,6 +53,30 @@ export function BudgetChart() {
                 {variance >= 0 ? "+" : ""}${variance.toLocaleString()}
               </span>
             </div>
+          </div>
+        </div>
+      )
+    }
+    return null
+  }
+
+  const varianceTooltip = ({ active, payload, label }: TooltipContentProps<number, string>) => {
+    if (active && payload && payload.length) {
+      const value = payload[0]?.value
+      const variance = typeof value === "number" ? value : Number(value ?? 0)
+      const category = typeof label === "string" ? label : String(label)
+      return (
+        <div className="rounded-lg border bg-card p-3 shadow-lg">
+          <p className="font-semibold text-foreground mb-2">{category}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Variance:</span>
+            <span
+              className={`text-sm font-semibold tabular-nums ${
+                variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+              }`}
+            >
+              {variance >= 0 ? "+" : ""}${variance.toLocaleString()}
+            </span>
           </div>
         </div>
       )
@@ -90,7 +125,7 @@ export function BudgetChart() {
                 tick={{ fill: "hsl(var(--muted-foreground))" }}
                 axisLine={{ stroke: "hsl(var(--border))" }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={comparisonTooltip} />
               <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="circle" />
               <Bar dataKey="budget" fill="hsl(210, 100%, 60%)" name="Budget" radius={[4, 4, 0, 0]} />
               <Bar dataKey="actual" fill="hsl(142, 76%, 45%)" name="Actual" radius={[4, 4, 0, 0]} />
@@ -109,27 +144,7 @@ export function BudgetChart() {
                 tick={{ fill: "hsl(var(--muted-foreground))" }}
                 axisLine={{ stroke: "hsl(var(--border))" }}
               />
-              <Tooltip
-                content={({ active, payload, label }: any) => {
-                  if (active && payload && payload.length) {
-                    const variance = payload[0]?.value || 0
-                    return (
-                      <div className="rounded-lg border bg-card p-3 shadow-lg">
-                        <p className="font-semibold text-foreground mb-2">{label}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Variance:</span>
-                          <span
-                            className={`text-sm font-semibold tabular-nums ${variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                          >
-                            {variance >= 0 ? "+" : ""}${variance.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  }
-                  return null
-                }}
-              />
+              <Tooltip content={varianceTooltip} />
               <Bar dataKey="variance" name="Variance" radius={[4, 4, 0, 0]}>
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.variance >= 0 ? "hsl(142, 76%, 45%)" : "hsl(0, 84%, 60%)"} />
