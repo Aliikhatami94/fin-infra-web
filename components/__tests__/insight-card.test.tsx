@@ -1,5 +1,5 @@
-import type { ReactElement } from "react"
-import { act } from "react-dom/test-utils"
+import React, { type ReactElement } from "react"
+import { act } from "react"
 import { createRoot } from "react-dom/client"
 import { describe, expect, it, vi } from "vitest"
 
@@ -127,9 +127,9 @@ describe("InsightCard", () => {
 
       expect(whyButton?.getAttribute("aria-expanded")).toBe("true")
 
-      const explanationId = whyButton?.getAttribute("aria-controls")
-      expect(explanationId).toBeTruthy()
-      const explanation = explanationId ? container.querySelector(`#${explanationId}`) : null
+  const explanationId = whyButton?.getAttribute("aria-controls")
+  expect(explanationId).toBeTruthy()
+  const explanation = explanationId ? container.querySelector(`[id="${explanationId}"]`) : null
       expect(explanation?.textContent).toContain("higher than normal discretionary spending")
     } finally {
       unmount()
