@@ -53,7 +53,7 @@ function applyMultiplier<T extends ActivationCohortPoint | AutomationAdoptionPoi
   fields: Array<keyof T>,
 ): T[] {
   return items.map((item) => {
-    const next: Record<string, unknown> = { ...item }
+    const next: Record<string, unknown> = { ...(item as unknown as Record<string, unknown>) }
     for (const field of fields) {
       const value = item[field]
       if (typeof value === "number") {
@@ -84,15 +84,23 @@ export default function GrowthPage() {
   const multiplier = segmentMultipliers[segment] ?? 1
 
   const adjustedActivation = useMemo(
-    () => applyMultiplier(activationCohorts, multiplier, ["started", "completed", "linked", "automations"]),
+    () =>
+      applyMultiplier<ActivationCohortPoint>(
+        activationCohorts,
+        multiplier,
+        ["started", "completed", "linked", "automations"] as Array<keyof ActivationCohortPoint>,
+      ),
     [multiplier],
   )
   const adjustedAutomation = useMemo(
-    () => applyMultiplier(automationAdoption, multiplier, [
-      "suggestionsViewed",
-      "suggestionsAccepted",
-      "automationsScheduled",
-    ]),
+    () =>
+      applyMultiplier<AutomationAdoptionPoint>(
+        automationAdoption,
+        multiplier,
+        ["suggestionsViewed", "suggestionsAccepted", "automationsScheduled"] as Array<
+          keyof AutomationAdoptionPoint
+        >,
+      ),
     [multiplier],
   )
 

@@ -1,308 +1,253 @@
-## Fin-Infra Web – Experience Differentiation Plan (v4)
+# TradeHub UI/UX Implementation Plan (Detailed PR Series)
 
-### Vision
+This document replaces prior plans. It breaks the refreshed UX review into concrete PR-scoped work with goals, acceptance criteria, and tasks mapped to likely files to touch. Use one PR per section (or bundle adjacent ones) and check items as you ship.
 
-Deliver a personal-finance cockpit that feels as polished as Monarch Money or Quicken Simplifi: data-import ready, hyper-personalized, and emotionally reassuring. Every surface should adapt to the member’s goals, highlight actionable insights, and provide confident automation with human-friendly explanations.
+PR index
+- PR01–PR02: Landing & Authentication
+- PR03–PR15: Dashboard & Core Pages
+- PR16: General UX Baseline
+- PR17: Landing Deep‑Dive
+- PR18: Acceptance & QA
 
-### Current Experience Observations
+Global assumptions
+- Follow App Router patterns in `app/*`; prefer Server Components by default, add "use client" when needed.
+- Reuse primitives in `components/ui/*`, Radix-based overlays, and Tailwind tokens from `app/globals.css`.
+- Keep accessibility first: visible focus, keyboard-only flows, aria-labels, proper roles.
 
-* **Fragmented onboarding:** Pages assume fully populated mocks. There is no guided setup, institution linking, or first-use scaffolding in `app/(dashboard)/overview/page.tsx` or the layout shell. The sidebar immediately exposes every page, overwhelming new members.
-* **Insight system lacks memory:** `InsightCard` and `lib/insights/definitions.ts` centralize copy, but there is no persistence of pin/resolution state across sessions, no prioritization by persona, and little feedback loop into charts or goal projections.
-* **Charts focus on static snapshots:** Dynamic imports (e.g., `Overview` loading `PerformanceTimeline` and `CashFlow`) protect performance, but there is no scenario comparison, goal overlays, or natural language summaries to build trust in automated recommendations.
-* **Mobile ergonomics are thin:** `DashboardLayout` + `Sidebar` rely on large-screen real estate; mobile uses a slide-in drawer with minimal optimization and no contextual quick actions. Critical tables (transactions, accounts) are wide and rely on virtualization without stacked card fallbacks.
-* **Design language is cohesive but generic:** Tokens in `app/globals.css` give us a solid base, yet the brand voice (colors, iconography, typography) mirrors boilerplate fintech dashboards. Empty states, celebratory moments, and risk alerts need motion, illustration, and tone to create an emotional hook.
-* **Security & trust messaging is implicit:** Privacy toggles exist in the top bar, but there is no surfaced audit trail, alerting, or security center to reassure members their sensitive data is handled with care.
+## 1) Public Landing & Authentication
 
-### Guiding Principles
+### PR01 – Home / Landing Page
+Goal: Improve clarity, accessibility, and polish on the marketing homepage.
 
-1. **Adaptive journey:** Surfaces respond to lifecycle stage (onboarding, day-to-day tracking, planning, troubleshooting).
-2. **Explainable automation:** Every proactive action (rebalance, savings adjustment, tax harvest) includes plain-language justification plus metrics members can interrogate.
-3. **Delight with restraint:** Motion, theming, and celebration should reinforce confidence without distracting from financial clarity.
-4. **Mobile-first rigor:** No new feature ships without small-screen ergonomics, offline empathy, and high-contrast accessibility.
-5. **Data dignity:** Treat every balance, document, and decision as sensitive—mask by default, log responsibly, and hand members the controls.
+Acceptance Criteria
+- Header is sticky; primary CTA (“Get Started”) appears as a solid button, “Sign In” as a text/ghost link.
+- “Start Trading” and “Watch Demo” are keyboard-focusable with descriptive aria-labels.
+- Feature cards align icons left, have equal heights, and subtle hover micro-interactions.
+- On small screens, hero text has a semi-transparent overlay for legibility (meets WCAG AA).
+
+Tasks (likely files)
+- Header layout and CTAs: `app/page.tsx`, `components/*landing*`, `components/ui/button` usage.
+- Feature cards polish: `components/*feature*`, equal heights via flex/grid utilities.
+- Overlay on mobile: tweaks in `app/globals.css` or component-level class for hero background.
+- Focus and aria audit: add aria-labels on CTAs, ensure tab order, visible focus styles.
+
+### PR02 – Sign‑in / Sign‑up Flows
+Goal: Reduce friction while improving validation and accessibility.
+
+Acceptance Criteria
+- Inline validation appears on field blur/type; invalid states are announced to screen readers.
+- Password field has visibility toggle and strength meter with guidance text.
+- Social sign-in buttons appear above email/password with icons and aria-labels.
+- Submit errors are shown as an accessible alert region; “Forgot password?” routes correctly.
+
+Tasks (likely files)
+- Forms: `app/(auth)/sign-in/page.tsx`, `app/(auth)/sign-up/page.tsx`.
+- UI inputs: create/enhance a PasswordInput in `components/ui/input` or enhance existing with strength meter.
+- Validation: client hints with Zod/Yup or custom; aria-invalid, aria-describedby wiring.
+- Error region: add `role="alert"` containers; route for reset if missing.
+
+## 2) Dashboard & Core Pages
+
+### PR03 – Overview
+Goal: Make KPIs scannable, tasks actionable, and chart comparisons quicker.
+
+Acceptance Criteria
+- KPI cards have consistent widths/spacing and tooltips with clear definitions.
+- Quick actions exist for major metrics (e.g., Net Worth → “See details”).
+- Overdue tasks are grouped separately and support snooze/dismiss (persisted).
+- Performance timeline can overlay a benchmark (e.g., SPY) without navigation.
+
+Tasks (likely files)
+- KPIs: `components/kpi-cards.tsx`, tooltip copy map in `lib/tooltips`.
+- Task grouping: `components/accountability-checklist.tsx` or related checklist components.
+- Chart overlay: `components/performance-timeline.tsx` add benchmark toggle and series.
+
+### PR04 – Accounts
+Goal: Improve at-a-glance trends and table ergonomics.
+
+Acceptance Criteria
+- Summary cards show 30‑day micro-sparklines.
+- Callouts (utilization, emergency fund) are dismissible and persist.
+- Accounts table has sticky/sortable headers, type filters, institution logos, and status badges with tooltips.
+
+Tasks (likely files)
+- Cards/sparklines: `components/accounts-kpi-cards.tsx` and a tiny sparkline component.
+- Dismiss persistence: use `lib/security/use-secure-storage` or local storage hook.
+- Table upgrades: `components/accounts-table/*` add sorting, filters, sticky header classes.
+
+### PR05 – Portfolio
+Goal: Clarify complex metrics and streamline actions.
+
+Acceptance Criteria
+- Sharpe, Beta, Volatility have info icons with explainers.
+- AI insights are collapsible/hide-resolved with persistence.
+- Direct “Rebalance” link exists; overweight/target visuals are clear.
+- Filters for asset class/timeframe affect metrics panels.
+
+Tasks (likely files)
+- Metric info: popovers/tooltips in `components/portfolio-kpis.tsx`.
+- Insights collapse: `components/portfolio-ai-insights.tsx` with persisted UI state.
+- Rebalance link: wire to `components/rebalancing-preview.tsx` or a route.
+
+### PR06 – Crypto
+Goal: Make grouping tools clear and add trend context.
+
+Acceptance Criteria
+- Group-by toolbar with selected states (asset/exchange/staking); stablecoin toggle.
+- Market cards include micro-sparklines and consistent arrows.
+- Diversification suggestions include recommended weights (e.g., BTC/ETH/Alt pie) with actions.
+
+Tasks (likely files)
+- Toolbar: `components/crypto-kpis.tsx`, `components/crypto-chart.tsx`.
+- Insights: `components/crypto-ai-insights.tsx` add visuals and actions.
+
+### PR07 – Cash Flow
+Goal: Surface time scale controls and actionable savings guidance.
+
+Acceptance Criteria
+- Net flow cards toggle daily/weekly/monthly.
+- AI insights allow pinning; budget suggestions appear for overspending categories.
+
+Tasks (likely files)
+- Cards toggle: `components/cash-flow-kpis.tsx`, `components/cash-flow.tsx`.
+- Insights: `components/cashflow-ai-insights.tsx`, persistence hook.
+
+### PR08 – Transactions
+Goal: Improve triage speed and batch actions.
+
+Acceptance Criteria
+- Insight cards are dismissible; resolved items don’t reappear.
+- Quick filters chips + account tabs; add date-range picker.
+- Multi-select with batch actions (categorize, tag, export).
+
+Tasks (likely files)
+- Insights: `components/insights-feed.tsx` (transactions context), persistence.
+- Filters/table: `components/recent-transactions.tsx` or transactions workspace components.
+
+### PR09 – Budget
+Goal: Faster adjustments and clearer status.
+
+Acceptance Criteria
+- Progress ring color codes states (under/over budget).
+- Inline quick-edit modal for category budgets.
+- Month selector fully keyboard-accessible with aria.
+
+Tasks (likely files)
+- Ring and colors: `components/budget-summary.tsx`.
+- Quick edit: `components/budget-table.tsx` modal + validation.
+
+### PR10 – Goals
+Goal: Improve comprehension and scenario planning.
+
+Acceptance Criteria
+- Replace raw “$60k | $188k” strings with progress bar + %.
+- Slider + numeric input both drive live projections; show date impact.
+- “Add to calendar” for contribution reminders.
+
+Tasks (likely files)
+- UI: `components/goals-summary-kpis.tsx`, `components/goals-grid.tsx`.
+- Planner: `components/goal-detail-modal.tsx`.
+
+### PR11 – Taxes
+Goal: Bring urgency forward and explain readiness.
+
+Acceptance Criteria
+- Planning banner includes countdown to key dates (e.g., Dec 31).
+- Insights grouped by urgency; document tasks link to Documents.
+- Readiness bars open explainers describing criteria and counts.
+
+Tasks (likely files)
+- Banner/insights: `components/tax-summary.tsx`, `components/tax-year-comparison.tsx`.
+- Explain readiness: `components/tax-scenario-tool.tsx` or a new explainer component.
+
+### PR12 – Insights
+Goal: Reduce clutter and add clarity.
+
+Acceptance Criteria
+- Consistent tab styles; active tab clearly highlighted.
+- Category icons on cards; “Hide resolved insights” toggle persisted.
+- Primary vs secondary actions are visually distinct.
+
+Tasks (likely files)
+- Tabs/cards: `components/ai-insights.tsx`, `components/ai-insights-banner.tsx`.
+- Persistence: secure/local storage for hide-resolved state.
+
+### PR13 – Documents
+Goal: Faster filtering and clearer uploads.
+
+Acceptance Criteria
+- Filter chips scroll horizontally; icons indicate doc type.
+- Overdue tasks show due dates and assignees; reminders and mark-as-done available.
+- Upload zone clarifies encryption and accepted types/sizes; “Browse files” is prominent.
+- Missing tax docs link back to Taxes page for context.
+
+Tasks (likely files)
+- Filters/chips: `components/documents-grid.tsx`.
+- Upload zone: `components/document-upload-zone.tsx`.
+- Tasks: `components/accountability-checklist.tsx` on documents surface.
+
+### PR14 – Settings
+Goal: Clearer controls and safe save flows.
+
+Acceptance Criteria
+- Notification toggles grouped with helper text; accessible labels.
+- Appearance shows themes (Daylight, Midnight, Match System) + font scales with live preview; consider high-contrast.
+- “Save All Settings” disabled until changes; toast confirmation on save; “Reset to Defaults” available.
+
+Tasks (likely files)
+- Settings pages: `app/(dashboard)/settings/page.tsx`, `app/(dashboard)/settings/appearance/page.tsx`, `app/(dashboard)/settings/security/page.tsx`.
+
+### PR15 – Security Center
+Goal: Increase trust and control.
+
+Acceptance Criteria
+- Recent sessions table sortable/filterable by device/status; optional mini-map icon (IP anonymized).
+- Alerting allows alternate emails/phones; masking toggles accessible.
+- Exports (CSV/PDF) include tooltip on retention; in-app notification when ready to download.
+
+Tasks (likely files)
+- Security center: `app/(dashboard)/settings/security/page.tsx` and related components.
+
+## PR16 – General UX Baseline
+Goal: Apply consistent design and performance patterns.
+
+Acceptance Criteria
+- Consistent padding, radius, and type scale across cards/tables.
+- All interactive elements have keyboard access and aria-labels; meaningful icons have alt text/labels.
+- Large tables virtualized; heavy charts deferred until in-view; no major CLS on key pages.
+
+Tasks
+- Token and utility pass: `app/globals.css`, shared card utilities, and `components/ui/*`.
+- Virtualize long lists (where applicable) and add intersection observers for heavy charts.
+
+## PR17 – Landing Page Deep‑Dive
+Goal: Fix routing, clarify features, and improve discovery.
+
+Acceptance Criteria
+- “Watch Demo” routes to a real demo page or a video modal; if not ready, disabled/hidden.
+- Feature cards route correctly; if “Risk Management” maps to Cash Flow, rename or add a dedicated risk page.
+- Tooltips describe destination content; optional scroll-to-section on the landing page.
+- CTAs have visible focus and descriptive aria-labels.
+
+Tasks (likely files)
+- Routing: `app/page.tsx`, possibly `app/demo/page.tsx` (new) or a video modal component.
+- Card hover/focus states and tooltips: landing components.
+
+## PR18 – Acceptance Criteria & QA
+Goal: Verify accessibility, performance, and UX polish across surfaces.
+
+Acceptance Criteria
+- axe-core audits pass on landing, auth, and main dashboard routes.
+- Deferred charts and table virtualization verified; keyboard-only navigation validated.
+- Tooltips exist for complex metrics; sticky header and clear CTAs on landing confirmed.
+- All CTAs/feature cards have valid routes; deep-links between related pages (e.g., Taxes → Documents) work.
+
+Tasks
+- Add a lightweight QA checklist; optional scripts for lighthouse/axe where feasible.
 
 ---
 
-### Workstreams
-
-#### WS-A – Guided Onboarding & Money Graph Foundation
-
-Goal: Turn the first session into a structured setup that connects accounts, sets intents, and seeds personalization.
-
-Deliverables
-
-- [x] Multi-step onboarding flow under `app/(auth)/onboarding` with progress tracker, account aggregation placeholders, and persona questions (goals, risk tolerance, budgeting style).
-- [x] Institution linking simulation (Plaid-style modal) wired to mock services in `lib/services` with optimistic UI states, retry flows, and masked values tied to `usePrivacy`.
-- [x] Money Graph schema in `types/domain.ts` and `lib/mock` describing relationships (accounts → transactions → goals) to power contextual recommendations.
-- [x] Onboarding completion state persisted via secure storage hooks (`lib/security/use-secure-storage`) and reflected in `DashboardLayout` (e.g., badges that show setup progress until complete).
-
-Acceptance Criteria
-
-- [x] Members who skip onboarding land on an “empty dashboard” state with guided actions.
-- [x] Persona answers influence default insights and KPI tiles across Overview, Budget, Goals.
-
-#### WS-B – Personalized Dashboards & Goal Planning
-
-Goal: Reshape core surfaces to feel tailored—focus on contextual KPIs, plan progress, and next-best actions.
-
-Deliverables
-
-- [ ] Adaptive `KPICards` variants that swap metrics based on persona (e.g., debt payoff vs. wealth building) and highlight urgency via iconography.
-- [ ] Timeline overlays within `PerformanceTimeline` that compare actual vs. planned milestones, plus copy generated by a lightweight insights summarizer in `lib/insights/service`.
-- [ ] Goal planner revamp in `app/(dashboard)/goals` featuring stacked cards per goal, sliders with scenario snapshots, and celebratory states when milestones are hit.
-- [ ] Budget & Cash Flow modules that surface recurring risk (cash burn warnings, savings streaks) and link directly to actionable toggles (auto-transfer, category adjustments).
-
-Acceptance Criteria
-
-- [ ] Persona-specific dashboards validated via storybook-like fixtures.
-- [ ] Goal completion triggers celebratory animation + shareable summary.
-
-Implementation Tasks
-
-- [ ] Overview: Update card grid layout separators and consistent icon sizing via `OverviewCard`.
-- [ ] Overview: Add “View details” CTAs linking to `/portfolio`, `/accounts`, `/cash-flow`, etc.
-- [ ] Overview: Embed 7-day sparkline mini-charts inside KPI cards.
-- [ ] Overview: Refresh Portfolio Health tabs with clear active/inactive styles and keyboard nav.
-- [ ] Accounts: Increase summary card typography hierarchy and align iconography; optional mini-charts.
-- [ ] Accounts: “All Insights” collapse/expand with persisted state; reduce default footprint.
-- [ ] Accounts: Table enhancements with sortable headers and filters (type, institution).
-- [ ] Portfolio: Annotate interactive metrics (Sharpe, beta) with info icons and explanations modal.
-- [ ] Portfolio: Group AI insights by category with accordion expand/collapse (low-priority collapsed).
-- [ ] Cash Flow: Replace/augment charts with stacked bar/area for inflows vs outflows.
-- [ ] Cash Flow: Add insight pin/unpin with `useSecureStorage` persistence.
-- [ ] Transactions: Update actionable insight cards with primary/secondary buttons and dismiss/resolve.
-- [ ] Transactions: Extend table with customizable columns, advanced filters, and search hints.
-- [ ] Budget: Add progress ring snapshot; ensure color contrast.
-- [ ] Budget: For over-budget categories, add mini bar chart (actual vs planned) + tooltip.
-- [ ] Budget: Update insights copy to encourage corrective actions; validate responsiveness.
-- [ ] Goals: Aggregate progress with bars/rings and monthly contribution summaries.
-- [ ] Goals: Filters for active/completed goals via accessible segmented control.
-- [ ] Goals: “Add Goal” modal wizard with validation and success state.
-- [ ] Insights: Implement filter tabs (All, Spending Trends, Investment Health, Goals Forecast) and fuzzy search.
-
-#### WS-C – Automation Copilot & Scenario Playbooks
-
-Goal: Introduce explainable automations that help members act with confidence.
-
-Deliverables
-
-- [ ] Copilot drawer component (extending `AIChatSidebar`) that proposes automations (rebalance, savings sweep, tax harvest) with diff previews and risk badges.
-- [ ] Scenario playbooks for Taxes, Investments, and Budget that let members compare 2–3 parameterized cases side-by-side (componentized comparison table & charts).
-- [ ] Action confirmation modals using `@/components/ui/dialog` that summarize benefits, trade-offs, and allow scheduling.
-- [ ] Event instrumentation in `lib/analytics/events` capturing acceptance/decline reasons, feeding back into insights ranking.
-
-Acceptance Criteria
-
-- [ ] Copilot suggestions show before/after metrics referencing Money Graph data.
-- [ ] Automations require explicit confirmation, provide undo toast, and log to a history timeline.
-
-Implementation Tasks
-
-- [ ] Portfolio: Provide quick action buttons within each insight (e.g., “Rebalance now”) linking to automation/scenario flows.
-- [ ] Crypto: When holdings concentration is high, surface diversification CTA linking to rebalancing guide.
-- [ ] Taxes: Add timeline of key deadlines with icons and tooltips.
-- [ ] Taxes: Add “Why?” explanation links opening modal/drawer with rationale and data sources.
-- [ ] Taxes: Ensure automated actions integrate with Copilot for harvest or document reminders.
-
-#### WS-D – Collaboration, Accountability & Shared Spaces
-
-Goal: Support households and advisors with shared visibility, tasking, and accountability loops.
-
-Deliverables
-
-- [x] Shared workspace switcher in `TopBar` avatar menu for multi-member households, with access roles defined in `types/domain.ts`.
-- [x] Comments & mentions drawer for transactions, goals, and documents leveraging `@/components/ui/textarea` + presence indicators.
-- [x] Accountability checklist widgets (due bills, tasks) integrated into Overview and Documents with reminders.
-- [x] Notification center revamp that groups alerts by workspace and channel (email, push) using `components/ui/tabs`.
-
-Acceptance Criteria
-
-- [x] Every actionable card exposes “Assign” or “Share” affordances respecting permissions.
-- [ ] Activity log aggregates tasks, comments, and automations with filters.
-
-Implementation Tasks
-
-- [x] Documents: Provide document type chips/tags with multi-select filtering; filter by year/account with persistent state.
-
-#### WS-E – Mobile, Offline & Performance Polish
-
-Goal: Ensure parity across device sizes and resilience under poor connectivity.
-
-Deliverables
-
-- [ ] Mobile-first layout variant: bottom navigation for <768px, collapsible KPI summaries, cardified tables (Transactions, Accounts).
-- [ ] Offline-ready states (skeletons, “last synced” badges) using service worker mock or fallback store.
-- [ ] Performance budgets integrated into CI (`next/bundle-analyzer`, React Profiler snapshots for charts) with thresholds.
-- [ ] Skeleton & shimmer audit to ensure every major surface has loading placeholders tailored to content height.
-
-Acceptance Criteria
-
-- [ ] Lighthouse mobile performance ≥ 85 in dev build for Overview, Transactions, Goals.
-- [ ] Offline mode surfaces stale data banners and disables automations gracefully.
-
-Implementation Tasks
-
-- [ ] Global: Implement standardized card padding/margins in shared card primitives with responsive adjustments.
-- [ ] Global: Extend responsive mixins to ensure cards stack and sidebars collapse on <1024px widths.
-- [ ] Overview: Verify performance chart accessibility; add aria labels, tooltip descriptions, and mobile stacking.
-- [ ] Accounts: Implement sticky table header for long lists.
-- [ ] Accounts: Ensure responsive card fallback for narrow screens (stacked account summaries).
-- [ ] Cash Flow: Optimize layout for mobile stacking; ensure axis labels meet contrast standards.
-- [ ] Transactions: Implement sticky filters/search bar with aria-live updates.
-- [ ] Home: Smooth scrolling between hero and features; subtle on-scroll animations within budgets.
-
-QA & Validation
-
-- [ ] Run automated accessibility audits (axe-core) on updated pages and components.
-- [ ] Execute Lighthouse checks for desktop and mobile focusing on performance/accessibility thresholds.
-
-#### WS-F – Brand, Emotion & Trust Layer
-
-Goal: Distinguish Fin-Infra visually and emotionally while reinforcing security.
-
-Deliverables
-
-- [x] Brand elevation: refine `app/globals.css` tokens, introduce gradient backgrounds, iconography set, and typographic hierarchy that differentiates wealth vs. cash flows.
-- [x] Story-driven empty states & success modals with illustrations, microcopy, and confetti/motion primitives.
-- [x] Security center page in `app/(dashboard)/settings/security` showing login history, privacy toggles, and export/download controls.
-- [x] Compliance-ready copy & tooltips for sensitive metrics leveraging `InsightCard` `redactedBody` and `fallbackValue` fields.
-
-Acceptance Criteria
-
-- [ ] Usability tests show improved task confidence vs. baseline mocks.
-- [ ] Security center reduces support burden by surfacing answers to “who can see my data?”
-
-Implementation Tasks
-
-- [x] Global: Audit spacing, font, and color tokens usage across `app/globals.css`, `styles/themes`, and shared UI.
-- [x] Global: Define updated spacing scale and typography ramp; document in `docs/design-tokens.md` and update CSS variables.
-- [x] Global: Validate accent color contrast against WCAG AA; adjust success/danger palettes and delta text components.
-- [x] Global: Confirm single font-family usage; remove redundant imports; enforce heading/body styles.
-- [x] Global: Build reusable tooltip description map in `lib/tooltips`; apply to flagged data points.
-- [x] Global: Introduce dark-mode + font-size preference control in Settings and propagate variables.
-- [x] Overview: Confirm tooltips for net worth, investable assets, cash, debt, daily P/L, credit score use updated copy.
-- [x] Documents: Enlarge drag-and-drop CTA, list accepted file types/sizes, and ensure keyboard operability.
-- [x] Documents: Provide aria descriptions for upload feedback and error states.
-- [x] Settings: Standardize toggle styling for notifications with helper text.
-- [x] Settings: Build appearance settings for light/dark mode, font sizing, and dyslexia-friendly option.
-- [x] Settings: Integrate Security Center into navigation with consistent visual language.
-- [x] Home: Responsive hero typography clamp values; accessible/focus styles for buttons; sticky nav with logo/CTA.
-- [x] Home: Align feature highlight cards (consistent icons) and add hover states linking to details.
-- [x] Home: Insert social proof (logos/testimonial) near final CTA; single primary button to sign-up.
-
-QA & Validation
-
-- [ ] Conduct component-level Storybook/Chromatic reviews for updated UI primitives and patterns.
-
-#### WS-G – Measurement, Experiments & Growth
-
-Goal: Close the loop with data-driven decisions and growth levers.
-
-Deliverables
-
-- [ ] Experimentation hooks (feature flags) in `lib/analytics` + `.env.example` for gating new flows.
-- [ ] Cohort dashboards summarizing activation, retention, automation adoption; include instrumentation for onboarding drop-off.
-- [ ] In-app feedback moments (post-automation, after onboarding) collecting qualitative signals with Sonner toasts + modal forms.
-- [ ] Share/export features (PDF summaries, CSV exports) that capture attribution when members share progress externally.
-
-Acceptance Criteria
-
-- [ ] PRD-ready dashboards exist for onboarding funnel and automation usage.
-- [ ] Feedback loops feed into insights ranking algorithm.
-
-Implementation Tasks
-
-- [ ] Insights: Highlight new/unread insights via badges or accent border; persist state per member.
-- [ ] Insights: Attach recommended actions with one-click triggers (with confirmation) and track analytics events.
-
-QA & Validation
-
-- [ ] Verify analytics events fire for new CTAs, filters, and automations using `lib/analytics/events` mocks.
-- [ ] Update documentation (`docs/release-notes.md`, `docs/design-tokens.md`) summarizing UX enhancements.
-- [ ] Collect qualitative feedback post-onboarding and post-automation via toasts/modal forms.
-
----
-
-### Milestones & Sequencing
-
-* **M1 (Weeks 1–2):** WS-A foundations + Money Graph schema, deliver onboarding skeleton + persona-driven KPIs. Begin brand token refresh.
-* **M2 (Weeks 3–4):** WS-B personalization + WS-E mobile layout updates. Launch celebratory states and offline banners.
-* **M3 (Weeks 5–6):** WS-C automation copilot + WS-G instrumentation. Ship scenario playbooks and measurement dashboards.
-* **M4 (Weeks 7–8):** WS-D collaboration + WS-F trust center. Conduct usability validation and finalize animation/microcopy polish.
-
-### Success Metrics
-
-* **Activation:** ≥80% of new members complete onboarding and link ≥2 accounts.
-* **Engagement:** 2× increase in weekly active automations with <5% cancellation rate.
-* **Confidence:** Post-action feedback averages ≥4.5/5 on clarity and trustfulness.
-* **Retention:** Households using shared spaces retain at 120% vs. individual baseline.
-* **Performance:** Mobile INP < 200ms on high-interaction pages; no accessibility regressions (axe clean across routes).
-
----
-
-### Page & Surface Enhancement Checklist
-
-The following breakdown translates the qualitative UX guidance into executable tasks. Each sub-list is ordered for sequential delivery and references relevant components or directories for quick navigation.
-
-#### Global Design System (applies across all routes)
-
-All tasks have been reorganized under Workstreams (see WS-E and WS-F Implementation Tasks).
-
-#### Overview Dashboard (`app/(dashboard)/overview`)
-
-Tasks moved under Workstreams WS-B, WS-E, and WS-F.
-
-#### Accounts Page (`app/(dashboard)/accounts`)
-
-Tasks moved under Workstreams WS-B and WS-E.
-
-#### Portfolio Page (`app/(dashboard)/portfolio`)
-
-Tasks moved under Workstreams WS-B, WS-C, and WS-E.
-
-#### Crypto Page (`app/(dashboard)/crypto`)
-
-Tasks moved under Workstreams WS-B and WS-C.
-
-#### Cash Flow Page (`app/(dashboard)/cash-flow`)
-
-Tasks moved under Workstreams WS-B and WS-E.
-
-#### Transactions Page (`app/(dashboard)/transactions`)
-
-Tasks moved under Workstreams WS-B and WS-E.
-
-#### Budget Page (`app/(dashboard)/budget`)
-
-Tasks moved under Workstream WS-B.
-
-#### Goals Page (`app/(dashboard)/goals`)
-
-Tasks moved under Workstream WS-B.
-
-#### Taxes Page (`app/(dashboard)/taxes`)
-
-Tasks moved under Workstream WS-C.
-
-#### Insights Page (`app/(dashboard)/insights`)
-
-Tasks moved under Workstreams WS-B and WS-G.
-
-#### Documents Page (`app/(dashboard)/documents`)
-
-Tasks moved under Workstreams WS-D and WS-F.
-
-#### Settings Page (`app/(dashboard)/settings`)
-
-Tasks moved under Workstream WS-F.
-
-#### Home/Landing Page (`app/page.tsx` + related components)
-
-Tasks moved under Workstreams WS-F and WS-E.
-
----
-
-### Validation & QA
-
-Tasks are distributed under Workstreams: WS-E (accessibility/performance), WS-F (storybook/design review), WS-G (analytics, docs, feedback).
+Notes
+- Keep PRs small and focused. If a section balloons, split follow-ups as PRxx-a/PRxx-b.
+- Where persistence is specified, use existing secure storage hooks where possible.
 
