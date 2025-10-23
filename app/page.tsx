@@ -14,30 +14,35 @@ export default function LandingPage() {
         <header>
           <nav
             aria-label="Primary"
-            className="fixed top-0 left-0 right-0 z-50 border-b border-border/20 bg-background/70 backdrop-blur-xl"
+            className="fixed top-0 left-0 right-0 z-50 border-b border-border/20 bg-background/75 backdrop-blur-xl"
           >
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <div className="flex h-14 items-center justify-between">
+              <div className="flex h-16 items-center justify-between">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" aria-hidden />
                   <span className="text-lg font-semibold tracking-tight">{BRAND.name}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Link href="/sign-in">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-sm font-normal focus-visible:ring-offset-2"
-                    >
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="text-sm font-medium text-foreground/80 underline-offset-4 hover:text-foreground focus-visible:ring-offset-2"
+                  >
+                    <Link href="/sign-in" aria-label={`Sign in to your ${BRAND.name} account`}>
                       Sign In
-                    </Button>
-                  </Link>
-                  <Link href="/sign-in">
-                    <Button size="sm" className="rounded-full text-sm font-medium focus-visible:ring-offset-2">
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    className="rounded-full text-sm font-semibold focus-visible:ring-offset-2"
+                  >
+                    <Link href="/sign-in" aria-label={`Create your ${BRAND.name} account`}>
                       Get Started
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -46,6 +51,10 @@ export default function LandingPage() {
 
         <main id="main-content">
           <section className="relative px-6 pt-40 pb-32 lg:px-8 lg:pt-48">
+            <div
+              className="absolute inset-0 -z-10 block bg-gradient-to-b from-background/85 via-background/75 to-background/90 sm:hidden"
+              aria-hidden="true"
+            />
             <div className="mx-auto max-w-5xl">
               <div className="text-center">
                 <h1 className="mb-7 text-foreground text-[clamp(2.75rem,6vw,4.75rem)] font-semibold tracking-tight leading-tight">
@@ -62,23 +71,25 @@ export default function LandingPage() {
                 </p>
 
                 <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                  <Link href="/sign-in">
-                    <Button
-                      size="lg"
-                      className="h-12 rounded-full px-8 text-base font-medium shadow-lg transition-all hover:shadow-xl"
-                    >
+                  <Button
+                    asChild
+                    size="lg"
+                    className="h-12 rounded-full px-8 text-base font-medium shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-offset-2"
+                  >
+                    <Link href="/sign-in" aria-label={`Start trading with ${BRAND.name} by creating your account`}>
                       Start Trading
-                    </Button>
-                  </Link>
-                  <Link href="/(dashboard)/overview">
-                    <Button
-                      size="lg"
-                      variant="ghost"
-                      className="h-12 rounded-full px-8 text-base font-normal text-foreground hover:bg-foreground/5"
-                    >
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="ghost"
+                    className="h-12 rounded-full px-8 text-base font-medium text-foreground hover:bg-foreground/5 focus-visible:ring-offset-2"
+                  >
+                    <Link href="/(dashboard)/overview" aria-label={`Watch a product demo of the ${BRAND.name} trading dashboard`}>
                       Watch Demo
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -92,13 +103,13 @@ export default function LandingPage() {
                     key={feature.title}
                     href={feature.href}
                     className={cn(
-                      "group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-border/30 bg-card/80 p-8 text-left shadow-[var(--shadow-soft)] transition-all",
+                      "group relative flex h-full min-h-[20rem] flex-col justify-between overflow-hidden rounded-3xl border border-border/30 bg-card/80 p-8 text-left shadow-[var(--shadow-soft)] transition-all",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
-                      "hover:-translate-y-1 hover:shadow-[var(--shadow-bold)]",
+                      "hover:-translate-y-1 hover:shadow-[var(--shadow-bold)] hover:border-primary/40",
                     )}
                     aria-label={`${feature.title} – learn more`}
                   >
-                    <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--surface-security)]/25 text-primary transition-transform duration-300 group-hover:scale-110">
+                    <div className="mb-6 flex h-14 w-14 items-center justify-center self-start rounded-2xl bg-[var(--surface-security)]/25 text-primary transition-transform duration-300 group-hover:-translate-y-1">
                       {feature.icon}
                     </div>
                     <div className="space-y-2">
@@ -134,14 +145,15 @@ export default function LandingPage() {
                   “Fin-Infra delivers the clarity our family office needed to act quickly and confidently.” — Maya, CIO
                 </div>
               </div>
-              <Link href="/sign-in">
-                <Button
-                  size="lg"
-                  className="h-12 rounded-full px-8 text-base font-medium shadow-lg transition-all hover:shadow-xl"
-                >
+              <Button
+                asChild
+                size="lg"
+                className="h-12 rounded-full px-8 text-base font-medium shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-offset-2"
+              >
+                <Link href="/sign-in" aria-label={`Get started with ${BRAND.name} today`}>
                   Get Started Now
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </section>
         </main>

@@ -8,19 +8,109 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useState } from "react"
 import { BRAND } from "@/lib/brand"
+import { PasswordInput } from "@/components/ui/password-input"
 
 export default function SignUpPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  })
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  })
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const nameErrorId = "sign-up-name-error"
+  const emailErrorId = "sign-up-email-error"
+  const passwordErrorId = "sign-up-password-error"
+  const confirmPasswordErrorId = "sign-up-confirm-password-error"
+  const passwordStrengthId = "sign-up-password-strength"
+  const submitErrorId = "sign-up-submit-error"
+
+  const validateField = (
+    field: "name" | "email" | "password" | "confirmPassword",
+    value: string,
+    options?: { passwordValue?: string },
+  ) => {
+    const passwordValue = options?.passwordValue ?? password
+
+    switch (field) {
+      case "name":
+        if (!value.trim()) {
+          return "Full name is required."
+        }
+        if (value.trim().length < 2) {
+          return "Enter at least 2 characters."
+        }
+        return ""
+      case "email":
+        if (!value.trim()) {
+          return "Email is required."
+        }
+        if (!/.+@.+\..+/.test(value)) {
+          return "Enter a valid email address."
+        }
+        return ""
+      case "password":
+        if (!value.trim()) {
+          return "Password is required."
+        }
+        if (value.length < 8) {
+          return "Use at least 8 characters."
+        }
+        return ""
+      case "confirmPassword":
+        if (!value.trim()) {
+          return "Confirm your password."
+        }
+        if (value !== passwordValue) {
+          return "Passwords do not match."
+        }
+        return ""
+      default:
+        return ""
+    }
+  }
+
+  const runValidation = (
+    field: "name" | "email" | "password" | "confirmPassword",
+    value: string,
+    options?: { passwordValue?: string },
+  ) => {
+    const nextError = validateField(field, value, options)
+    setErrors((prev) => ({ ...prev, [field]: nextError }))
+    return nextError
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement registration logic
-    if (password !== confirmPassword) {
+    setTouched({ name: true, email: true, password: true, confirmPassword: true })
+
+    const nextErrors = {
+      name: validateField("name", name),
+      email: validateField("email", email),
+      password: validateField("password", password),
+      confirmPassword: validateField("confirmPassword", confirmPassword),
+    }
+
+    setErrors(nextErrors)
+
+    if (Object.values(nextErrors).some(Boolean)) {
+      setSubmitError("Please correct the highlighted fields before continuing.")
       return
     }
+
+    setSubmitError(null)
+    // TODO: Implement registration logic
   }
 
   const handleOAuthSignUp = (_provider: "google" | "github") => {
@@ -58,6 +148,7 @@ export default function SignUpPage() {
             variant="outline"
             className="w-full h-11 text-sm font-medium bg-transparent"
             onClick={() => handleOAuthSignUp("google")}
+            aria-label="Continue with Google"
           >
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -85,6 +176,7 @@ export default function SignUpPage() {
             variant="outline"
             className="w-full h-11 text-sm font-medium bg-transparent"
             onClick={() => handleOAuthSignUp("github")}
+            aria-label="Continue with GitHub"
           >
             <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -108,7 +200,7 @@ export default function SignUpPage() {
         </div>
 
         {/* Email/Password Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium">
               Full Name
@@ -118,10 +210,32 @@ export default function SignUpPage() {
               type="text"
               placeholder="John Doe"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const nextValue = e.target.value
+                setName(nextValue)
+                if (touched.name) {
+                  runValidation("name", nextValue)
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, name: true }))
+                runValidation("name", name)
+              }}
               required
               className="h-11"
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? nameErrorId : undefined}
+              autoComplete="name"
             />
+            {errors.name ? (
+              <p
+                id={nameErrorId}
+                className="text-xs text-destructive"
+                aria-live="polite"
+              >
+                {errors.name}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -133,46 +247,130 @@ export default function SignUpPage() {
               type="email"
               placeholder="name@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                const nextValue = e.target.value
+                setEmail(nextValue)
+                if (touched.email) {
+                  runValidation("email", nextValue)
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, email: true }))
+                runValidation("email", email)
+              }}
               required
               className="h-11"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? emailErrorId : undefined}
+              autoComplete="email"
             />
+            {errors.email ? (
+              <p
+                id={emailErrorId}
+                className="text-xs text-destructive"
+                aria-live="polite"
+              >
+                {errors.email}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium">
               Password
             </Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="Create a password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                const nextValue = e.target.value
+                setPassword(nextValue)
+                if (touched.password) {
+                  runValidation("password", nextValue)
+                }
+                if (touched.confirmPassword) {
+                  runValidation("confirmPassword", confirmPassword, {
+                    passwordValue: nextValue,
+                  })
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, password: true }))
+                runValidation("password", password)
+              }}
               required
               className="h-11"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={[errors.password ? passwordErrorId : null, passwordStrengthId]
+                .filter(Boolean)
+                .join(" ") || undefined}
+              autoComplete="new-password"
+              showStrength
+              strengthHintId={passwordStrengthId}
             />
+            {errors.password ? (
+              <p
+                id={passwordErrorId}
+                className="text-xs text-destructive"
+                aria-live="polite"
+              >
+                {errors.password}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword" className="text-sm font-medium">
               Confirm Password
             </Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               placeholder="Confirm your password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                const nextValue = e.target.value
+                setConfirmPassword(nextValue)
+                if (touched.confirmPassword) {
+                  runValidation("confirmPassword", nextValue)
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, confirmPassword: true }))
+                runValidation("confirmPassword", confirmPassword)
+              }}
               required
               className="h-11"
+              aria-invalid={Boolean(errors.confirmPassword)}
+              aria-describedby={errors.confirmPassword ? confirmPasswordErrorId : undefined}
+              autoComplete="new-password"
             />
+            {errors.confirmPassword ? (
+              <p
+                id={confirmPasswordErrorId}
+                className="text-xs text-destructive"
+                aria-live="polite"
+              >
+                {errors.confirmPassword}
+              </p>
+            ) : null}
           </div>
 
           <Button type="submit" className="w-full h-11 text-sm font-medium">
             Create account
           </Button>
         </form>
+
+        {submitError ? (
+          <div
+            id={submitErrorId}
+            role="alert"
+            aria-live="assertive"
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {submitError}
+          </div>
+        ) : null}
 
         {/* Sign In Link */}
         <p className="text-center text-sm text-muted-foreground">

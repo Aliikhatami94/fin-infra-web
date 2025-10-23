@@ -42,6 +42,7 @@ export const accountSchema: z.ZodType<Account> = z.object({
   institution: z.string(),
   balance: z.number(),
   change: z.number(),
+  balanceHistory: z.array(z.number()).min(2),
   lastSync: z.string(),
   status: z.enum(["active", "needs_update", "disconnected"]),
   nextBillDue: z.string().nullable(),

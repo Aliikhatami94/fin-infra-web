@@ -7,6 +7,7 @@ import {
   AccountsTableSkeleton,
   AIInsightsBannerSkeleton,
 } from "@/components/dashboard-skeletons"
+import { AccountsCallouts } from "@/components/accounts-callouts"
 
 const AccountsKPICards = dynamic(
   () => import("@/components/accounts-kpi-cards").then((mod) => mod.AccountsKPICards),
@@ -48,6 +49,8 @@ export default function AccountsPageClient(props: {
       </div>
 
       <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
+
+      <AccountsCallouts />
 
       <AIInsightsBanner />
 

@@ -13,6 +13,10 @@ export const kpis: KPI[] = [
     lastSynced: "2 minutes ago",
     source: "Plaid",
     href: "/accounts",
+    quickActions: [
+      { label: "See details", href: "/accounts" },
+      { label: "Share summary", href: "/documents" },
+    ],
   },
   {
     label: "Investable Assets",
@@ -25,6 +29,10 @@ export const kpis: KPI[] = [
     lastSynced: "2 minutes ago",
     source: "Plaid",
     href: "/portfolio",
+    quickActions: [
+      { label: "Allocate cash", href: "/portfolio" },
+      { label: "Automate transfers", href: "/cash-flow" },
+    ],
   },
   {
     label: "Cash Available",
@@ -37,6 +45,10 @@ export const kpis: KPI[] = [
     lastSynced: "5 minutes ago",
     source: "Teller",
     href: "/accounts",
+    quickActions: [
+      { label: "Move funds", href: "/cash-flow" },
+      { label: "Set savings rule", href: "/cash-flow" },
+    ],
   },
   {
     label: "Debt Balance",
@@ -49,6 +61,9 @@ export const kpis: KPI[] = [
     lastSynced: "1 hour ago",
     source: "Plaid",
     href: "/accounts",
+    quickActions: [
+      { label: "Plan payoff", href: "/accounts" },
+    ],
   },
   {
     label: "Today\'s P/L",
@@ -61,6 +76,9 @@ export const kpis: KPI[] = [
     lastSynced: "Just now",
     source: "Live",
     href: "/portfolio",
+    quickActions: [
+      { label: "Drill into trades", href: "/portfolio" },
+    ],
   },
   {
     label: "Credit Score",
@@ -73,6 +91,9 @@ export const kpis: KPI[] = [
     lastSynced: "1 week ago",
     source: "Experian",
     href: "/accounts",
+    quickActions: [
+      { label: "Improve score", href: "/accounts" },
+    ],
   },
 ]
 
@@ -171,6 +192,9 @@ export const personaKpiExtras: Record<OnboardingGoalFocus, KPI[]> = {
       lastSynced: "Just now",
       source: "Money Graph",
       href: "/cash-flow",
+      quickActions: [
+        { label: "Adjust plan", href: "/cash-flow" },
+      ],
     },
   ],
   debt_paydown: [
@@ -185,6 +209,9 @@ export const personaKpiExtras: Record<OnboardingGoalFocus, KPI[]> = {
       lastSynced: "Today",
       source: "Money Graph",
       href: "/accounts",
+      quickActions: [
+        { label: "Refine strategy", href: "/accounts" },
+      ],
     },
   ],
   financial_stability: [
@@ -199,6 +226,9 @@ export const personaKpiExtras: Record<OnboardingGoalFocus, KPI[]> = {
       lastSynced: "Today",
       source: "Money Graph",
       href: "/budget",
+      quickActions: [
+        { label: "Extend runway", href: "/budget" },
+      ],
     },
   ],
 }

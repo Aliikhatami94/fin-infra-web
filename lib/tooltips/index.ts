@@ -35,6 +35,21 @@ const metricCopy = {
       "FICO® 8 score retrieved securely from Experian. Soft inquiries only—checking here will not impact your score.",
     disclaimer: "Scores refresh weekly; request a manual refresh from the Security Center if needed.",
   },
+  "Savings Rate": {
+    title: "Savings rate",
+    description: "Portion of your take-home pay routed to savings, investments, or debt paydown after expenses.",
+    disclaimer: "Targets adjust with your budgeting style in Settings.",
+  },
+  "Payment Accelerator": {
+    title: "Payment accelerator",
+    description: "Total dollars redirected toward high-interest debt above the minimums this month.",
+    disclaimer: "Linked autopay rules update this figure nightly.",
+  },
+  "Emergency Runway": {
+    title: "Emergency runway",
+    description: "Months your current cash reserves could cover essential expenses without new income.",
+    disclaimer: "We factor in recurring bills and earmarked sinking funds.",
+  },
 } as const
 
 export type MetricTooltipKey = keyof typeof metricCopy
