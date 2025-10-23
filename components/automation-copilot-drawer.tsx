@@ -24,6 +24,8 @@ import { formatCurrency } from "@/lib/format"
 import { useSecureStorage } from "@/hooks/use-secure-storage"
 import type { AutomationHistoryEntry, AutomationSuggestion } from "@/types/automation"
 import { trackAutomationDecision, trackAutomationUndo } from "@/lib/analytics/events"
+import { useConnectivity } from "@/components/connectivity-provider"
+import { FeedbackPrompt } from "@/components/feedback-prompt"
 
 const riskStyles: Record<AutomationSuggestion["risk"], string> = {
   low: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300",
@@ -64,6 +66,7 @@ export function AutomationCopilotDrawer({
   initialSuggestionId,
 }: AutomationCopilotDrawerProps) {
   const storage = useSecureStorage({ namespace: "automation-copilot" })
+  const { isOffline } = useConnectivity()
   const suggestions = useMemo(() => getAutomationSuggestions(surface), [surface])
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSuggestionId ?? suggestions[0]?.id)
   const selectedSuggestion = useMemo(
@@ -75,6 +78,22 @@ export function AutomationCopilotDrawer({
   const [declineOpen, setDeclineOpen] = useState(false)
   const [scheduleChoice, setScheduleChoice] = useState<keyof typeof scheduleLabels>("next-window")
   const [declineReason, setDeclineReason] = useState<string>(declineReasons[0])
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackContext, setFeedbackContext] = useState<string | null>(null)
+  const [feedbackRating, setFeedbackRating] = useState<number | undefined>(undefined)
+  const handleFeedbackOpenChange = (open: boolean) => {
+    setFeedbackOpen(open)
+    if (!open) {
+      setFeedbackContext(null)
+      setFeedbackRating(undefined)
+    }
+  }
+
+  const openFeedbackPrompt = (context: string, rating?: number) => {
+    setFeedbackContext(context)
+    setFeedbackRating(rating)
+    setFeedbackOpen(true)
+  }
 
   useEffect(() => {
     if (suggestions.length === 0) {
@@ -314,6 +333,12 @@ export function AutomationCopilotDrawer({
 
   const handleConfirm = () => {
     if (!selectedSuggestion) return
+    if (isOffline) {
+      toast.error("Automations paused while offline", {
+        description: "Reconnect to confirm or schedule suggestions.",
+      })
+      return
+    }
 
     const scheduledFor = scheduleLabels[scheduleChoice]
     const entry: AutomationHistoryEntry = {
@@ -335,6 +360,7 @@ export function AutomationCopilotDrawer({
         onClick: () => handleUndo(entry, selectedSuggestion),
       },
     })
+    openFeedbackPrompt(selectedSuggestion.title, 5)
     setReviewOpen(false)
   }
 
@@ -360,6 +386,7 @@ export function AutomationCopilotDrawer({
     toast("Automation declined", {
       description: declineReason,
     })
+    openFeedbackPrompt(selectedSuggestion.title, 2)
     setDeclineOpen(false)
   }
 
@@ -396,6 +423,11 @@ export function AutomationCopilotDrawer({
             <DialogTitle>Confirm automation</DialogTitle>
             <DialogDescription>
               {selectedSuggestion?.diffNarrative.headline ?? "Review the projected impact before confirming."}
+              {isOffline ? (
+                <p className="mt-2 text-xs text-amber-600 dark:text-amber-200">
+                  You are offline. Scheduling will resume once you reconnect.
+                </p>
+              ) : null}
             </DialogDescription>
           </DialogHeader>
           {selectedSuggestion && (
@@ -445,7 +477,9 @@ export function AutomationCopilotDrawer({
             <Button variant="ghost" onClick={() => setReviewOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleConfirm}>Confirm automation</Button>
+            <Button onClick={handleConfirm} disabled={isOffline} aria-disabled={isOffline} data-requires-online>
+              Confirm automation
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -483,6 +517,14 @@ export function AutomationCopilotDrawer({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <FeedbackPrompt
+        surface="automation"
+        open={feedbackOpen}
+        onOpenChange={handleFeedbackOpenChange}
+        context={feedbackContext ?? "Copilot"}
+        defaultRating={feedbackRating}
+      />
     </>
   )
 }

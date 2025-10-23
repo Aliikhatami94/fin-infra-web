@@ -152,7 +152,7 @@ export default function GoalsPage() {
 
       <Button
         size="lg"
-        className="fixed bottom-6 right-6 rounded-full shadow-lg md:hidden z-50 h-14 w-14 p-0"
+        className="fixed bottom-24 right-5 z-50 h-14 w-14 rounded-full p-0 shadow-lg md:hidden"
         onClick={() => setShowAddGoal(true)}
         aria-label="Add goal"
       >

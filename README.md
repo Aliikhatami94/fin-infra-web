@@ -46,6 +46,9 @@ Copy `.env.example` to `.env.local` and fill in the required values before runni
 
 - `NEXT_PUBLIC_AI_INSIGHTS_ROLLOUT` – feature flag controlling staged rollout of AI insights.
 - `NEXT_PUBLIC_ANALYTICS_SAMPLING_RATE` – percentage of analytics events to emit during experiments.
+- `NEXT_PUBLIC_EXPERIMENT_FLAGS` – comma-separated flag:variant pairs (e.g. `growthDashboards:enabled`).
+- `NEXT_PUBLIC_EXPERIMENT_COHORT` – identifier for the active experiment cohort.
+- `NEXT_PUBLIC_ATTRIBUTION_SOURCE` – tag appended to share/export analytics events.
 - `NEXT_PUBLIC_STORAGE_ENCRYPTION_KEY` – base64-encoded 32-byte key used to encrypt values persisted via `useSecureStorage`.
 - `NEXT_PUBLIC_STORAGE_ENCRYPTION_FALLBACKS` – optional comma-separated list of previous encryption keys to support rotation.
 - `PLAID_SANDBOX_CLIENT_ID` / `PLAID_SANDBOX_SECRET` – sandbox credentials for Plaid integrations.

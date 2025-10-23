@@ -54,6 +54,8 @@ primitives, keep durations ≤ 450ms with ease-out curves for approachability.
   and copy in addition to color.
 * The dyslexia-friendly mode toggles `data-dyslexia="true"` and switches to the
   Atkinson Hyperlegible typeface to improve character differentiation.
+* Unread insight highlights reuse the primary hue as a subtle border + badge.
+  Pair with `bg-muted` fills to avoid overwhelming dense data surfaces.
 
 Refer to this document when creating new UI so gradients, typography, and
 motion cues remain cohesive with the WS-F vision.
