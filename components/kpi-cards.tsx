@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, DollarSign, Wallet, CreditCard, Activity } from "lucide-react"
+import { TrendingUp, TrendingDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -10,81 +10,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { getValueColor, getValueBgColor } from "@/lib/color-utils"
-
-const kpis = [
-  {
-    label: "Net Worth",
-    value: "$487,234",
-    change: "+12.4%",
-    baselineValue: "$433,120",
-    trend: "up",
-    sparkline: [45, 52, 48, 55, 58, 62, 65, 68, 72, 75],
-    icon: DollarSign,
-    lastSynced: "2 minutes ago",
-    source: "Plaid",
-    href: "/accounts",
-  },
-  {
-    label: "Investable Assets",
-    value: "$324,891",
-    change: "+8.2%",
-    baselineValue: "$300,234",
-    trend: "up",
-    sparkline: [30, 35, 32, 38, 42, 45, 48, 52, 55, 58],
-    icon: Wallet,
-    lastSynced: "2 minutes ago",
-    source: "Plaid",
-    href: "/portfolio",
-  },
-  {
-    label: "Cash Available",
-    value: "$52,180",
-    change: "-2.1%",
-    baselineValue: "$53,300",
-    trend: "down",
-    sparkline: [60, 58, 55, 54, 52, 50, 48, 47, 45, 44],
-    icon: DollarSign,
-    lastSynced: "5 minutes ago",
-    source: "Teller",
-    href: "/accounts",
-  },
-  {
-    label: "Debt Balance",
-    value: "$18,500",
-    change: "-5.3%",
-    baselineValue: "$19,540",
-    trend: "down",
-    sparkline: [25, 24, 23, 22, 20, 19, 18, 17, 16, 15],
-    icon: CreditCard,
-    lastSynced: "1 hour ago",
-    source: "Plaid",
-    href: "/accounts",
-  },
-  {
-    label: "Today's P/L",
-    value: "+$2,847",
-    change: "+1.8%",
-    baselineValue: "$2,797",
-    trend: "up",
-    sparkline: [0, 2, 1, 3, 5, 4, 6, 7, 8, 9],
-    icon: Activity,
-    lastSynced: "Just now",
-    source: "Live",
-    href: "/portfolio",
-  },
-  {
-    label: "Credit Score",
-    value: "785",
-    change: "+12 pts",
-    baselineValue: "773",
-    trend: "up",
-    sparkline: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
-    icon: Activity,
-    lastSynced: "1 week ago",
-    source: "Experian",
-    href: "/accounts",
-  },
-]
+import { kpis } from "@/lib/mock"
 
 const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   const max = Math.max(...data)

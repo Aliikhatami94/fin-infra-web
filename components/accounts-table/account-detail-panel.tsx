@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, RefreshCw } from "lucide-react"
 
 import type { Account, Transaction } from "./types"
+import { formatCurrency } from "@/lib/format"
 
 interface AccountDetailPanelProps {
   account: Account
@@ -61,7 +62,9 @@ export function AccountDetailPanel({ account, onReconnect, transactions, typeCol
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Amount Due</span>
                 <span className="font-semibold tabular-nums font-mono">
-                  ${account.nextBillAmount?.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  {typeof account.nextBillAmount === "number"
+                    ? formatCurrency(account.nextBillAmount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : ""}
                 </span>
               </div>
             </div>
@@ -75,10 +78,10 @@ export function AccountDetailPanel({ account, onReconnect, transactions, typeCol
               <span className="text-muted-foreground">Transactions (7d)</span>
               <span className="font-medium">12</span>
             </div>
-            <div className="flex justify-between">
+              <div className="flex justify-between">
               <span className="text-muted-foreground">Avg. Balance</span>
               <span className="font-medium tabular-nums font-mono">
-                ${Math.abs(account.balance * 0.98).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatCurrency(Math.abs(account.balance * 0.98), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </div>
@@ -109,7 +112,7 @@ export function AccountDetailPanel({ account, onReconnect, transactions, typeCol
                     txn.amount > 0 ? "text-green-600 dark:text-green-400" : "text-foreground"
                   }`}
                 >
-                  {txn.amount > 0 ? "+" : ""}${Math.abs(txn.amount).toFixed(2)}
+                  {formatCurrency(txn.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
                 </span>
               </div>
             )

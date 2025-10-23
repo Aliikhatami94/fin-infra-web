@@ -2,20 +2,65 @@
 
 import { useState } from "react"
 import dynamic from "next/dynamic"
-import { PortfolioKPIs } from "@/components/portfolio-kpis"
-import { AllocationGrid } from "@/components/allocation-grid"
-import { HoldingsTable } from "@/components/holdings-table"
-import { PortfolioAIInsights } from "@/components/portfolio-ai-insights"
-import { RebalancingPreview } from "@/components/rebalancing-preview"
+// Heavy widgets are dynamically loaded with skeletons
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
+import {
+  AllocationGridSkeleton,
+  HoldingsTableSkeleton,
+  PortfolioAIInsightsSkeleton,
+  PortfolioKPIsSkeleton,
+  RebalancingPreviewSkeleton,
+} from "@/components/dashboard-skeletons"
+import type { AllocationGridProps } from "@/components/allocation-grid"
+import type { HoldingsTableProps } from "@/components/holdings-table"
 
 const PerformanceComparison = dynamic(
   () => import("@/components/performance-comparison").then((mod) => mod.PerformanceComparison),
   {
     ssr: false,
     loading: () => <ChartCardSkeleton title="Performance vs SPY" contentHeight="h-[400px]" />,
+  },
+)
+
+const PortfolioKPIs = dynamic(
+  () => import("@/components/portfolio-kpis").then((mod) => mod.PortfolioKPIs),
+  {
+    ssr: false,
+    loading: () => <PortfolioKPIsSkeleton />,
+  },
+)
+
+const PortfolioAIInsights = dynamic(
+  () => import("@/components/portfolio-ai-insights").then((mod) => mod.PortfolioAIInsights),
+  {
+    ssr: false,
+    loading: () => <PortfolioAIInsightsSkeleton />,
+  },
+)
+
+const RebalancingPreview = dynamic(
+  () => import("@/components/rebalancing-preview").then((mod) => mod.RebalancingPreview),
+  {
+    ssr: false,
+    loading: () => <RebalancingPreviewSkeleton />,
+  },
+)
+
+const AllocationGrid = dynamic<AllocationGridProps>(
+  () => import("@/components/allocation-grid").then((mod) => mod.AllocationGrid),
+  {
+    ssr: false,
+    loading: () => <AllocationGridSkeleton />,
+  },
+)
+
+const HoldingsTable = dynamic<HoldingsTableProps>(
+  () => import("@/components/holdings-table").then((mod) => mod.HoldingsTable),
+  {
+    ssr: false,
+    loading: () => <HoldingsTableSkeleton />,
   },
 )
 

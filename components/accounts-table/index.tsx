@@ -17,7 +17,7 @@ import { Switch } from "@/components/ui/switch"
 
 import { AccountsListMobile } from "./accounts-list-mobile"
 import { AccountsTableDesktop } from "./accounts-table-desktop"
-import { accountsData, sharedIcons } from "./data"
+import { accountsData, sharedIcons } from "@/lib/mock"
 import { filterAccounts, groupAccounts, sortAccounts } from "./utils"
 import type { GroupBy, SortDirection, SortField } from "./types"
 

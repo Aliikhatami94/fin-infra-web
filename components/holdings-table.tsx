@@ -95,7 +95,7 @@ const holdings = [
 type SortKey = "ticker" | "qty" | "value" | "pl" | "plPercent" | "weight" | "account"
 type GroupBy = "none" | "account" | "asset-class"
 
-interface HoldingsTableProps {
+export interface HoldingsTableProps {
   allocationFilter?: string | null
 }
 

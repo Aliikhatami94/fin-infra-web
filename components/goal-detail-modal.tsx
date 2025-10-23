@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine } from "recharts"
 import { TrendingUp, Edit, Calendar, DollarSign, TargetIcon, LinkIcon } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { formatCurrency } from "@/lib/format"
 
 const contributionData = [
   { month: "Jan", actual: 18000, projected: null },
@@ -88,7 +89,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Current Progress</span>
                 <span className="text-sm font-medium">
-                  ${goal.current.toLocaleString()} / ${goal.target.toLocaleString()}
+                  {formatCurrency(goal.current)} / {formatCurrency(goal.target)}
                 </span>
               </div>
               <Progress value={goal.percent} className="h-3" />
@@ -106,7 +107,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                 <div className="flex-1">
                   <h4 className="font-semibold mb-1">Predicted Completion</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Based on your current contribution rate of ${goal.monthlyTarget}/month, you'll reach your goal by{" "}
+                Based on your current contribution rate of {formatCurrency(goal.monthlyTarget)}/month, you'll reach your goal by{" "}
                     <span className="font-medium text-foreground">{formattedPredictedDate}</span>
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -114,7 +115,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                       {monthsRemaining} months remaining
                     </Badge>
                     <Badge variant="outline" className="bg-background">
-                      ${(goal.target - goal.current).toLocaleString()} to go
+                 {formatCurrency(goal.target - goal.current)} to go
                     </Badge>
                   </div>
                 </div>
@@ -125,7 +126,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
             <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
               <div>
                 <p className="text-sm text-muted-foreground">Monthly Target</p>
-                <p className="text-lg font-semibold">${goal.monthlyTarget}/mo</p>
+                  <p className="text-lg font-semibold">{formatCurrency(goal.monthlyTarget)}/mo</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Funding Source</p>
@@ -133,11 +134,11 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Remaining</p>
-                <p className="text-lg font-semibold">${(goal.target - goal.current).toLocaleString()}</p>
+                  <p className="text-lg font-semibold">{formatCurrency(goal.target - goal.current)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Avg. Monthly Growth</p>
-                <p className="text-lg font-semibold text-[var(--color-positive)]">+${goal.monthlyTarget}</p>
+                  <p className="text-lg font-semibold text-[var(--color-positive)]">{formatCurrency(goal.monthlyTarget, { signDisplay: "always" })}</p>
               </div>
             </div>
 
@@ -209,7 +210,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                       <DollarSign className="h-4 w-4 text-[var(--color-positive)]" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium">${contribution.amount.toLocaleString()}</p>
+                      <p className="text-sm font-medium">{formatCurrency(contribution.amount)}</p>
                       <p className="text-xs text-muted-foreground">{contribution.source}</p>
                     </div>
                   </div>
@@ -262,7 +263,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                 </div>
               ) : (
                 <div className="rounded-lg border p-4">
-                  <p className="text-2xl font-bold">${goal.target.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{formatCurrency(goal.target)}</p>
                 </div>
               )}
             </div>
@@ -310,6 +311,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                 <div className="rounded-lg border p-4">
                   <p className="font-medium">{goal.fundingSource}</p>
                   <p className="text-sm text-muted-foreground">Current balance: $45,230</p>
+                    <p className="text-sm text-muted-foreground">Current balance: {formatCurrency(45230)}</p>
                 </div>
               )}
             </div>

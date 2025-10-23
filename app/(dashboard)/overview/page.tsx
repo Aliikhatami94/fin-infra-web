@@ -2,15 +2,17 @@
 
 import { useState } from "react"
 import dynamic from "next/dynamic"
-import { Portfolio } from "@/components/portfolio"
-import { AIChatSidebar } from "@/components/ai-chat-sidebar"
+// Heavy widgets are dynamically loaded client-side with skeletons
 import { Button } from "@/components/ui/button"
 import { Bot } from "lucide-react"
 import { KPICards } from "@/components/kpi-cards"
-import { RecentActivity } from "@/components/recent-activity"
-import { AIInsights } from "@/components/ai-insights"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { AllocationChartProps } from "@/components/allocation-chart"
+import {
+  AIInsightsListSkeleton,
+  PortfolioSkeleton,
+  RecentActivitySkeleton,
+} from "@/components/dashboard-skeletons"
 
 const AllocationChart = dynamic<AllocationChartProps>(
   () => import("@/components/allocation-chart").then((mod) => mod.AllocationChart),
@@ -39,6 +41,38 @@ const CashFlow = dynamic(
         contentHeight="h-72"
       />
     ),
+  },
+)
+
+const Portfolio = dynamic(
+  () => import("@/components/portfolio").then((mod) => mod.Portfolio),
+  {
+    ssr: false,
+    loading: () => <PortfolioSkeleton />,
+  },
+)
+
+const RecentActivity = dynamic(
+  () => import("@/components/recent-activity").then((mod) => mod.RecentActivity),
+  {
+    ssr: false,
+    loading: () => <RecentActivitySkeleton />,
+  },
+)
+
+const AIInsights = dynamic(
+  () => import("@/components/ai-insights").then((mod) => mod.AIInsights),
+  {
+    ssr: false,
+    loading: () => <AIInsightsListSkeleton />,
+  },
+)
+
+const AIChatSidebar = dynamic(
+  () => import("@/components/ai-chat-sidebar").then((mod) => mod.AIChatSidebar),
+  {
+    ssr: false,
+    loading: () => null,
   },
 )
 
