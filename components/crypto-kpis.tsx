@@ -92,7 +92,12 @@ export function CryptoKPIs() {
                       <Icon className="h-5 w-5 text-primary" />
                     </div>
                   </div>
-                  <p className="text-2xl font-bold tabular-nums text-foreground">{kpi.value}</p>
+                  <p
+                    className="text-2xl font-bold tabular-nums text-foreground"
+                    aria-label={`${kpi.label} ${kpi.value}`}
+                  >
+                    {kpi.value}
+                  </p>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

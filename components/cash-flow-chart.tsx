@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -19,6 +19,9 @@ import {
 import type { TooltipContentProps } from "recharts"
 import { Calendar, TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { AccessibleChart } from "@/components/accessible-chart"
+import { currencySummaryFormatter, describeTimeSeries } from "@/lib/a11y"
+import { formatCurrency } from "@/lib/format"
 
 const monthlyData: CashFlowDatum[] = [
   { month: "Jan", inflow: 8500, outflow: 6200, net: 2300 },
@@ -90,6 +93,17 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
   const historicalData = monthlyData.filter((d) => !d.isProjection)
   const avgNet = historicalData.reduce((sum, d) => sum + d.net, 0) / historicalData.length
   const projectionData = monthlyData.find((d) => d.isProjection)
+  const chartSummary = useMemo(
+    () =>
+      describeTimeSeries({
+        data: monthlyData,
+        metric: "Monthly net cash flow",
+        getLabel: (point) => `${point.month}${point.isProjection ? " (forecast)" : ""}`,
+        getValue: (point) => point.net,
+        formatValue: currencySummaryFormatter,
+      }),
+    [],
+  )
 
   return (
     <Card>
@@ -145,13 +159,22 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
         )}
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={350}>
-          <ComposedChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis
-              dataKey="month"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-              axisLine={false}
+        <AccessibleChart
+          title="Cash flow by month"
+          description={`${chartSummary} Average historical net flow ${formatCurrency(avgNet, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          })}.`}
+          className="w-full h-[350px]"
+          contentClassName="h-full"
+        >
+          <ResponsiveContainer width="100%" height={350}>
+            <ComposedChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis
+                dataKey="month"
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                axisLine={false}
               tickLine={false}
             />
             <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -183,16 +206,17 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                 return <Cell key={`outflow-${index}`} opacity={dimmed} />
               })}
             </Bar>
-            <Line
-              type="monotone"
-              dataKey="net"
-              stroke="hsl(210, 100%, 60%)"
-              strokeWidth={3}
-              name="Net Flow"
-              dot={false}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
+              <Line
+                type="monotone"
+                dataKey="net"
+                stroke="hsl(210, 100%, 60%)"
+                strokeWidth={3}
+                name="Net Flow"
+                dot={false}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </AccessibleChart>
       </CardContent>
     </Card>
   )

@@ -1,63 +1,33 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Card, CardContent } from "@/components/ui/card"
-import { Sparkles, TrendingDown, Target } from "lucide-react"
+import { Sparkles } from "lucide-react"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
-import { Button } from "@/components/ui/button"
+import { InsightCard } from "@/components/insights/InsightCard"
+import { getInsights } from "@/lib/insights/service"
 
 export function PortfolioAIInsights() {
-  const insights = [
-    {
-      icon: TrendingDown,
-      text: "3 holdings are underperforming the S&P 500 by more than 15% this quarter.",
-      color: "text-[var(--color-warning)]",
-      bgColor: "bg-[var(--color-warning)]/10",
-      action: "Review Assets",
-    },
-    {
-      icon: Target,
-      text: "Your portfolio is overweight in Tech (42%). Consider rebalancing to reduce sector risk.",
-      color: "text-[var(--color-info)]",
-      bgColor: "bg-[var(--color-info)]/10",
-      action: "Rebalance",
-    },
-  ]
+  const insights = getInsights({ surface: "portfolio" })
 
   return (
-    <motion.div {...createStaggeredCardVariants(0, 0.3)}>
-      <Card className="border-border/30 bg-gradient-to-r from-purple-500/5 to-blue-500/5">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div className="flex-1 space-y-2">
-              <h3 className="text-sm font-semibold text-foreground">AI Portfolio Insights</h3>
-              <div className="space-y-3">
-                {insights.map((insight, index) => {
-                  const Icon = insight.icon
-                  return (
-                    <div key={index} className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2 flex-1">
-                        <div
-                          className={`h-5 w-5 rounded ${insight.bgColor} flex items-center justify-center flex-shrink-0 mt-0.5`}
-                        >
-                          <Icon className={`h-3 w-3 ${insight.color}`} />
-                        </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{insight.text}</p>
-                      </div>
-                      <Button variant="outline" size="sm" className="flex-shrink-0 text-xs h-7 bg-transparent">
-                        {insight.action}
-                      </Button>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+    <motion.section
+      {...createStaggeredCardVariants(0, 0.2)}
+      aria-labelledby="portfolio-insights-heading"
+      className="space-y-4"
+    >
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10">
+          <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+        </div>
+        <h3 id="portfolio-insights-heading" className="text-sm font-semibold text-foreground">
+          AI Portfolio Insights
+        </h3>
+      </div>
+      <div className="grid gap-4">
+        {insights.map((insight, index) => (
+          <InsightCard key={insight.id} insight={insight} index={index} />
+        ))}
+      </div>
+    </motion.section>
   )
 }

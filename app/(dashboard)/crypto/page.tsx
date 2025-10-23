@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Fuel, Plus } from "lucide-react"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { CryptoChartProps } from "@/components/crypto-chart"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 const CryptoChart = dynamic<CryptoChartProps>(
   () => import("@/components/crypto-chart").then((mod) => mod.CryptoChart),
@@ -57,7 +58,9 @@ export default function CryptoPage() {
         </div>
 
         <CryptoKPIs />
-        <CryptoAIInsights />
+        <ErrorBoundary feature="Crypto insights">
+          <CryptoAIInsights />
+        </ErrorBoundary>
         <CryptoChart showStablecoins={showStablecoins} onToggleStablecoins={setShowStablecoins} />
         <ExchangeAnalytics selectedExchange={selectedExchange} />
         <CryptoTable selectedExchange={selectedExchange} showStablecoins={showStablecoins} />

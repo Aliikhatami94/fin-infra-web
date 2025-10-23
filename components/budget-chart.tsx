@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts"
 import type { TooltipContentProps } from "recharts"
 import { Button } from "@/components/ui/button"
+import { AccessibleChart } from "@/components/accessible-chart"
 
 interface BudgetDatum {
   category: string
@@ -84,6 +85,14 @@ export function BudgetChart() {
     return null
   }
 
+  const description = useMemo(
+    () =>
+      viewMode === "comparison"
+        ? "Bar chart comparing budgeted versus actual spending for each category."
+        : "Bar chart showing positive or negative variance amounts by category.",
+    [viewMode],
+  )
+
   return (
     <Card className="border-border/50 shadow-sm">
       <CardHeader>
@@ -110,49 +119,56 @@ export function BudgetChart() {
         </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={350}>
-          {viewMode === "comparison" ? (
-            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
-              <XAxis
-                dataKey="category"
-                className="text-xs"
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
-                axisLine={{ stroke: "hsl(var(--border))" }}
-              />
-              <YAxis
-                className="text-xs"
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
-                axisLine={{ stroke: "hsl(var(--border))" }}
-              />
-              <Tooltip content={comparisonTooltip} />
-              <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="circle" />
-              <Bar dataKey="budget" fill="hsl(210, 100%, 60%)" name="Budget" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="actual" fill="hsl(142, 76%, 45%)" name="Actual" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          ) : (
-            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
-              <XAxis
-                dataKey="category"
-                className="text-xs"
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
-                axisLine={{ stroke: "hsl(var(--border))" }}
-              />
-              <YAxis
-                className="text-xs"
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
-                axisLine={{ stroke: "hsl(var(--border))" }}
-              />
-              <Tooltip content={varianceTooltip} />
-              <Bar dataKey="variance" name="Variance" radius={[4, 4, 0, 0]}>
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.variance >= 0 ? "hsl(142, 76%, 45%)" : "hsl(0, 84%, 60%)"} />
-                ))}
-              </Bar>
-            </BarChart>
-          )}
-        </ResponsiveContainer>
+        <AccessibleChart
+          title="Budget performance by category"
+          description={description}
+          className="w-full h-[350px]"
+          contentClassName="h-full"
+        >
+          <ResponsiveContainer width="100%" height={350}>
+            {viewMode === "comparison" ? (
+              <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+                <XAxis
+                  dataKey="category"
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={{ stroke: "hsl(var(--border))" }}
+                />
+                <YAxis
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={{ stroke: "hsl(var(--border))" }}
+                />
+                <Tooltip content={comparisonTooltip} />
+                <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="circle" />
+                <Bar dataKey="budget" fill="hsl(210, 100%, 60%)" name="Budget" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="actual" fill="hsl(142, 76%, 45%)" name="Actual" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            ) : (
+              <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+                <XAxis
+                  dataKey="category"
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={{ stroke: "hsl(var(--border))" }}
+                />
+                <YAxis
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={{ stroke: "hsl(var(--border))" }}
+                />
+                <Tooltip content={varianceTooltip} />
+                <Bar dataKey="variance" name="Variance" radius={[4, 4, 0, 0]}>
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.variance >= 0 ? "hsl(142, 76%, 45%)" : "hsl(0, 84%, 60%)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </AccessibleChart>
       </CardContent>
     </Card>
   )

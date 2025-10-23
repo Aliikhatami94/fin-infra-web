@@ -11,9 +11,10 @@ export default defineConfig({
   },
   test: {
     include: ["**/__tests__/**/*.test.{ts,tsx}", "**/*.test.{ts,tsx}"],
-    environment: "node",
+    environment: "jsdom",
     coverage: {
       reporter: ["text", "lcov"],
     },
+    setupFiles: ["./vitest.setup.ts"],
   },
 })

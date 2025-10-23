@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { SwitchField } from "@/components/ui/switch"
 import {
   Dialog,
   DialogContent,
@@ -569,13 +569,13 @@ export function BudgetTable() {
                 placeholder="Enter budget amount"
               />
             </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="rollover">Enable Rollover</Label>
-                <p className="text-sm text-muted-foreground">Carry unused budget to next month</p>
-              </div>
-              <Switch id="rollover" checked={rolloverEnabled} onCheckedChange={setRolloverEnabled} />
-            </div>
+            <SwitchField
+              id="rollover"
+              label="Enable rollover"
+              description="Carry unused budget to the next month."
+              checked={rolloverEnabled}
+              onCheckedChange={setRolloverEnabled}
+            />
             <div className="space-y-2">
               <Label htmlFor="warning">Warning Threshold (%)</Label>
               <Input

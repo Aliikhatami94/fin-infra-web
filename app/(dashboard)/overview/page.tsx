@@ -8,6 +8,7 @@ import { Bot } from "lucide-react"
 import { KPICards } from "@/components/kpi-cards"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { AllocationChartProps } from "@/components/allocation-chart"
+import { ErrorBoundary } from "@/components/error-boundary"
 import {
   AIInsightsListSkeleton,
   PortfolioSkeleton,
@@ -117,7 +118,9 @@ export default function OverviewPage() {
 
       <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">Insights</h2>
-        <AIInsights />
+        <ErrorBoundary feature="AI Insights">
+          <AIInsights />
+        </ErrorBoundary>
       </section>
 
       <Button

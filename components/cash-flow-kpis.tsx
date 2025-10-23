@@ -7,6 +7,7 @@ import { Line, LineChart, ResponsiveContainer } from "recharts"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { formatCurrency } from "@/lib/format"
 
 const netFlowSparkline = [
   { value: 1200 },
@@ -43,6 +44,18 @@ export function CashFlowKPIs() {
   const totalInflow = 9000
   const totalOutflow = 7500
   const changePercent = 10
+  const formattedNetCashFlow = formatCurrency(netCashFlow, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })
+  const formattedTotalInflow = formatCurrency(totalInflow, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })
+  const formattedTotalOutflow = formatCurrency(totalOutflow, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })
 
   return (
     <TooltipProvider>
@@ -56,7 +69,12 @@ export function CashFlowKPIs() {
               <div className="flex items-start justify-between mb-2">
                 <div className="space-y-1 flex-1">
                   <p className="text-xs text-muted-foreground">Net Cash Flow</p>
-                  <p className="text-2xl font-bold tabular-nums text-foreground">${netCashFlow.toLocaleString()}</p>
+                  <p
+                    className="text-2xl font-bold tabular-nums text-foreground"
+                    aria-label={`Net cash flow ${formattedNetCashFlow}`}
+                  >
+                    {formattedNetCashFlow}
+                  </p>
                 </div>
                 <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
                   <TrendingUp className="h-5 w-5 text-blue-500" />
@@ -86,7 +104,7 @@ export function CashFlowKPIs() {
                   </TooltipContent>
                 </Tooltip>
                 <div className="w-20 h-10">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
                     <LineChart data={netFlowSparkline}>
                       <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 60%)" strokeWidth={2} dot={false} />
                     </LineChart>
@@ -106,7 +124,12 @@ export function CashFlowKPIs() {
               <div className="flex items-start justify-between mb-2">
                 <div className="space-y-1 flex-1">
                   <p className="text-xs text-muted-foreground">Total Inflow</p>
-                  <p className="text-2xl font-bold tabular-nums text-foreground">${totalInflow.toLocaleString()}</p>
+                  <p
+                    className="text-2xl font-bold tabular-nums text-foreground"
+                    aria-label={`Total inflow ${formattedTotalInflow}`}
+                  >
+                    {formattedTotalInflow}
+                  </p>
                 </div>
                 <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
                   <ArrowDownRight className="h-5 w-5 text-[var(--color-positive)]" />
@@ -115,7 +138,7 @@ export function CashFlowKPIs() {
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">83% from Salary</p>
                 <div className="w-20 h-10">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
                     <LineChart data={inflowSparkline}>
                       <Line
                         type="monotone"
@@ -141,7 +164,12 @@ export function CashFlowKPIs() {
               <div className="flex items-start justify-between mb-2">
                 <div className="space-y-1 flex-1">
                   <p className="text-xs text-muted-foreground">Total Outflow</p>
-                  <p className="text-2xl font-bold tabular-nums text-foreground">${totalOutflow.toLocaleString()}</p>
+                  <p
+                    className="text-2xl font-bold tabular-nums text-foreground"
+                    aria-label={`Total outflow ${formattedTotalOutflow}`}
+                  >
+                    {formattedTotalOutflow}
+                  </p>
                 </div>
                 <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
                   <ArrowUpRight className="h-5 w-5 text-[var(--color-warning)]" />
@@ -150,7 +178,7 @@ export function CashFlowKPIs() {
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">Highest: Rent ($2,200)</p>
                 <div className="w-20 h-10">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
                     <LineChart data={outflowSparkline}>
                       <Line type="monotone" dataKey="value" stroke="var(--color-warning)" strokeWidth={2} dot={false} />
                     </LineChart>

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus } from "lucide-react"
 import { GoalRecommendations } from "@/components/goal-recommendations"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 export default function GoalsPage() {
   const [showAddGoal, setShowAddGoal] = useState(false)
@@ -28,7 +29,9 @@ export default function GoalsPage() {
 
         <GoalsSummaryKPIs />
 
-        <GoalsAIInsights />
+        <ErrorBoundary feature="Goal insights">
+          <GoalsAIInsights />
+        </ErrorBoundary>
 
         <GoalRecommendations />
 

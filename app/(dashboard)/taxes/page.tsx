@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { TaxesAIInsights } from "@/components/taxes-ai-insights"
 import { TaxSummary } from "@/components/tax-summary"
 import { CapitalGainsTable } from "@/components/capital-gains-table"
 import { TaxDocuments } from "@/components/tax-documents"
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TrendingDown, AlertCircle, Clock } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 export default function TaxesPage() {
   const [taxYear, setTaxYear] = useState("2025")
@@ -71,9 +73,13 @@ export default function TaxesPage() {
           </AlertDescription>
         </Alert>
 
+        <TaxesAIInsights />
+
         {isComparisonMode ? <TaxYearComparison /> : <TaxSummary onFilterChange={setGainsFilter} />}
 
-        <TaxScenarioTool />
+        <ErrorBoundary feature="Tax scenario tool">
+          <TaxScenarioTool />
+        </ErrorBoundary>
 
         <CapitalGainsTable initialFilter={gainsFilter} />
         <TaxDocuments />

@@ -15,6 +15,7 @@ import {
 } from "@/components/dashboard-skeletons"
 import type { AllocationGridProps } from "@/components/allocation-grid"
 import type { HoldingsTableProps } from "@/components/holdings-table"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 const PerformanceComparison = dynamic(
   () => import("@/components/performance-comparison").then((mod) => mod.PerformanceComparison),
@@ -74,7 +75,9 @@ export default function PortfolioPage() {
 
         <PortfolioKPIs />
 
-        <PortfolioAIInsights />
+        <ErrorBoundary feature="Portfolio insights">
+          <PortfolioAIInsights />
+        </ErrorBoundary>
 
         <RebalancingPreview />
 
