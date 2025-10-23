@@ -13,9 +13,20 @@ import { CalendarIcon, MoreVertical, FileText, FileSpreadsheet, Plus } from "luc
 import { format } from "date-fns"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { ScenarioPlaybook } from "@/components/scenario-playbook"
+import { trackShareExport } from "@/lib/analytics/events"
+import { toast } from "@/components/ui/sonner"
+import { useFeatureFlag } from "@/lib/analytics/experiments"
 
 export default function BudgetPage() {
   const [date, setDate] = useState<Date>(new Date(2024, 0, 1))
+  const { enabled: shareExportsEnabled } = useFeatureFlag("shareExports", { defaultEnabled: true })
+
+  const handleExport = (format: "csv" | "pdf") => {
+    trackShareExport({ surface: "budget", format, channel: "member", items: 12 })
+    toast.success(`Budget ${format.toUpperCase()} export ready`, {
+      description: "Attribution recorded so you can follow up when it\'s shared.",
+    })
+  }
 
   return (
     <>
@@ -40,23 +51,35 @@ export default function BudgetPage() {
                 <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
               </PopoverContent>
             </Popover>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <FileSpreadsheet className="mr-2 h-4 w-4" />
-                  Export as CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Export as PDF
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {shareExportsEnabled && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault()
+                      handleExport("csv")
+                    }}
+                  >
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault()
+                      handleExport("pdf")
+                    }}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 

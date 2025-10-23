@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Check, ChevronLeft, Loader2, ShieldCheck, Sparkles, Wallet } from "lucide-react"
 
@@ -9,9 +9,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { FeedbackPrompt } from "@/components/feedback-prompt"
 import { MaskableValue, usePrivacy } from "@/components/privacy-provider"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
 import { buildPersonaSummary, fetchMoneyGraph, listLinkableInstitutions, simulateInstitutionLink } from "@/lib/services"
+import {
+  trackOnboardingDropoff,
+  trackOnboardingStepCompleted,
+  trackOnboardingStepViewed,
+} from "@/lib/analytics/events"
 import type {
   InstitutionConnectionStatus,
   LinkedInstitution,
@@ -123,6 +129,12 @@ export default function OnboardingPage() {
   const [linkModalOpen, setLinkModalOpen] = useState(false)
   const [linkingInstitution, setLinkingInstitution] = useState<string | null>(null)
   const [linkErrors, setLinkErrors] = useState<Record<string, string>>({})
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
+  const [completed, setCompleted] = useState(false)
+  const [skipped, setSkipped] = useState(false)
+  const totalSteps = steps.length
+  const computeProgress = useCallback((count: number) => Math.min(100, Math.round((count / totalSteps) * 100)), [totalSteps])
   const institutions = useMemo(() => listLinkableInstitutions(), [])
 
   useEffect(() => {
@@ -137,16 +149,47 @@ export default function OnboardingPage() {
 
     if (state.status === "not_started") {
       markStatus("in_progress")
+    } else if (state.status === "completed") {
+      setCompleted(true)
+    } else if (state.status === "skipped") {
+      setSkipped(true)
     }
   }, [hydrated, markStatus, state.completedSteps.length, state.persona, state.status])
+
+  const completedSteps = useMemo(() => new Set(state.completedSteps), [state.completedSteps])
+
+  useEffect(() => {
+    if (!hydrated) return
+    trackOnboardingStepViewed({ stepId: currentStep, progress: computeProgress(completedSteps.size) })
+  }, [completedSteps.size, computeProgress, currentStep, hydrated])
 
   useEffect(() => {
     if (!hydrated) return
     const hasConnected = state.linkedInstitutions.some((institution) => institution.status === "connected")
-    if (hasConnected) {
+    if (hasConnected && !completedSteps.has("connect")) {
       markStepComplete("connect")
+      trackOnboardingStepCompleted({ stepId: "connect", progress: computeProgress(completedSteps.size + 1) })
     }
-  }, [hydrated, markStepComplete, state.linkedInstitutions])
+  }, [completedSteps, computeProgress, hydrated, markStepComplete, state.linkedInstitutions])
+
+  useEffect(() => {
+    if (!feedbackOpen && pendingRedirect) {
+      router.push(pendingRedirect)
+      setPendingRedirect(null)
+    }
+  }, [feedbackOpen, pendingRedirect, router])
+
+  useEffect(() => {
+    return () => {
+      if (!completed && !skipped) {
+        trackOnboardingDropoff({
+          stepId: currentStep,
+          progress: computeProgress(completedSteps.size),
+          status: "abandoned",
+        })
+      }
+    }
+  }, [completed, completedSteps.size, computeProgress, currentStep, skipped])
 
   useEffect(() => {
     const summarySource = state.persona ?? personaDraft
@@ -185,11 +228,13 @@ export default function OnboardingPage() {
     }
   }, [currentStep, graphLoading, moneyGraphAccounts.length])
 
-  const completedSteps = useMemo(() => new Set(state.completedSteps), [state.completedSteps])
   const connectedInstitutions = [...state.linkedInstitutions].sort((a, b) => a.name.localeCompare(b.name))
 
   const handlePersonaContinue = () => {
     updatePersona(personaDraft)
+    if (!completedSteps.has("profile")) {
+      trackOnboardingStepCompleted({ stepId: "profile", progress: computeProgress(completedSteps.size + 1) })
+    }
     markStepComplete("profile")
     const next = getNextStep("profile")
     if (next) {
@@ -234,12 +279,24 @@ export default function OnboardingPage() {
   }
 
   const handleFinish = () => {
+    if (!completedSteps.has("personalize")) {
+      trackOnboardingStepCompleted({ stepId: "personalize", progress: computeProgress(completedSteps.size + 1) })
+    }
     markStepComplete("personalize")
     markStatus("completed")
-    router.push("/overview")
+    setCompleted(true)
+    setFeedbackOpen(true)
+    setPendingRedirect("/overview")
   }
 
   const handleSkip = () => {
+    setSkipped(true)
+    trackOnboardingDropoff({
+      stepId: currentStep,
+      progress: computeProgress(completedSteps.size),
+      reason: "user_skip",
+      status: "skipped",
+    })
     markStatus("skipped")
     router.push("/overview")
   }
@@ -493,12 +550,13 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
-      <header className="border-b border-border/60 bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => router.push("/overview")} aria-label="Exit onboarding">
-              <ChevronLeft className="h-5 w-5" />
+    <>
+      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
+        <header className="border-b border-border/60 bg-background/95 backdrop-blur">
+          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => router.push("/overview")} aria-label="Exit onboarding">
+                <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>
               <p className="text-sm font-semibold text-foreground">Guided onboarding</p>
@@ -588,7 +646,14 @@ export default function OnboardingPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+      <FeedbackPrompt
+        surface="onboarding"
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        context={state.persona?.goalsFocus ?? "First session"}
+      />
+    </>
   )
 }
 

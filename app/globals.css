@@ -186,7 +186,7 @@
   /* Added unified design system utilities */
   /* Standard card styling - use this for all card components */
   .card-standard {
-    @apply rounded-xl border border-border/30 bg-card shadow-sm;
+    @apply rounded-xl border border-border/30 bg-card shadow-sm px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-7;
     @apply transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)];
     @apply hover:shadow-md hover:border-border/60;
   }

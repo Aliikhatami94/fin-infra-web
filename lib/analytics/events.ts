@@ -1,12 +1,21 @@
 import type { InsightAction, InsightDefinition } from "@/lib/insights/definitions"
 import type { AutomationSuggestion, AutomationMetricDelta } from "@/types/automation"
 import { createRedactingLogger, sanitizeForLogging } from "@/lib/security/redaction"
+import {
+  FeatureFlagKey,
+  ExperimentVariant,
+  getAttributionSource,
+  getExperimentCohort,
+  getExperimentVariant,
+  shouldSampleEvent,
+} from "@/lib/analytics/experiments"
 
 const shouldLogAnalytics = process.env.NODE_ENV === "development"
 const analyticsLogger = createRedactingLogger("analytics")
 
 type BaseAnalyticsEvent = {
   timestamp: string
+  seed?: string
 }
 
 type InsightActionEvent = BaseAnalyticsEvent & {
@@ -33,6 +42,13 @@ type InsightResolvedEvent = BaseAnalyticsEvent & {
   insightId: string
   category: InsightDefinition["category"]
   topic: string
+}
+
+type InsightReadStateEvent = BaseAnalyticsEvent & {
+  type: "insight_read_state"
+  insightId: string
+  state: "highlighted" | "read"
+  surface: InsightDefinition["surfaces"]
 }
 
 type PreferenceToggleEvent = BaseAnalyticsEvent & {
@@ -88,10 +104,57 @@ type AutomationUndoEvent = BaseAnalyticsEvent & {
   category: AutomationSuggestion["category"]
 }
 
+type ExperimentExposureEvent = BaseAnalyticsEvent & {
+  type: "experiment_exposure"
+  flag: FeatureFlagKey
+  variant: ExperimentVariant
+  cohort: string
+}
+
+type OnboardingStepEvent = BaseAnalyticsEvent & {
+  type: "onboarding_step"
+  stepId: string
+  status: "viewed" | "completed"
+  progress: number
+}
+
+type OnboardingDropoffEvent = BaseAnalyticsEvent & {
+  type: "onboarding_dropoff"
+  stepId: string
+  status: "skipped" | "abandoned"
+  reason?: string
+  progress: number
+}
+
+type FeedbackEvent = BaseAnalyticsEvent & {
+  type: "feedback"
+  surface: string
+  phase: "requested" | "submitted" | "skipped"
+  rating?: number
+  comment?: string
+}
+
+type ShareExportEvent = BaseAnalyticsEvent & {
+  type: "share_export"
+  surface: string
+  format: "pdf" | "csv"
+  channel: string
+  attribution: string
+  items?: number
+}
+
+type CohortViewEvent = BaseAnalyticsEvent & {
+  type: "cohort_view"
+  metric: "activation" | "retention" | "automation"
+  cohort: string
+  segment?: string
+}
+
 type AnalyticsEvent =
   | InsightActionEvent
   | InsightPinEvent
   | InsightResolvedEvent
+  | InsightReadStateEvent
   | PreferenceToggleEvent
   | PreferenceSliderEvent
   | DocumentUploadEvent
@@ -99,9 +162,19 @@ type AnalyticsEvent =
   | TransactionFilterEvent
   | AutomationDecisionEvent
   | AutomationUndoEvent
+  | ExperimentExposureEvent
+  | OnboardingStepEvent
+  | OnboardingDropoffEvent
+  | FeedbackEvent
+  | ShareExportEvent
+  | CohortViewEvent
 
 const emit = (event: AnalyticsEvent) => {
   if (!shouldLogAnalytics) {
+    return
+  }
+
+  if (!shouldSampleEvent(event.seed)) {
     return
   }
 
@@ -124,6 +197,7 @@ export function trackInsightAction(payload: { insight: InsightDefinition; action
     surfaces: insight.surfaces,
     priority: insight.priority,
     timestamp: new Date().toISOString(),
+    seed: insight.id,
   })
 }
 
@@ -137,6 +211,7 @@ export function trackInsightPinChange(payload: { insight: InsightDefinition; pin
     category: insight.category,
     topic: insight.topic,
     timestamp: new Date().toISOString(),
+    seed: insight.id,
   })
 }
 
@@ -149,6 +224,18 @@ export function trackInsightResolution(payload: { insight: InsightDefinition }) 
     category: insight.category,
     topic: insight.topic,
     timestamp: new Date().toISOString(),
+    seed: insight.id,
+  })
+}
+
+export function trackInsightReadState(payload: { insight: InsightDefinition; state: "highlighted" | "read" }) {
+  emit({
+    type: "insight_read_state",
+    insightId: payload.insight.id,
+    state: payload.state,
+    surface: payload.insight.surfaces,
+    timestamp: new Date().toISOString(),
+    seed: payload.insight.id,
   })
 }
 
@@ -165,6 +252,7 @@ export function trackPreferenceToggle(payload: {
     section: payload.section,
     value: payload.value,
     timestamp: new Date().toISOString(),
+    seed: payload.preferenceId,
   })
 }
 
@@ -175,6 +263,7 @@ export function trackPreferenceSlider(payload: { sliderId: string; label?: strin
     label: payload.label,
     values: payload.values,
     timestamp: new Date().toISOString(),
+    seed: payload.sliderId,
   })
 }
 
@@ -185,6 +274,7 @@ export function trackDocumentUpload(payload: { fileName: string; status: "succes
     size: payload.size,
     status: payload.status,
     timestamp: new Date().toISOString(),
+    seed: payload.fileName,
   })
 }
 
@@ -199,6 +289,7 @@ export function trackTransactionBulkAction(payload: {
     count: payload.count,
     filterIds: payload.filterIds,
     timestamp: new Date().toISOString(),
+    seed: payload.action,
   })
 }
 
@@ -208,6 +299,7 @@ export function trackTransactionFilter(payload: { filterId: string; active: bool
     filterId: payload.filterId,
     active: payload.active,
     timestamp: new Date().toISOString(),
+    seed: payload.filterId,
   })
 }
 
@@ -234,6 +326,7 @@ export function trackAutomationDecision(payload: {
       unit: metric.unit,
     })),
     timestamp: new Date().toISOString(),
+    seed: suggestion.id,
   })
 }
 
@@ -246,5 +339,107 @@ export function trackAutomationUndo(payload: { suggestion: AutomationSuggestion 
     surface: suggestion.surface,
     category: suggestion.category,
     timestamp: new Date().toISOString(),
+    seed: suggestion.id,
+  })
+}
+
+export function trackExperimentExposure(flag: FeatureFlagKey) {
+  emit({
+    type: "experiment_exposure",
+    flag,
+    variant: getExperimentVariant(flag),
+    cohort: getExperimentCohort(),
+    timestamp: new Date().toISOString(),
+    seed: flag,
+  })
+}
+
+export function trackOnboardingStepViewed(payload: { stepId: string; progress: number }) {
+  emit({
+    type: "onboarding_step",
+    stepId: payload.stepId,
+    status: "viewed",
+    progress: payload.progress,
+    timestamp: new Date().toISOString(),
+    seed: payload.stepId,
+  })
+}
+
+export function trackOnboardingStepCompleted(payload: { stepId: string; progress: number }) {
+  emit({
+    type: "onboarding_step",
+    stepId: payload.stepId,
+    status: "completed",
+    progress: payload.progress,
+    timestamp: new Date().toISOString(),
+    seed: payload.stepId,
+  })
+}
+
+export function trackOnboardingDropoff(payload: {
+  stepId: string
+  progress: number
+  reason?: string
+  status: "skipped" | "abandoned"
+}) {
+  emit({
+    type: "onboarding_dropoff",
+    stepId: payload.stepId,
+    status: payload.status,
+    reason: payload.reason,
+    progress: payload.progress,
+    timestamp: new Date().toISOString(),
+    seed: payload.stepId,
+  })
+}
+
+export function trackFeedbackRequested(payload: { surface: string }) {
+  emit({
+    type: "feedback",
+    surface: payload.surface,
+    phase: "requested",
+    timestamp: new Date().toISOString(),
+    seed: payload.surface,
+  })
+}
+
+export function trackFeedbackSubmitted(payload: {
+  surface: string
+  rating?: number
+  comment?: string
+  skipped?: boolean
+}) {
+  emit({
+    type: "feedback",
+    surface: payload.surface,
+    phase: payload.skipped ? "skipped" : "submitted",
+    rating: payload.rating,
+    comment: payload.comment,
+    timestamp: new Date().toISOString(),
+    seed: payload.surface,
+  })
+}
+
+export function trackShareExport(payload: { surface: string; format: "pdf" | "csv"; channel: string; items?: number }) {
+  emit({
+    type: "share_export",
+    surface: payload.surface,
+    format: payload.format,
+    channel: payload.channel,
+    items: payload.items,
+    attribution: getAttributionSource(),
+    timestamp: new Date().toISOString(),
+    seed: `${payload.surface}:${payload.format}`,
+  })
+}
+
+export function trackCohortView(payload: { metric: "activation" | "retention" | "automation"; cohort: string; segment?: string }) {
+  emit({
+    type: "cohort_view",
+    metric: payload.metric,
+    cohort: payload.cohort,
+    segment: payload.segment,
+    timestamp: new Date().toISOString(),
+    seed: `${payload.metric}:${payload.cohort}`,
   })
 }

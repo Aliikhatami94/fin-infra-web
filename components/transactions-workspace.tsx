@@ -23,6 +23,7 @@ import { toast } from "@/components/ui/sonner"
 import { Download, Tag, FolderGit2, Filter, Keyboard } from "lucide-react"
 import { AssignmentMenu } from "@/components/assignment-menu"
 import { CollaborationDrawer } from "@/components/collaboration-drawer"
+import { MaskableValue } from "@/components/privacy-provider"
 
 interface TransactionQuickFilter {
   id: string
@@ -77,6 +78,7 @@ export function TransactionsWorkspace() {
   const [selectedAccount, setSelectedAccount] = useState<string>("All accounts")
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([])
+  const [liveMessage, setLiveMessage] = useState("Loading transactions")
 
   const accounts = useMemo(() => ["All accounts", ...new Set(transactions.map((tx) => tx.account))], [transactions])
 
@@ -138,6 +140,20 @@ export function TransactionsWorkspace() {
     return () => window.removeEventListener("keydown", handleKeydown)
   }, [clearSelection, selectAll])
 
+  useEffect(() => {
+    const parts = [`Showing ${filteredTransactions.length} transactions`]
+    if (selectedAccount !== "All accounts") {
+      parts.push(`for ${selectedAccount}`)
+    }
+    if (selectedFilters.length > 0) {
+      parts.push(`filtered by ${selectedFilters.join(", ")}`)
+    }
+    if (searchQuery) {
+      parts.push(`matching "${searchQuery}"`)
+    }
+    setLiveMessage(parts.join(" · "))
+  }, [filteredTransactions.length, searchQuery, selectedAccount, selectedFilters])
+
   const handleBulkAction = useCallback(
     (action: "categorize" | "tag" | "export") => {
       if (selectedTransactionIds.length === 0) return
@@ -160,7 +176,7 @@ export function TransactionsWorkspace() {
 
   return (
     <Card className="card-standard">
-      <CardHeader className="gap-4">
+      <CardHeader className="gap-4 md:gap-6 md:sticky md:top-0 md:z-10 md:border-b md:border-border/40 md:bg-card/95 md:backdrop-blur supports-[backdrop-filter]:md:bg-card/80">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <CardTitle className="text-lg font-semibold">Transactions workspace</CardTitle>
@@ -248,7 +264,87 @@ export function TransactionsWorkspace() {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="max-h-[540px]">
+        <div className="sr-only" aria-live="polite">
+          {liveMessage}
+        </div>
+
+        <div className="space-y-3 px-4 py-4 md:hidden">
+          {filteredTransactions.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center">No transactions match the current filters.</p>
+          ) : (
+            filteredTransactions.map((transaction) => {
+              const isSelected = selectedTransactionIds.includes(transaction.id)
+              const amountClass = transaction.amount >= 0 ? "text-emerald-600" : "text-foreground"
+              const formattedAmount = formatCurrency(transaction.amount)
+
+              return (
+                <div
+                  key={transaction.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => toggleTransaction(transaction.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault()
+                      toggleTransaction(transaction.id)
+                    }
+                  }}
+                  className={cn(
+                    "card-standard card-lift space-y-3 p-4 transition-colors",
+                    isSelected ? "ring-2 ring-primary" : "hover:border-border/70",
+                  )}
+                  aria-pressed={isSelected}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-foreground">{transaction.merchant}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(transaction.date).toLocaleDateString()} · {transaction.account}
+                      </p>
+                    </div>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleTransaction(transaction.id)}
+                      aria-label={`Select transaction from ${transaction.merchant}`}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="font-medium text-foreground">{transaction.category}</span>
+                      {transaction.isNew ? <Badge variant="secondary">New</Badge> : null}
+                      {transaction.isRecurring ? (
+                        <Badge variant="secondary" className="bg-blue-500/10 text-blue-700">
+                          Recurring
+                        </Badge>
+                      ) : null}
+                      {transaction.isFlagged ? (
+                        <Badge variant="secondary" className="bg-amber-500/15 text-amber-700">
+                          Flagged
+                        </Badge>
+                      ) : null}
+                      {transaction.isTransfer ? (
+                        <Badge variant="secondary" className="bg-purple-500/15 text-purple-700">
+                          Transfer
+                        </Badge>
+                      ) : null}
+                      {(transaction.tags ?? []).map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-[10px]">
+                          #{tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    <span className={cn("text-sm font-semibold tabular-nums", amountClass)}>
+                      <MaskableValue value={formattedAmount} srLabel={`Amount ${formattedAmount}`} />
+                    </span>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        <div className="hidden md:block max-h-[540px]">
           <Virtuoso<Transaction>
             data={filteredTransactions}
             overscan={200}
@@ -317,7 +413,7 @@ export function TransactionsWorkspace() {
       </CardContent>
 
       {selectedTransactionIds.length > 0 ? (
-        <div className="sticky bottom-4 z-20 mx-6 mb-4 rounded-xl border border-border/40 bg-background/95 p-4 shadow-lg">
+        <div className="sticky bottom-28 z-20 mx-6 mb-4 rounded-xl border border-border/40 bg-background/95 p-4 shadow-lg md:bottom-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm font-medium text-foreground">
               {selectedTransactionIds.length} selected
