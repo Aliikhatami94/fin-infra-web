@@ -2,6 +2,8 @@ import type { ComponentType } from "react"
 
 export type IconComponent = ComponentType<{ className?: string }>
 
+export type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+
 export type AccountStatus = "active" | "needs_update" | "disconnected"
 
 export type AccountType =
@@ -53,6 +55,14 @@ export interface Document {
   sizeValue: number
 }
 
+export interface DocumentInsight {
+  icon: IconComponent
+  text: string
+  color: string
+  bgColor: string
+  action: string
+}
+
 export type GoalStatus = "active" | "paused" | "completed"
 
 export interface Goal {
@@ -69,4 +79,39 @@ export interface Goal {
   status: GoalStatus
   color: string
   bgColor: string
+}
+
+export type TrendDirection = "up" | "down" | "flat"
+
+export interface KPI {
+  label: string
+  value: string
+  change: string
+  baselineValue: string
+  trend: TrendDirection
+  sparkline: number[]
+  icon: IconComponent
+  lastSynced: string
+  source: string
+  href: string
+}
+
+export type ActivityType = "transaction" | "sync" | "subscription" | (string & {})
+
+export interface ActivityAction {
+  label: string
+  variant: ButtonVariant
+}
+
+export interface RecentActivity {
+  id: number
+  type: ActivityType
+  category: string
+  description: string
+  amount: number | null
+  date: string
+  dateGroup: string
+  icon: IconComponent
+  color: string
+  actions: ActivityAction[]
 }
