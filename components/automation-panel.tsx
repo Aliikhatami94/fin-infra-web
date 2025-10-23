@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState } from "react"
+import { useConnectivity } from "@/components/connectivity-provider"
 
 const strategies = [
   {
@@ -84,6 +85,7 @@ export function AutomationPanel() {
     stopLoss: "",
     takeProfit: "",
   })
+  const { isOffline } = useConnectivity()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -107,11 +109,14 @@ export function AutomationPanel() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Trading Automation</h2>
-          <p className="text-muted-foreground">Manage your automated trading strategies</p>
+          <p className="text-muted-foreground">
+            Manage your automated trading strategies
+            {isOffline ? " · Offline mode — automations paused" : ""}
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={isOffline} aria-disabled={isOffline} data-requires-online>
               <Plus className="h-4 w-4 mr-2" />
               New Strategy
             </Button>

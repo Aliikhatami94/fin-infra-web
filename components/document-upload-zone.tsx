@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef, useState, type DragEventHandler } from "react"
+import { useCallback, useRef, useState, useId, type DragEventHandler, type KeyboardEvent } from "react"
 import { UploadCloud, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -24,6 +24,7 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [uploads, setUploads] = useState<UploadItem[]>([])
+  const descriptionId = useId()
 
   const beginUpload = useCallback(
     (files: FileList | null) => {
@@ -135,17 +136,29 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
     inputRef.current?.click()
   }, [])
 
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault()
+        handleBrowse()
+      }
+    },
+    [handleBrowse],
+  )
+
   return (
     <section
       id={id}
       aria-label="Upload documents"
-      className="rounded-2xl border border-dashed border-border/60 bg-muted/10"
-      tabIndex={-1}
+      aria-describedby={descriptionId}
+      className="rounded-3xl border border-dashed border-border/50 bg-muted/10 shadow-[var(--shadow-soft)] focus-within:border-primary/70"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
     >
       <div
         className={cn(
-          "relative flex flex-col items-center justify-center gap-3 px-6 py-10 text-center transition-colors",
-          isDragging ? "bg-primary/5 border-primary/60" : "bg-transparent",
+          "relative flex flex-col items-center justify-center gap-4 px-8 py-12 text-center transition-colors",
+          isDragging ? "bg-primary/5 border-primary/60 shadow-[var(--shadow-bold)]" : "bg-transparent",
         )}
         onDragEnter={handleDragOver}
         onDragOver={handleDragOver}
@@ -160,22 +173,33 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
           onChange={(event) => beginUpload(event.target.files)}
           aria-hidden
         />
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary shadow-[var(--shadow-soft)]">
           <UploadCloud className="h-8 w-8" aria-hidden="true" />
         </div>
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Drag files here or browse</p>
-          <p className="text-xs text-muted-foreground">
-            Supports PDF, JPG, and CSV up to 15MB. Drag multiple files to upload in bulk.
+        <div className="space-y-3 max-w-xl">
+          <p className="text-base font-semibold text-foreground">Drop statements, receipts, and disclosures</p>
+          <p id={descriptionId} className="text-sm text-muted-foreground">
+            Secure uploads stay encrypted end-to-end. We redact sensitive numbers automatically and only surface summaries in
+            insights.
           </p>
+          <ul className="mx-auto flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground/90">
+            <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">PDF (statements & reports)</li>
+            <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">JPG / PNG (receipts)</li>
+            <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">CSV ≤ 15MB (exports)</li>
+          </ul>
         </div>
-        <Button variant="secondary" size="sm" className="mt-2" onClick={handleBrowse} data-loading={isDragging}>
-          Browse files
+        <Button
+          size="lg"
+          className="mt-4 rounded-full px-7 text-sm font-semibold shadow-[var(--shadow-soft)] focus-visible:ring-offset-2"
+          onClick={handleBrowse}
+          data-loading={isDragging}
+        >
+          Browse secure vault
         </Button>
       </div>
 
       {uploads.length > 0 ? (
-        <div className="space-y-2 border-t border-border/40 bg-card/40 p-4" aria-live="polite">
+        <div className="space-y-2 border-t border-border/40 bg-card/60 p-4" aria-live="polite">
           {uploads.map((item) => (
             <div
               key={item.id}

@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useId, useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { motion, useInView } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import type { InsightAction, InsightDefinition, InsightAccent } from "@/lib/insi
 import {
   trackInsightAction,
   trackInsightPinChange,
+  trackInsightReadState,
   trackInsightResolution,
 } from "@/lib/analytics/events"
 import { usePrivacy } from "@/components/privacy-provider"
@@ -24,6 +25,8 @@ type InsightCardProps = {
   className?: string
   onAction?: (payload: { insight: InsightDefinition; action: InsightAction }) => void
   onPinChange?: (payload: { insight: InsightDefinition; pinned: boolean }) => void
+  unread?: boolean
+  onMarkRead?: () => void
 }
 
 const accentStyles: Record<InsightAccent, { icon: string; badge: string; background: string; progress: string }> = {
@@ -77,7 +80,15 @@ const accentStyles: Record<InsightAccent, { icon: string; badge: string; backgro
   },
 }
 
-export function InsightCard({ insight, index = 0, className, onAction, onPinChange }: InsightCardProps) {
+export function InsightCard({
+  insight,
+  index = 0,
+  className,
+  onAction,
+  onPinChange,
+  unread = false,
+  onMarkRead,
+}: InsightCardProps) {
   const styles = accentStyles[insight.accent]
   const [isPinned, setIsPinned] = useState(Boolean(insight.pinned))
   const [resolved, setResolved] = useState(false)
@@ -86,6 +97,10 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
   const headingId = useId()
   const descriptionId = useId()
   const explanationRef = useRef<HTMLParagraphElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const hasLoggedHighlight = useRef(false)
+  const hasLoggedRead = useRef(false)
+  const inView = useInView(cardRef, { once: true, amount: 0.6 })
   const { masked } = usePrivacy()
 
   useEffect(() => {
@@ -94,6 +109,27 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
     }
   }, [showExplanation])
 
+  useEffect(() => {
+    if (unread && !hasLoggedHighlight.current) {
+      trackInsightReadState({ insight, state: "highlighted" })
+      hasLoggedHighlight.current = true
+    }
+  }, [insight, unread])
+
+  const registerRead = useCallback(() => {
+    if (!hasLoggedRead.current) {
+      trackInsightReadState({ insight, state: "read" })
+      hasLoggedRead.current = true
+    }
+    onMarkRead?.()
+  }, [insight, onMarkRead])
+
+  useEffect(() => {
+    if (unread && inView) {
+      registerRead()
+    }
+  }, [inView, registerRead, unread])
+
   if (resolved) {
     return null
   }
@@ -101,16 +137,19 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
   const handlePinToggle = () => {
     const nextPinned = !isPinned
     setIsPinned(nextPinned)
+    registerRead()
     trackInsightPinChange({ insight, pinned: nextPinned })
     onPinChange?.({ insight, pinned: nextPinned })
   }
 
   const handleResolve = () => {
     setResolved(true)
+    registerRead()
     trackInsightResolution({ insight })
   }
 
   const handleAction = (action: InsightAction) => {
+    registerRead()
     trackInsightAction({ insight, action })
     onAction?.({ insight, action })
   }
@@ -120,15 +159,31 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
   }
 
   return (
-    <motion.div variants={createStaggeredCardVariants(index, 0)} initial="initial" animate="animate" className={cn("group", className)}>
+    <motion.div
+      ref={cardRef}
+      variants={createStaggeredCardVariants(index, 0)}
+      initial="initial"
+      animate="animate"
+      className={cn("group", className)}
+    >
       <Card
         aria-labelledby={headingId}
         aria-describedby={descriptionId}
         className={cn(
-          "relative h-full border border-border/40 bg-background/95 backdrop-blur-sm transition-shadow", "hover:shadow-lg", "focus-within:ring-2 focus-within:ring-primary/40",
+          "relative h-full border border-border/40 bg-background/95 backdrop-blur-sm transition-shadow",
+          "hover:shadow-lg",
+          "focus-within:ring-2 focus-within:ring-primary/40",
+          unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/50)] focus-within:ring-primary",
         )}
       >
         <CardContent className="space-y-4 p-6">
+          {unread && (
+            <div className="absolute left-6 top-6">
+              <Badge variant="default" className="text-xs uppercase tracking-wide">
+                New
+              </Badge>
+            </div>
+          )}
           <div className="absolute top-3 right-3 flex items-center gap-1">
             <TooltipProvider>
               <Tooltip>
@@ -266,7 +321,10 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
                 className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                 aria-expanded={showExplanation}
                 aria-controls={explanationId}
-                onClick={toggleExplanation}
+                onClick={() => {
+                  registerRead()
+                  toggleExplanation()
+                }}
               >
                 <HelpCircle className="h-4 w-4" aria-hidden="true" />
                 Why?

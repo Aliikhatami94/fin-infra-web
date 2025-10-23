@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { useTheme } from "next-themes"
+import Link from "next/link"
 import { SettingsGroup } from "@/components/settings-group"
 import { AnimatedSwitch } from "@/components/animated-switch"
 import { ThemeSelector } from "@/components/theme-selector"
@@ -24,10 +26,19 @@ import {
   Database,
   UserX,
   Trash2,
+  Type,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
+type FontScale = "compact" | "default" | "comfort" | "focus"
+const APPEARANCE_STORAGE_KEY = "fin-infra-appearance"
+const appearanceDefaults: { fontScale: FontScale; dyslexia: boolean } = {
+  fontScale: "default",
+  dyslexia: false,
+}
+
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme()
   const initialState = {
     emailNotifications: true,
     pushNotifications: true,
@@ -47,6 +58,9 @@ export default function SettingsPage() {
   const [analyticsConsent, setAnalyticsConsent] = useState(initialState.analyticsConsent)
   const [marketingConsent, setMarketingConsent] = useState(initialState.marketingConsent)
   const [dataSharing, setDataSharing] = useState(initialState.dataSharing)
+  const [fontScale, setFontScale] = useState<FontScale>(appearanceDefaults.fontScale)
+  const [dyslexiaMode, setDyslexiaMode] = useState<boolean>(appearanceDefaults.dyslexia)
+  const [appearanceLoaded, setAppearanceLoaded] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
   const handleToggleChange = (
@@ -62,6 +76,52 @@ export default function SettingsPage() {
   }
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+    try {
+      const stored = window.localStorage.getItem(APPEARANCE_STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored) as Partial<{ fontScale: FontScale; dyslexia: boolean }>
+        if (parsed.fontScale && ["compact", "default", "comfort", "focus"].includes(parsed.fontScale)) {
+          setFontScale(parsed.fontScale)
+        }
+        if (typeof parsed.dyslexia === "boolean") {
+          setDyslexiaMode(parsed.dyslexia)
+        }
+      }
+    } catch {
+      // noop – fall back to defaults
+    } finally {
+      setAppearanceLoaded(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof document === "undefined" || !appearanceLoaded) {
+      return
+    }
+    const root = document.documentElement
+    if (fontScale === "default") {
+      root.removeAttribute("data-font-scale")
+    } else {
+      root.setAttribute("data-font-scale", fontScale)
+    }
+    if (dyslexiaMode) {
+      root.setAttribute("data-dyslexia", "true")
+    } else {
+      root.removeAttribute("data-dyslexia")
+    }
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        APPEARANCE_STORAGE_KEY,
+        JSON.stringify({ fontScale, dyslexia: dyslexiaMode }),
+      )
+    }
+  }, [appearanceLoaded, fontScale, dyslexiaMode])
+
+  useEffect(() => {
     const changed =
       emailNotifications !== initialState.emailNotifications ||
       pushNotifications !== initialState.pushNotifications ||
@@ -70,7 +130,10 @@ export default function SettingsPage() {
       twoFactor !== initialState.twoFactor ||
       analyticsConsent !== initialState.analyticsConsent ||
       marketingConsent !== initialState.marketingConsent ||
-      dataSharing !== initialState.dataSharing
+      dataSharing !== initialState.dataSharing ||
+      fontScale !== appearanceDefaults.fontScale ||
+      dyslexiaMode !== appearanceDefaults.dyslexia ||
+      (theme ?? "system") !== "system"
     setHasChanges(changed)
     // We intentionally compare to initialState (component-constant) here; adding it to deps is unnecessary
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,6 +146,9 @@ export default function SettingsPage() {
     analyticsConsent,
     marketingConsent,
     dataSharing,
+    fontScale,
+    dyslexiaMode,
+    theme,
   ])
 
   const handleReset = () => {
@@ -94,12 +160,86 @@ export default function SettingsPage() {
     setAnalyticsConsent(initialState.analyticsConsent)
     setMarketingConsent(initialState.marketingConsent)
     setDataSharing(initialState.dataSharing)
+    setFontScale(appearanceDefaults.fontScale)
+    setDyslexiaMode(appearanceDefaults.dyslexia)
+    setTheme("system")
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(APPEARANCE_STORAGE_KEY)
+    }
   }
 
   const connectedAccounts = [
     { name: "Coinbase", status: "connected", lastSync: "2 hours ago" },
     { name: "Binance", status: "connected", lastSync: "5 hours ago" },
     { name: "Plaid (Bank Link)", status: "error", lastSync: "Failed" },
+  ]
+
+  const notificationPreferences = useMemo(
+    () => [
+      {
+        id: "email-notifications",
+        label: "Email notifications",
+        description: "Trade receipts, balance alerts, and weekly summaries.",
+        value: emailNotifications,
+        setter: setEmailNotifications,
+      },
+      {
+        id: "push-notifications",
+        label: "Push notifications",
+        description: "Instant alerts on mobile and desktop apps.",
+        value: pushNotifications,
+        setter: setPushNotifications,
+      },
+      {
+        id: "price-alerts",
+        label: "Price alerts",
+        description: "Notifies when equities cross your guardrails.",
+        value: priceAlerts,
+        setter: setPriceAlerts,
+      },
+      {
+        id: "trade-confirmations",
+        label: "Trade confirmations",
+        description: "Require one-tap approval before orders execute.",
+        value: tradeConfirmations,
+        setter: setTradeConfirmations,
+      },
+    ],
+    [emailNotifications, pushNotifications, priceAlerts, tradeConfirmations],
+  )
+
+  const privacyPreferences = useMemo(
+    () => [
+      {
+        id: "analytics-consent",
+        label: "Analytics & performance",
+        description: "Share anonymized usage data to improve reliability.",
+        value: analyticsConsent,
+        setter: setAnalyticsConsent,
+      },
+      {
+        id: "marketing-consent",
+        label: "Product updates",
+        description: "Receive curated product news and early feature access.",
+        value: marketingConsent,
+        setter: setMarketingConsent,
+      },
+      {
+        id: "data-sharing",
+        label: "Partner data sharing",
+        description: "Allow trusted institutions to pull aggregated insights.",
+        value: dataSharing,
+        setter: setDataSharing,
+      },
+    ],
+    [analyticsConsent, marketingConsent, dataSharing],
+  )
+
+  const fontScaleOptions: { value: FontScale; label: string; helper: string }[] = [
+    { value: "compact", label: "Compact", helper: "Tight tables" },
+    { value: "default", label: "Balanced", helper: "System default" },
+    { value: "comfort", label: "Comfort", helper: "Reading focus" },
+    { value: "focus", label: "Focus", helper: "Maximum legibility" },
   ]
 
   return (
@@ -127,81 +267,26 @@ export default function SettingsPage() {
           description="Configure how you receive updates"
           icon={<Bell className="h-5 w-5" />}
         >
-          <div className="flex items-center justify-between py-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="email-notifications" className="font-medium">
-                Email Notifications
-              </Label>
-              <p className="text-sm text-muted-foreground">Receive email updates about your trades</p>
+          {notificationPreferences.map((preference) => (
+            <div key={preference.id} className="flex items-start justify-between gap-6 py-4">
+              <div className="space-y-1">
+                <Label htmlFor={preference.id} className="font-medium">
+                  {preference.label}
+                </Label>
+                <p className="text-xs text-muted-foreground max-w-sm">{preference.description}</p>
+              </div>
+              <AnimatedSwitch
+                id={preference.id}
+                checked={preference.value}
+                onCheckedChange={handleToggleChange(
+                  preference.id,
+                  preference.label,
+                  "notifications",
+                  preference.setter,
+                )}
+              />
             </div>
-            <AnimatedSwitch
-              id="email-notifications"
-              checked={emailNotifications}
-              onCheckedChange={handleToggleChange(
-                "email-notifications",
-                "Email Notifications",
-                "notifications",
-                setEmailNotifications,
-              )}
-            />
-          </div>
-
-          <div className="flex items-center justify-between py-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="push-notifications" className="font-medium">
-                Push Notifications
-              </Label>
-              <p className="text-sm text-muted-foreground">Get push notifications on your devices</p>
-            </div>
-            <AnimatedSwitch
-              id="push-notifications"
-              checked={pushNotifications}
-              onCheckedChange={handleToggleChange(
-                "push-notifications",
-                "Push Notifications",
-                "notifications",
-                setPushNotifications,
-              )}
-            />
-          </div>
-
-          <div className="flex items-center justify-between py-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="price-alerts" className="font-medium">
-                Price Alerts
-              </Label>
-              <p className="text-sm text-muted-foreground">Notify when stocks reach target prices</p>
-            </div>
-            <AnimatedSwitch
-              id="price-alerts"
-              checked={priceAlerts}
-              onCheckedChange={handleToggleChange(
-                "price-alerts",
-                "Price Alerts",
-                "notifications",
-                setPriceAlerts,
-              )}
-            />
-          </div>
-
-          <div className="flex items-center justify-between py-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="trade-confirmations" className="font-medium">
-                Trade Confirmations
-              </Label>
-              <p className="text-sm text-muted-foreground">Confirm all trades before execution</p>
-            </div>
-            <AnimatedSwitch
-              id="trade-confirmations"
-              checked={tradeConfirmations}
-              onCheckedChange={handleToggleChange(
-                "trade-confirmations",
-                "Trade Confirmations",
-                "notifications",
-                setTradeConfirmations,
-              )}
-            />
-          </div>
+          ))}
         </SettingsGroup>
 
         <SettingsGroup
@@ -210,25 +295,65 @@ export default function SettingsPage() {
           icon={<Palette className="h-5 w-5" />}
         >
           <div className="space-y-6 py-4">
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Label className="font-medium">Theme</Label>
               <ThemeSelector />
             </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="chart-style" className="font-medium">
-                Chart Style
+            <div className="space-y-2">
+              <Label className="font-medium flex items-center gap-2">
+                Font scale
+                <Badge variant="outline" className="text-[0.65rem]">
+                  Applies instantly
+                </Badge>
               </Label>
-              <Select defaultValue="candlestick">
-                <SelectTrigger id="chart-style">
-                  <SelectValue placeholder="Select chart style" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="line">Line</SelectItem>
-                  <SelectItem value="candlestick">Candlestick</SelectItem>
-                  <SelectItem value="area">Area</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {fontScaleOptions.map((option) => (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    variant={fontScale === option.value ? "default" : "outline"}
+                    className="h-full justify-between gap-1 rounded-xl border border-border/40 bg-background/90 px-4 py-3 text-left"
+                    onClick={() => {
+                      setFontScale(option.value)
+                      trackPreferenceToggle({
+                        preferenceId: `font-scale-${option.value}`,
+                        label: `Font scale ${option.label}`,
+                        section: "appearance",
+                        value: option.value !== appearanceDefaults.fontScale,
+                      })
+                    }}
+                    aria-pressed={fontScale === option.value}
+                  >
+                    <span className="text-sm font-semibold">{option.label}</span>
+                    <span className="text-[0.7rem] text-muted-foreground">{option.helper}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-start justify-between gap-6 rounded-xl border border-border/40 bg-muted/10 px-4 py-4">
+              <div className="space-y-1">
+                <Label htmlFor="dyslexia-mode" className="font-medium flex items-center gap-2">
+                  Dyslexia-friendly mode <Type className="h-3.5 w-3.5" />
+                </Label>
+                <p className="text-xs text-muted-foreground max-w-sm">
+                  Switches to Atkinson Hyperlegible and slightly increases letter spacing for easier scanning.
+                </p>
+              </div>
+              <AnimatedSwitch
+                id="dyslexia-mode"
+                checked={dyslexiaMode}
+                onCheckedChange={(value) => {
+                  setDyslexiaMode(value)
+                  trackPreferenceToggle({
+                    preferenceId: "dyslexia-mode",
+                    label: "Dyslexia-friendly mode",
+                    section: "appearance",
+                    value,
+                  })
+                }}
+              />
             </div>
           </div>
         </SettingsGroup>
@@ -254,13 +379,19 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-3 py-4">
-            <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
-              <Shield className="h-4 w-4" />
-              Change Password
+            <Button asChild variant="outline" className="w-full justify-start gap-2 bg-transparent">
+              <Link href="/settings/security" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Visit Security Center
+              </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
               <Smartphone className="h-4 w-4" />
               Manage Devices
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+              <Lock className="h-4 w-4" />
+              Change Password
             </Button>
           </div>
         </SettingsGroup>
@@ -313,62 +444,26 @@ export default function SettingsPage() {
           description="Manage your data sharing preferences and privacy settings"
           icon={<Eye className="h-5 w-5" />}
         >
-          <div className="flex items-center justify-between py-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="analytics-consent" className="font-medium">
-                Analytics & Performance
-              </Label>
-              <p className="text-sm text-muted-foreground">Help us improve by sharing anonymous usage data</p>
+          {privacyPreferences.map((preference) => (
+            <div key={preference.id} className="flex items-start justify-between gap-6 py-4">
+              <div className="space-y-1">
+                <Label htmlFor={preference.id} className="font-medium capitalize">
+                  {preference.label}
+                </Label>
+                <p className="text-xs text-muted-foreground max-w-sm">{preference.description}</p>
+              </div>
+              <AnimatedSwitch
+                id={preference.id}
+                checked={preference.value}
+                onCheckedChange={handleToggleChange(
+                  preference.id,
+                  preference.label,
+                  "privacy",
+                  preference.setter,
+                )}
+              />
             </div>
-            <AnimatedSwitch
-              id="analytics-consent"
-              checked={analyticsConsent}
-              onCheckedChange={handleToggleChange(
-                "analytics-consent",
-                "Analytics & Performance",
-                "privacy",
-                setAnalyticsConsent,
-              )}
-            />
-          </div>
-
-          <div className="flex items-center justify-between py-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="marketing-consent" className="font-medium">
-                Marketing Communications
-              </Label>
-              <p className="text-sm text-muted-foreground">Receive product updates and offers</p>
-            </div>
-            <AnimatedSwitch
-              id="marketing-consent"
-              checked={marketingConsent}
-              onCheckedChange={handleToggleChange(
-                "marketing-consent",
-                "Marketing Communications",
-                "privacy",
-                setMarketingConsent,
-              )}
-            />
-          </div>
-
-          <div className="flex items-center justify-between py-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="data-sharing" className="font-medium">
-                Data Sharing with Partners
-              </Label>
-              <p className="text-sm text-muted-foreground">Share aggregated data with financial service providers</p>
-            </div>
-            <AnimatedSwitch
-              id="data-sharing"
-              checked={dataSharing}
-              onCheckedChange={handleToggleChange(
-                "data-sharing",
-                "Data Sharing with Partners",
-                "privacy",
-                setDataSharing,
-              )}
-            />
-          </div>
+          ))}
 
           <div className="space-y-3 py-4">
             <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">

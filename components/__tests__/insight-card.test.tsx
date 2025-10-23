@@ -69,6 +69,7 @@ const render = (ui: ReactElement) => {
   }
 }
 
+
 describe("InsightCard", () => {
   it("renders insight content, metrics, and progress", () => {
   const { container, unmount } = render(<InsightCard insight={createInsight()} />)

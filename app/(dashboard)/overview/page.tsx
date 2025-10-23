@@ -4,7 +4,6 @@ import { useState } from "react"
 import dynamic from "next/dynamic"
 // Heavy widgets are dynamically loaded client-side with skeletons
 import { Button } from "@/components/ui/button"
-import { Bot } from "lucide-react"
 import { KPICards } from "@/components/kpi-cards"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { AllocationChartProps } from "@/components/allocation-chart"
@@ -17,6 +16,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { AccountabilityChecklist } from "@/components/accountability-checklist"
 
 const AllocationChart = dynamic<AllocationChartProps>(
   () => import("@/components/allocation-chart").then((mod) => mod.AllocationChart),
@@ -72,16 +72,9 @@ const AIInsights = dynamic(
   },
 )
 
-const AIChatSidebar = dynamic(
-  () => import("@/components/ai-chat-sidebar").then((mod) => mod.AIChatSidebar),
-  {
-    ssr: false,
-    loading: () => null,
-  },
-)
+// AI chat is now global in the dashboard layout
 
 export default function OverviewPage() {
-  const [isChatOpen, setIsChatOpen] = useState(false)
   const [allocationFilter, setAllocationFilter] = useState<string | null>(null)
   const { state: onboardingState, hydrated } = useOnboardingState()
 
@@ -134,6 +127,10 @@ export default function OverviewPage() {
       </section>
 
       <section>
+        <AccountabilityChecklist surface="overview" />
+      </section>
+
+      <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">Portfolio Health</h2>
         <div className="grid gap-6 lg:grid-cols-2">
           <AllocationChart onFilterChange={setAllocationFilter} activeFilter={allocationFilter} />
@@ -168,15 +165,7 @@ export default function OverviewPage() {
         </ErrorBoundary>
       </section>
 
-      <Button
-        onClick={() => setIsChatOpen(!isChatOpen)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
-        size="icon"
-      >
-        <Bot className="h-6 w-6" />
-      </Button>
 
-      <AIChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   )
 }

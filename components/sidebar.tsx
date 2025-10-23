@@ -3,41 +3,13 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import {
-  LayoutDashboard,
-  Building2,
-  Wallet,
-  Bitcoin,
-  TrendingUp,
-  ListTree,
-  Target,
-  Receipt,
-  Lightbulb,
-  FileText,
-  Settings,
-  ChevronLeft,
-  X,
-} from "lucide-react"
+import { ChevronLeft, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { isActiveRoute } from "@/lib/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-const navigation = [
-  { name: "Overview", href: "/overview", icon: LayoutDashboard },
-  { name: "Accounts", href: "/accounts", icon: Building2, badge: 2 },
-  { name: "Portfolio", href: "/portfolio", icon: Wallet },
-  { name: "Crypto", href: "/crypto", icon: Bitcoin },
-  { name: "Cash Flow", href: "/cash-flow", icon: TrendingUp },
-  { name: "Transactions", href: "/transactions", icon: ListTree },
-  { name: "Budget", href: "/budget", icon: Receipt },
-  { name: "Goals", href: "/goals", icon: Target },
-  { name: "Taxes", href: "/taxes", icon: FileText },
-  { name: "Insights", href: "/insights", icon: Lightbulb },
-  { name: "Documents", href: "/documents", icon: FileText },
-  { name: "Settings", href: "/settings", icon: Settings },
-]
+import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -113,7 +85,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="space-y-1 px-2">
-              {navigation.map((item) => {
+              {DASHBOARD_NAVIGATION.map((item) => {
                 const active = isActiveRoute(pathname, item.href)
                 return (
                   <Link

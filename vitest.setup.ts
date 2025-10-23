@@ -18,5 +18,17 @@ if (!(globalThis as any).ResizeObserver) {
   ;(globalThis as any).ResizeObserver = ResizeObserverPolyfill
 }
 
+if (!(globalThis as any).IntersectionObserver) {
+  class IntersectionObserverPolyfill {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return []
+    }
+  }
+  ;(globalThis as any).IntersectionObserver = IntersectionObserverPolyfill
+}
+
 // Stub canvas getContext to avoid jsdom not-implemented errors in components that touch canvas
 ;(HTMLCanvasElement.prototype as any).getContext = () => ({})

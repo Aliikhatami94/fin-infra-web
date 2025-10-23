@@ -6,12 +6,23 @@ import { Sparkles } from "lucide-react"
 import { InsightCard } from "@/components/insights/InsightCard"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { getInsights } from "@/lib/insights/service"
+import type { InsightAction } from "@/lib/insights/definitions"
 
-export function TaxesAIInsights() {
+interface TaxesAIInsightsProps {
+  onLaunchCopilot?: () => void
+}
+
+export function TaxesAIInsights({ onLaunchCopilot }: TaxesAIInsightsProps) {
   const insights = getInsights({ surface: "taxes" })
 
   if (insights.length === 0) {
     return null
+  }
+
+  const handleAction = ({ action }: { action: InsightAction }) => {
+    if (action.id === "automation:tax-harvest") {
+      onLaunchCopilot?.()
+    }
   }
 
   return (
@@ -30,7 +41,7 @@ export function TaxesAIInsights() {
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         {insights.map((insight, index) => (
-          <InsightCard key={insight.id} insight={insight} index={index} />
+          <InsightCard key={insight.id} insight={insight} index={index} onAction={handleAction} />
         ))}
       </div>
     </motion.section>

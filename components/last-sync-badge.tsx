@@ -1,7 +1,8 @@
 "use client"
 
-import { Clock } from "lucide-react"
+import { Clock, WifiOff } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useConnectivity } from "@/components/connectivity-provider"
 
 interface LastSyncBadgeProps {
   timestamp: string
@@ -10,16 +11,19 @@ interface LastSyncBadgeProps {
 }
 
 export function LastSyncBadge({ timestamp, source, className }: LastSyncBadgeProps) {
+  const { isOffline } = useConnectivity()
+
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-[10px] text-muted-foreground",
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] text-muted-foreground",
+        isOffline ? "bg-amber-500/15 text-amber-900 dark:text-amber-100" : "bg-muted/50",
         className,
       )}
     >
-      <Clock className="h-2.5 w-2.5" />
+      {isOffline ? <WifiOff className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
       <span>
-        {timestamp}
+        {isOffline ? `Stale · ${timestamp}` : timestamp}
         {source && <span className="text-muted-foreground/70"> via {source}</span>}
       </span>
     </div>

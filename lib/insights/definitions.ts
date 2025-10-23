@@ -179,6 +179,7 @@ export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
       { id: "deadline", label: "Deadline", value: "Dec 31" },
     ],
     actions: [
+      { id: "automation:tax-harvest", label: "Harvest with Copilot", variant: "default" },
       { id: "plan-harvest", label: "Plan Harvest", href: "/taxes", variant: "default" },
     ],
     explanation:
@@ -314,6 +315,7 @@ export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
       { id: "opportunity", label: "Opportunity", value: "+$200/mo" },
     ],
     actions: [
+      { id: "automation:budget-sweep", label: "Automate sweep", variant: "default" },
       { id: "reallocate", label: "Reallocate", href: "/budget", variant: "secondary" },
     ],
     explanation:
@@ -356,7 +358,14 @@ export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
       { id: "difference", label: "Overweight", value: "+12%", delta: "+12%", trend: "up" },
     ],
     actions: [
+      { id: "automation:portfolio-rebalance", label: "Rebalance now", variant: "default" },
       { id: "rebalance-tech", label: "Rebalance", href: "/portfolio", variant: "secondary" },
+      {
+        id: "automation:portfolio-compare",
+        label: "Compare scenarios",
+        href: "#playbook-portfolio-rebalance",
+        variant: "outline",
+      },
     ],
     explanation:
       "Technology has grown 12 percentage points over target in the last two quarters. Shifting $9,800 into International Equity and Fixed Income brings the allocation back within tolerance bands.",
@@ -440,6 +449,7 @@ export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
       { id: "alts-weight", label: "Alts", value: "26%" },
     ],
     actions: [
+      { id: "automation:crypto-diversify", label: "Diversify now", variant: "default" },
       { id: "rebalance-crypto", label: "Rebalance", href: "/crypto", variant: "outline" },
     ],
     explanation:
