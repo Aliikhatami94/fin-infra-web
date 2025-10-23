@@ -1,6 +1,8 @@
 import type { InsightAction, InsightDefinition } from "@/lib/insights/definitions"
+import { createRedactingLogger, sanitizeForLogging } from "@/lib/security/redaction"
 
 const shouldLogAnalytics = process.env.NODE_ENV === "development"
+const analyticsLogger = createRedactingLogger("analytics")
 
 type BaseAnalyticsEvent = {
   timestamp: string
@@ -47,20 +49,45 @@ type PreferenceSliderEvent = BaseAnalyticsEvent & {
   values: number[]
 }
 
+type DocumentUploadEvent = BaseAnalyticsEvent & {
+  type: "document_upload"
+  fileName: string
+  size: number
+  status: "success" | "error"
+}
+
+type TransactionBulkActionEvent = BaseAnalyticsEvent & {
+  type: "transaction_bulk_action"
+  action: "categorize" | "tag" | "export"
+  count: number
+  filterIds: string[]
+}
+
+type TransactionFilterEvent = BaseAnalyticsEvent & {
+  type: "transaction_filter"
+  filterId: string
+  active: boolean
+}
+
 type AnalyticsEvent =
   | InsightActionEvent
   | InsightPinEvent
   | InsightResolvedEvent
   | PreferenceToggleEvent
   | PreferenceSliderEvent
+  | DocumentUploadEvent
+  | TransactionBulkActionEvent
+  | TransactionFilterEvent
 
 const emit = (event: AnalyticsEvent) => {
   if (!shouldLogAnalytics) {
     return
   }
 
+  const sanitizedEvent = sanitizeForLogging(event)
+
   // eslint-disable-next-line no-console -- dev-only analytics instrumentation
-  console.info(`[analytics] ${event.type}`, event)
+  analyticsLogger.info(event.type, sanitizedEvent)
 }
 
 export function trackInsightAction(payload: { insight: InsightDefinition; action: InsightAction }) {
@@ -126,6 +153,39 @@ export function trackPreferenceSlider(payload: { sliderId: string; label?: strin
     sliderId: payload.sliderId,
     label: payload.label,
     values: payload.values,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+export function trackDocumentUpload(payload: { fileName: string; status: "success" | "error"; size: number }) {
+  emit({
+    type: "document_upload",
+    fileName: payload.fileName,
+    size: payload.size,
+    status: payload.status,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+export function trackTransactionBulkAction(payload: {
+  action: "categorize" | "tag" | "export"
+  count: number
+  filterIds: string[]
+}) {
+  emit({
+    type: "transaction_bulk_action",
+    action: payload.action,
+    count: payload.count,
+    filterIds: payload.filterIds,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+export function trackTransactionFilter(payload: { filterId: string; active: boolean }) {
+  emit({
+    type: "transaction_filter",
+    filterId: payload.filterId,
+    active: payload.active,
     timestamp: new Date().toISOString(),
   })
 }

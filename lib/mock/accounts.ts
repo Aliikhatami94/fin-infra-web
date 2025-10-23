@@ -40,11 +40,58 @@ export const typeColors: Record<string, string> = {
 }
 
 export const mockTransactions: Transaction[] = [
-  { id: 1, date: "2024-01-20", merchant: "Amazon", amount: -89.99, category: "Shopping", icon: ShoppingCart },
-  { id: 2, date: "2024-01-19", merchant: "Starbucks", amount: -5.75, category: "Food & Drink", icon: Coffee },
-  { id: 3, date: "2024-01-18", merchant: "Salary Deposit", amount: 3500.0, category: "Income", icon: ArrowDownRight },
-  { id: 4, date: "2024-01-17", merchant: "Electric Bill", amount: -125.43, category: "Utilities", icon: Zap },
-  { id: 5, date: "2024-01-16", merchant: "Target", amount: -42.18, category: "Shopping", icon: ShoppingCart },
+  {
+    id: 1,
+    date: "2024-01-20",
+    merchant: "Amazon",
+    amount: -89.99,
+    category: "Shopping",
+    icon: ShoppingCart,
+    account: "Sapphire Reserve",
+    isNew: true,
+    tags: ["Household"],
+  },
+  {
+    id: 2,
+    date: "2024-01-19",
+    merchant: "Starbucks",
+    amount: -5.75,
+    category: "Food & Drink",
+    icon: Coffee,
+    account: "Chase Total Checking",
+    isRecurring: true,
+    tags: ["Coffee"],
+  },
+  {
+    id: 3,
+    date: "2024-01-18",
+    merchant: "Salary Deposit",
+    amount: 3500.0,
+    category: "Income",
+    icon: ArrowDownRight,
+    account: "Chase Total Checking",
+    tags: ["Payroll"],
+  },
+  {
+    id: 4,
+    date: "2024-01-17",
+    merchant: "Electric Bill",
+    amount: -125.43,
+    category: "Utilities",
+    icon: Zap,
+    account: "Chase Total Checking",
+    isRecurring: true,
+  },
+  {
+    id: 5,
+    date: "2024-01-16",
+    merchant: "Target",
+    amount: -42.18,
+    category: "Shopping",
+    icon: ShoppingCart,
+    account: "Sapphire Reserve",
+    tags: ["Family"],
+  },
 ]
 
 export const accountsData: Account[] = [

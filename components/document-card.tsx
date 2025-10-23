@@ -15,6 +15,7 @@ interface DocumentCardProps {
   name: string
   institution: string
   type: string
+  account: string
   date: string
   size: string
   index: number
@@ -41,6 +42,7 @@ export function DocumentCard({
   name,
   institution,
   type,
+  account,
   date,
   size,
   index,
@@ -57,11 +59,12 @@ export function DocumentCard({
       className={`group relative p-6 border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300 card-standard card-lift ${
         isSelected ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-border/60"
       }`}
+      data-document-id={id}
     >
       <div className="absolute top-4 left-4 z-10">
         <Checkbox
           checked={isSelected}
-          onCheckedChange={onSelectionChange}
+          onCheckedChange={(checked) => onSelectionChange?.(checked === true)}
           className="bg-background border-2"
           onClick={(e) => e.stopPropagation()}
         />
@@ -74,6 +77,7 @@ export function DocumentCard({
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-foreground line-clamp-2 mb-1">{name}</h3>
             <p className="text-xs text-muted-foreground">{institution}</p>
+            <p className="text-[11px] text-muted-foreground/80">{account}</p>
           </div>
         </div>
         <DropdownMenu>

@@ -17,6 +17,42 @@ try {
   }
 }
 
+const requiredEnvVars = [
+  "NEXT_PUBLIC_AI_INSIGHTS_ROLLOUT",
+  "NEXT_PUBLIC_ANALYTICS_SAMPLING_RATE",
+  "NEXT_PUBLIC_STORAGE_ENCRYPTION_KEY",
+  "PLAID_SANDBOX_CLIENT_ID",
+  "PLAID_SANDBOX_SECRET",
+  "ENCRYPTION_SALT",
+  "SESSION_ENCRYPTION_KEY",
+]
+
+const missingEnv = requiredEnvVars.filter((key) => !process.env[key] || process.env[key].trim() === "")
+
+if (missingEnv.length > 0) {
+  const isProd = process.env.NODE_ENV === "production"
+  if (isProd) {
+    throw new Error(`Missing required environment variables: ${missingEnv.join(", ")}`)
+  } else {
+    // In development, provide safe fallbacks and warn instead of crashing
+    console.warn(
+      `Warning: Missing environment variables in development: ${missingEnv.join(", ")}. Using development-safe defaults.`,
+    )
+    const devDefaults = {
+      NEXT_PUBLIC_AI_INSIGHTS_ROLLOUT: "0",
+      NEXT_PUBLIC_ANALYTICS_SAMPLING_RATE: "0",
+      NEXT_PUBLIC_STORAGE_ENCRYPTION_KEY: "dev-storage-key",
+      PLAID_SANDBOX_CLIENT_ID: "dev-plaid-client-id",
+      PLAID_SANDBOX_SECRET: "dev-plaid-secret",
+      ENCRYPTION_SALT: "dev-salt",
+      SESSION_ENCRYPTION_KEY: "dev-session-key",
+    }
+    for (const key of missingEnv) {
+      process.env[key] = devDefaults[key] ?? process.env[key]
+    }
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {

@@ -44,6 +44,10 @@ export interface InsightMetric {
   trend?: "up" | "down" | "neutral"
   highlight?: boolean
   srLabel?: string
+  sensitive?: boolean
+  fallbackValue?: string
+  targetFallbackValue?: string
+  tooltip?: string
 }
 
 export interface InsightAction {
@@ -58,6 +62,7 @@ export interface InsightDefinition {
   id: string
   title: string
   body: string
+  redactedBody?: string
   category: InsightCategory
   topic: string
   surfaces: InsightSurface[]
@@ -73,6 +78,7 @@ export interface InsightDefinition {
   pinned?: boolean
   priority?: "low" | "medium" | "high"
   updatedAt?: string
+  sensitive?: boolean
 }
 
 export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
@@ -80,15 +86,36 @@ export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
     id: "overview-savings-progress",
     title: "Great savings progress",
     body: "You saved $420 this month by canceling unused subscriptions.",
+    redactedBody: "You boosted monthly savings after canceling unused subscriptions.",
     category: "spending",
     topic: "Savings Rate",
     surfaces: ["overview", "cash-flow", "insights"],
     icon: TrendingUp,
     accent: "emerald",
+    sensitive: true,
     metrics: [
-      { id: "savings-month", label: "This Month", value: "$420", highlight: true },
-      { id: "savings-average", label: "Average", value: "$280" },
-      { id: "savings-goal", label: "Goal", value: "$500" },
+      {
+        id: "savings-month",
+        label: "This Month",
+        value: "$420",
+        fallbackValue: "$400-$450",
+        highlight: true,
+        sensitive: true,
+        tooltip: "Exact savings masked until privacy mode is disabled.",
+      },
+      {
+        id: "savings-average",
+        label: "Average",
+        value: "$280",
+        fallbackValue: "$250-$300",
+        sensitive: true,
+      },
+      {
+        id: "savings-goal",
+        label: "Goal",
+        value: "$500",
+        fallbackValue: "$500",
+      },
     ],
     actions: [
       { id: "view-cashflow", label: "View Cash Flow", href: "/cash-flow", variant: "outline" },
@@ -126,14 +153,29 @@ export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
     id: "overview-tax-optimization",
     title: "Tax optimization",
     body: "You can offset $3,000 in capital losses this year to reduce your tax liability.",
+    redactedBody: "You can offset a portion of capital losses this year to reduce your tax liability.",
     category: "tax",
     topic: "Tax Planning",
     surfaces: ["overview", "taxes", "insights"],
     icon: Lightbulb,
     accent: "orange",
+    sensitive: true,
     metrics: [
-      { id: "losses", label: "Harvestable Losses", value: "$3,000", highlight: true },
-      { id: "estimated-savings", label: "Est. Savings", value: "$720" },
+      {
+        id: "losses",
+        label: "Harvestable Losses",
+        value: "$3,000",
+        fallbackValue: "$2.5K-$3.5K",
+        highlight: true,
+        sensitive: true,
+      },
+      {
+        id: "estimated-savings",
+        label: "Est. Savings",
+        value: "$720",
+        fallbackValue: "$600-$800",
+        sensitive: true,
+      },
       { id: "deadline", label: "Deadline", value: "Dec 31" },
     ],
     actions: [
@@ -149,15 +191,24 @@ export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
     id: "goals-emergency-fund-milestone",
     title: "Emergency fund milestone",
     body: "You've reached 60% of your emergency fund goal, ahead of schedule by 2 months.",
+    redactedBody: "You're ahead of schedule on your emergency fund goal.",
     category: "goals",
     topic: "Goals Forecast",
     surfaces: ["overview", "goals", "insights"],
     icon: Target,
     accent: "emerald",
+    sensitive: true,
     metrics: [
-      { id: "current-balance", label: "Current Balance", value: "$12,000", highlight: true },
-      { id: "target", label: "Target", value: "$20,000" },
-      { id: "remaining", label: "Remaining", value: "$8,000" },
+      {
+        id: "current-balance",
+        label: "Current Balance",
+        value: "$12,000",
+        fallbackValue: "$12K",
+        highlight: true,
+        sensitive: true,
+      },
+      { id: "target", label: "Target", value: "$20,000", fallbackValue: "$20K", sensitive: true },
+      { id: "remaining", label: "Remaining", value: "$8,000", fallbackValue: "$8K", sensitive: true },
     ],
     actions: [
       { id: "adjust-goal", label: "Adjust Goal", href: "/goals", variant: "outline" },
@@ -172,15 +223,32 @@ export const insightDefinitions: ReadonlyArray<InsightDefinition> = [
     id: "cashflow-dining-spike",
     title: "Dining expenses increased",
     body: "You spent 18% more on dining this month compared to your average.",
+    redactedBody: "Dining spend rose this month compared to average.",
     category: "spending",
     topic: "Spending Trends",
     surfaces: ["cash-flow", "insights"],
     icon: DollarSign,
     accent: "amber",
+    sensitive: true,
     metrics: [
-      { id: "this-month", label: "This Month", value: "$680", highlight: true },
-      { id: "average", label: "Average", value: "$576" },
-      { id: "over-budget", label: "Over Budget", value: "+$104", delta: "+18%", trend: "up" },
+      {
+        id: "this-month",
+        label: "This Month",
+        value: "$680",
+        fallbackValue: "$650-$700",
+        highlight: true,
+        sensitive: true,
+      },
+      { id: "average", label: "Average", value: "$576", fallbackValue: "$550-$600", sensitive: true },
+      {
+        id: "over-budget",
+        label: "Over Budget",
+        value: "+$104",
+        fallbackValue: "+$100",
+        delta: "+18%",
+        trend: "up",
+        sensitive: true,
+      },
     ],
     actions: [
       { id: "review-dining", label: "View Details", href: "/cash-flow", variant: "outline" },

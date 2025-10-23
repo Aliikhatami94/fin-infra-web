@@ -25,6 +25,11 @@ const CryptoChart = dynamic<CryptoChartProps>(
 export default function CryptoPage() {
   const [selectedExchange, setSelectedExchange] = useState<"All" | "Coinbase" | "Binance">("All")
   const [showStablecoins, setShowStablecoins] = useState(false)
+  const [groupBy, setGroupBy] = useState<"asset" | "exchange" | "staking">("asset")
+
+  const handleStablecoinHover = () => {
+    void import("@/components/crypto-table")
+  }
 
   return (
     <>
@@ -57,13 +62,53 @@ export default function CryptoPage() {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant={groupBy === "asset" ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => setGroupBy("asset")}
+          >
+            Group by asset
+          </Button>
+          <Button
+            variant={groupBy === "exchange" ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => setGroupBy("exchange")}
+          >
+            Group by exchange
+          </Button>
+          <Button
+            variant={groupBy === "staking" ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => setGroupBy("staking")}
+          >
+            Group by staking
+          </Button>
+          <Button
+            variant={showStablecoins ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onMouseEnter={handleStablecoinHover}
+            onClick={() => setShowStablecoins((prev) => !prev)}
+          >
+            {showStablecoins ? "Hide stablecoins" : "Show stablecoins"}
+          </Button>
+        </div>
+
         <CryptoKPIs />
         <ErrorBoundary feature="Crypto insights">
           <CryptoAIInsights />
         </ErrorBoundary>
         <CryptoChart showStablecoins={showStablecoins} onToggleStablecoins={setShowStablecoins} />
         <ExchangeAnalytics selectedExchange={selectedExchange} />
-        <CryptoTable selectedExchange={selectedExchange} showStablecoins={showStablecoins} />
+        <CryptoTable
+          selectedExchange={selectedExchange}
+          showStablecoins={showStablecoins}
+          groupBy={groupBy}
+        />
         <CryptoRiskSection />
       </div>
 

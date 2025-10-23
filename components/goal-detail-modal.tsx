@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type ComponentType } from "react"
+import { useEffect, useMemo, useRef, useState, type ComponentType } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,8 @@ import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceL
 import { TrendingUp, Edit, Calendar, DollarSign, TargetIcon, LinkIcon } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatCurrency } from "@/lib/format"
+import { SliderField } from "@/components/ui/slider"
+import { trackPreferenceSlider } from "@/lib/analytics/events"
 
 const contributionData = [
   { month: "Jan", actual: 18000, projected: null },
@@ -58,11 +60,63 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
   const [isEditingAccount, setIsEditingAccount] = useState(false)
   const [newTarget, setNewTarget] = useState(goal.target.toString())
   const [newAccount, setNewAccount] = useState(goal.fundingSource)
+  const [contribution, setContribution] = useState<number[]>([goal.monthlyTarget])
+  const [risk, setRisk] = useState<number[]>([5])
+  const hasTracked = useRef(false)
 
   const monthsRemaining = Math.ceil((goal.target - goal.current) / goal.monthlyTarget)
   const predictedDate = new Date()
   predictedDate.setMonth(predictedDate.getMonth() + monthsRemaining)
   const formattedPredictedDate = predictedDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+
+  const contributionKey = useMemo(() => `goal:${goal.name}:contribution`, [goal.name])
+  const riskKey = useMemo(() => `goal:${goal.name}:risk`, [goal.name])
+
+  useEffect(() => {
+    if (!open) return
+    if (typeof window === "undefined") return
+    const storedContribution = window.localStorage.getItem(contributionKey)
+    const storedRisk = window.localStorage.getItem(riskKey)
+
+    if (storedContribution) {
+      const parsed = Number.parseFloat(storedContribution)
+      if (!Number.isNaN(parsed)) {
+        setContribution([parsed])
+      }
+    }
+
+    if (storedRisk) {
+      const parsedRisk = Number.parseFloat(storedRisk)
+      if (!Number.isNaN(parsedRisk)) {
+        setRisk([parsedRisk])
+      }
+    }
+  }, [contributionKey, open, riskKey])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(contributionKey, String(contribution[0]))
+  }, [contribution, contributionKey])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(riskKey, String(risk[0]))
+  }, [risk, riskKey])
+
+  useEffect(() => {
+    if (!hasTracked.current) {
+      hasTracked.current = true
+      return
+    }
+    trackPreferenceSlider({ sliderId: "goal-planner:monthly-contribution", label: goal.name, values: contribution })
+  }, [contribution, goal.name])
+
+  useEffect(() => {
+    if (!hasTracked.current) {
+      return
+    }
+    trackPreferenceSlider({ sliderId: "goal-planner:risk-level", label: goal.name, values: risk })
+  }, [goal.name, risk])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -84,7 +138,6 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Current Progress */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Current Progress</span>
@@ -107,26 +160,25 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                 <div className="flex-1">
                   <h4 className="font-semibold mb-1">Predicted Completion</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                Based on your current contribution rate of {formatCurrency(goal.monthlyTarget)}/month, you'll reach your goal by{" "}
-                    <span className="font-medium text-foreground">{formattedPredictedDate}</span>
+                    Based on your current contribution rate of {formatCurrency(goal.monthlyTarget)}/month, you'll reach your goal
+                    by <span className="font-medium text-foreground">{formattedPredictedDate}</span>
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Badge variant="outline" className="bg-background">
                       {monthsRemaining} months remaining
                     </Badge>
                     <Badge variant="outline" className="bg-background">
-                 {formatCurrency(goal.target - goal.current)} to go
+                      {formatCurrency(goal.target - goal.current)} to go
                     </Badge>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Goal Details */}
             <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
               <div>
                 <p className="text-sm text-muted-foreground">Monthly Target</p>
-                  <p className="text-lg font-semibold">{formatCurrency(goal.monthlyTarget)}/mo</p>
+                <p className="text-lg font-semibold">{formatCurrency(goal.monthlyTarget)}/mo</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Funding Source</p>
@@ -134,11 +186,13 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Remaining</p>
-                  <p className="text-lg font-semibold">{formatCurrency(goal.target - goal.current)}</p>
+                <p className="text-lg font-semibold">{formatCurrency(goal.target - goal.current)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Avg. Monthly Growth</p>
-                  <p className="text-lg font-semibold text-[var(--color-positive)]">{formatCurrency(goal.monthlyTarget, { signDisplay: "always" })}</p>
+                <p className="text-lg font-semibold text-[var(--color-positive)]">
+                  {formatCurrency(goal.monthlyTarget, { signDisplay: "always" })}
+                </p>
               </div>
             </div>
 
@@ -250,22 +304,39 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                       placeholder="30000"
                     />
                   </div>
-                  <Button
-                    className="w-full"
-                    onClick={() => {
-                      setIsEditingTarget(false)
-                      // Save logic here
-                    }}
-                  >
+                  <Button className="w-full" onClick={() => setIsEditingTarget(false)}>
                     <TargetIcon className="mr-2 h-4 w-4" />
                     Update Target
                   </Button>
                 </div>
               ) : (
                 <div className="rounded-lg border p-4">
-              <p className="text-2xl font-bold">{formatCurrency(goal.target)}</p>
+                  <p className="text-2xl font-bold">{formatCurrency(goal.target)}</p>
                 </div>
               )}
+            </div>
+
+            <div className="space-y-6 rounded-lg border p-4">
+              <SliderField
+                label="Monthly contribution"
+                description="Adjust to see how faster contributions change your goal date."
+                value={contribution}
+                onValueChange={setContribution}
+                min={0}
+                max={goal.monthlyTarget * 3}
+                step={50}
+                formatValue={(values) => formatCurrency(values[0])}
+              />
+              <SliderField
+                label="Risk preference"
+                description="Higher risk assumes more aggressive growth and more volatility."
+                value={risk}
+                onValueChange={setRisk}
+                min={1}
+                max={10}
+                step={1}
+                formatValue={(values) => `${values[0]}/10`}
+              />
             </div>
 
             <div className="space-y-3">
@@ -296,13 +367,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button
-                    className="w-full"
-                    onClick={() => {
-                      setIsEditingAccount(false)
-                      // Save logic here
-                    }}
-                  >
+                  <Button className="w-full" onClick={() => setIsEditingAccount(false)}>
                     <LinkIcon className="mr-2 h-4 w-4" />
                     Update Funding Source
                   </Button>
@@ -310,22 +375,33 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
               ) : (
                 <div className="rounded-lg border p-4">
                   <p className="font-medium">{goal.fundingSource}</p>
-                  <p className="text-sm text-muted-foreground">Current balance: $45,230</p>
-                    <p className="text-sm text-muted-foreground">Current balance: {formatCurrency(45230)}</p>
+                  <p className="text-sm text-muted-foreground">Current balance: {formatCurrency(45230)}</p>
                 </div>
               )}
             </div>
 
             <div className="space-y-3">
               <div>
-                <h3 className="font-semibold">Monthly Contribution</h3>
-                <p className="text-sm text-muted-foreground">Automatic monthly transfer amount</p>
+                <h3 className="font-semibold">Linked Accounts</h3>
+                <p className="text-sm text-muted-foreground">Choose which accounts contribute to this goal</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="monthly-contribution">Amount per month</Label>
-                <Input id="monthly-contribution" type="number" defaultValue={goal.monthlyTarget} placeholder="500" />
+
+              <div className="grid gap-2">
+                {[
+                  { name: "High-Yield Savings", balance: 32000 },
+                  { name: "Checking Account", balance: 14500 },
+                ].map((account) => (
+                  <div key={account.name} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <p className="font-medium">{account.name}</p>
+                      <p className="text-xs text-muted-foreground">Balance: {formatCurrency(account.balance)}</p>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      Manage
+                    </Button>
+                  </div>
+                ))}
               </div>
-              <Button className="w-full">Save Changes</Button>
             </div>
           </TabsContent>
         </Tabs>

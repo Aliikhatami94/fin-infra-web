@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Check, HelpCircle, Pin, PinOff } from "lucide-react"
+import { Check, HelpCircle, Pin, PinOff, Shield } from "lucide-react"
 
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { cn } from "@/lib/utils"
@@ -16,6 +16,7 @@ import {
   trackInsightPinChange,
   trackInsightResolution,
 } from "@/lib/analytics/events"
+import { usePrivacy } from "@/components/privacy-provider"
 
 type InsightCardProps = {
   insight: InsightDefinition
@@ -85,6 +86,7 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
   const headingId = useId()
   const descriptionId = useId()
   const explanationRef = useRef<HTMLParagraphElement>(null)
+  const { masked } = usePrivacy()
 
   useEffect(() => {
     if (showExplanation && explanationRef.current) {
@@ -183,6 +185,11 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
                     Pinned
                   </Badge>
                 )}
+                {insight.sensitive && (
+                  <Badge variant="outline" className="text-xs border-amber-300 bg-amber-500/10 text-amber-700">
+                    Sensitive data masked
+                  </Badge>
+                )}
                 {insight.updatedAt && (
                   <Badge variant="outline" className="text-xs text-muted-foreground">
                     Updated {insight.updatedAt}
@@ -193,7 +200,7 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
           </div>
 
           <p id={descriptionId} className="text-sm leading-relaxed text-muted-foreground">
-            {insight.body}
+            {masked && insight.redactedBody ? insight.redactedBody : insight.body}
           </p>
 
           {insight.metrics && insight.metrics.length > 0 && (
@@ -201,15 +208,34 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
               {insight.metrics.map((metric) => (
                 <div key={metric.id} className="flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground">{metric.label}</span>
-                  <span
-                    className={cn("text-sm font-semibold", metric.highlight ? "text-foreground" : "text-muted-foreground")}
-                    aria-label={metric.srLabel}
-                  >
-                    {metric.value}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span
+                      className={cn(
+                        "text-sm font-semibold",
+                        metric.highlight ? "text-foreground" : "text-muted-foreground",
+                      )}
+                      aria-label={metric.srLabel}
+                    >
+                      {metric.sensitive && masked ? metric.fallbackValue ?? "Hidden" : metric.value}
+                    </span>
+                    {metric.sensitive && masked && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Shield className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-xs">
+                            {metric.tooltip ?? "Sensitive value hidden. Disable privacy masking to reveal."}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                   {(metric.targetLabel || metric.targetValue) && (
                     <span className="text-xs text-muted-foreground">
-                      {metric.targetLabel ?? "Target"}: {metric.targetValue ?? ""}
+                      {metric.targetLabel ?? "Target"}: {masked && metric.sensitive
+                        ? metric.targetFallbackValue ?? metric.targetValue ?? ""
+                        : metric.targetValue ?? ""}
                     </span>
                   )}
                   {metric.delta && (

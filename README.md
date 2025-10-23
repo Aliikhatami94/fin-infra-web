@@ -40,6 +40,20 @@ pnpm dev
 # App will be available at http://localhost:3000
 ```
 
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in the required values before running sensitive features:
+
+- `NEXT_PUBLIC_AI_INSIGHTS_ROLLOUT` – feature flag controlling staged rollout of AI insights.
+- `NEXT_PUBLIC_ANALYTICS_SAMPLING_RATE` – percentage of analytics events to emit during experiments.
+- `NEXT_PUBLIC_STORAGE_ENCRYPTION_KEY` – base64-encoded 32-byte key used to encrypt values persisted via `useSecureStorage`.
+- `NEXT_PUBLIC_STORAGE_ENCRYPTION_FALLBACKS` – optional comma-separated list of previous encryption keys to support rotation.
+- `PLAID_SANDBOX_CLIENT_ID` / `PLAID_SANDBOX_SECRET` – sandbox credentials for Plaid integrations.
+- `ENCRYPTION_SALT` – salt used when deriving server-side encryption keys.
+- `SESSION_ENCRYPTION_KEY` – symmetric key for encrypting session payloads.
+
+CI and `next build` will fail if the required environment variables are missing.
+
 ## Scripts
 
 - `dev`: start the Next.js dev server

@@ -5,22 +5,53 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SliderField } from "@/components/ui/slider"
-import { Calculator, TrendingDown, Info, Sparkles } from "lucide-react"
+import { Calculator, TrendingDown, Info, Sparkles, Printer, Download } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { getTaxHarvestingScenario } from "@/lib/services"
+import { trackTransactionBulkAction } from "@/lib/analytics/events"
+import { formatCurrency } from "@/lib/format"
 
 const scenario = getTaxHarvestingScenario()
+
+const presets = [
+  {
+    id: "conservative",
+    label: "Conservative",
+    description: "Harvest top two loss positions",
+    selections: [true, true, false, false, false],
+  },
+  {
+    id: "balanced",
+    label: "Balanced",
+    description: "Harvest three positions with highest losses",
+    selections: [true, true, true, false, false],
+  },
+  {
+    id: "aggressive",
+    label: "Aggressive",
+    description: "Harvest all available loss positions",
+    selections: [true, true, true, true, true],
+  },
+]
 
 export function TaxScenarioTool() {
   const [selectedPositions, setSelectedPositions] = useState<boolean[]>(
     scenario.harvestablePositions.map((position: any) => Boolean(position.selected)),
   )
   const [taxRate, setTaxRate] = useState([scenario.defaultTaxRate])
+  const [presetId, setPresetId] = useState<string | null>(null)
 
   const togglePosition = (index: number) => {
     const newSelected = [...selectedPositions]
     newSelected[index] = !newSelected[index]
     setSelectedPositions(newSelected)
+  }
+
+  const applyPreset = (id: string) => {
+    const preset = presets.find((entry) => entry.id === id)
+    if (!preset) return
+    setSelectedPositions(preset.selections)
+    setPresetId(id)
   }
 
   const totalLossHarvested = scenario.harvestablePositions.reduce(
@@ -31,6 +62,13 @@ export function TaxScenarioTool() {
   const potentialSavings = Math.round(totalLossHarvested * (taxRate[0] / 100))
   const currentTaxLiability = scenario.currentTaxLiability
   const newTaxLiability = currentTaxLiability - potentialSavings
+
+  const exportSummary = () => {
+    trackTransactionBulkAction({ action: "export", count: selectedPositions.filter(Boolean).length, filterIds: ["tax-scenario"] })
+    if (typeof window !== "undefined") {
+      window.print()
+    }
+  }
 
   const taxRateLabel = (
     <span className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -71,6 +109,27 @@ export function TaxScenarioTool() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Loss harvesting presets">
+          {presets.map((preset) => {
+            const isActive = presetId === preset.id
+            return (
+              <Button
+                key={preset.id}
+                variant={isActive ? "secondary" : "outline"}
+                size="sm"
+                className="gap-2"
+                onClick={() => applyPreset(preset.id)}
+              >
+                {preset.label}
+                <span className="text-[11px] text-muted-foreground">{preset.description}</span>
+              </Button>
+            )
+          })}
+          <Button variant="ghost" size="sm" onClick={() => setPresetId(null)}>
+            Clear preset
+          </Button>
+        </div>
+
         <SliderField
           value={taxRate}
           onValueChange={setTaxRate}
@@ -152,10 +211,37 @@ export function TaxScenarioTool() {
             </div>
           </div>
 
+          <div className="grid gap-4 rounded-lg border p-4 md:grid-cols-2">
+            <div>
+              <h4 className="text-sm font-semibold text-foreground">Current plan</h4>
+              <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <li>Liability: {formatCurrency(currentTaxLiability)}</li>
+                <li>Tax rate: {taxRate[0]}%</li>
+                <li>Harvested positions: {selectedPositions.filter(Boolean).length}</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-foreground">After harvest</h4>
+              <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <li>Liability: {formatCurrency(newTaxLiability)}</li>
+                <li>Projected savings: {formatCurrency(potentialSavings)}</li>
+                <li>Preset: {presetId ? presets.find((p) => p.id === presetId)?.label ?? "Custom" : "Custom"}</li>
+              </ul>
+            </div>
+          </div>
+
           <Button className="w-full gap-2" variant="cta" disabled={totalLossHarvested === 0}>
             <TrendingDown className="h-4 w-4" />
             Execute Harvest Plan
           </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2" onClick={exportSummary}>
+              <Printer className="h-4 w-4" /> Print summary
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

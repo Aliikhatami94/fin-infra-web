@@ -7,37 +7,49 @@ import { Button } from "@/components/ui/button"
 import { Upload } from "lucide-react"
 import { useMemo } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { getDocuments } from "@/lib/services/documents"
+import type { Document } from "@/types/domain"
 
 interface DocumentsGridProps {
+  documents: Document[]
   isLoading?: boolean
   searchQuery?: string
   selectedTypes?: string[]
+  selectedAccounts?: string[]
+  selectedYears?: string[]
   sortBy?: "date" | "name" | "size"
   selectedDocuments?: number[]
   onSelectionChange?: (selected: number[]) => void
+  error?: string | null
+  onRetry?: () => void
 }
 
 export function DocumentsGrid({
+  documents,
   isLoading = false,
   searchQuery = "",
   selectedTypes = [],
+  selectedAccounts = [],
+  selectedYears = [],
   sortBy = "date",
   selectedDocuments = [],
   onSelectionChange,
+  error = null,
+  onRetry,
 }: DocumentsGridProps) {
-  const documentsData = useMemo(() => getDocuments(), [])
-
   const filteredAndSortedDocuments = useMemo(() => {
-    const filtered = documentsData.filter((doc) => {
+    const filtered = documents.filter((doc) => {
       const matchesSearch =
         searchQuery === "" ||
         doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doc.institution.toLowerCase().includes(searchQuery.toLowerCase())
+        doc.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.account.toLowerCase().includes(searchQuery.toLowerCase())
 
       const matchesType = selectedTypes.length === 0 || selectedTypes.includes(doc.type)
+      const matchesAccount = selectedAccounts.length === 0 || selectedAccounts.includes(doc.account)
+      const matchesYear =
+        selectedYears.length === 0 || selectedYears.includes(String(doc.year)) || selectedYears.includes(`${doc.year}`)
 
-      return matchesSearch && matchesType
+      return matchesSearch && matchesType && matchesAccount && matchesYear
     })
 
     filtered.sort((a, b) => {
@@ -52,7 +64,7 @@ export function DocumentsGrid({
     })
 
     return filtered
-  }, [documentsData, searchQuery, selectedTypes, sortBy])
+  }, [documents, searchQuery, selectedTypes, selectedAccounts, selectedYears, sortBy])
 
   const allSelected =
     filteredAndSortedDocuments.length > 0 && selectedDocuments.length === filteredAndSortedDocuments.length
@@ -64,6 +76,18 @@ export function DocumentsGrid({
     } else {
       onSelectionChange?.(filteredAndSortedDocuments.map((doc) => doc.id))
     }
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/50 bg-muted/20 p-10 text-center">
+        <p className="text-sm font-semibold text-foreground">We couldn’t load your documents</p>
+        <p className="text-xs text-muted-foreground">{error}</p>
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          Try again
+        </Button>
+      </div>
+    )
   }
 
   if (isLoading) {

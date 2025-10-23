@@ -8,7 +8,8 @@
     "lint": "next lint",
     "start": "next start",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "env:check": "node ./scripts/check-env.mjs"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",
