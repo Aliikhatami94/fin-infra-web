@@ -36,7 +36,7 @@ const presets = [
 
 export function TaxScenarioTool() {
   const [selectedPositions, setSelectedPositions] = useState<boolean[]>(
-    scenario.harvestablePositions.map((position: any) => Boolean(position.selected)),
+    scenario.harvestablePositions.map((position: { selected?: boolean }) => Boolean(position.selected)),
   )
   const [taxRate, setTaxRate] = useState([scenario.defaultTaxRate])
   const [presetId, setPresetId] = useState<string | null>(null)
@@ -55,7 +55,7 @@ export function TaxScenarioTool() {
   }
 
   const totalLossHarvested = scenario.harvestablePositions.reduce(
-    (sum: number, pos: any, idx: number) => sum + (selectedPositions[idx] ? pos.loss : 0),
+    (sum: number, pos: { loss: number }, idx: number) => sum + (selectedPositions[idx] ? pos.loss : 0),
     0,
   )
 
@@ -146,7 +146,7 @@ export function TaxScenarioTool() {
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">Select Positions to Harvest</label>
           <div className="space-y-2">
-            {scenario.harvestablePositions.map((position: any, index: number) => (
+            {scenario.harvestablePositions.map((position: { asset: string; loss: number }, index: number) => (
               <div
                 key={index}
                 onClick={() => togglePosition(index)}

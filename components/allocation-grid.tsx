@@ -44,7 +44,7 @@ export interface AllocationGridProps {
 export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
   const [selectedSlice, setSelectedSlice] = useState<string | null>(null)
 
-  const handleSliceClick = (slice: AllocationSlice, index: number) => {
+  const handleSliceClick = (slice: AllocationSlice) => {
     if (selectedSlice === slice.name) {
       setSelectedSlice(null)
       onFilterChange?.(null)
@@ -100,7 +100,7 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
                     outerRadius={100}
                     dataKey="value"
                     label
-                    onClick={(_, index) => handleSliceClick(assetClassData[index], index)}
+                    onClick={(_, index) => handleSliceClick(assetClassData[index])}
                     style={{ cursor: "pointer" }}
                   >
                     {assetClassData.map((entry, index) => (
@@ -129,7 +129,7 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
                     outerRadius={100}
                     dataKey="value"
                     label
-                    onClick={(_, index) => handleSliceClick(sectorData[index], index)}
+                    onClick={(_, index) => handleSliceClick(sectorData[index])}
                     style={{ cursor: "pointer" }}
                   >
                     {sectorData.map((entry, index) => (
@@ -158,7 +158,7 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
                     outerRadius={100}
                     dataKey="value"
                     label
-                    onClick={(_, index) => handleSliceClick(regionData[index], index)}
+                    onClick={(_, index) => handleSliceClick(regionData[index])}
                     style={{ cursor: "pointer" }}
                   >
                     {regionData.map((entry, index) => (

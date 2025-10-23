@@ -6,7 +6,7 @@ import axeCore from "axe-core"
 
 import { InsightCard } from "@/components/insights/InsightCard"
 import type { InsightDefinition } from "@/lib/insights/definitions"
-import { Slider, SliderField } from "@/components/ui/slider"
+import { SliderField } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { DollarSign } from "lucide-react"
 import { PrivacyProvider } from "@/components/privacy-provider"
@@ -19,25 +19,23 @@ afterEach(() => {
 
 async function runAxe(container: HTMLElement) {
   const results: AxeResults = await new Promise((resolve, reject) => {
-    axeCore.run(container, { reporter: "v2" }, (error: any, axeResults: any) => {
+    axeCore.run(container, { reporter: "v2" }, (error: Error | null, axeResults?: AxeResults) => {
       if (error) {
         reject(error)
       } else {
-        resolve(axeResults as AxeResults)
+        resolve((axeResults as AxeResults) ?? { violations: [], passes: [], incomplete: [], inapplicable: [] })
       }
     })
   })
 
-  const serious = (results.violations as any[]).filter((v: any) =>
-    ["serious", "critical"].includes(v.impact as string),
-  )
+  const serious = results.violations.filter((v) => ["serious", "critical"].includes((v.impact as string) || ""))
   if (serious.length > 0) {
     // Log minimal rule info for debugging in CI when a11y fails
     // This helps us tune or suppress specific false positives in jsdom.
     // eslint-disable-next-line no-console
     console.warn(
       "Axe serious violations:",
-      serious.map((v: any) => ({ id: v.id, impact: v.impact, nodes: v.nodes?.length })),
+      serious.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes?.length })),
     )
   }
   expect(serious).toHaveLength(0)

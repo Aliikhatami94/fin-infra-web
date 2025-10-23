@@ -128,7 +128,7 @@ export function BudgetTable() {
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
   const [rolloverEnabled, setRolloverEnabled] = useState(false)
   const [warningThreshold, setWarningThreshold] = useState("90")
-  const [showSuggested, setShowSuggested] = useState(true)
+  const [showSuggested, _setShowSuggested] = useState(true)
   const [comparisonPeriod, setComparisonPeriod] = useState<"lastMonth" | "lastYear">("lastMonth")
 
   const handleSort = (field: SortField) => {

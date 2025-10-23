@@ -6,20 +6,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
-import {
-  Target,
-  Home,
-  Plane,
-  GraduationCap,
-  MoreVertical,
-  TrendingUp,
-  TrendingDown,
-  Pause,
-  CheckCircle2,
-  Edit,
-  Plus,
-  Link,
-} from "lucide-react"
+import { MoreVertical, TrendingUp, TrendingDown, Pause, CheckCircle2, Edit, Plus, Link } from "lucide-react"
 import { motion } from "framer-motion"
 import { GoalDetailModal } from "./goal-detail-modal"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"

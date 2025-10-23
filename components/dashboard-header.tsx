@@ -24,7 +24,7 @@ interface DashboardHeaderProps {
   onTabChange?: (tab: string) => void
 }
 
-export function DashboardHeader({ activeTab, onTabChange }: DashboardHeaderProps) {
+export function DashboardHeader({ activeTab: _activeTab, onTabChange: _onTabChange }: DashboardHeaderProps) {
   const { setTheme, theme } = useTheme()
 
   return (

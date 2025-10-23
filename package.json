@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.4.0",
   "engines": {
-    "node": "20.x"
+    "node": ">=20 <25"
   },
   "scripts": {
     "build": "next build",
@@ -20,7 +20,10 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "unrs-resolver"
+      "unrs-resolver",
+      "esbuild",
+      "sharp",
+      "@tailwindcss/oxide"
     ]
   },
   "dependencies": {

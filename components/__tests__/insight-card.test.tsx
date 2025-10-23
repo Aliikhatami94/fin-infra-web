@@ -94,7 +94,7 @@ describe("InsightCard", () => {
     const { container, unmount } = render(
       <InsightCard
         insight={insight}
-        onAction={({ action, insight: rendered }: { action: any; insight: InsightDefinition }) =>
+        onAction={({ action, insight: rendered }: { action: unknown; insight: InsightDefinition }) =>
           onAction({ action, insight: rendered })
         }
       />,

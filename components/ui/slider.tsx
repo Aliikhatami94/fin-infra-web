@@ -18,9 +18,9 @@ const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, S
 
     // Ensure each Thumb (role="slider") has an accessible name for a11y/axe.
     // Prefer aria-labelledby when provided; otherwise, fall back to aria-label.
-    const thumbA11yProps = React.useMemo(() => {
-      const labelledby = (props as any)["aria-labelledby"] as string | undefined
-      const label = (props as any)["aria-label"] as string | undefined
+    const thumbA11yProps: React.AriaAttributes = React.useMemo(() => {
+      const labelledby = (props as Record<string, unknown>)["aria-labelledby"] as string | undefined
+      const label = (props as Record<string, unknown>)["aria-label"] as string | undefined
       return labelledby ? { "aria-labelledby": labelledby } : label ? { "aria-label": label } : {}
     }, [props])
 
@@ -52,7 +52,7 @@ const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, S
             data-slot="slider-thumb"
             key={index}
             className="block size-4 shrink-0 rounded-full border border-primary bg-background shadow-sm transition-[color,box-shadow] focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/50 hover:ring-4 disabled:pointer-events-none"
-            {...(thumbA11yProps as any)}
+            {...thumbA11yProps}
           />
         ))}
       </SliderPrimitive.Root>
@@ -113,8 +113,9 @@ export const SliderField = React.forwardRef<React.ElementRef<typeof SliderPrimit
     const actualLabelId = React.useMemo(() => {
       if (!label) return undefined
       if (labelIdProp) return labelIdProp
-      if (React.isValidElement(label) && (label as any).props?.id) {
-        return (label as any).props.id as string
+      if (React.isValidElement(label)) {
+        const element = label as React.ReactElement<{ id?: string }>
+        if (element.props?.id) return element.props.id
       }
       return `${fieldId}-label`
     }, [label, labelIdProp, fieldId])
@@ -130,8 +131,9 @@ export const SliderField = React.forwardRef<React.ElementRef<typeof SliderPrimit
     const renderedLabel = React.useMemo(() => {
       if (!label) return null
       if (React.isValidElement(label)) {
-        if (actualLabelId && !(label as any).props?.id) {
-          return React.cloneElement(label as any, { id: actualLabelId }) as any
+        const element = label as React.ReactElement<{ id?: string }>
+        if (actualLabelId && !element.props?.id) {
+          return React.cloneElement(element, { id: actualLabelId })
         }
         return label
       }

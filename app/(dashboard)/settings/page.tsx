@@ -72,6 +72,8 @@ export default function SettingsPage() {
       marketingConsent !== initialState.marketingConsent ||
       dataSharing !== initialState.dataSharing
     setHasChanges(changed)
+    // We intentionally compare to initialState (component-constant) here; adding it to deps is unnecessary
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     emailNotifications,
     pushNotifications,
