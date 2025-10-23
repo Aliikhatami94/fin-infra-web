@@ -1,188 +1,151 @@
-# Fin‑Infra Web – Technical Excellence Plan (v2)
+## Fin‑Infra Web – Technical Excellence Plan (v3)
 
-Purpose: Evolve this Next.js 15 + React 19 UI into a production‑grade, competitive experience on par with Quicken Simplifi by elevating code quality, performance, accessibility, and UX polish. This plan replaces the prior remediation checklist and reflects the current codebase state (dynamic chart loading, centralized mocks, formatting utils, CI, and strict TS already present).
+### Purpose
 
-Scope focuses on: architectural hygiene, design system hardening, performance and a11y, typed data boundaries, testing, and targeted product polish that improves perceived quality without overhauling features.
+Evolve the Next.js 15/React 19 financial dashboard into a polished, production‑grade experience that rivals consumer fintech apps (e.g., Quicken Simplifi). This version builds on the v2 plan by incorporating patterns observed across pages—AI insight cards, charts, sliders, tables, and personalization settings—and suggests improvements for modularity, reusability, accessibility and UX polish.
 
-## Guiding Principles
-- Server Components by default; client only where interactivity is required.
-- One source of truth per concern (types, colors, formatters, mocks, chart theme).
-- Prefer composition over inheritance; keep components small, typed, testable.
-- Optimize for Core Web Vitals and perceived responsiveness (skeletons, defers, virtualization).
-- Accessibility is a product feature: WCAG AA color contrast, keyboard flows, and screen reader UX.
+---
 
-## Current State Summary (observations)
-- Strong foundation: App Router, providers (Theme/Privacy/DateRange), consistent tokens in `app/globals.css`, shadcn/ui primitives, dynamic import for heavy charts, centralized mocks in `lib/mock`, formatters in `lib/format`, color utils + tests, CI (lint, typecheck, vitest), and route‑scoped layouts.
-- Opportunities:
-  - Domain types scattered (e.g., `components/accounts-table/types.ts`); consolidate for reuse across features.
-  - Chart configurations and tooltips repeated across components.
-  - Several large tables could benefit from row virtualization and column helpers.
-  - A11y coverage is good but not systematic (no automated checks, inconsistent aria/labeling patterns).
-  - Analytics/telemetry and error boundaries are minimal.
-  - Some duplication and naming inconsistency across components and skeletons.
+### Guiding Principles (unchanged)
 
-## Workstreams
+* Server Components by default. Use client components only when interactivity is required.
+* Single source of truth. Centralize types, colors, formatters, mocks, chart themes and AI‑insight definitions.
+* Composition over inheritance. Keep components small, typed, testable and composable.
+* Optimized perceived performance. Maintain Core Web Vitals (LCP/INP), use skeletons, defer/stream heavy components and virtualize long lists.
+* Accessibility is a first‑class feature. Comply with WCAG AA (color contrast, keyboard flows, aria patterns) and provide accessible tooltips, toggles, sliders and charts.
+* AI insights are modular. Centralize insights logic and presentation to ensure consistency and maintainability across pages.
+* Privacy and security. Mask PII and scrub logs in production.
 
-### WS1 – Architecture & Types Hygiene
-Goal: Centralize domain contracts and reduce duplication.
+---
 
-Deliverables
-- Create `types/domain.ts` with shared interfaces: `Account`, `Transaction`, `Holding`, `Document`, `Goal`.
-- Refactor consumers to import from `types/domain` instead of local type files where appropriate.
-- Introduce `lib/schemas/*` (zod) for runtime validation of external data (future API) that narrows to domain types.
-- Add `lib/services/*` as thin data adapters (mock now, API later) with typed return values.
+### Current State Observations (v3)
 
-Acceptance
-- Single import path for domain types; no duplicate interface definitions.
-- `pnpm typecheck` passes; no `as any` in changed files.
+The app already has a solid foundation: route‑scoped layouts, strict TypeScript, centralized mocks and formatters, dynamic chart imports and shadcn/ui primitives. However, there are additional opportunities noted during the walkthrough:
 
-### WS2 – Design System Hardening
-Goal: Ensure a cohesive, professional UI across pages and states.
+* Repeated AI Insight patterns: Many pages display “AI Insights” cards with recommendations—e.g., AI Document Insights (Documents page), AI Market Insights (Crypto), AI Cash Flow Insights (Cash Flow), AI Budget Insights (Budget), AI Goal Insights (Goals) and “Smart Recommendations.” These cards share similar structure and call‑to‑action buttons. Centralizing the insight definitions and card component will reduce duplication and ease instrumentation.
+* Shared chart patterns: Portfolio, Crypto, Cash Flow, Budget and Taxes all feature time‑series or pie/donut charts. Some charts include interactive elements like comparison toggles and time‑range switches, while others (e.g., Portfolio Allocation) provide tabbed views by asset class/sector/region. Consolidating the chart components into a kit (as planned) remains critical.
+* What‑if sliders and calculators: The Goals page uses “what‑if” suggestions (increase monthly contribution), and the Taxes page includes a “What‑If Tax Scenario” with a marginal‑tax‑rate slider. This pattern should be generalized into a reusable slider component with accessible labeling.
+* Tables requiring virtualization: Accounts, Portfolio holdings, and Crypto holdings pages show tables with potentially hundreds of rows (e.g., holdings table listing tickers and metrics). Crypto holdings have additional columns like staking and weight percentages. The current plan already calls for virtualization, but the design should cover not only accounts and holdings but also crypto, budget categories and documents if data volume grows.
+* Insight feed & filters: The Insights page shows pinned cards and category filters (spending trends, investment health, goals forecast). This feed could be backed by a typed analytics service and benefit from a standardized card and filtering API.
+* Settings toggles: The Settings page has switches for email notifications, push notifications, price alerts and trade confirmations. These toggles should be accessible (proper roles and labels) and come from a shared toggle component.
+
+---
+
+### New Workstream: WS0 – AI Insights & Recommendations
+
+Goal: Centralize AI‑driven insight definitions and card components for consistency across pages.
 
 Deliverables
-- Extract a `components/charts/` kit:
-  - `ChartContainer`, `ThemedAxis`, `Grid`, `TooltipCard`, tick formatters using `lib/format` + `lib/color-utils`.
-  - Migrate: `performance-timeline`, `cash-flow`, `networth-chart`, `net-worth-history-chart`, `portfolio-value-chart`, `crypto-chart` to use the shared kit.
-- Normalize skeletons and empty states:
-  - Keep all skeletons in `components/*-skeletons.tsx` with consistent sizes and aria‑hints.
-- Token usage audit:
-  - Replace hardcoded HSL values in components with CSS variables or `colors.*` from `lib/color-utils` when possible.
 
-Acceptance
-- Visual consistency across charts and cards; fewer diff‑only style changes when iterating.
+* Create `lib/insights/definitions.ts` with typed insight definitions (id, title, body, category, actions).
+* Build a `components/insights/InsightCard.tsx` component that accepts an insight object and renders icon, title, message, metrics (current vs target), and CTA buttons. Ensure keyboard focus management and ARIA attributes for dynamic explanations (e.g., “Why?” links).
+* Update pages (Documents, Portfolio, Crypto, Cash Flow, Budget, Goals, Taxes, Insights) to import and render from this shared component.
+* Introduce an `lib/insights/service.ts` mock service that returns insights by category (e.g., spending, investment health, tax planning) and supports pagination or filtering.
 
-### WS3 – Performance & Web Vitals
-Goal: Reduce JS, improve interactivity, and keep LCP/INP healthy.
+Acceptance Criteria
 
-Deliverables
-- Table virtualization for large lists (100+ rows):
-  - Apply to `components/holdings-table.tsx`, `components/crypto-table.tsx`, `components/accounts-table/*` using `@tanstack/react-virtual` or `react-virtuoso`.
-- Progressive hydration for non‑critical widgets (keep current dynamic imports; add `prefetch` hints where helpful).
-- Add optional bundle analyzer and budgets:
-  - Integrate `@next/bundle-analyzer` (dev only) and document size budgets per route.
-- Image/asset hygiene: confirm `images.unoptimized: true` is desired; otherwise enable Next Image where impactful.
+* All insight cards across pages use the shared component.
+* Adding or editing an insight only requires updating the definitions file.
+* Unit tests cover the InsightCard component (e.g., CTA click handlers, accessible labeling).
 
-Acceptance
-- Measured reduction in hydrated JS on dashboard routes; smoother scroll in large tables.
-- No regressions in functionality; CI includes a “build with analyzer” job (non‑blocking).
+---
 
-### WS4 – Accessibility (AA + keyboard flows)
-Goal: Systematize a11y rather than spot‑fixing.
+### Revised Workstreams from v2
+
+#### WS1 – Architecture & Types Hygiene (unchanged)
+
+- [x] Centralize domain interfaces into `types/domain.ts`.
+- [x] Introduce zod schemas in `lib/schemas`.
+- [x] Add typed data adapters in `lib/services`.
+
+#### WS2 – Design System & Component Hardening (expanded)
+
+Goal: Extend the design system beyond charts to include insight cards, sliders, toggles and action buttons.
 
 Deliverables
-- Axe checks on key routes using Playwright + axe‑core (smoke suite for `/`, `/overview`, `/accounts`, `/portfolio`, `/documents`).
-- Ensure focus management and visible focus rings for dialogs/menus.
-- Expand `aria-label` and `aria-describedby` on interactive money values and chart controls.
-- Contrast audit for chart colors and badges against AA.
+
+* Chart Kit: Implement `ChartContainer`, `ThemedAxis`, `Grid`, `TooltipCard` as planned, ensuring they support time‑range toggles (1D/7D/30D/6M/1Y/All on the Crypto page), comparison lines (e.g., compare portfolio vs SPY), and unit labels.
+* Insight Card Component: (see WS0).
+* Slider Component: Add `components/ui/Slider` with accessible labels and dynamic value display; reuse in tax what‑if scenarios and future goal simulations.
+* Toggle & Switch Components: Standardize toggle design for Settings (email notifications, push notifications, price alerts, trade confirmations), hide‑$0‑balance switch on Accounts, show‑stablecoins switch on Crypto, etc.
+* Action Button Variants: Provide a consistent style for CTA buttons (e.g., “Set Alert,” “Enable Staking,” “View Analysis,” “Rebalance,” “Adjust Goal,” “Optimize”) across pages.
+* Normalize skeletons and empty states as in v2 (documents skeletons, accounts/holdings skeletons, etc.).
+* Audit token usage and replace hard‑coded HSL values with variables.
 
 Acceptance
-- Zero critical axe violations on smoke pages; documented follow‑ups for minors.
 
-### WS5 – Data Boundaries & Error Handling
-Goal: Prepare for real data with predictable failures.
+* Shared components used across pages; visual consistency (colors, spacing, states).
+* Storybook (optional) shows examples of insight cards, sliders and toggles.
 
-Deliverables
-- Route handlers under `app/api/mock/*` that serve `lib/mock` data with zod validation.
-- Lightweight error boundaries around chart heavy areas and data tables; friendly retry UIs.
-- Centralized fetch wrapper with abort + timeout and typed results.
+#### WS3 – Performance & Web Vitals (expanded)
 
-Acceptance
-- Client components fetch via typed adapters; errors render consistent fallbacks.
+* Virtualize large tables: extend virtualization not only to accounts and holdings but also to crypto holdings and budget categories.
+* Evaluate virtualization libraries: use `@tanstack/react-table` with `react-virtual` or `react-virtuoso` for dynamic rows and sticky columns. Ensure row actions (e.g., context menu) and keyboard navigation remain accessible.
+* Progressive hydration: continue dynamic imports for charts; prefetch modules for heavy analyses triggered by CTA buttons (e.g., “View Analysis” on Crypto page).
+* Add optional prefetch hints for features like insights feed when user hovers over a tab.
+* Enable Next Image for all static assets unless `images.unoptimized` is intentionally kept for placeholder environment.
+* Add `@next/bundle-analyzer` budgets for each route.
 
-### WS6 – Testing & CI Maturity
-Goal: Targeted confidence without over‑engineering.
+#### WS4 – Accessibility (expanded)
 
-Deliverables
-- Unit tests: `lib/format`, `lib/navigation`, `lib/color-utils` (edge cases), chart formatters.
-- Component tests (Vitest + RTL): one per major surface (KPIs, HoldingsTable sorting, AccountsListMobile interactions).
-- Add Playwright E2E for core journeys (navigate sidebar → overview → portfolio; open dialog; filter holdings).
-- Extend CI with E2E job (allowed to be opt‑in/skipped on external PRs).
+* Incorporate Axe checks for all new components (InsightCard, Slider, Toggle).
+* Standardize aria roles for interactive financial values (e.g., properly label net cash flow, total crypto value).
+* Ensure all charts have text alternatives or accessible summaries (via `<figcaption>` or off‑screen text).
+* Provide keyboard controls for time‑range switches (arrow keys to navigate 1D/7D/30D) and group selectors (e.g., "Group by Account" in holdings table).
+* Add skip links to main content on each page and ensure each page has one `<main>` tag.
 
-Acceptance
-- All tests pass in CI; flaky tests quarantined; coverage reports for utils.
+#### WS5 – Data Boundaries & Error Handling (expanded)
 
-### WS7 – Observability & UX Instrumentation
-Goal: Understand user flows and issues to prioritize polish.
+* Expand typed API mocks to include insights and tax scenarios.
+* Add error boundaries around AI insight containers and interactive calculators. Provide fallback UIs with retry instructions.
 
-Deliverables
-- Event map for navigation, filters, dialogs; add typed `lib/analytics.ts` (console/no‑op in dev, plug‑in later).
-- Add `onError` logging in error boundaries with a centralized `lib/logging.ts` interface.
+#### WS6 – Testing & CI Maturity (expanded)
 
-Acceptance
-- Events fire in dev console; errors include component name + route context.
+* Add tests for new shared components (InsightCard, Slider, Toggle, ChartKit).
+* Add component tests for interactive flows: toggling notifications, adding goals, adjusting budgets, enabling staking, rebalancing. Use Vitest + RTL.
+* Extend Playwright E2E tests to cover new flows triggered by insights (e.g., navigate from “Dining expenses increased” card to Cash Flow details).
+* Include accessibility assertions in E2E (via axe) for new pages (Taxes, Insights, Settings).
+* Quarantine flakey tests, maintain high coverage.
 
-### WS8 – Security & Privacy
-Goal: Minimize risk ahead of data integration.
+#### WS7 – Observability & UX Instrumentation (expanded)
 
-Deliverables
-- Scrub `console.log` used for demo/actions; gate behind `if (process.env.NODE_ENV !== 'production')` or remove.
-- Verify PII mask coverage with `MaskableValue`; add tests for masked vs unmasked rendering.
-- Document `.env.example` with future keys (Plaid/public tokens, feature flags such as `NEXT_PUBLIC_ENABLE_VANTA`).
+* Expand event mapping to include user actions triggered by AI insight cards (e.g., clicked Set Alert, Adjust Budget, Rebalance).
+* Instrument toggles and sliders to capture user preferences (with dev‑only console output).
+* Expose typed analytics functions for AI cards (e.g., `trackInsightAction(insightId, actionType)`).
 
-Acceptance
-- No stray logs in prod builds; masking works consistently.
+#### WS8 – Security & Privacy (unchanged)
 
-### WS9 – Product Polish for Simplifi Parity (targeted)
-Goal: Improve perceived completeness without backend work.
+* Continue to scrub logs; ensure that sensitive financial values used in AI insights are masked when shown in logs.
+* Document environment variables (public Plaid keys, feature flags).
 
-Deliverables
-- Transactions UX: bulk select actions, category badges, quick filters (7/30/90d), and rule icon affordances (stubbed).
-- Budget/Cash‑flow views: add “planned vs actual” toggles and recurring expense indicators using mock cadence.
-- Goals: add “what‑if” sliders to `goal-detail-modal` using local state + `lib/format`.
-- Documents: quick actions toolbar (download/delete) already present; add drag‑and‑drop + multi‑type filter chips.
+#### WS9 – Product Polish for Simplifi Parity (expanded)
 
-Acceptance
-- Demos feel cohesive and competitive; all polish uses existing mocks and components.
+* Documents page: add drag‑and‑drop upload area and chip filters (already planned). Consider adding document preview modals with keyboard navigation and accessible controls for download/delete actions.
+* Transactions UX: as planned, add bulk select, badges and quick filters. Ensure virtualization if transaction lists are long.
+* Budget & Cash Flow: add “planned vs actual” toggles and recurring expense indicators, and unify with the ChartKit.
+* Goals: implement what‑if sliders (leveraging new Slider component) for adjusting contributions and visualizing target date changes.
+* Taxes: expand the What‑If Tax Scenario to allow simulating multiple harvest scenarios; unify slider with new component.
+* Crypto: allow grouping by exchange and staking state; prefetch stable‑coin data on demand; integrate cross‑asset risk allocation chart with ChartKit.
 
-## Milestones & Sequencing
-- M1 (Week 1): WS1, WS2 (chart kit + types), small refactors only.
-- M2 (Week 2): WS3 (virtualization + analyzer), WS4 (axe smoke tests), WS5 (mock APIs).
-- M3 (Week 3): WS6 (tests), WS7 (analytics/logging), WS8 (privacy scrub).
-- M4 (Week 4): WS9 (product polish passes), final design QA and bug bash.
+---
 
-## Success Metrics
-- Core Web Vitals: LCP < 2.5s, INP < 200ms on dashboard routes (local + hosted preview).
-- Hydrated JS reduced on portfolio/crypto pages; table scroll FPS ≥ 55 on mid‑tier devices.
-- A11y: zero critical axe issues on smoke pages.
-- Type safety: no `any`/unsafe casts in changed areas; single domain types import path.
-- CI: green on lint, typecheck, unit, and smoke E2E.
+### Milestones & Sequencing (revised)
 
-## Initial Ticket Backlog (concrete)
-1) types/domain.ts: move `Account`, `Transaction` from `components/accounts-table/types.ts`; add `Holding`, `Document`, `Goal`.
-2) components/charts/: add `ChartContainer`, `TooltipCard`, `ThemedAxis`; migrate `performance-timeline.tsx` and `cash-flow.tsx` first.
-3) holdings-table.tsx: add row virtualization; keep API identical; measure render time.
-4) crypto-table.tsx and accounts-table/*: introduce virtualization; ensure keyboard navigation remains intact.
-5) app/api/mock/: expose `accounts`, `documents`, `goals` from `lib/mock/*` with zod validation.
-6) Add Playwright + axe smoke suite for `/`, `/overview`, `/accounts`, `/portfolio`, `/documents`.
-7) Introduce `lib/analytics.ts` and instrument sidebar navigation and date‑range changes.
-8) Privacy sweep: replace demo `console.log` with dev‑guarded logs; add unit tests for `MaskableValue`.
-9) Documents page: add drag‑and‑drop area and keyboard accessible multi‑select (reusing existing selection state).
-10) Bundle analyzer: add optional `ANALYZE=true pnpm build` docs and CI job.
+* M1 (Week 1): WS1 (types), WS2 (initial chart kit + toggle/slider components), WS0 (insight definitions & card component). Small refactors only.
+* M2 (Week 2): WS3 (virtualization across accounts/portfolio/crypto tables), WS4 (axe checks), WS5 (API mocks). Begin migrating pages to use insight cards and new components.
+* M3 (Week 3): WS6 (unit/component tests, E2E), WS7 (analytics/logging), WS8 (privacy scrub). Continue migrating AI cards and charts.
+* M4 (Week 4): WS9 (product polish), finalize design QA and bug bash. Document new patterns in README (insight definitions, slider/toggle usage).
 
-## Risks & Mitigations
-- Virtualization regressions (row height, focus): Ship behind a feature flag; add quick revert path.
-- Shared chart kit churn: Migrate 1–2 charts first, settle APIs, then roll out.
-- Test flakiness in CI: Quarantine flaky E2E; keep unit tests authoritative for merges.
+---
 
-— End of v2 plan —
+### Success Metrics
 
-## Cross-Cutting Items
-- Import Path Consistency: Prefer `@/…` aliases instead of mixed relative paths.
-- Accessibility: Ensure each page has a single `<main id="main-content">` and that interactive elements have discernible names/roles.
-- Documentation: Update README with development scripts, env flags (e.g., `NEXT_PUBLIC_ENABLE_VANTA`).
+* Performance: Maintain LCP < 2.5 s and INP < 200 ms on heavy pages. Virtualized tables scroll smoothly at ≥55 FPS on mid‑tier devices.
+* Type safety: Single domain types import path and typed insights definitions; no `any` or unsafe casts.
+* A11y: Zero critical Axe violations on all smoke routes, plus accessible AI cards, sliders and toggles.
+* UX: Insight cards are cohesive, actionable and reusable. Users can adjust goals and tax scenarios via reusable sliders. Settings toggles work consistently across devices.
+* CI: Green on lint, typecheck, unit, component and E2E tests; optional analyzer job for bundle budgets.
 
-## Suggested Commands
-- Typecheck: `pnpm tsc --noEmit`
-- Lint: `pnpm lint` or `pnpm exec eslint .`
-- Analyze bundle (optional): Next.js bundle analyzer or manual inspection via DevTools.
+---
 
-## Risks & Mitigations
-- Re-enabling lint/TS may surface many warnings: sequence fixes by scope (PR03) before gating in CI (PR06).
-- Dependency pinning can cause lockfile churn: do in a dedicated PR (PR06) and test locally.
-- Dynamic imports can alter timing: verify charts and tooltips on slow devices.
-
-## Success Criteria (overall)
-- No disabled safety checks in next.config.
-- Lint/type checks pass; no `any`/casts in critical paths.
-- Consistent branding, skip link works everywhere.
-- Reduced bundle and stable routing/layout across the app.
+This v3 plan builds on your existing roadmap and the observations from the live UI. It focuses on consolidating repeating patterns (insights, charts, sliders, toggles) into reusable, well‑typed components, enhancing performance through virtualization, hardening accessibility and testing, and adding targeted polish to compete with top‑tier personal finance apps.
