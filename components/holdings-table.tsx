@@ -4,17 +4,7 @@ import { forwardRef, useMemo, useState } from "react"
 import type { HTMLAttributes } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {
-  TrendingUp,
-  TrendingDown,
-  ChevronDown,
-  ChevronUp,
-  Building2,
-  MoreVertical,
-  Eye,
-  EyeOff,
-  TrendingUpIcon,
-} from "lucide-react"
+import { TrendingUp, TrendingDown, Building2, MoreVertical, Eye, EyeOff, TrendingUpIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
@@ -116,7 +106,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     )
 
     if (allocationFilter) {
-      filtered = filtered.filter((h) => {
+      filtered = filtered.filter((_h) => {
         return true
       })
     }
@@ -502,7 +492,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                         </span>
                         <div className="ml-2 w-12 h-6">
                           <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={holding.sparkline.map((val, i) => ({ value: val }))}>
+                            <LineChart data={holding.sparkline.map((val) => ({ value: val }))}>
                               <Line
                                 type="monotone"
                                 dataKey="value"
@@ -619,43 +609,4 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
   )
 }
 
-function SortableTh({
-  label,
-  active,
-  dir,
-  onClick,
-  className,
-}: {
-  label: string
-  active?: boolean
-  dir?: "asc" | "desc"
-  onClick?: () => void
-  className?: string
-}) {
-  const right = className?.includes("text-right")
-  return (
-    <th className={cn("py-3 px-3 text-left select-none", className)}>
-      <button
-        type="button"
-        className={cn(
-          "inline-flex w-full items-center gap-1 hover:text-foreground text-xs uppercase tracking-wide",
-          active ? "text-foreground" : "text-muted-foreground",
-          right ? "justify-end text-right" : "justify-start",
-        )}
-        onClick={onClick}
-        aria-pressed={active}
-      >
-        {label}
-        {active ? (
-          dir === "asc" ? (
-            <ChevronUp className="h-3 w-3" />
-          ) : (
-            <ChevronDown className="h-3 w-3" />
-          )
-        ) : (
-          <span className="inline-block w-3 h-3" aria-hidden />
-        )}
-      </button>
-    </th>
-  )
-}
+// (no module-scope helpers)

@@ -69,7 +69,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
               aria-label="Search or jump"
               placeholder="Search…"
               className="w-full pl-9 pr-4 text-sm"
-              onFocus={(e) => {
+              onFocus={() => {
                 // Lightly encourage the command menu for global actions
                 // Prevent virtual keyboard pop on mobile; keep as input for desktop
               }}

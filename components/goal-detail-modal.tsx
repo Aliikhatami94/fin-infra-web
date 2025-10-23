@@ -160,7 +160,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                 <div className="flex-1">
                   <h4 className="font-semibold mb-1">Predicted Completion</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Based on your current contribution rate of {formatCurrency(goal.monthlyTarget)}/month, you'll reach your goal
+                    Based on your current contribution rate of {formatCurrency(goal.monthlyTarget)}/month, you&#39;ll reach your goal
                     by <span className="font-medium text-foreground">{formattedPredictedDate}</span>
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">

@@ -5,3 +5,6 @@ packages:
 # See pnpm's build approval feature in v10+
 onlyBuiltDependencies:
   - unrs-resolver
+  - esbuild
+  - sharp
+  - "@tailwindcss/oxide"

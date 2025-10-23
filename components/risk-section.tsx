@@ -65,7 +65,7 @@ export function RiskSection() {
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs max-w-xs">
-                        The largest peak-to-trough decline in your portfolio value. This shows the worst loss you've
+                        The largest peak-to-trough decline in your portfolio value. This shows the worst loss you&#39;ve
                         experienced.
                       </p>
                     </TooltipContent>

@@ -41,7 +41,9 @@ export default function ForgotPasswordPage() {
           </Link>
           <h1 className="mt-8 text-3xl font-semibold tracking-tight">Reset your password</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isSubmitted ? "Check your email for a reset link" : "Enter your email and we'll send you a reset link"}
+            {isSubmitted
+              ? "Check your email for a reset link"
+              : "Enter your email and we\u2019ll send you a reset link"}
           </p>
         </div>
 
@@ -59,7 +61,7 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <p className="text-sm text-muted-foreground">
-                We've sent a password reset link to <span className="font-medium text-foreground">{email}</span>
+                We&#39;ve sent a password reset link to <span className="font-medium text-foreground">{email}</span>
               </p>
             </div>
 

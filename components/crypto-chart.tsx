@@ -90,9 +90,9 @@ export function CryptoChart({ showStablecoins, onToggleStablecoins }: CryptoChar
                 <TooltipCard
                   {...props}
                   labelFormatter={(label) => label}
-                  valueFormatter={(value, name) => `$${Number(value ?? 0).toLocaleString()}`}
+                  valueFormatter={(value, _name) => `$${Number(value ?? 0).toLocaleString()}`}
                   footer={(payload) => {
-                    const datum = (payload as any)?.[0]?.payload as CryptoDatum | undefined
+                    const datum = (payload?.[0] as { payload?: CryptoDatum } | undefined)?.payload
                     if (!datum?.transaction) return null
                     const isBuy = datum.transaction.type === "buy"
                     return (

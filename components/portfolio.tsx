@@ -74,7 +74,7 @@ export function Portfolio({ filter }: PortfolioProps) {
     return { totalValue, totalCost, totalGain, totalGainPercent, rows: sorted }
   }, [filter, holdings, query, sortDir, sortKey])
 
-  const { totalValue, totalCost, totalGain, totalGainPercent, rows } = computed
+  const { totalValue, totalGain, totalGainPercent, rows } = computed
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
