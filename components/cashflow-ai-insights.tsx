@@ -35,11 +35,10 @@ const overspendingSuggestions = [
   },
 ]
 
-const priorityWeight: Record<"low" | "medium" | "high" | undefined, number> = {
+const priorityWeight: Record<"low" | "medium" | "high", number> = {
   low: 0,
   medium: 1,
   high: 2,
-  undefined: 1,
 }
 
 export function CashFlowAIInsights() {
@@ -59,8 +58,8 @@ export function CashFlowAIInsights() {
         return bPinned - aPinned
       }
 
-      const aPriority = priorityWeight[a.priority]
-      const bPriority = priorityWeight[b.priority]
+  const aPriority = a.priority ? priorityWeight[a.priority] : 1
+  const bPriority = b.priority ? priorityWeight[b.priority] : 1
       if (aPriority !== bPriority) {
         return bPriority - aPriority
       }

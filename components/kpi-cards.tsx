@@ -114,7 +114,7 @@ export function KPICards() {
                               <Button
                                 key={`${kpi.label}-${action.label}`}
                                 variant="ghost"
-                                size="xs"
+                                size="sm"
                                 type="button"
                                 className="h-7 px-2 text-xs font-medium"
                                 aria-label={action.description ?? `${action.label} for ${kpi.label}`}

@@ -47,7 +47,7 @@ export function CryptoAIInsights() {
     },
   ] as const
 
-  const getPieGradient = (weights: { weight: number }[]) => {
+  const getPieGradient = (weights: ReadonlyArray<{ weight: number }>) => {
     let start = 0
     const palette = [
       "hsl(var(--chart-1))",
