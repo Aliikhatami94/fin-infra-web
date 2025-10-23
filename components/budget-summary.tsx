@@ -1,5 +1,7 @@
 "use client"
 
+import { useMemo } from "react"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,6 +10,7 @@ import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useOnboardingState } from "@/hooks/use-onboarding-state"
 
 const sparklineData = {
   budgeted: [6200, 6300, 6400, 6500, 6500, 6500, 6500],
@@ -15,7 +18,7 @@ const sparklineData = {
   remaining: [1000, 900, 800, 800, 700, 680, 660],
 }
 
-const summary = [
+const baseSummary = [
   {
     label: "Total Budgeted",
     value: "$6,500",
@@ -72,6 +75,52 @@ function Sparkline({ data, color = "hsl(var(--primary))" }: { data: number[]; co
 }
 
 export function BudgetSummary() {
+  const { state, hydrated } = useOnboardingState()
+  const persona = hydrated ? state.persona : undefined
+
+  const summary = useMemo(() => {
+    if (!persona) {
+      return baseSummary
+    }
+
+    const customized = baseSummary.map((item) => ({ ...item }))
+
+    if (persona.goalsFocus === "debt_paydown") {
+      customized[0] = {
+        ...customized[0],
+        label: "Debt Paydown Budget",
+        value: "$1,200",
+        badge: "Snowball active",
+        icon: TrendingDown,
+      }
+      customized[1] = {
+        ...customized[1],
+        subtext: "$300 extra vs. plan",
+        trend: "down",
+      }
+    } else if (persona.goalsFocus === "financial_stability") {
+      customized[2] = {
+        ...customized[2],
+        label: "Emergency Buffer",
+        value: "$18,660",
+        badge: "7.5 months",
+      }
+    } else if (persona.goalsFocus === "wealth_building") {
+      customized[0] = {
+        ...customized[0],
+        label: "Auto-invest Budget",
+        value: "$3,200",
+        icon: DollarSign,
+      }
+    }
+
+    if (persona.budgetingStyle === "automated") {
+      customized[0] = { ...customized[0], actionable: false }
+    }
+
+    return customized
+  }, [persona])
+
   return (
     <div className="grid gap-6 md:grid-cols-3">
       {summary.map((item, index) => {

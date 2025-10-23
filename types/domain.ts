@@ -175,3 +175,98 @@ export interface RecentActivity {
   color: string
   actions: ActivityAction[]
 }
+
+export type OnboardingStatus = "not_started" | "in_progress" | "completed" | "skipped"
+
+export type OnboardingGoalFocus = "wealth_building" | "debt_paydown" | "financial_stability"
+
+export type OnboardingRiskTolerance = "conservative" | "balanced" | "aggressive"
+
+export type OnboardingBudgetingStyle = "hands_on" | "automated" | "hybrid"
+
+export interface OnboardingPersona {
+  goalsFocus: OnboardingGoalFocus
+  riskTolerance: OnboardingRiskTolerance
+  budgetingStyle: OnboardingBudgetingStyle
+}
+
+export type InstitutionConnectionStatus = "idle" | "linking" | "connected" | "error"
+
+export interface LinkedInstitutionAccount {
+  id: string
+  name: string
+  type: AccountType
+  mask: string
+  balance: number
+}
+
+export interface LinkedInstitution {
+  id: string
+  name: string
+  status: InstitutionConnectionStatus
+  lastLinkedAt?: string
+  accounts: LinkedInstitutionAccount[]
+  errorMessage?: string
+}
+
+export interface OnboardingState {
+  status: OnboardingStatus
+  completedSteps: string[]
+  persona?: OnboardingPersona
+  linkedInstitutions: LinkedInstitution[]
+  lastUpdated: string
+  skippedAt?: string
+}
+
+export interface MoneyGraphAccountNode {
+  id: string
+  accountId: number
+  name: string
+  institution: string
+  type: AccountType
+  balance: number
+  intentTags: string[]
+  supportsGoals: number[]
+}
+
+export type MoneyGraphTransactionDirection = "inflow" | "outflow"
+
+export interface MoneyGraphTransactionNode {
+  id: string
+  transactionId: number
+  accountId: number
+  amount: number
+  category: string
+  cadence: "monthly" | "weekly" | "one_time"
+  direction: MoneyGraphTransactionDirection
+  goalIds: number[]
+  notes?: string
+}
+
+export interface MoneyGraphGoalNode {
+  id: string
+  goalId: number
+  priority: "primary" | "secondary"
+  status: GoalStatus
+  current: number
+  target: number
+  fundedByAccountIds: number[]
+  personaTags: OnboardingGoalFocus[]
+}
+
+export interface MoneyGraphEdge {
+  source: string
+  target: string
+  relationship: "funds" | "backs" | "influences"
+  confidence: number
+  annotations?: string[]
+}
+
+export interface MoneyGraph {
+  accounts: MoneyGraphAccountNode[]
+  transactions: MoneyGraphTransactionNode[]
+  goals: MoneyGraphGoalNode[]
+  edges: MoneyGraphEdge[]
+  personaSignals: OnboardingPersona
+  lastSynced: string
+}

@@ -1,5 +1,7 @@
 "use client"
 
+import { useMemo } from "react"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, TrendingDown } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -11,6 +13,7 @@ import { motion } from "framer-motion"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { getValueColor, getValueBgColor } from "@/lib/color-utils"
 import { getDashboardKpis } from "@/lib/services"
+import { useOnboardingState } from "@/hooks/use-onboarding-state"
 
 const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   const max = Math.max(...data)
@@ -39,9 +42,10 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   )
 }
 
-const kpis = getDashboardKpis()
-
 export function KPICards() {
+  const { state, hydrated } = useOnboardingState()
+  const kpis = useMemo(() => getDashboardKpis(hydrated ? state.persona : undefined), [hydrated, state.persona])
+
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {kpis.map((kpi, index) => {

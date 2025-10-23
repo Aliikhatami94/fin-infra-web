@@ -153,3 +153,120 @@ Acceptance Criteria
 * **Confidence:** Post-action feedback averages ≥4.5/5 on clarity and trustfulness.
 * **Retention:** Households using shared spaces retain at 120% vs. individual baseline.
 * **Performance:** Mobile INP < 200ms on high-interaction pages; no accessibility regressions (axe clean across routes).
+
+---
+
+### Page & Surface Enhancement Checklist
+
+The following breakdown translates the qualitative UX guidance into executable tasks. Each sub-list is ordered for sequential delivery and references relevant components or directories for quick navigation.
+
+#### Global Design System (applies across all routes)
+
+1. Audit existing spacing, font, and color tokens in `app/globals.css`, `styles/themes`, and shared UI components to map current usage patterns.
+2. Define updated spacing scale and typography ramp; document changes in `docs/design-tokens.md` and update relevant CSS variables.
+3. Implement standardized card padding/margins within shared card primitives (e.g., `components/ui/card.tsx`) ensuring responsive adjustments at breakpoints.
+4. Validate accent color contrast against WCAG AA using design tokens—adjust success/danger palettes and update usage in financial delta text components.
+5. Confirm single font-family usage across `layout.tsx` shells; remove redundant font imports and enforce heading/body styles via Tailwind or CSS modules.
+6. Extend responsive mixins to ensure cards stack and sidebars collapse on <1024px widths; verify with Storybook or responsive preview in `pnpm dev`.
+7. Build a reusable tooltip description map in `lib/tooltips` and apply to all data points flagged in subsequent sections; ensure hover + focus accessibility.
+8. Introduce a global dark-mode + font-size preference control surfaced in Settings (detailed later) and propagate CSS variables for theme switching.
+
+#### Overview Dashboard (`app/(dashboard)/overview`)
+
+1. Update card grid layout to include subtle separators (border or shadow) and consistent icon sizing via `OverviewCard` component.
+2. Add “View details” CTA links under each high-level card, routing to the appropriate detail page (`/portfolio`, `/accounts`, `/cash-flow`, etc.).
+3. Embed 7-day sparkline mini-charts inside KPI cards using lightweight chart component (reuse from `components/charts/sparkline.tsx`).
+4. Refresh Portfolio Health tabs: implement clear active/inactive styles (background fills, bold typography) and ensure keyboard navigation.
+5. Verify performance chart accessibility—provide aria labels, tooltip descriptions, and responsive behavior for mobile stacking.
+6. Confirm tooltips for net worth, investable assets, cash, debt, daily P/L, credit score include updated copy from `lib/tooltips`.
+
+#### Accounts Page (`app/(dashboard)/accounts`)
+
+1. Increase typography hierarchy in summary cards; align iconography and embed optional chart snippets per card.
+2. Refine “All Insights” module: add collapse/expand control with persisted state in local storage; reduce vertical footprint by default.
+3. Enhance accounts table with sortable headers and filter controls (account type, institution) using `components/ui/table` utilities.
+4. Implement sticky header behavior and test with long account lists to ensure columns remain visible during scroll.
+5. Ensure responsive card fallback for narrow screens (stacked account summaries) tying into WS-E mobile work.
+
+#### Portfolio Page (`app/(dashboard)/portfolio`)
+
+1. Annotate interactive metrics (Sharpe ratio, beta, etc.) with info icons triggering modal explanations; wire modals to `components/ui/dialog`.
+2. Group AI insights by category, introducing accordion-style expand/collapse behavior with default collapsed state for low-priority insights.
+3. Provide quick action buttons within each insight (e.g., “Rebalance now”) linking to automation or scenario workflows in WS-C.
+4. Add tooltips and aria descriptions for new UI controls and ensure charts scale on mobile.
+
+#### Crypto Page (`app/(dashboard)/crypto`)
+
+1. Design a toolbar wrapper for exchange/grouping filters with sufficient spacing and keyboard-focus outlines.
+2. Integrate micro-charts for BTC dominance and 24h change within AI insights card, ensuring data pulls from existing market feeds or mocks.
+3. When holdings exceed concentration threshold, display diversification CTA linking to portfolio rebalancing guide.
+
+#### Cash Flow Page (`app/(dashboard)/cash-flow`)
+
+1. Replace or augment current charts with stacked bar/area visualization separating inflows/outflows per timeframe using `components/charts` primitives.
+2. Introduce insight pin/unpin controls and store state via `useSecureStorage` to persist member selections.
+3. Optimize layout for mobile stacking and ensure axis labels meet contrast standards.
+
+#### Transactions Page (`app/(dashboard)/transactions`)
+
+1. Update actionable insight cards with primary/secondary buttons (Enable boosts, Review ride) and include dismiss/resolve actions.
+2. Extend transactions table to support customizable columns and advanced filters; surface search hints within input placeholder.
+3. Implement sticky filters/search bar for long lists; ensure accessibility (aria-live updates when filters applied).
+
+#### Budget Page (`app/(dashboard)/budget`)
+
+1. Introduce progress ring visualization for budget snapshot using shared chart component; ensure color contrast compliance.
+2. For over-budget categories, render mini bar chart comparing actual vs. planned spend, plus descriptive tooltip.
+3. Validate responsive behavior and update insights copy to encourage corrective actions.
+
+#### Goals Page (`app/(dashboard)/goals`)
+
+1. Display aggregate goal progress with progress bars/rings and monthly contribution summaries.
+2. Add filters for active/completed goals; ensure accessible toggle or segmented control implementation.
+3. Implement “Add Goal” modal wizard capturing name, target, monthly contribution, timeframe, and account linkage; include validation + success state.
+
+#### Taxes Page (`app/(dashboard)/taxes`)
+
+1. Add a timeline component showcasing key tax deadlines with icons and descriptive tooltips.
+2. Append “Why?” explanation links to each insight card, opening modal or side drawer with detailed rationale and data sources.
+3. Confirm automated actions integrate with WS-C copilot for harvest or document reminders.
+
+#### Insights Page (`app/(dashboard)/insights`)
+
+1. Implement filter tabs (All, Spending Trends, Investment Health, Goals Forecast) and integrate search bar with fuzzy matching.
+2. Highlight new/unread insights via badges or accent border; ensure state persists per member.
+3. Attach recommended actions with one-click triggers (with confirmation dialog) and track analytics events for engagement.
+
+#### Documents Page (`app/(dashboard)/documents`)
+
+1. Enlarge drag-and-drop CTA text, add accepted file type/size list, and ensure keyboard operability.
+2. Provide document type chips/tags with multi-select filtering; allow filtering by year/account with persistent state.
+3. Maintain accessibility by providing aria descriptions for upload feedback and error states.
+
+#### Settings Page (`app/(dashboard)/settings`)
+
+1. Standardize toggle styling for notification controls; add descriptive helper text beneath each toggle.
+2. Build appearance settings panel for light/dark mode, font sizing, and dyslexia-friendly font option leveraging global theme tokens.
+3. Ensure security center (WS-F) integrates with settings navigation and follows same visual language.
+
+#### Home/Landing Page (`app/page.tsx` + related components)
+
+1. Validate hero typography scales responsively; adjust CSS clamp values for headline/tagline.
+2. Ensure hero buttons have accessible labels and maintain contrast against background texture; add focus styles.
+3. Keep navigation bar sticky with visible TradeHub logo and primary “Get Started” button styling.
+4. Align feature highlight cards (Smart Insights, Portfolio Tracking, Risk Management) with consistent icon sizing and add hover states linking to detailed sections.
+5. Insert social proof (logos/testimonial) near final CTA and ensure single primary button directs to sign-up flow.
+6. Smooth scrolling transitions between hero and features; consider subtle animation triggers on scroll within performance budgets.
+7. Confirm alt text coverage for icons and prepare dark-mode theming parity.
+
+---
+
+### Validation & QA Checklist
+
+1. Conduct component-level Storybook reviews (or Chromatic) for all updated UI primitives ensuring responsive states.
+2. Run automated accessibility audits (axe-core) on each page post-update.
+3. Execute Lighthouse checks for desktop and mobile focusing on performance and accessibility thresholds.
+4. Verify analytics events fire for new CTAs, filters, and automations using `lib/analytics/events` mocks.
+5. Update documentation (`docs/release-notes.md`, `docs/design-tokens.md`) summarizing UX enhancements.
+6. Collect qualitative feedback via user tests or stakeholder reviews before marking workstreams complete.
+
