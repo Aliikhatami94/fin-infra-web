@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useSecureStorage } from "@/hooks/use-secure-storage"
 import type {
@@ -83,17 +83,28 @@ export function useOnboardingState() {
     }
   }, [hydrated, secureStorage])
 
+  const persistenceQueue = useRef<Promise<void>>(Promise.resolve())
+
   const persist = useCallback(
-    async (next: OnboardingState) => {
-      if (secureStorage) {
-        try {
-          await secureStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-        } catch {
-          writeFallback(next)
+    (next: OnboardingState) => {
+      const persistNext = async () => {
+        if (secureStorage) {
+          try {
+            await secureStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+            return
+          } catch {
+            // fall through to fallback persistence
+          }
         }
-      } else {
+
         writeFallback(next)
       }
+
+      persistenceQueue.current = persistenceQueue.current
+        .catch(() => undefined)
+        .then(persistNext)
+
+      return persistenceQueue.current
     },
     [secureStorage],
   )
