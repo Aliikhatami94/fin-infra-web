@@ -9,6 +9,7 @@ import type { InsightDefinition } from "@/lib/insights/definitions"
 import { Slider, SliderField } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { DollarSign } from "lucide-react"
+import { PrivacyProvider } from "@/components/privacy-provider"
 
 type AxeResults = import("axe-core").AxeResults
 
@@ -39,7 +40,7 @@ async function renderWithAxe(node: React.ReactElement) {
   const root = createRoot(container)
 
   await act(async () => {
-    root.render(node)
+    root.render(<PrivacyProvider>{node}</PrivacyProvider>)
   })
 
   await runAxe(container)

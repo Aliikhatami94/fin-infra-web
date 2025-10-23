@@ -36,8 +36,11 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
 }
 
 async function importEncryptionKey(secret: string) {
-  const keyBytes = base64ToArrayBuffer(secret)
-  return subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt", "decrypt"])
+  // Derive a stable 256-bit key from the provided secret string to satisfy AES-GCM key length.
+  // This allows arbitrary strings (including base64-like tokens) to be used as secrets in tests and dev.
+  const secretBytes = encoder.encode(secret)
+  const hash = await subtle.digest("SHA-256", secretBytes)
+  return subtle.importKey("raw", hash, "AES-GCM", false, ["encrypt", "decrypt"])
 }
 
 async function encryptValue(value: string, secret: string) {

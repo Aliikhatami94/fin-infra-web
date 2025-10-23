@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client"
 import { describe, expect, it, vi } from "vitest"
 
 import { InsightCard } from "@/components/insights/InsightCard"
+import { PrivacyProvider } from "@/components/privacy-provider"
 import type { InsightDefinition } from "@/lib/insights/definitions"
 
 const TestIcon = ({ className }: { className?: string }) => (
@@ -54,7 +55,7 @@ const render = (ui: ReactElement) => {
   const root = createRoot(container)
 
   act(() => {
-    root.render(ui)
+    root.render(<PrivacyProvider>{ui}</PrivacyProvider>)
   })
 
   return {
@@ -70,7 +71,7 @@ const render = (ui: ReactElement) => {
 
 describe("InsightCard", () => {
   it("renders insight content, metrics, and progress", () => {
-    const { container, unmount } = render(<InsightCard insight={createInsight()} />)
+  const { container, unmount } = render(<InsightCard insight={createInsight()} />)
 
     try {
       expect(container.querySelector("h3")?.textContent).toContain("Test Insight")
@@ -91,7 +92,12 @@ describe("InsightCard", () => {
     const onAction = vi.fn()
     const insight = createInsight()
     const { container, unmount } = render(
-      <InsightCard insight={insight} onAction={({ action, insight: rendered }) => onAction({ action, insight: rendered })} />,
+      <InsightCard
+        insight={insight}
+        onAction={({ action, insight: rendered }: { action: any; insight: InsightDefinition }) =>
+          onAction({ action, insight: rendered })
+        }
+      />,
     )
 
     try {
@@ -112,7 +118,7 @@ describe("InsightCard", () => {
   })
 
   it("toggles explanation visibility via the Why button", () => {
-    const { container, unmount } = render(<InsightCard insight={createInsight()} />)
+  const { container, unmount } = render(<InsightCard insight={createInsight()} />)
 
     try {
       const buttons = Array.from(container.querySelectorAll("button"))

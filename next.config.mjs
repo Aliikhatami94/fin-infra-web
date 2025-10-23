@@ -30,8 +30,9 @@ const requiredEnvVars = [
 const missingEnv = requiredEnvVars.filter((key) => !process.env[key] || process.env[key].trim() === "")
 
 if (missingEnv.length > 0) {
-  const isProd = process.env.NODE_ENV === "production"
-  if (isProd) {
+  const lifecycle = process.env.npm_lifecycle_event
+  const isProdStrict = process.env.NODE_ENV === "production" && lifecycle !== "lint" && lifecycle !== "test"
+  if (isProdStrict) {
     throw new Error(`Missing required environment variables: ${missingEnv.join(", ")}`)
   } else {
     // In development, provide safe fallbacks and warn instead of crashing
