@@ -184,7 +184,9 @@ export function Portfolio({ filter }: PortfolioProps) {
                         </div>
                       </td>
                       <td className="py-3 text-right tabular-nums">{h.shares}</td>
-                      <td className="py-3 hidden md:table-cell text-right tabular-nums">{formatCurrency(h.currentPrice)}</td>
+                      <td className="py-3 hidden md:table-cell text-right tabular-nums">
+                        {formatCurrency(h.currentPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
                       <td className="py-3 text-right font-mono">
                         <MaskableValue value={formatCurrency(h.value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} srLabel={`${h.symbol} value`} />
                       </td>
