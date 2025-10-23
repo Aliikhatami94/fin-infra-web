@@ -23,12 +23,14 @@ import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
 import { useDateRange } from "@/components/date-range-provider"
 import { BRAND } from "@/lib/brand"
+import { useOnboardingState } from "@/hooks/use-onboarding-state"
 
 export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked } = usePrivacy()
   const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
+  const { progress: onboardingProgress, state: onboardingState, hydrated } = useOnboardingState()
 
   const isDateRangeValue = (value: string): value is typeof dateRange => {
     return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
@@ -60,6 +62,13 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
           <Badge variant="outline" className="font-mono text-xs hidden sm:inline-flex">
             Live
           </Badge>
+          {hydrated && onboardingState.status !== "completed" ? (
+            <Badge variant="secondary" className="hidden sm:inline-flex items-center gap-1">
+              <Link href="/onboarding" className="flex items-center gap-1">
+                <span className="font-medium">Setup {onboardingProgress}%</span>
+              </Link>
+            </Badge>
+          ) : null}
         </div>
 
         <div className="flex flex-1 items-center justify-center px-2 md:px-4 lg:px-8">

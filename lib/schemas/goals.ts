@@ -1,7 +1,14 @@
 import { z } from "zod"
 
-import type { Goal } from "@/types/domain"
+import type { Goal, GoalMilestone } from "@/types/domain"
 import { iconSchema } from "./accounts"
+
+const goalMilestoneSchema: z.ZodType<GoalMilestone> = z.object({
+  label: z.string(),
+  target: z.number(),
+  achieved: z.boolean(),
+  celebrationCta: z.string().optional(),
+})
 
 export const goalSchema: z.ZodType<Goal> = z.object({
   id: z.number(),
@@ -17,6 +24,9 @@ export const goalSchema: z.ZodType<Goal> = z.object({
   status: z.enum(["active", "paused", "completed"]),
   color: z.string(),
   bgColor: z.string(),
+  milestones: z.array(goalMilestoneSchema).optional(),
+  celebrationMessage: z.string().optional(),
+  scenarioNotes: z.string().optional(),
 })
 
 export const goalsResponseSchema = goalSchema.array()

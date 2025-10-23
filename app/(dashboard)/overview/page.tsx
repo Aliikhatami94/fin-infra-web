@@ -14,6 +14,9 @@ import {
   PortfolioSkeleton,
   RecentActivitySkeleton,
 } from "@/components/dashboard-skeletons"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { useOnboardingState } from "@/hooks/use-onboarding-state"
 
 const AllocationChart = dynamic<AllocationChartProps>(
   () => import("@/components/allocation-chart").then((mod) => mod.AllocationChart),
@@ -80,6 +83,48 @@ const AIChatSidebar = dynamic(
 export default function OverviewPage() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [allocationFilter, setAllocationFilter] = useState<string | null>(null)
+  const { state: onboardingState, hydrated } = useOnboardingState()
+
+  if (hydrated && onboardingState.status !== "completed") {
+    const skipped = onboardingState.status === "skipped"
+    return (
+      <div className="mx-auto w-full max-w-[800px] space-y-6">
+        <Card className="card-standard">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold text-foreground">Welcome back</CardTitle>
+            <CardDescription>
+              {skipped
+                ? "Your dashboard is waiting for a few details before we can populate live insights."
+                : "Finish onboarding to unlock your personalized Money Graph and live KPIs."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">Guided actions</p>
+              <ul className="mt-2 list-disc space-y-1 pl-6">
+                <li>Link at least one financial institution.</li>
+                <li>Answer three quick persona questions to tailor KPIs.</li>
+                <li>Review the Money Graph preview to confirm automations.</li>
+              </ul>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Progress is saved securely. You can resume onboarding anytime.
+            </p>
+            <div className="flex gap-2">
+              <Button asChild variant="outline">
+                <Link href="/insights">Browse insights</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/onboarding">{skipped ? "Resume setup" : "Continue onboarding"}</Link>
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-6">

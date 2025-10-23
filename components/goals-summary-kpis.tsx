@@ -1,11 +1,14 @@
 "use client"
 
+import { useMemo } from "react"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, DollarSign, Target } from "lucide-react"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useOnboardingState } from "@/hooks/use-onboarding-state"
 
 const sparklineData = [
   { month: "Jan", value: 42000 },
@@ -53,12 +56,28 @@ function MiniSparkline({ data, color }: { data: { value: number }[]; color: stri
 }
 
 export function GoalsSummaryKPIs() {
+  const { state, hydrated } = useOnboardingState()
+  const persona = hydrated ? state.persona : undefined
+
   const totalSaved = 59500
   const totalTarget = 188000
   const percentComplete = Math.round((totalSaved / totalTarget) * 100)
   const monthlyContribution = 1200
   const targetContribution = 1400
   const contributionRate = Math.round((monthlyContribution / targetContribution) * 100)
+
+  const primaryLabel = useMemo(() => {
+    if (persona?.goalsFocus === "debt_paydown") {
+      return "Debt Freedom Progress"
+    }
+    if (persona?.goalsFocus === "financial_stability") {
+      return "Safety Net Progress"
+    }
+    return "Total Goal Progress"
+  }, [persona?.goalsFocus])
+
+  const monthlyLabel = persona?.goalsFocus === "debt_paydown" ? "Monthly Debt Payment" : "Monthly Contribution"
+  const fundingHeadline = persona?.goalsFocus === "wealth_building" ? "Growth Funding" : "Funding Status"
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
@@ -68,7 +87,7 @@ export function GoalsSummaryKPIs() {
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground">Total Goal Progress</p>
+                  <p className="text-sm text-muted-foreground">{primaryLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
                 </div>
                 <p className="text-2xl font-bold tabular-nums">
@@ -110,7 +129,7 @@ export function GoalsSummaryKPIs() {
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground">Monthly Contribution</p>
+                  <p className="text-sm text-muted-foreground">{monthlyLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
                 </div>
                 <p className="text-2xl font-bold tabular-nums">
@@ -149,7 +168,7 @@ export function GoalsSummaryKPIs() {
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground">Funding Status</p>
+                  <p className="text-sm text-muted-foreground">{fundingHeadline}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
                 </div>
                 <p className="text-2xl font-bold">On Track</p>

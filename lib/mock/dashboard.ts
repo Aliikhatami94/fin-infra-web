@@ -1,5 +1,5 @@
-import { DollarSign, Wallet, CreditCard, Activity, ArrowUpRight, ArrowDownRight, RefreshCw, ShoppingCart } from "lucide-react"
-import type { Holding, KPI, RecentActivity } from "@/types/domain"
+import { DollarSign, Wallet, CreditCard, Activity, ArrowUpRight, ArrowDownRight, RefreshCw, ShoppingCart, PiggyBank, Shield } from "lucide-react"
+import type { Holding, KPI, RecentActivity, OnboardingGoalFocus } from "@/types/domain"
 
 export const kpis: KPI[] = [
   {
@@ -151,3 +151,54 @@ export const recentActivities: RecentActivity[] = [
     actions: [{ label: "View Tax Impact", variant: "outline" as const }],
   },
 ]
+
+export const personaKpiPriorities: Record<OnboardingGoalFocus, string[]> = {
+  wealth_building: ["Investable Assets", "Today's P/L", "Net Worth"],
+  debt_paydown: ["Debt Balance", "Credit Score", "Cash Available"],
+  financial_stability: ["Cash Available", "Net Worth", "Debt Balance"],
+}
+
+export const personaKpiExtras: Record<OnboardingGoalFocus, KPI[]> = {
+  wealth_building: [
+    {
+      label: "Savings Rate",
+      value: "62%",
+      change: "+8%",
+      baselineValue: "54%",
+      trend: "up",
+      sparkline: [40, 42, 45, 50, 52, 58, 62, 63, 64, 66],
+      icon: PiggyBank,
+      lastSynced: "Just now",
+      source: "Money Graph",
+      href: "/cash-flow",
+    },
+  ],
+  debt_paydown: [
+    {
+      label: "Payment Accelerator",
+      value: "$420",
+      change: "+$120",
+      baselineValue: "$300",
+      trend: "up",
+      sparkline: [180, 210, 240, 260, 300, 320, 360, 380, 400, 420],
+      icon: CreditCard,
+      lastSynced: "Today",
+      source: "Money Graph",
+      href: "/accounts",
+    },
+  ],
+  financial_stability: [
+    {
+      label: "Emergency Runway",
+      value: "7.5 mo",
+      change: "+0.8 mo",
+      baselineValue: "6.7 mo",
+      trend: "up",
+      sparkline: [5.5, 5.8, 6.0, 6.2, 6.5, 6.8, 7.0, 7.1, 7.3, 7.5],
+      icon: Shield,
+      lastSynced: "Today",
+      source: "Money Graph",
+      href: "/budget",
+    },
+  ],
+}
