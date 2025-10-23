@@ -5,10 +5,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Sparkles } from "lucide-react"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { Button } from "@/components/ui/button"
-import { documentInsights } from "@/lib/mock"
+import { getDocumentInsights } from "@/lib/services"
+
+const insights = getDocumentInsights()
 
 export function DocumentsAIInsights() {
-  const insights = documentInsights
 
   return (
     <motion.div {...createStaggeredCardVariants(0, 0.3)}>

@@ -1,7 +1,7 @@
 import { DollarSign, Wallet, CreditCard, Activity, ArrowUpRight, ArrowDownRight, RefreshCw, ShoppingCart } from "lucide-react"
-import type { Holding } from "@/types/domain"
+import type { Holding, KPI, RecentActivity } from "@/types/domain"
 
-export const kpis = [
+export const kpis: KPI[] = [
   {
     label: "Net Worth",
     value: "$487,234",
@@ -83,7 +83,7 @@ export const portfolioHoldings: Holding[] = [
   { symbol: "TSLA", name: "Tesla Inc.", shares: 15, avgPrice: 245.8, currentPrice: 238.5, change: -2.97 },
 ]
 
-export const recentActivities = [
+export const recentActivities: RecentActivity[] = [
   {
     id: 1,
     type: "transaction",

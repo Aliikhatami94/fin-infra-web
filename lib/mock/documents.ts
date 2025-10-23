@@ -1,5 +1,5 @@
 import { AlertCircle, FileText } from "lucide-react"
-import type { Document } from "@/types/domain"
+import type { Document, DocumentInsight } from "@/types/domain"
 
 export const documents: Document[] = [
   {
@@ -64,7 +64,7 @@ export const documents: Document[] = [
   },
 ]
 
-export const documentInsights = [
+export const documentInsights: DocumentInsight[] = [
   {
     icon: AlertCircle,
     text: "Missing Q4 2024 tax documents from 2 brokers. Upload by March 15 to avoid delays.",

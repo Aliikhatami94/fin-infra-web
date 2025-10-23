@@ -10,7 +10,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { getValueColor, getValueBgColor } from "@/lib/color-utils"
-import { kpis } from "@/lib/mock"
+import { getDashboardKpis } from "@/lib/services"
 
 const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   const max = Math.max(...data)
@@ -38,6 +38,8 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
     </svg>
   )
 }
+
+const kpis = getDashboardKpis()
 
 export function KPICards() {
   return (

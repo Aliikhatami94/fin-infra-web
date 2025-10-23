@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { recentActivities as activities } from "@/lib/mock"
+import { getRecentActivities } from "@/lib/services"
 import { formatCurrency } from "@/lib/format"
+
+const activities = getRecentActivities()
 
 export function RecentActivity() {
   const [selectedActivity, setSelectedActivity] = useState<(typeof activities)[0] | null>(null)
