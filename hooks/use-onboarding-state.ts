@@ -173,8 +173,7 @@ export function useOnboardingState() {
   )
 
   const progress = useMemo(() => {
-    const totalSteps = 3
-    if (totalSteps === 0) return 0
+    const totalSteps = 3 as number
     return Math.min(100, Math.round((state.completedSteps.length / totalSteps) * 100))
   }, [state.completedSteps.length])
 

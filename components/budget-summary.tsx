@@ -18,7 +18,20 @@ const sparklineData = {
   remaining: [1000, 900, 800, 800, 700, 680, 660],
 }
 
-const baseSummary = [
+type SummaryItem = {
+  label: string
+  value: string
+  icon: React.ComponentType<any>
+  color?: string
+  sparkline?: number[]
+  subtext?: string
+  trend?: "up" | "down"
+  progress?: number
+  badge?: string
+  actionable?: boolean
+}
+
+const baseSummary: SummaryItem[] = [
   {
     label: "Total Budgeted",
     value: "$6,500",
@@ -78,7 +91,7 @@ export function BudgetSummary() {
   const { state, hydrated } = useOnboardingState()
   const persona = hydrated ? state.persona : undefined
 
-  const summary = useMemo(() => {
+  const summary: SummaryItem[] = useMemo(() => {
     if (!persona) {
       return baseSummary
     }
@@ -177,9 +190,9 @@ export function BudgetSummary() {
                           <Sparkline
                             data={item.sparkline}
                             color={
-                              item.color.includes("green")
+                              item.color?.includes("green")
                                 ? "var(--color-positive)"
-                                : item.color.includes("red")
+                                : item.color?.includes("red")
                                   ? "var(--color-negative)"
                                   : "hsl(var(--primary))"
                             }
