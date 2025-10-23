@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.4.0",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
@@ -19,9 +22,6 @@
     "onlyBuiltDependencies": [
       "unrs-resolver"
     ]
-  },
-  "engines": {
-    "node": "20.x"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",

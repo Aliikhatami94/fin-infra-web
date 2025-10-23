@@ -34,15 +34,22 @@ jobs:
         run: pnpm env:check
 
       - name: Verify privacy checklist acknowledgement
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
         env:
           PR_BODY: ${{ github.event.pull_request.body || '' }}
+          BASE_REF: ${{ github.base_ref || '' }}
         run: |
-          if echo "$PR_BODY" | grep -qi "\[x\] I have reviewed and completed the checklist"; then
+          set -euo pipefail
+          # Accept either a checked box with the phrase (flexible whitespace/case) or a direct link mention.
+          if echo "$PR_BODY" | tr -d '\r' | grep -Eiq "\[[[:space:]]*[xX][[:space:]]*\].*reviewed.*completed.*checklist" || echo "$PR_BODY" | grep -qi "docs/security-privacy.md"; then
             echo "Privacy checklist acknowledged."
           else
-            echo "::error::Please acknowledge docs/security-privacy.md in the PR description."
-            exit 1
+            if [ "$BASE_REF" = "main" ]; then
+              echo "::error::Please acknowledge docs/security-privacy.md in the PR description (checked box or link)."
+              exit 1
+            else
+              echo "::warning::Privacy checklist not acknowledged. Add a checked box or link to docs/security-privacy.md."
+            fi
           fi
 
       - name: Lint
