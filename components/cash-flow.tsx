@@ -2,11 +2,19 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts"
+import type { TooltipContentProps } from "recharts"
 import { useDateRange } from "@/components/date-range-provider"
 import { useMemo } from "react"
 
-const generateCashFlowData = (months: number) => {
-  const data = []
+interface CashFlowPoint {
+  month: string
+  income: number
+  expenses: number
+  net: number
+}
+
+const generateCashFlowData = (months: number): CashFlowPoint[] => {
+  const data: CashFlowPoint[] = []
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
   for (let i = 0; i < months; i++) {
@@ -23,20 +31,32 @@ const generateCashFlowData = (months: number) => {
   return data
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+type CashFlowTooltipProps = TooltipContentProps<number, string>
+
+const CustomTooltip = ({ active, payload }: CashFlowTooltipProps) => {
   if (active && payload && payload.length) {
+    const incomePayload = payload.find((item) => item.dataKey === "income")?.value
+    const expensePayload = payload.find((item) => item.dataKey === "expenses")?.value
+    const income = typeof incomePayload === "number" ? incomePayload : Number(incomePayload ?? 0)
+    const expenses = typeof expensePayload === "number" ? expensePayload : Number(expensePayload ?? 0)
+    const dataPoint = payload[0]?.payload as CashFlowPoint | undefined
+    if (!dataPoint) {
+      return null
+    }
+    const net = income - expenses
+
     return (
       <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <p className="text-sm font-medium mb-2">{payload[0].payload.month}</p>
+        <p className="text-sm font-medium mb-2">{dataPoint.month}</p>
         <div className="space-y-1">
           <p className="text-sm" style={{ color: "hsl(142, 76%, 45%)" }}>
-            Income: ${payload[0].value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            Income: ${income.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </p>
           <p className="text-sm text-muted-foreground">
-            Expenses: ${payload[1].value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            Expenses: ${expenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </p>
           <p className="text-sm font-semibold pt-1 border-t mt-2">
-            Net: ${(payload[0].value - payload[1].value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            Net: ${net.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </p>
         </div>
       </div>
@@ -78,7 +98,7 @@ export function CashFlow() {
               tickLine={false}
             />
             <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
+            <Tooltip content={CustomTooltip} cursor={{ fill: "transparent" }} />
             <Bar dataKey="income" fill="hsl(142, 76%, 45%)" radius={[4, 4, 0, 0]} />
             <Bar dataKey="expenses" fill="hsl(24, 95%, 53%)" radius={[4, 4, 0, 0]} opacity={0.7} />
             <Line

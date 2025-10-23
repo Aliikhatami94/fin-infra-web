@@ -6,7 +6,8 @@
 - Deployed on Vercel and synchronized with v0.app; changes made in v0 can auto-sync back to this repository.
 
 ## Product goal
-- Deliver a responsive, accessible trading dashboard that surfaces portfolio data, charts, watchlists, and insights with a modern, fast UX.
+- Deliver a responsive, accessible financial dashboard that surfaces user finance data, charts, watchlists, and insights with a modern, fast UX.
+- Compete with existing finance dashboards like Quicken Simplifi, Monarch Money, and Personal Capital by focusing on clean design, performance, and AI-driven insights.
 - Keep the codebase simple to extend: new pages/components should follow the existing app-router and UI patterns, with minimal boilerplate.
 - Maintain a cohesive design system via Tailwind tokens, utility classes, and shared UI primitives in `components/ui`.
 

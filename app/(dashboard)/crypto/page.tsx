@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import { CryptoKPIs } from "@/components/crypto-kpis"
-import { CryptoChart } from "@/components/crypto-chart"
 import { CryptoTable } from "@/components/crypto-table"
 import { CryptoRiskSection } from "@/components/crypto-risk-section"
 import { CryptoAIInsights } from "@/components/crypto-ai-insights"
@@ -10,10 +10,26 @@ import { ExchangeAnalytics } from "@/components/exchange-analytics"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Fuel, Plus } from "lucide-react"
+import { ChartCardSkeleton } from "@/components/chart-skeleton"
+import type { CryptoChartProps } from "@/components/crypto-chart"
+import { ErrorBoundary } from "@/components/error-boundary"
+
+const CryptoChart = dynamic<CryptoChartProps>(
+  () => import("@/components/crypto-chart").then((mod) => mod.CryptoChart),
+  {
+    ssr: false,
+    loading: () => <ChartCardSkeleton title="Portfolio Value Over Time" contentHeight="h-[350px]" />,
+  },
+)
 
 export default function CryptoPage() {
   const [selectedExchange, setSelectedExchange] = useState<"All" | "Coinbase" | "Binance">("All")
   const [showStablecoins, setShowStablecoins] = useState(false)
+  const [groupBy, setGroupBy] = useState<"asset" | "exchange" | "staking">("asset")
+
+  const handleStablecoinHover = () => {
+    void import("@/components/crypto-table")
+  }
 
   return (
     <>
@@ -46,11 +62,53 @@ export default function CryptoPage() {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant={groupBy === "asset" ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => setGroupBy("asset")}
+          >
+            Group by asset
+          </Button>
+          <Button
+            variant={groupBy === "exchange" ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => setGroupBy("exchange")}
+          >
+            Group by exchange
+          </Button>
+          <Button
+            variant={groupBy === "staking" ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => setGroupBy("staking")}
+          >
+            Group by staking
+          </Button>
+          <Button
+            variant={showStablecoins ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onMouseEnter={handleStablecoinHover}
+            onClick={() => setShowStablecoins((prev) => !prev)}
+          >
+            {showStablecoins ? "Hide stablecoins" : "Show stablecoins"}
+          </Button>
+        </div>
+
         <CryptoKPIs />
-        <CryptoAIInsights />
+        <ErrorBoundary feature="Crypto insights">
+          <CryptoAIInsights />
+        </ErrorBoundary>
         <CryptoChart showStablecoins={showStablecoins} onToggleStablecoins={setShowStablecoins} />
         <ExchangeAnalytics selectedExchange={selectedExchange} />
-        <CryptoTable selectedExchange={selectedExchange} showStablecoins={showStablecoins} />
+        <CryptoTable
+          selectedExchange={selectedExchange}
+          showStablecoins={showStablecoins}
+          groupBy={groupBy}
+        />
         <CryptoRiskSection />
       </div>
 

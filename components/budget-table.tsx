@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { SwitchField } from "@/components/ui/switch"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Virtuoso } from "react-virtuoso"
 
 type Budget = {
   category: string
@@ -127,7 +128,7 @@ export function BudgetTable() {
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
   const [rolloverEnabled, setRolloverEnabled] = useState(false)
   const [warningThreshold, setWarningThreshold] = useState("90")
-  const [showSuggested, setShowSuggested] = useState(true)
+  const [showSuggested, _setShowSuggested] = useState(true)
   const [comparisonPeriod, setComparisonPeriod] = useState<"lastMonth" | "lastYear">("lastMonth")
 
   const handleSort = (field: SortField) => {
@@ -153,6 +154,14 @@ export function BudgetTable() {
   const filteredBudgets = sortedBudgets.filter((budget) =>
     budget.category.toLowerCase().includes(searchQuery.toLowerCase()),
   )
+
+  const listHeight = useMemo(() => {
+    const estimatedCard = 132
+    const totalHeight = filteredBudgets.length * estimatedCard
+    const maxHeight = 640
+    const minHeight = 320
+    return Math.max(minHeight, Math.min(maxHeight, totalHeight))
+  }, [filteredBudgets.length])
 
   const handleEdit = (index: number, budget: Budget) => {
     setEditingIndex(index)
@@ -265,172 +274,173 @@ export function BudgetTable() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="hidden md:block space-y-4">
-              {filteredBudgets.map((budget, index) => {
-                const previousActual = comparisonPeriod === "lastMonth" ? budget.lastMonthActual : budget.lastYearActual
-                const periodChange = budget.actual - previousActual
-                const periodChangePercent = ((periodChange / previousActual) * 100).toFixed(0)
-                const isOverBudget = budget.percent > 100
-                const isNearLimit = budget.percent > 90 && budget.percent <= 100
+            <div className="hidden md:block">
+              <Virtuoso
+                data={filteredBudgets}
+                style={{ height: listHeight }}
+                overscan={200}
+                computeItemKey={(index, budget) => `${budget.category}-${index}`}
+                itemContent={(index, budget) => {
+                  const previousActual = comparisonPeriod === "lastMonth" ? budget.lastMonthActual : budget.lastYearActual
+                  const periodChange = budget.actual - previousActual
+                  const periodChangePercent = ((periodChange / previousActual) * 100).toFixed(0)
+                  const isOverBudget = budget.percent > 100
+                  const isNearLimit = budget.percent > 90 && budget.percent <= 100
 
-                return (
-                  <div
-                    key={index}
-                    className="group space-y-3 rounded-lg border border-transparent p-4 transition-all hover:border-border hover:bg-muted/30"
-                  >
-                    <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 items-center">
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium text-foreground">{budget.category}</span>
-                        {budget.rolloverEnabled && (
-                          <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
-                            Rollover
-                          </Badge>
-                        )}
-                        <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() => handleEdit(index, budget)}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() => handleAdvancedEdit(budget)}
-                          >
-                            <Settings className="h-3.5 w-3.5" />
-                          </Button>
+                  return (
+                    <div className="mb-4 last:mb-0 group space-y-3 rounded-lg border border-transparent p-4 transition-all hover:border-border hover:bg-muted/30">
+                      <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 items-center">
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium text-foreground">{budget.category}</span>
+                          {budget.rolloverEnabled && (
+                            <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
+                              Rollover
+                            </Badge>
+                          )}
+                          <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => handleEdit(index, budget)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => handleAdvancedEdit(budget)}
+                            >
+                              <Settings className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right min-w-[100px]">
-                        {editingIndex === index ? (
-                          <div className="flex items-center gap-1">
-                            <Input
-                              type="number"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              className="h-7 w-20 text-sm"
-                              autoFocus
-                            />
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleSave(index)}>
-                              <Check className="h-3.5 w-3.5 text-green-600" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleCancel}>
-                              <X className="h-3.5 w-3.5 text-red-600" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="text-sm font-medium tabular-nums text-foreground">
-                            ${budget.budget.toLocaleString()}
-                          </div>
-                        )}
-                      </div>
-                      {showSuggested && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="text-right min-w-[100px] cursor-help">
-                                <div className="text-sm font-medium tabular-nums text-muted-foreground flex items-center justify-end gap-1">
-                                  <Lightbulb className="h-3 w-3 text-yellow-500" />$
-                                  {budget.suggestedBudget.toLocaleString()}
+                        <div className="text-right min-w-[100px]">
+                          {editingIndex === index ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                className="h-7 w-20 text-sm"
+                                autoFocus
+                              />
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleSave(index)}>
+                                <Check className="h-3.5 w-3.5 text-green-600" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleCancel}>
+                                <X className="h-3.5 w-3.5 text-red-600" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="text-sm font-medium tabular-nums text-foreground">
+                              ${budget.budget.toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                        {showSuggested && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="text-right min-w-[100px] cursor-help">
+                                  <div className="text-sm font-medium tabular-nums text-muted-foreground flex items-center justify-end gap-1">
+                                    <Lightbulb className="h-3 w-3 text-yellow-500" />${budget.suggestedBudget.toLocaleString()}
+                                  </div>
                                 </div>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs font-semibold mb-1">Based on 6-month average</p>
-                              <p className="text-xs text-muted-foreground">Historical spending pattern</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                      <div className="text-right min-w-[100px]">
-                        <div className="text-sm font-medium tabular-nums text-foreground">
-                          ${budget.actual.toLocaleString()}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs font-semibold mb-1">Based on 6-month average</p>
+                                <p className="text-xs text-muted-foreground">Historical spending pattern</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        <div className="text-right min-w-[100px]">
+                          <div className="text-sm font-medium tabular-nums text-foreground">
+                            ${budget.actual.toLocaleString()}
+                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center justify-end gap-1 mt-0.5">
+                                  {periodChange > 0 ? (
+                                    <TrendingUp className="h-3 w-3 text-[var(--color-negative)]" />
+                                  ) : (
+                                    <TrendingDown className="h-3 w-3 text-[var(--color-positive)]" />
+                                  )}
+                                  <span
+                                    className={`text-xs font-medium ${periodChange > 0 ? "text-[var(--color-negative)]" : "text-[var(--color-positive)]"}`}
+                                  >
+                                    {periodChange > 0 ? "+" : ""}
+                                    {periodChangePercent}%
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">
+                                  {comparisonPeriod === "lastMonth" ? "Last Month" : "Last Year"}: ${previousActual.toLocaleString()}
+                                </p>
+                                <p className="text-xs">This Period: ${budget.actual.toLocaleString()}</p>
+                                <p className="text-xs font-semibold mt-1">
+                                  Change: {periodChange > 0 ? "+" : ""}${periodChange.toLocaleString()}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-end gap-1 mt-0.5">
-                                {periodChange > 0 ? (
-                                  <TrendingUp className="h-3 w-3 text-[var(--color-negative)]" />
-                                ) : (
-                                  <TrendingDown className="h-3 w-3 text-[var(--color-positive)]" />
-                                )}
-                                <span
-                                  className={`text-xs font-medium ${periodChange > 0 ? "text-[var(--color-negative)]" : "text-[var(--color-positive)]"}`}
-                                >
-                                  {periodChange > 0 ? "+" : ""}
-                                  {periodChangePercent}%
-                                </span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs">
-                                {comparisonPeriod === "lastMonth" ? "Last Month" : "Last Year"}: $
-                                {previousActual.toLocaleString()}
-                              </p>
-                              <p className="text-xs">This Period: ${budget.actual.toLocaleString()}</p>
-                              <p className="text-xs font-semibold mt-1">
-                                Change: {periodChange > 0 ? "+" : ""}${periodChange.toLocaleString()}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <div className="text-right min-w-[80px] flex items-center justify-end gap-1">
-                        {budget.variance >= 0 ? (
-                          <ArrowUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                        ) : (
-                          <ArrowDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
-                        )}
-                        <span
-                          className={`text-sm font-semibold tabular-nums ${
-                            budget.variance >= 0
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                          }`}
-                        >
-                          ${Math.abs(budget.variance)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <Progress
-                          value={Math.min(budget.percent, 100)}
-                          className="h-2.5 flex-1"
-                          indicatorClassName={
-                            isOverBudget
-                              ? "bg-red-500"
-                              : isNearLimit
-                                ? "bg-orange-500"
-                                : budget.percent > 75
-                                  ? "bg-yellow-500"
-                                  : "bg-green-500"
-                          }
-                        />
-                        {isOverBudget && (
-                          <Badge variant="destructive" className="text-xs px-2 py-0 h-5">
-                            Over budget
-                          </Badge>
-                        )}
-                        {isNearLimit && (
-                          <Badge
-                            variant="secondary"
-                            className="text-xs px-2 py-0 h-5 bg-orange-500/10 text-orange-700 dark:text-orange-400 border-0"
+                        <div className="text-right min-w-[80px] flex items-center justify-end gap-1">
+                          {budget.variance >= 0 ? (
+                            <ArrowUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                          ) : (
+                            <ArrowDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                          )}
+                          <span
+                            className={`text-sm font-semibold tabular-nums ${
+                              budget.variance >= 0
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                            }`}
                           >
-                            At limit
-                          </Badge>
-                        )}
+                            ${Math.abs(budget.variance)}
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-xs text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            value={Math.min(budget.percent, 100)}
+                            className="h-2.5 flex-1"
+                            indicatorClassName={
+                              isOverBudget
+                                ? "bg-red-500"
+                                : isNearLimit
+                                  ? "bg-orange-500"
+                                  : budget.percent > 75
+                                    ? "bg-yellow-500"
+                                    : "bg-green-500"
+                            }
+                          />
+                          {isOverBudget && (
+                            <Badge variant="destructive" className="text-xs px-2 py-0 h-5">
+                              Over budget
+                            </Badge>
+                          )}
+                          {isNearLimit && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs px-2 py-0 h-5 bg-orange-500/10 text-orange-700 dark:text-orange-400 border-0"
+                            >
+                              At limit
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                }}
+              />
             </div>
             <div className="md:hidden space-y-3">
               {filteredBudgets.map((budget, index) => {
@@ -521,18 +531,19 @@ export function BudgetTable() {
                         />
                         {isOverBudget && (
                           <Badge variant="destructive" className="text-xs px-2 py-0 h-5">
-                            Over
+                            Over budget
+                          </Badge>
+                        )}
+                        {isNearLimit && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs px-2 py-0 h-5 bg-orange-500/10 text-orange-700 dark:text-orange-400 border-0"
+                          >
+                            At limit
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
-                        <span
-                          className={`font-semibold tabular-nums ${budget.variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                        >
-                          {budget.variance >= 0 ? "+" : ""}${Math.abs(budget.variance)}
-                        </span>
-                      </div>
+                      <span className="text-xs text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
                     </div>
                   </div>
                 )
@@ -558,13 +569,13 @@ export function BudgetTable() {
                 placeholder="Enter budget amount"
               />
             </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="rollover">Enable Rollover</Label>
-                <p className="text-sm text-muted-foreground">Carry unused budget to next month</p>
-              </div>
-              <Switch id="rollover" checked={rolloverEnabled} onCheckedChange={setRolloverEnabled} />
-            </div>
+            <SwitchField
+              id="rollover"
+              label="Enable rollover"
+              description="Carry unused budget to the next month."
+              checked={rolloverEnabled}
+              onCheckedChange={setRolloverEnabled}
+            />
             <div className="space-y-2">
               <Label htmlFor="warning">Warning Threshold (%)</Label>
               <Input

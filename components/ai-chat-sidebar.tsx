@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
+import type { LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { X, Send, Bot, User } from "lucide-react"
 
-interface Message {
+export interface AIChatMessage {
   id: string
   role: "user" | "assistant"
   content: string
@@ -17,24 +18,56 @@ interface Message {
 interface AIChatSidebarProps {
   isOpen: boolean
   onClose: () => void
+  title?: string
+  icon?: LucideIcon
+  initialMessages?: AIChatMessage[]
+  promptPlaceholder?: string
+  responseGenerator?: (query: string) => string
+  beforeMessagesSlot?: ReactNode
+  afterMessagesSlot?: ReactNode
+  onSend?: (message: AIChatMessage) => void
 }
 
-export function AIChatSidebar({ isOpen, onClose }: AIChatSidebarProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      content:
-        "Hello! I'm your AI trading assistant. I can help you automate your trading strategies, analyze market trends, and optimize your portfolio. How can I assist you today?",
-      timestamp: new Date(),
-    },
-  ])
+export function AIChatSidebar({
+  isOpen,
+  onClose,
+  title = "AI Trading Assistant",
+  icon: Icon = Bot,
+  initialMessages,
+  promptPlaceholder = "Ask about trading automation...",
+  responseGenerator,
+  beforeMessagesSlot,
+  afterMessagesSlot,
+  onSend,
+}: AIChatSidebarProps) {
+  const defaultMessages = useMemo<AIChatMessage[]>(
+    () => [
+      {
+        id: "welcome",
+        role: "assistant",
+        content:
+          "Hello! I'm your AI trading assistant. I can help you automate your trading strategies, analyze market trends, and optimize your portfolio. How can I assist you today?",
+        timestamp: new Date(),
+      },
+    ],
+    [],
+  )
+
+  const [messages, setMessages] = useState<AIChatMessage[]>(initialMessages ?? defaultMessages)
   const [input, setInput] = useState("")
+
+  useEffect(() => {
+    if (!initialMessages) {
+      return
+    }
+
+    setMessages(initialMessages)
+  }, [initialMessages])
 
   const handleSend = () => {
     if (!input.trim()) return
 
-    const userMessage: Message = {
+    const userMessage: AIChatMessage = {
       id: Date.now().toString(),
       role: "user",
       content: input,
@@ -42,21 +75,26 @@ export function AIChatSidebar({ isOpen, onClose }: AIChatSidebarProps) {
     }
 
     setMessages((prev) => [...prev, userMessage])
+    onSend?.(userMessage)
     setInput("")
 
     // Simulate AI response
     setTimeout(() => {
-      const aiMessage: Message = {
+      const aiMessage: AIChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: getAIResponse(input),
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, aiMessage])
-    }, 1000)
+    }, 600)
   }
 
   const getAIResponse = (query: string): string => {
+    if (responseGenerator) {
+      return responseGenerator(query)
+    }
+
     const lowerQuery = query.toLowerCase()
     if (lowerQuery.includes("automate") || lowerQuery.includes("strategy")) {
       return "I can help you set up automated trading strategies. You can create rules based on technical indicators, price movements, or market conditions. Would you like to create a new strategy or modify an existing one?"
@@ -76,8 +114,8 @@ export function AIChatSidebar({ isOpen, onClose }: AIChatSidebarProps) {
     <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-background border-l shadow-lg z-50 flex flex-col">
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold">AI Trading Assistant</h2>
+          <Icon className="h-5 w-5 text-primary" />
+          <h2 className="font-semibold">{title}</h2>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="h-4 w-4" />
@@ -86,6 +124,7 @@ export function AIChatSidebar({ isOpen, onClose }: AIChatSidebarProps) {
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
+          {beforeMessagesSlot}
           {messages.map((message) => (
             <div key={message.id} className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               {message.role === "assistant" && (
@@ -113,6 +152,7 @@ export function AIChatSidebar({ isOpen, onClose }: AIChatSidebarProps) {
               )}
             </div>
           ))}
+          {afterMessagesSlot}
         </div>
       </ScrollArea>
 
@@ -127,7 +167,7 @@ export function AIChatSidebar({ isOpen, onClose }: AIChatSidebarProps) {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about trading automation..."
+            placeholder={promptPlaceholder}
             className="flex-1"
           />
           <Button type="submit" size="icon">

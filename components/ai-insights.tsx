@@ -1,111 +1,31 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { TrendingUp, AlertTriangle, Lightbulb, Target } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-
-const insights = [
-  {
-    id: 1,
-    type: "savings",
-    icon: TrendingUp,
-    title: "Great savings progress",
-    description: "You saved $420 this month by canceling unused subscriptions.",
-    color: "text-green-600 dark:text-green-400",
-    bgColor: "bg-green-500/10",
-    borderColor: "border-green-500/30",
-    progress: 85,
-    isPinned: true,
-  },
-  {
-    id: 3,
-    type: "goal",
-    icon: Target,
-    title: "Emergency fund milestone",
-    description: "You've reached 60% of your emergency fund goal, ahead of schedule by 2 months.",
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-500/10",
-    borderColor: "border-purple-500/30",
-    progress: 60,
-    isPinned: true,
-  },
-  {
-    id: 2,
-    type: "diversification",
-    icon: AlertTriangle,
-    title: "Diversification opportunity",
-    description: "US Tech represents 48% of your portfolio. Consider diversifying into other sectors.",
-    color: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-500/10",
-    borderColor: "border-orange-500/30",
-    progress: 48,
-    isPinned: false,
-  },
-  {
-    id: 4,
-    type: "tip",
-    icon: Lightbulb,
-    title: "Tax optimization",
-    description: "You can offset $3,000 in capital losses this year to reduce your tax liability.",
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/30",
-    progress: 60,
-    isPinned: false,
-  },
-]
+import { getInsights } from "@/lib/insights/service"
+import { InsightCard } from "@/components/insights/InsightCard"
 
 export function AIInsights() {
-  const displayInsights =
-    insights.filter((i) => i.isPinned).length > 0 ? insights.filter((i) => i.isPinned) : insights.slice(0, 4)
+  const pinnedInsights = getInsights({ surface: "overview", pinnedOnly: true })
+  const insights = pinnedInsights.length > 0 ? pinnedInsights : getInsights({ surface: "overview", limit: 4 })
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">AI Insights</h2>
-        <Link
-          href="/insights"
-          className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-        >
+        <Link href="/insights" className="flex items-center gap-1 text-sm text-primary transition-colors hover:text-primary/80">
           View all
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
-      <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
-        {displayInsights.map((insight) => (
-          <Card
+      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 scrollbar-thin">
+        {insights.map((insight, index) => (
+          <InsightCard
             key={insight.id}
-            className={`min-w-[300px] md:min-w-[350px] snap-start hover:shadow-md transition-all cursor-pointer border-l-4 ${insight.borderColor}`}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${insight.bgColor}`}>
-                  <insight.icon className={`h-5 w-5 ${insight.color}`} />
-                </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-foreground">{insight.title}</h3>
-                    {insight.isPinned && (
-                      <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
-                        Pinned
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{insight.description}</p>
-                  <div className="pt-2">
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className={`font-medium ${insight.color}`}>{insight.progress}%</span>
-                    </div>
-                    <Progress value={insight.progress} className="h-1.5" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            insight={insight}
+            index={index}
+            className="min-w-[280px] md:min-w-[340px] snap-start"
+          />
         ))}
       </div>
     </div>

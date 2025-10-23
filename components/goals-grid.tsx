@@ -1,106 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
-import {
-  Target,
-  Home,
-  Plane,
-  GraduationCap,
-  MoreVertical,
-  TrendingUp,
-  TrendingDown,
-  Pause,
-  CheckCircle2,
-  Edit,
-  Plus,
-  Link,
-} from "lucide-react"
+import { MoreVertical, TrendingUp, TrendingDown, Pause, CheckCircle2, Edit, Plus, Link, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { GoalDetailModal } from "./goal-detail-modal"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
-
-const goals = [
-  {
-    id: 1,
-    name: "Emergency Fund",
-    icon: Target,
-    current: 18000,
-    target: 30000,
-    percent: 60,
-    eta: "8 months",
-    monthlyTarget: 500,
-    fundingSource: "High-Yield Savings",
-    acceleration: 5, // positive = accelerating
-    status: "active",
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-500/10",
-  },
-  {
-    id: 2,
-    name: "House Down Payment",
-    icon: Home,
-    current: 25000,
-    target: 100000,
-    percent: 25,
-    eta: "3.5 years",
-    monthlyTarget: 600,
-    fundingSource: "Investment Account",
-    acceleration: -3, // negative = decelerating
-    status: "active",
-    color: "text-green-600 dark:text-green-400",
-    bgColor: "bg-green-500/10",
-  },
-  {
-    id: 3,
-    name: "Vacation Fund",
-    icon: Plane,
-    current: 4500,
-    target: 8000,
-    percent: 56,
-    eta: "6 months",
-    monthlyTarget: 100,
-    fundingSource: "Checking Account",
-    acceleration: 0,
-    status: "active",
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-500/10",
-  },
-  {
-    id: 4,
-    name: "Education Fund",
-    icon: GraduationCap,
-    current: 12000,
-    target: 50000,
-    percent: 24,
-    eta: "5 years",
-    monthlyTarget: 0,
-    fundingSource: "529 Plan",
-    acceleration: 0,
-    status: "paused",
-    color: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-500/10",
-  },
-  {
-    id: 5,
-    name: "Car Fund",
-    icon: Target,
-    current: 20000,
-    target: 20000,
-    percent: 100,
-    eta: "Complete",
-    monthlyTarget: 0,
-    fundingSource: "Savings Account",
-    acceleration: 0,
-    status: "completed",
-    color: "text-emerald-600 dark:text-emerald-400",
-    bgColor: "bg-emerald-500/10",
-  },
-]
+import type { Goal, GoalStatus } from "@/types/domain"
+import { toast } from "@/components/ui/sonner"
 
 function CircularProgress({
   percent,
@@ -149,14 +60,28 @@ function CircularProgress({
   )
 }
 
-export function GoalsGrid() {
-  const [selectedGoal, setSelectedGoal] = useState<(typeof goals)[0] | null>(null)
+interface GoalsGridProps {
+  goals: Goal[]
+  filter: GoalStatus | "all"
+  contributionBoost: number
+  totalActiveContribution: number
+}
 
-  const activeGoals = goals.filter((g) => g.status === "active")
-  const pausedGoals = goals.filter((g) => g.status === "paused")
-  const completedGoals = goals.filter((g) => g.status === "completed")
+export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContribution }: GoalsGridProps) {
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
 
-  const renderGoalCard = (goal: (typeof goals)[0], index: number) => (
+  const activeGoals = useMemo(() => goals.filter((goal) => goal.status === "active"), [goals])
+  const pausedGoals = useMemo(() => goals.filter((goal) => goal.status === "paused"), [goals])
+  const completedGoals = useMemo(() => goals.filter((goal) => goal.status === "completed"), [goals])
+
+  const filteredGoals = useMemo(() => {
+    if (filter === "all") {
+      return goals
+    }
+    return goals.filter((goal) => goal.status === filter)
+  }, [filter, goals])
+
+  const renderGoalCard = (goal: Goal, index: number) => (
     <motion.div key={goal.id} {...createStaggeredCardVariants(index, 0)}>
       <Card className="card-standard card-lift cursor-pointer group" onClick={() => setSelectedGoal(goal)}>
         <CardContent className="p-6">
@@ -235,6 +160,31 @@ export function GoalsGrid() {
                 </div>
               )}
 
+              {contributionBoost > 0 && goal.status === "active" && (
+                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground">
+                  {(() => {
+                    const remaining = Math.max(goal.target - goal.current, 0)
+                    const baseMonthly = goal.monthlyTarget > 0 ? goal.monthlyTarget : Math.max(remaining / 12, 1)
+                    const weightedContribution = goal.monthlyTarget > 0 ? goal.monthlyTarget : baseMonthly
+                    const boostShare =
+                      totalActiveContribution > 0
+                        ? (weightedContribution / totalActiveContribution) * contributionBoost
+                        : 0
+                    const adjustedMonthly = baseMonthly + boostShare
+                    const baselineMonths = baseMonthly > 0 ? remaining / baseMonthly : 0
+                    const boostedMonths = adjustedMonthly > 0 ? remaining / adjustedMonthly : baselineMonths
+                    const monthsSaved = Math.max(0, baselineMonths - boostedMonths)
+                    return (
+                      <span>
+                        Boosting <span className="font-medium text-foreground">${Math.round(boostShare)}</span>/mo trims
+                        approximately <span className="font-medium text-foreground">{monthsSaved.toFixed(1)}</span> months off
+                        this goal.
+                      </span>
+                    )
+                  })()}
+                </div>
+              )}
+
               <div className="flex items-center gap-2 pt-2">
                 <Button
                   size="sm"
@@ -276,6 +226,35 @@ export function GoalsGrid() {
                   <span className="font-medium text-foreground">${goal.monthlyTarget}/mo</span>
                 </div>
               )}
+
+              {goal.status === "completed" && goal.celebrationMessage && (
+                <motion.div
+                  className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="flex flex-col gap-2">
+                    <p className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                      <Sparkles className="h-4 w-4" />
+                      {goal.celebrationMessage}
+                    </p>
+                    {goal.milestones?.some((milestone) => milestone.celebrationCta) && (
+                      <Button
+                        size="sm"
+                        className="self-start"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          toast.success("Celebration shared with your accountability circle")
+                        }}
+                      >
+                        Share progress
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -285,44 +264,50 @@ export function GoalsGrid() {
 
   return (
     <>
-      <Accordion type="multiple" defaultValue={["active", "completed"]} className="space-y-4">
-        <AccordionItem value="active" className="border-none">
-          <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-            Active Goals ({activeGoals.length})
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="grid gap-6 md:grid-cols-2 pt-4">
-              {activeGoals.map((goal, index) => renderGoalCard(goal, index))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {pausedGoals.length > 0 && (
-          <AccordionItem value="paused" className="border-none">
+      {filter === "all" ? (
+        <Accordion type="multiple" defaultValue={["active", "completed"]} className="space-y-4">
+          <AccordionItem value="active" className="border-none">
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-              On Hold ({pausedGoals.length})
+              Active Goals ({activeGoals.length})
             </AccordionTrigger>
             <AccordionContent>
               <div className="grid gap-6 md:grid-cols-2 pt-4">
-                {pausedGoals.map((goal, index) => renderGoalCard(goal, index))}
+                {activeGoals.map((goal, index) => renderGoalCard(goal, index))}
               </div>
             </AccordionContent>
           </AccordionItem>
-        )}
 
-        {completedGoals.length > 0 && (
-          <AccordionItem value="completed" className="border-none">
-            <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-              Fully Funded ({completedGoals.length})
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="grid gap-6 md:grid-cols-2 pt-4">
-                {completedGoals.map((goal, index) => renderGoalCard(goal, index))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
-      </Accordion>
+          {pausedGoals.length > 0 && (
+            <AccordionItem value="paused" className="border-none">
+              <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                On Hold ({pausedGoals.length})
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid gap-6 md:grid-cols-2 pt-4">
+                  {pausedGoals.map((goal, index) => renderGoalCard(goal, index))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {completedGoals.length > 0 && (
+            <AccordionItem value="completed" className="border-none">
+              <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                Fully Funded ({completedGoals.length})
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid gap-6 md:grid-cols-2 pt-4">
+                  {completedGoals.map((goal, index) => renderGoalCard(goal, index))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+        </Accordion>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          {filteredGoals.map((goal, index) => renderGoalCard(goal, index))}
+        </div>
+      )}
 
       {selectedGoal && (
         <GoalDetailModal

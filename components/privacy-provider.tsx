@@ -2,6 +2,8 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 
+import { useSecureStorage } from "@/hooks/use-secure-storage"
+
 type PrivacyContextValue = {
   masked: boolean
   toggleMasked: () => void
@@ -10,25 +12,37 @@ type PrivacyContextValue = {
 
 const PrivacyContext = createContext<PrivacyContextValue | undefined>(undefined)
 
-const STORAGE_KEY = "ui.masked"
-
 export function PrivacyProvider({ children }: { children: React.ReactNode }) {
   const [masked, setMaskedState] = useState<boolean>(true)
+  const secureStorage = useSecureStorage({ namespace: "privacy" })
 
   // hydrate from localStorage on client
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY)
-      if (raw != null) setMaskedState(raw === "true")
-    } catch {}
-  }, [])
+    let mounted = true
+
+    if (!secureStorage) {
+      return () => {
+        mounted = false
+      }
+    }
+
+    secureStorage
+      .getItem("masked")
+      .then((raw) => {
+        if (!mounted || raw == null) return
+        setMaskedState(raw === "true")
+      })
+      .catch(() => {})
+
+    return () => {
+      mounted = false
+    }
+  }, [secureStorage])
 
   const setMasked = useCallback((v: boolean) => {
     setMaskedState(v)
-    try {
-      window.localStorage.setItem(STORAGE_KEY, String(v))
-    } catch {}
-  }, [])
+    secureStorage?.setItem("masked", String(v)).catch(() => {})
+  }, [secureStorage])
 
   const toggleMasked = useCallback(() => setMasked(!masked), [masked, setMasked])
 

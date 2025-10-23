@@ -3,9 +3,17 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, Sector } from "recharts"
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
+import type { TooltipContentProps } from "recharts"
 
-const assetClassData = [
+interface AllocationSlice extends Record<string, unknown> {
+  name: string
+  value: number
+  amount: number
+  color: string
+}
+
+const assetClassData: AllocationSlice[] = [
   { name: "US Stocks", value: 48, amount: 89000, color: "hsl(217, 91%, 60%)" },
   { name: "International", value: 22, amount: 41000, color: "hsl(142, 76%, 45%)" },
   { name: "Bonds", value: 18, amount: 33500, color: "hsl(24, 95%, 53%)" },
@@ -13,7 +21,7 @@ const assetClassData = [
   { name: "Crypto", value: 4, amount: 7500, color: "hsl(340, 82%, 52%)" },
 ]
 
-const sectorData = [
+const sectorData: AllocationSlice[] = [
   { name: "Technology", value: 35, amount: 65000, color: "hsl(217, 91%, 60%)" },
   { name: "Healthcare", value: 18, amount: 33500, color: "hsl(142, 76%, 45%)" },
   { name: "Finance", value: 15, amount: 28000, color: "hsl(24, 95%, 53%)" },
@@ -22,51 +30,36 @@ const sectorData = [
   { name: "Other", value: 10, amount: 18500, color: "hsl(45, 93%, 47%)" },
 ]
 
-const regionData = [
+const regionData: AllocationSlice[] = [
   { name: "North America", value: 60, amount: 112000, color: "hsl(217, 91%, 60%)" },
   { name: "Europe", value: 20, amount: 37500, color: "hsl(142, 76%, 45%)" },
   { name: "Asia Pacific", value: 15, amount: 28000, color: "hsl(24, 95%, 53%)" },
   { name: "Emerging", value: 5, amount: 9500, color: "hsl(262, 83%, 58%)" },
 ]
 
-const renderActiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props
-  return (
-    <g>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 8}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-    </g>
-  )
-}
-
-interface AllocationGridProps {
+export interface AllocationGridProps {
   onFilterChange?: (filter: string | null) => void
 }
 
 export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
-  const [activeTab, setActiveTab] = useState("asset-class")
+  const [selectedSlice, setSelectedSlice] = useState<string | null>(null)
 
-  const handlePieClick = (data: any, index: number) => {
-    if (activeIndex === index) {
-      setActiveIndex(null)
+  const handleSliceClick = (slice: AllocationSlice) => {
+    if (selectedSlice === slice.name) {
+      setSelectedSlice(null)
       onFilterChange?.(null)
     } else {
-      setActiveIndex(index)
-      onFilterChange?.(data.name)
+      setSelectedSlice(slice.name)
+      onFilterChange?.(slice.name)
     }
   }
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TooltipContentProps<number, string>) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload
+      const data = payload[0]?.payload as AllocationSlice | undefined
+      if (!data) {
+        return null
+      }
       return (
         <div className="rounded-lg border bg-card p-3 shadow-lg">
           <p className="text-sm font-medium text-foreground">{data.name}</p>
@@ -78,15 +71,9 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
     return null
   }
 
-  const getCurrentData = () => {
-    switch (activeTab) {
-      case "sector":
-        return sectorData
-      case "region":
-        return regionData
-      default:
-        return assetClassData
-    }
+  const handleTabChange = (_value: string) => {
+    setSelectedSlice(null)
+    onFilterChange?.(null)
   }
 
   return (
@@ -95,15 +82,7 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
         <CardTitle>Allocation</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs
-          defaultValue="asset-class"
-          className="w-full"
-          onValueChange={(v) => {
-            setActiveTab(v)
-            setActiveIndex(null)
-            onFilterChange?.(null)
-          }}
-        >
+        <Tabs defaultValue="asset-class" className="w-full" onValueChange={handleTabChange}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="asset-class">Asset Class</TabsTrigger>
             <TabsTrigger value="sector">Sector</TabsTrigger>
@@ -121,16 +100,18 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
                     outerRadius={100}
                     dataKey="value"
                     label
-                    activeIndex={activeIndex ?? undefined}
-                    activeShape={renderActiveShape}
-                    onClick={handlePieClick}
+                    onClick={(_, index) => handleSliceClick(assetClassData[index])}
                     style={{ cursor: "pointer" }}
                   >
                     {assetClassData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        opacity={selectedSlice && selectedSlice !== entry.name ? 0.4 : 1}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={CustomTooltip} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -148,16 +129,18 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
                     outerRadius={100}
                     dataKey="value"
                     label
-                    activeIndex={activeIndex ?? undefined}
-                    activeShape={renderActiveShape}
-                    onClick={handlePieClick}
+                    onClick={(_, index) => handleSliceClick(sectorData[index])}
                     style={{ cursor: "pointer" }}
                   >
                     {sectorData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        opacity={selectedSlice && selectedSlice !== entry.name ? 0.4 : 1}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={CustomTooltip} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -175,16 +158,18 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
                     outerRadius={100}
                     dataKey="value"
                     label
-                    activeIndex={activeIndex ?? undefined}
-                    activeShape={renderActiveShape}
-                    onClick={handlePieClick}
+                    onClick={(_, index) => handleSliceClick(regionData[index])}
                     style={{ cursor: "pointer" }}
                   >
                     {regionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        opacity={selectedSlice && selectedSlice !== entry.name ? 0.4 : 1}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={CustomTooltip} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>

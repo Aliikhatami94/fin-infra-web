@@ -1,11 +1,20 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
-import { Button } from "@/components/ui/button"
+import { useMemo, useState } from "react"
+import { ResponsiveContainer, AreaChart, Area, Tooltip } from "recharts"
+import type { TooltipProps } from "recharts"
 
-const generateChartData = (timeframe: string) => {
+import { ChartContainer, ChartGrid, ThemedAxis, TooltipCard } from "@/components/chart-kit"
+
+type Timeframe = "1D" | "1W" | "1M" | "3M" | "1Y" | "ALL"
+
+interface NetWorthPoint {
+  time: string
+  fullDate: string
+  value: number
+}
+
+const generateChartData = (timeframe: Timeframe): NetWorthPoint[] => {
   const baseNetWorth = 245000
   const currentNetWorth = 287500
 
@@ -105,113 +114,84 @@ const generateChartData = (timeframe: string) => {
   }
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="rounded-lg border bg-background p-2.5 shadow-md">
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-muted-foreground">{payload[0].payload.fullDate}</p>
-          <p className="text-base font-semibold font-mono">${payload[0].value.toLocaleString()}</p>
-        </div>
-      </div>
-    )
-  }
-  return null
-}
+const timeframes: Timeframe[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"]
 
-const timeframes = ["1D", "1W", "1M", "3M", "1Y", "ALL"]
+type NetWorthTooltipProps = TooltipProps<number, string>
 
 export function NetWorthChart() {
-  const [activeTimeframe, setActiveTimeframe] = useState("1M")
+  const [activeTimeframe, setActiveTimeframe] = useState<Timeframe>("1M")
 
   const chartData = useMemo(() => generateChartData(activeTimeframe), [activeTimeframe])
 
   const currentValue = chartData[chartData.length - 1]?.value || 287500
   const previousValue = chartData[0]?.value || 245000
   const change = currentValue - previousValue
-  const changePercent = ((change / previousValue) * 100).toFixed(2)
+  const changePercent = previousValue === 0 ? 0 : (change / previousValue) * 100
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="space-y-1.5">
-            <h3 className="text-xl font-semibold tracking-tight">Net Worth</h3>
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-3xl font-bold tracking-tight font-mono">
-                ${currentValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </span>
-              <span
-                className={`text-sm font-medium ${change >= 0 ? "text-emerald-600 dark:text-emerald-500" : "text-red-600 dark:text-red-500"}`}
-              >
-                {change >= 0 ? "+" : ""}$
-                {Math.abs(change).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} (
-                {change >= 0 ? "+" : ""}
-                {changePercent}%)
-              </span>
-            </div>
-          </div>
-          <div className="flex gap-0.5 bg-muted/50 rounded-lg p-0.5">
-            {timeframes.map((tf) => (
-              <Button
-                key={tf}
-                variant={tf === activeTimeframe ? "secondary" : "ghost"}
-                size="sm"
-                className={`h-8 px-3 text-xs font-medium ${
-                  tf === activeTimeframe ? "bg-background shadow-sm" : "hover:bg-background/50"
-                }`}
-                onClick={() => setActiveTimeframe(tf)}
-              >
-                {tf}
-              </Button>
-            ))}
-          </div>
+    <ChartContainer
+      title="Net Worth"
+      description="Track how your net worth has changed over time."
+      timeRanges={timeframes}
+      selectedRange={activeTimeframe}
+      onRangeChange={(value) => setActiveTimeframe(value as Timeframe)}
+      unitLabel="USD"
+      actions={
+        <div className="flex flex-col items-start sm:items-end">
+          <span className="text-3xl font-bold tracking-tight text-foreground">
+            ${currentValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </span>
+          <span
+            className={
+              change >= 0
+                ? "text-sm font-medium text-emerald-600 dark:text-emerald-500"
+                : "text-sm font-medium text-rose-600 dark:text-rose-500"
+            }
+          >
+            {change >= 0 ? "+" : "-"}${Math.abs(change).toLocaleString(undefined, { maximumFractionDigits: 0 })} (
+            {change >= 0 ? "+" : "-"}
+            {Math.abs(changePercent).toFixed(2)}%)
+          </span>
         </div>
-      </CardHeader>
-      <CardContent className="px-2 pb-2">
-        <div className="w-full h-[450px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <defs>
-                <linearGradient id="colorNetWorth" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
-              <XAxis
-                dataKey="time"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-                dy={10}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-                domain={["dataMin - 5000", "dataMax + 5000"]}
-                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                width={50}
-              />
-              <Tooltip
-                content={<CustomTooltip />}
-                cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1, strokeDasharray: "5 5" }}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="hsl(var(--chart-2))"
-                strokeWidth={2}
-                fill="url(#colorNetWorth)"
-                fillOpacity={1}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
+      }
+    >
+      <div className="h-[420px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 12 }}>
+            <defs>
+              <linearGradient id="networth-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.24} />
+                <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <ChartGrid />
+            <ThemedAxis axis="x" dataKey="time" dy={8} />
+            <ThemedAxis
+              axis="y"
+              domain={["dataMin - 5000", "dataMax + 5000"]}
+              tickFormatter={(value) => `$${(Number(value) / 1000).toFixed(0)}k`}
+            />
+            <Tooltip
+              cursor={{ stroke: "hsl(var(--border))", strokeDasharray: "4 4", strokeWidth: 1 }}
+              content={(props: NetWorthTooltipProps) => (
+                <TooltipCard
+                  {...props}
+                  labelFormatter={(label) => label}
+                  valueFormatter={(value) => `$${Number(value ?? 0).toLocaleString()}`}
+                />
+              )}
+            />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="hsl(var(--chart-2))"
+              strokeWidth={2}
+              fill="url(#networth-fill)"
+              name="Net worth"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </ChartContainer>
   )
 }

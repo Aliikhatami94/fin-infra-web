@@ -7,97 +7,53 @@ import { Button } from "@/components/ui/button"
 import { Upload } from "lucide-react"
 import { useMemo } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-
-const documents = [
-  {
-    id: 1,
-    name: "Chase Statement - December 2024",
-    institution: "Chase",
-    type: "Statement",
-    date: "Dec 31, 2024",
-    dateValue: new Date("2024-12-31"),
-    size: "1.2 MB",
-    sizeValue: 1.2,
-  },
-  {
-    id: 2,
-    name: "Fidelity Tax Form 1099",
-    institution: "Fidelity",
-    type: "Tax Document",
-    date: "Jan 15, 2025",
-    dateValue: new Date("2025-01-15"),
-    size: "245 KB",
-    sizeValue: 0.245,
-  },
-  {
-    id: 3,
-    name: "Annual Investment Report 2024",
-    institution: "Fidelity",
-    type: "Report",
-    date: "Dec 31, 2024",
-    dateValue: new Date("2024-12-31"),
-    size: "3.8 MB",
-    sizeValue: 3.8,
-  },
-  {
-    id: 4,
-    name: "Chase Statement - November 2024",
-    institution: "Chase",
-    type: "Statement",
-    date: "Nov 30, 2024",
-    dateValue: new Date("2024-11-30"),
-    size: "1.1 MB",
-    sizeValue: 1.1,
-  },
-  {
-    id: 5,
-    name: "Robinhood Trade Confirmation",
-    institution: "Robinhood",
-    type: "Confirmation",
-    date: "Dec 15, 2024",
-    dateValue: new Date("2024-12-15"),
-    size: "156 KB",
-    sizeValue: 0.156,
-  },
-  {
-    id: 6,
-    name: "BofA Credit Card Statement",
-    institution: "Bank of America",
-    type: "Statement",
-    date: "Dec 31, 2024",
-    dateValue: new Date("2024-12-31"),
-    size: "890 KB",
-    sizeValue: 0.89,
-  },
-]
+import type { Document } from "@/types/domain"
 
 interface DocumentsGridProps {
+  documents: Document[]
   isLoading?: boolean
   searchQuery?: string
   selectedTypes?: string[]
+  selectedAccounts?: string[]
+  selectedYears?: string[]
   sortBy?: "date" | "name" | "size"
   selectedDocuments?: number[]
   onSelectionChange?: (selected: number[]) => void
+  error?: string | null
+  onRetry?: () => void
+  onStartUpload?: () => void
+  onClearFilters?: () => void
 }
 
 export function DocumentsGrid({
+  documents,
   isLoading = false,
   searchQuery = "",
   selectedTypes = [],
+  selectedAccounts = [],
+  selectedYears = [],
   sortBy = "date",
   selectedDocuments = [],
   onSelectionChange,
+  error = null,
+  onRetry,
+  onStartUpload,
+  onClearFilters,
 }: DocumentsGridProps) {
   const filteredAndSortedDocuments = useMemo(() => {
     const filtered = documents.filter((doc) => {
       const matchesSearch =
         searchQuery === "" ||
         doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doc.institution.toLowerCase().includes(searchQuery.toLowerCase())
+        doc.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.account.toLowerCase().includes(searchQuery.toLowerCase())
 
       const matchesType = selectedTypes.length === 0 || selectedTypes.includes(doc.type)
+      const matchesAccount = selectedAccounts.length === 0 || selectedAccounts.includes(doc.account)
+      const matchesYear =
+        selectedYears.length === 0 || selectedYears.includes(String(doc.year)) || selectedYears.includes(`${doc.year}`)
 
-      return matchesSearch && matchesType
+      return matchesSearch && matchesType && matchesAccount && matchesYear
     })
 
     filtered.sort((a, b) => {
@@ -112,7 +68,7 @@ export function DocumentsGrid({
     })
 
     return filtered
-  }, [searchQuery, selectedTypes, sortBy])
+  }, [documents, searchQuery, selectedTypes, selectedAccounts, selectedYears, sortBy])
 
   const allSelected =
     filteredAndSortedDocuments.length > 0 && selectedDocuments.length === filteredAndSortedDocuments.length
@@ -126,6 +82,18 @@ export function DocumentsGrid({
     }
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/50 bg-muted/20 p-10 text-center">
+        <p className="text-sm font-semibold text-foreground">We couldn’t load your documents</p>
+        <p className="text-xs text-muted-foreground">{error}</p>
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          Try again
+        </Button>
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
@@ -137,22 +105,43 @@ export function DocumentsGrid({
   }
 
   if (filteredAndSortedDocuments.length === 0) {
+    const isFiltered = Boolean(searchQuery || selectedTypes.length || selectedAccounts.length || selectedYears.length)
+
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
-        <FolderOpen className="h-12 w-12 mb-4 opacity-60" />
-        <p className="text-sm mb-2">
-          {searchQuery || selectedTypes.length > 0 ? "No documents found" : "No documents yet"}
-        </p>
-        <p className="text-xs mb-4">
-          {searchQuery || selectedTypes.length > 0
-            ? "Try adjusting your search or filters"
-            : "Upload your first document to get started"}
-        </p>
-        {!searchQuery && selectedTypes.length === 0 && (
-          <Button>
-            <Upload className="mr-2 h-4 w-4" /> Upload Document
-          </Button>
-        )}
+      <div className="relative overflow-hidden rounded-3xl border border-dashed border-border/50 bg-card p-12 text-center shadow-[var(--shadow-soft)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(94,114,255,0.15),transparent_55%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_45%)]" aria-hidden />
+        <div className="relative z-10 flex flex-col items-center gap-4 text-muted-foreground">
+          <FolderOpen className="h-14 w-14 text-primary" aria-hidden="true" />
+          <div className="space-y-2 max-w-xl">
+            <p className="text-lg font-semibold text-foreground">
+              {isFiltered ? "We couldn’t find documents that match those filters" : "Your vault is ready for its first upload"}
+            </p>
+            <p className="text-sm">
+              {isFiltered
+                ? "Adjust filters or clear the search to rediscover archived statements."
+                : "Securely store statements, receipts, and planning docs—Fin-Infra redacts account numbers and tracks access."}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-medium">
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Encrypted at rest</span>
+            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-600">Shareable audit trail</span>
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-amber-600">Auto-reminders before tax time</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            {isFiltered ? (
+              <Button variant="outline" onClick={onClearFilters ?? onRetry}>
+                Clear filters
+              </Button>
+            ) : (
+              <Button className="rounded-full px-6" onClick={onStartUpload}>
+                <Upload className="mr-2 h-4 w-4" aria-hidden /> Stage my first upload
+              </Button>
+            )}
+            <p className="text-[0.7rem] text-muted-foreground">
+              Need help? Visit the Security Center to review who can access shared vaults.
+            </p>
+          </div>
+        </div>
       </div>
     )
   }

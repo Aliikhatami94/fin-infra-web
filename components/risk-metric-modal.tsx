@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, Info } from "lucide-react"
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip, ReferenceLine } from "recharts"
+import { AccessibleChart } from "@/components/accessible-chart"
+import { describeTimeSeries, numberSummaryFormatter } from "@/lib/a11y"
 
 interface RiskMetricModalProps {
   open: boolean
@@ -75,6 +77,14 @@ export function RiskMetricModal({ open, onOpenChange, metric }: RiskMetricModalP
   if (!metric) return null
 
   const data = metricData[metric]
+  const chartSummary = describeTimeSeries({
+    data: data.history,
+    metric: `${data.title} history`,
+    getLabel: (point) => point.month,
+    getValue: (point) => point.value,
+    formatValue: numberSummaryFormatter,
+    includeEndValue: false,
+  })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,7 +109,9 @@ export function RiskMetricModal({ open, onOpenChange, metric }: RiskMetricModalP
             <Card>
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Your Portfolio</p>
-                <p className="text-3xl font-bold text-foreground">{data.yourValue}</p>
+                <p className="text-3xl font-bold text-foreground" aria-label={`Your ${data.title} value ${data.yourValue}`}>
+                  {data.yourValue}
+                </p>
                 <div className="flex items-center gap-1 mt-2">
                   <TrendingUp className="h-3 w-3 text-green-600" />
                   <span className="text-xs text-green-600">Above benchmark</span>
@@ -109,7 +121,9 @@ export function RiskMetricModal({ open, onOpenChange, metric }: RiskMetricModalP
             <Card>
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Market Benchmark (SPY)</p>
-                <p className="text-3xl font-bold text-muted-foreground">{data.benchmark}</p>
+                <p className="text-3xl font-bold text-muted-foreground" aria-label={`Benchmark value ${data.benchmark}`}>
+                  {data.benchmark}
+                </p>
                 <p className="text-xs text-muted-foreground mt-2">S&P 500 average</p>
               </CardContent>
             </Card>
@@ -118,7 +132,12 @@ export function RiskMetricModal({ open, onOpenChange, metric }: RiskMetricModalP
           {/* Historical Chart */}
           <div>
             <h3 className="text-sm font-medium mb-3">5-Month Trend</h3>
-            <div className="h-64">
+            <AccessibleChart
+              title={`${data.title} trend`}
+              description={chartSummary}
+              className="h-64"
+              contentClassName="h-full"
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data.history}>
                   <defs>
@@ -159,7 +178,7 @@ export function RiskMetricModal({ open, onOpenChange, metric }: RiskMetricModalP
                   />
                 </AreaChart>
               </ResponsiveContainer>
-            </div>
+            </AccessibleChart>
           </div>
 
           {/* Interpretation Guide */}

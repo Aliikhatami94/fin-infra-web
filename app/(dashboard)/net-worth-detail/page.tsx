@@ -1,11 +1,21 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { DollarSign, Wallet, Home, CreditCard } from "lucide-react"
+import { ChartAreaSkeleton } from "@/components/chart-skeleton"
+import type { NetWorthPoint } from "@/components/net-worth-history-chart"
 
-const netWorthHistory = Array.from({ length: 365 }, (_, i) => ({
+const NetWorthHistoryChart = dynamic(
+  () => import("@/components/net-worth-history-chart").then((mod) => mod.NetWorthHistoryChart),
+  {
+    ssr: false,
+    loading: () => <ChartAreaSkeleton className="h-96" />,
+  },
+)
+
+const netWorthHistory: NetWorthPoint[] = Array.from({ length: 365 }, (_, i) => ({
   date: new Date(2024, 0, i + 1).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
   netWorth: 400000 + i * 200 + Math.random() * 5000,
   assets: 500000 + i * 250 + Math.random() * 6000,
@@ -59,61 +69,7 @@ export default function NetWorthDetailPage() {
             <CardTitle>Net Worth Over Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={netWorthHistory}>
-                  <defs>
-                    <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis
-                    dataKey="date"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    interval={60}
-                  />
-                  <YAxis
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="rounded-lg border bg-card p-3 shadow-sm">
-                            <p className="text-xs text-muted-foreground mb-2">{payload[0].payload.date}</p>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium">Net Worth: ${payload[0].value?.toLocaleString()}</p>
-                              <p className="text-xs text-muted-foreground">
-                                Assets: ${payload[0].payload.assets.toLocaleString()}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Liabilities: ${payload[0].payload.liabilities.toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                        )
-                      }
-                      return null
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="netWorth"
-                    stroke="hsl(210, 100%, 60%)"
-                    strokeWidth={2}
-                    fill="url(#netWorthGradient)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            <NetWorthHistoryChart data={netWorthHistory} />
           </CardContent>
         </Card>
       </div>

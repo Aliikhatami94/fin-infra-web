@@ -9,7 +9,13 @@ import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 
-const capitalGainsData = [
+interface CapitalGainSegment {
+  name: "ST" | "LT"
+  value: number
+  color: string
+}
+
+const capitalGainsData: CapitalGainSegment[] = [
   { name: "ST", value: 4200, color: "hsl(25, 95%, 53%)" },
   { name: "LT", value: 8140, color: "hsl(142, 76%, 36%)" },
 ]
@@ -19,13 +25,14 @@ interface TaxSummaryProps {
 }
 
 export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
-  const handleBarClick = (data: any) => {
-    if (onFilterChange) {
-      if (data.name === "ST") {
-        onFilterChange("short-term")
-      } else if (data.name === "LT") {
-        onFilterChange("long-term")
-      }
+  const handleBarClick = (segment: CapitalGainSegment) => {
+    if (!onFilterChange) {
+      return
+    }
+    if (segment.name === "ST") {
+      onFilterChange("short-term")
+    } else if (segment.name === "LT") {
+      onFilterChange("long-term")
     }
   }
 
@@ -95,8 +102,17 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
             <div className="space-y-2">
               <div className="h-8 -mx-2 cursor-pointer">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={capitalGainsData} onClick={handleBarClick}>
-                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  <BarChart data={capitalGainsData}>
+                    <Bar
+                      dataKey="value"
+                      radius={[4, 4, 0, 0]}
+                      onClick={(_, index) => {
+                        const segment = capitalGainsData[index]
+                        if (segment) {
+                          handleBarClick(segment)
+                        }
+                      }}
+                    >
                       {capitalGainsData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}

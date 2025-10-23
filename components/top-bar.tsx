@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Search, Calendar, Eye, EyeOff, Menu } from "lucide-react"
+import { Bell, Search, Calendar, Eye, EyeOff, Menu, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -8,9 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -22,12 +25,29 @@ import { usePrivacy } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
 import { useDateRange } from "@/components/date-range-provider"
+import { BRAND } from "@/lib/brand"
+import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { useWorkspace } from "@/components/workspace-provider"
+import { NotificationCenter } from "@/components/notification-center"
 
 export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked } = usePrivacy()
   const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
+  const { progress: onboardingProgress, state: onboardingState, hydrated } = useOnboardingState()
+  const { activeWorkspace, workspaces, selectWorkspace, unreadCount, activeMember } = useWorkspace()
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+
+  const isDateRangeValue = (value: string): value is typeof dateRange => {
+    return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
+  }
+
+  const handleDateRangeChange = (value: string) => {
+    if (isDateRangeValue(value)) {
+      setDateRange(value)
+    }
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -45,10 +65,17 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             <Menu className="h-5 w-5" />
           </Button>
 
-          <h1 className="text-lg md:text-xl font-bold tracking-tight">FinanceHub</h1>
+          <h1 className="text-lg md:text-xl font-bold tracking-tight">{BRAND.name}</h1>
           <Badge variant="outline" className="font-mono text-xs hidden sm:inline-flex">
             Live
           </Badge>
+          {hydrated && onboardingState.status !== "completed" ? (
+            <Badge variant="secondary" className="hidden sm:inline-flex items-center gap-1">
+              <Link href="/onboarding" className="flex items-center gap-1">
+                <span className="font-medium">Setup {onboardingProgress}%</span>
+              </Link>
+            </Badge>
+          ) : null}
         </div>
 
         <div className="flex flex-1 items-center justify-center px-2 md:px-4 lg:px-8">
@@ -58,7 +85,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
               aria-label="Search or jump"
               placeholder="Search…"
               className="w-full pl-9 pr-4 text-sm"
-              onFocus={(e) => {
+              onFocus={() => {
                 // Lightly encourage the command menu for global actions
                 // Prevent virtual keyboard pop on mobile; keep as input for desktop
               }}
@@ -72,6 +99,10 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
         </div>
 
         <div className="flex items-center gap-1 md:gap-2">
+          <Badge variant="secondary" className="hidden lg:flex items-center gap-1 rounded-full">
+            <Building2 className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">{activeWorkspace.name}</span>
+          </Badge>
           <Button
             variant="ghost"
             size="icon"
@@ -83,7 +114,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             {masked ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
           </Button>
 
-          <Select value={dateRange} onValueChange={(value) => setDateRange(value as any)}>
+          <Select value={dateRange} onValueChange={handleDateRangeChange}>
             <SelectTrigger className="w-24 md:w-32 rounded-full hidden sm:flex">
               <Calendar className="mr-2 h-4 w-4" />
               <SelectValue />
@@ -99,11 +130,19 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             </SelectContent>
           </Select>
 
-          <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            aria-label={unreadCount ? `${unreadCount} unread notifications` : "Notifications"}
+            onClick={() => setNotificationsOpen(true)}
+          >
             <Bell className="h-5 w-5" />
-            <Badge className="absolute -right-1 -top-1 h-5 min-w-5 px-1 text-xs bg-primary text-primary-foreground">
-              3
-            </Badge>
+            {unreadCount > 0 && (
+              <Badge className="absolute -right-1 -top-1 h-5 min-w-5 px-1 text-xs bg-primary text-primary-foreground">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Badge>
+            )}
           </Button>
 
           <DropdownMenu modal={false}>
@@ -111,17 +150,31 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
               <Button variant="ghost" size="icon">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarFallback>{activeMember.avatarFallback}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">John Doe</p>
-                  <p className="text-xs text-muted-foreground">john.doe@example.com</p>
+                  <p className="text-sm font-medium">{activeMember.name}</p>
+                  <p className="text-xs text-muted-foreground">{activeMember.email}</p>
                 </div>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Workspace</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuRadioGroup value={activeWorkspace.id} onValueChange={selectWorkspace}>
+                  {workspaces.map((workspace) => (
+                    <DropdownMenuRadioItem key={workspace.id} value={workspace.id} className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{workspace.name}</span>
+                      <Badge variant="secondary" className="ml-auto rounded-full text-[10px] uppercase tracking-wide">
+                        {workspace.role}
+                      </Badge>
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/profile">
@@ -166,6 +219,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
         </div>
       </div>
       <CommandMenu />
+      <NotificationCenter open={notificationsOpen} onOpenChange={setNotificationsOpen} />
     </header>
   )
 }

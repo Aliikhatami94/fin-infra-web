@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  lint-typecheck-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify environment configuration
+        run: pnpm env:check
+
+      - name: Verify privacy checklist acknowledgement (non-blocking)
+        if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+        env:
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
+        run: |
+          set -eo pipefail
+          BODY=$(printf "%s" "$PR_BODY" | tr -d '\r')
+          # Pass if any checked checkbox exists OR docs link is present.
+          if echo "$BODY" | grep -Eiq "[-*][[:space:]]*\[[[:space:]]*[xX][[:space:]]*\]" || echo "$BODY" | grep -qi "docs/security-privacy.md"; then
+            echo "Privacy checklist acknowledged."
+          else
+            echo "::warning::Privacy checklist not acknowledged. Add a checked box (e.g. - [x]) or link to docs/security-privacy.md."
+          fi
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Run tests
+        run: pnpm test

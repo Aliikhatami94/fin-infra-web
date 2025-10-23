@@ -1,39 +1,44 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard,
   Building2,
   Wallet,
   Bitcoin,
   TrendingUp,
+  ListTree,
   Target,
   Receipt,
   Lightbulb,
   FileText,
   Settings,
+  Shield,
   ChevronLeft,
   X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { isActiveRoute } from "@/lib/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navigation = [
-  { name: "Overview", href: "/", icon: LayoutDashboard },
+  { name: "Overview", href: "/overview", icon: LayoutDashboard },
   { name: "Accounts", href: "/accounts", icon: Building2, badge: 2 },
   { name: "Portfolio", href: "/portfolio", icon: Wallet },
   { name: "Crypto", href: "/crypto", icon: Bitcoin },
   { name: "Cash Flow", href: "/cash-flow", icon: TrendingUp },
+  { name: "Transactions", href: "/transactions", icon: ListTree },
   { name: "Budget", href: "/budget", icon: Receipt },
   { name: "Goals", href: "/goals", icon: Target },
   { name: "Taxes", href: "/taxes", icon: FileText },
   { name: "Insights", href: "/insights", icon: Lightbulb },
   { name: "Documents", href: "/documents", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Security Center", href: "/settings/security", icon: Shield },
 ]
 
 interface SidebarProps {
@@ -44,6 +49,27 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const prefetchedRoutes = useRef(new Set<string>())
+
+  const handlePrefetch = (href: string) => {
+    if (prefetchedRoutes.current.has(href)) {
+      return
+    }
+    prefetchedRoutes.current.add(href)
+    try {
+      // Next.js App Router's router.prefetch returns void in v13+;
+      // if a Promise is ever returned, handle it defensively.
+      const maybePromise = (router as unknown as { prefetch: (h: string) => void | Promise<unknown> }).prefetch(href)
+      if (maybePromise && typeof (maybePromise as Promise<unknown>).catch === "function") {
+        ;(maybePromise as Promise<unknown>).catch(() => {
+          prefetchedRoutes.current.delete(href)
+        })
+      }
+    } catch {
+      prefetchedRoutes.current.delete(href)
+    }
+  }
 
   useEffect(() => {
     if (mobileOpen) {
@@ -90,19 +116,21 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="space-y-1 px-2">
               {navigation.map((item) => {
-                const isActive = pathname === item.href
+                const active = isActiveRoute(pathname, item.href)
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     onClick={onMobileClose}
+                    onMouseEnter={() => handlePrefetch(item.href)}
+                    onFocus={() => handlePrefetch(item.href)}
                     className={cn(
                       "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
+                      active
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
-                    aria-current={isActive ? "page" : undefined}
+                    aria-current={active ? "page" : undefined}
                   >
                     <item.icon className="h-5 w-5 shrink-0" />
                     {!collapsed && (

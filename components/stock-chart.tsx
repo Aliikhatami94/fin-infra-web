@@ -1,11 +1,23 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
+import type { TooltipContentProps } from "recharts"
 import { Button } from "@/components/ui/button"
+import { AccessibleChart } from "@/components/accessible-chart"
+import { currencySummaryFormatter, describeTimeSeries } from "@/lib/a11y"
+import { formatCurrency } from "@/lib/format"
 
-const generateChartData = (timeframe: string) => {
+type Timeframe = "1D" | "1W" | "1M" | "3M" | "1Y" | "ALL"
+
+interface StockChartPoint {
+  time: string
+  fullDate: string
+  price: number
+}
+
+const generateChartData = (timeframe: Timeframe): StockChartPoint[] => {
   const basePrice = 178.5
   const currentPrice = 185.75
 
@@ -107,13 +119,19 @@ const generateChartData = (timeframe: string) => {
   }
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+type StockTooltipProps = TooltipContentProps<number, string>
+
+const CustomTooltip = ({ active, payload }: StockTooltipProps) => {
   if (active && payload && payload.length) {
+    const dataPoint = payload[0]?.payload as StockChartPoint | undefined
+    const rawValue = payload[0]?.value
+    const price = typeof rawValue === "number" ? rawValue : Number(rawValue ?? 0)
+
     return (
       <div className="rounded-lg border bg-background p-2.5 shadow-md">
         <div className="flex flex-col gap-1">
-          <p className="text-xs text-muted-foreground">{payload[0].payload.fullDate}</p>
-          <p className="text-base font-semibold font-mono">${payload[0].value.toFixed(2)}</p>
+          <p className="text-xs text-muted-foreground">{dataPoint?.fullDate}</p>
+          <p className="text-base font-semibold font-mono">${price.toFixed(2)}</p>
         </div>
       </div>
     )
@@ -121,12 +139,51 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null
 }
 
-const timeframes = ["1D", "1W", "1M", "3M", "1Y", "ALL"]
+const timeframes: Timeframe[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"]
 
 export function StockChart() {
-  const [activeTimeframe, setActiveTimeframe] = useState("1D")
+  const [activeTimeframe, setActiveTimeframe] = useState<Timeframe>("1D")
+  const timeframeRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   const chartData = useMemo(() => generateChartData(activeTimeframe), [activeTimeframe])
+  const currentPrice = chartData[chartData.length - 1]?.price ?? 185.75
+  const previousPrice = chartData[0]?.price ?? currentPrice
+  const change = currentPrice - previousPrice
+  const changePercent = previousPrice ? ((change / previousPrice) * 100).toFixed(2) : "0.00"
+  const formattedCurrentPrice = formatCurrency(currentPrice, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  const changeLabel = `${change >= 0 ? "Increase" : "Decrease"} of ${formatCurrency(Math.abs(change), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} (${changePercent}%)`
+  const summary = useMemo(
+    () =>
+      describeTimeSeries({
+        data: chartData,
+        metric: "AAPL stock price",
+        getLabel: (point) => point.fullDate ?? point.time,
+        getValue: (point) => point.price,
+        formatValue: currencySummaryFormatter,
+      }),
+    [chartData],
+  )
+
+  const handleTimeframeKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
+      return
+    }
+
+    event.preventDefault()
+    const currentIndex = timeframes.findIndex((tf) => tf === activeTimeframe)
+    const direction = event.key === "ArrowRight" ? 1 : -1
+    const nextIndex = (currentIndex + direction + timeframes.length) % timeframes.length
+    const nextValue = timeframes[nextIndex]
+
+    setActiveTimeframe(nextValue)
+    timeframeRefs.current[nextIndex]?.focus()
+  }
 
   return (
     <Card className="w-full">
@@ -138,14 +195,40 @@ export function StockChart() {
               <span className="text-sm text-muted-foreground">Apple Inc.</span>
             </div>
             <div className="flex items-baseline gap-2.5">
-              <span className="text-3xl font-bold tracking-tight font-mono">$185.75</span>
-              <span className="text-emerald-600 dark:text-emerald-500 text-sm font-medium">+$7.25 (+4.06%)</span>
+              <span
+                className="text-3xl font-bold tracking-tight font-mono"
+                aria-live="polite"
+                aria-label={`Current AAPL price ${formattedCurrentPrice}`}
+              >
+                {formattedCurrentPrice}
+              </span>
+              <span
+                className={`text-sm font-medium ${change >= 0 ? "text-emerald-600 dark:text-emerald-500" : "text-red-600 dark:text-red-500"}`}
+                role="status"
+                aria-live="polite"
+                aria-label={changeLabel}
+              >
+                {change >= 0 ? "+" : ""}$
+                {Math.abs(change).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (
+                {change >= 0 ? "+" : ""}
+                {changePercent}%)
+              </span>
             </div>
           </div>
-          <div className="flex gap-0.5 bg-muted/50 rounded-lg p-0.5">
-            {timeframes.map((tf) => (
+          <div
+            className="flex gap-0.5 bg-muted/50 rounded-lg p-0.5"
+            role="radiogroup"
+            aria-label="Select stock price timeframe"
+            onKeyDown={handleTimeframeKeyDown}
+          >
+            {timeframes.map((tf, index) => (
               <Button
                 key={tf}
+                ref={(node) => {
+                  timeframeRefs.current[index] = node
+                }}
+                role="radio"
+                aria-checked={tf === activeTimeframe}
                 variant={tf === activeTimeframe ? "secondary" : "ghost"}
                 size="sm"
                 className={`h-8 px-3 text-xs font-medium ${
@@ -160,7 +243,12 @@ export function StockChart() {
         </div>
       </CardHeader>
       <CardContent className="px-2 pb-2">
-        <div className="w-full h-[450px]">
+        <AccessibleChart
+          title="AAPL stock price trend"
+          description={summary}
+          className="w-full h-[450px]"
+          contentClassName="h-full"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <defs>
@@ -188,7 +276,7 @@ export function StockChart() {
                 width={50}
               />
               <Tooltip
-                content={<CustomTooltip />}
+                content={CustomTooltip}
                 cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1, strokeDasharray: "5 5" }}
               />
               <Area
@@ -201,7 +289,7 @@ export function StockChart() {
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </AccessibleChart>
       </CardContent>
     </Card>
   )

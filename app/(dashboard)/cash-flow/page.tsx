@@ -1,13 +1,24 @@
 "use client"
 
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import { CashFlowKPIs } from "@/components/cash-flow-kpis"
-import { CashFlowChart } from "@/components/cash-flow-chart"
 import { CategoriesChart } from "@/components/categories-chart"
 import { RecurringExpenses } from "@/components/recurring-expenses"
 import { RecentTransactions } from "@/components/recent-transactions"
 import { CashFlowAIInsights } from "@/components/cashflow-ai-insights"
 import { UpcomingCharges } from "@/components/upcoming-charges"
+import { ChartCardSkeleton } from "@/components/chart-skeleton"
+import type { CashFlowChartProps } from "@/components/cash-flow-chart"
+import { ErrorBoundary } from "@/components/error-boundary"
+
+const CashFlowChart = dynamic<CashFlowChartProps>(
+  () => import("@/components/cash-flow-chart").then((mod) => mod.CashFlowChart),
+  {
+    ssr: false,
+    loading: () => <ChartCardSkeleton title="Cash Flow Overview" contentHeight="h-[350px]" />,
+  },
+)
 
 export default function CashFlowPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -20,7 +31,9 @@ export default function CashFlowPage() {
       <div className="space-y-6">
         <CashFlowKPIs />
 
-        <CashFlowAIInsights />
+        <ErrorBoundary feature="Cash flow insights">
+          <CashFlowAIInsights />
+        </ErrorBoundary>
 
         <CashFlowChart onMonthClick={setSelectedMonth} selectedMonth={selectedMonth} />
       </div>

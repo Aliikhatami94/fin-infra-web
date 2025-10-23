@@ -1,79 +1,13 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowUpRight, ArrowDownRight, RefreshCw, ShoppingCart } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import { getRecentActivities } from "@/lib/services"
+import { formatCurrency } from "@/lib/format"
 
-const activities = [
-  {
-    id: 1,
-    type: "transaction",
-    category: "investment",
-    description: "Purchased 10 shares of AAPL",
-    amount: -1850.0,
-    date: "2 hours ago",
-    dateGroup: "Today",
-    icon: ArrowDownRight,
-    color: "blue",
-    actions: [
-      { label: "View Details", variant: "default" as const },
-      { label: "Sell", variant: "outline" as const },
-    ],
-  },
-  {
-    id: 2,
-    type: "sync",
-    category: "sync",
-    description: "Chase Checking synced",
-    amount: null,
-    date: "5 hours ago",
-    dateGroup: "Today",
-    icon: RefreshCw,
-    color: "gray",
-    actions: [{ label: "Refresh Now", variant: "outline" as const }],
-  },
-  {
-    id: 3,
-    type: "transaction",
-    category: "income",
-    description: "Dividend received from MSFT",
-    amount: 45.32,
-    date: "1 day ago",
-    dateGroup: "Yesterday",
-    icon: ArrowUpRight,
-    color: "green",
-    actions: [{ label: "Reinvest", variant: "default" as const }],
-  },
-  {
-    id: 4,
-    type: "subscription",
-    category: "expense",
-    description: "Netflix subscription renewed",
-    amount: -15.99,
-    date: "2 days ago",
-    dateGroup: "This Week",
-    icon: ShoppingCart,
-    color: "red",
-    actions: [
-      { label: "View Details", variant: "outline" as const },
-      { label: "Cancel Subscription", variant: "destructive" as const },
-    ],
-  },
-  {
-    id: 5,
-    type: "transaction",
-    category: "investment",
-    description: "Sold 5 shares of TSLA",
-    amount: 1275.5,
-    date: "3 days ago",
-    dateGroup: "This Week",
-    icon: ArrowUpRight,
-    color: "green",
-    actions: [{ label: "View Tax Impact", variant: "outline" as const }],
-  },
-]
+const activities = getRecentActivities()
 
 export function RecentActivity() {
   const [selectedActivity, setSelectedActivity] = useState<(typeof activities)[0] | null>(null)
@@ -168,8 +102,7 @@ export function RecentActivity() {
                                   : "text-red-600 dark:text-red-400"
                               }`}
                             >
-                              {activity.amount > 0 ? "+" : ""}$
-                              {Math.abs(activity.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                              {formatCurrency(activity.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
                             </p>
                           )}
                         </div>
@@ -225,8 +158,7 @@ export function RecentActivity() {
                         selectedActivity.amount > 0 ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {selectedActivity.amount > 0 ? "+" : ""}$
-                      {Math.abs(selectedActivity.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      {formatCurrency(selectedActivity.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
                     </span>
                   </div>
                   <div className="flex justify-between">

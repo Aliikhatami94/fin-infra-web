@@ -17,13 +17,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import { useTheme } from "next-themes"
+import { BRAND } from "@/lib/brand"
 
 interface DashboardHeaderProps {
   activeTab?: string
   onTabChange?: (tab: string) => void
 }
 
-export function DashboardHeader({ activeTab, onTabChange }: DashboardHeaderProps) {
+export function DashboardHeader({ activeTab: _activeTab, onTabChange: _onTabChange }: DashboardHeaderProps) {
   const { setTheme, theme } = useTheme()
 
   return (
@@ -31,7 +32,7 @@ export function DashboardHeader({ activeTab, onTabChange }: DashboardHeaderProps
       <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-6">
         <div className="flex items-center gap-6">
           <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            TradeHub
+            {BRAND.name}
           </h1>
         </div>
 

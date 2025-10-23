@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useState } from "react"
+import { BRAND } from "@/lib/brand"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -15,7 +16,6 @@ export default function ForgotPasswordPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // TODO: Implement password reset email logic
-    console.log("Send reset email to:", email)
     setIsSubmitted(true)
   }
 
@@ -36,12 +36,14 @@ export default function ForgotPasswordPage() {
                   />
                 </svg>
               </div>
-              <span className="text-xl font-semibold">Wealth</span>
+              <span className="text-xl font-semibold">{BRAND.name}</span>
             </div>
           </Link>
           <h1 className="mt-8 text-3xl font-semibold tracking-tight">Reset your password</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isSubmitted ? "Check your email for a reset link" : "Enter your email and we'll send you a reset link"}
+            {isSubmitted
+              ? "Check your email for a reset link"
+              : "Enter your email and we\u2019ll send you a reset link"}
           </p>
         </div>
 
@@ -59,7 +61,7 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <p className="text-sm text-muted-foreground">
-                We've sent a password reset link to <span className="font-medium text-foreground">{email}</span>
+                We&#39;ve sent a password reset link to <span className="font-medium text-foreground">{email}</span>
               </p>
             </div>
 

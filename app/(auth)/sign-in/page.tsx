@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useState } from "react"
+import { BRAND } from "@/lib/brand"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")
@@ -15,12 +16,10 @@ export default function SignInPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // TODO: Implement authentication logic
-    console.log("Sign in with:", { email, password })
   }
 
-  const handleOAuthSignIn = (provider: "google" | "github") => {
+  const handleOAuthSignIn = (_provider: "google" | "github") => {
     // TODO: Implement OAuth logic
-    console.log("Sign in with:", provider)
   }
 
   return (
@@ -40,7 +39,7 @@ export default function SignInPage() {
                   />
                 </svg>
               </div>
-              <span className="text-xl font-semibold">Wealth</span>
+              <span className="text-xl font-semibold">{BRAND.name}</span>
             </div>
           </Link>
           <h1 className="mt-8 text-3xl font-semibold tracking-tight">Welcome back</h1>
@@ -147,7 +146,7 @@ export default function SignInPage() {
 
         {/* Sign Up Link */}
         <p className="text-center text-sm text-muted-foreground">
-          Don't have an account?{" "}
+          Don&#39;t have an account?{" "}
           <Link href="/sign-up" className="text-primary hover:underline font-medium">
             Sign up
           </Link>

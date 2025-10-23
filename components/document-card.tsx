@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Eye, Download, MoreVertical, FileText, File, FileSpreadsheet } from "lucide-react"
+import { Eye, Download, MoreVertical, FileText, File, FileSpreadsheet, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -9,12 +9,17 @@ import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from 
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
+import { AssignmentMenu } from "@/components/assignment-menu"
+import { CollaborationDrawer } from "@/components/collaboration-drawer"
+import { useWorkspace } from "@/components/workspace-provider"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 interface DocumentCardProps {
   id: number
   name: string
   institution: string
   type: string
+  account: string
   date: string
   size: string
   index: number
@@ -41,6 +46,7 @@ export function DocumentCard({
   name,
   institution,
   type,
+  account,
   date,
   size,
   index,
@@ -49,6 +55,12 @@ export function DocumentCard({
 }: DocumentCardProps) {
   const Icon = getDocumentIcon(type)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const { activeWorkspace, getThread } = useWorkspace()
+  const thread = getThread("document", `document-${id}`)
+
+  const activeCollaborators = (thread?.watchers ?? [])
+    .map((watcherId) => activeWorkspace.members.find((member) => member.id === watcherId))
+    .filter((member): member is typeof activeWorkspace.members[number] => Boolean(member))
 
   return (
     <motion.div
@@ -57,11 +69,12 @@ export function DocumentCard({
       className={`group relative p-6 border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300 card-standard card-lift ${
         isSelected ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-border/60"
       }`}
+      data-document-id={id}
     >
       <div className="absolute top-4 left-4 z-10">
         <Checkbox
           checked={isSelected}
-          onCheckedChange={onSelectionChange}
+          onCheckedChange={(checked) => onSelectionChange?.(checked === true)}
           className="bg-background border-2"
           onClick={(e) => e.stopPropagation()}
         />
@@ -74,6 +87,7 @@ export function DocumentCard({
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-foreground line-clamp-2 mb-1">{name}</h3>
             <p className="text-xs text-muted-foreground">{institution}</p>
+            <p className="text-[11px] text-muted-foreground/80">{account}</p>
           </div>
         </div>
         <DropdownMenu>
@@ -163,6 +177,32 @@ export function DocumentCard({
             <Download className="h-4 w-4" />
           </button>
           <span className="text-muted-foreground/70">{size}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
+          {activeCollaborators && activeCollaborators.length > 0 ? (
+            <div className="flex -space-x-2">
+              {activeCollaborators.slice(0, 3).map((member) => (
+                <Avatar key={member!.id} className="h-6 w-6 border border-background">
+                  <AvatarFallback>{member!.avatarFallback}</AvatarFallback>
+                </Avatar>
+              ))}
+              {activeCollaborators.length > 3 && (
+                <span className="ml-3 text-[10px] uppercase tracking-wide text-muted-foreground/80">
+                  +{activeCollaborators.length - 3}
+                </span>
+              )}
+            </div>
+          ) : (
+            <span>No collaborators yet</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <AssignmentMenu entityId={`document-${id}`} entityType="document" />
+          <CollaborationDrawer entityId={`document-${id}`} entityType="document" entityName={name} />
         </div>
       </div>
     </motion.div>
