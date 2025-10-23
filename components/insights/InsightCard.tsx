@@ -27,6 +27,8 @@ type InsightCardProps = {
   onPinChange?: (payload: { insight: InsightDefinition; pinned: boolean }) => void
   unread?: boolean
   onMarkRead?: () => void
+  onResolve?: (payload: { insight: InsightDefinition }) => void
+  defaultResolved?: boolean
 }
 
 const accentStyles: Record<InsightAccent, { icon: string; badge: string; background: string; progress: string }> = {
@@ -88,10 +90,12 @@ export function InsightCard({
   onPinChange,
   unread = false,
   onMarkRead,
+  onResolve,
+  defaultResolved = false,
 }: InsightCardProps) {
   const styles = accentStyles[insight.accent]
   const [isPinned, setIsPinned] = useState(Boolean(insight.pinned))
-  const [resolved, setResolved] = useState(false)
+  const [resolved, setResolved] = useState(Boolean(defaultResolved))
   const [showExplanation, setShowExplanation] = useState(false)
   const explanationId = useId()
   const headingId = useId()
@@ -108,6 +112,10 @@ export function InsightCard({
       explanationRef.current.focus()
     }
   }, [showExplanation])
+
+  useEffect(() => {
+    setResolved(Boolean(defaultResolved))
+  }, [defaultResolved])
 
   useEffect(() => {
     if (unread && !hasLoggedHighlight.current) {
@@ -146,6 +154,7 @@ export function InsightCard({
     setResolved(true)
     registerRead()
     trackInsightResolution({ insight })
+    onResolve?.({ insight })
   }
 
   const handleAction = (action: InsightAction) => {

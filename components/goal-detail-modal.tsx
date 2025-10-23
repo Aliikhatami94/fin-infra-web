@@ -64,10 +64,38 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
   const [risk, setRisk] = useState<number[]>([5])
   const hasTracked = useRef(false)
 
-  const monthsRemaining = Math.ceil((goal.target - goal.current) / goal.monthlyTarget)
-  const predictedDate = new Date()
-  predictedDate.setMonth(predictedDate.getMonth() + monthsRemaining)
-  const formattedPredictedDate = predictedDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+  const contributionValue = contribution[0] ?? 0
+  const remainingAmount = Math.max(goal.target - goal.current, 0)
+  const baselineContribution = goal.monthlyTarget
+  const sliderMin = 0
+  const sliderMax = Math.max(baselineContribution * 3, baselineContribution + 1000)
+
+  const baselineMonths = baselineContribution > 0 ? remainingAmount / baselineContribution : Number.POSITIVE_INFINITY
+  const adjustedMonths = contributionValue > 0 ? remainingAmount / contributionValue : Number.POSITIVE_INFINITY
+
+  const baselineMonthsRounded = Number.isFinite(baselineMonths) ? Math.max(0, Math.ceil(baselineMonths)) : null
+  const adjustedMonthsRounded = Number.isFinite(adjustedMonths) ? Math.max(0, Math.ceil(adjustedMonths)) : null
+  const monthsDelta =
+    Number.isFinite(baselineMonths) && Number.isFinite(adjustedMonths)
+      ? baselineMonths - adjustedMonths
+      : 0
+
+  const computeProjectedDate = (months: number) => {
+    if (!Number.isFinite(months)) return null
+    const result = new Date()
+    result.setMonth(result.getMonth() + Math.max(0, Math.ceil(months)))
+    return result
+  }
+
+  const baselineDate = computeProjectedDate(baselineMonths)
+  const adjustedDate = computeProjectedDate(adjustedMonths)
+
+  const formattedBaselineDate = baselineDate
+    ? baselineDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    : "—"
+  const formattedPredictedDate = adjustedDate
+    ? adjustedDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    : "TBD"
 
   const contributionKey = useMemo(() => `goal:${goal.name}:contribution`, [goal.name])
   const riskKey = useMemo(() => `goal:${goal.name}:risk`, [goal.name])
@@ -160,16 +188,40 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                 <div className="flex-1">
                   <h4 className="font-semibold mb-1">Predicted Completion</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Based on your current contribution rate of {formatCurrency(goal.monthlyTarget)}/month, you&#39;ll reach your goal
-                    by <span className="font-medium text-foreground">{formattedPredictedDate}</span>
+                    Based on contributing {formatCurrency(contributionValue)}/month, you&#39;ll reach your goal by
+                    <span className="font-medium text-foreground"> {formattedPredictedDate}</span>.
+                    {baselineDate && adjustedDate ? (
+                      <span className="ml-1">
+                        That&#39;s
+                        {monthsDelta > 0
+                          ? ` ${Math.abs(monthsDelta).toFixed(1)} months sooner than`
+                          : monthsDelta < 0
+                            ? ` ${Math.abs(monthsDelta).toFixed(1)} months later than`
+                            : " on par with"}
+                        your baseline of {formattedBaselineDate}.
+                      </span>
+                    ) : null}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Badge variant="outline" className="bg-background">
-                      {monthsRemaining} months remaining
-                    </Badge>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    {adjustedMonthsRounded !== null ? (
+                      <Badge variant="outline" className="bg-background">
+                        {adjustedMonthsRounded} months remaining
+                      </Badge>
+                    ) : null}
                     <Badge variant="outline" className="bg-background">
                       {formatCurrency(goal.target - goal.current)} to go
                     </Badge>
+                    {baselineMonthsRounded !== null ? (
+                      <Badge variant="outline" className="bg-background">
+                        Baseline: {baselineMonthsRounded} mo
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <div className="mt-3">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Add to calendar
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -178,7 +230,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
             <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
               <div>
                 <p className="text-sm text-muted-foreground">Monthly Target</p>
-                <p className="text-lg font-semibold">{formatCurrency(goal.monthlyTarget)}/mo</p>
+                <p className="text-lg font-semibold">{formatCurrency(contributionValue)}/mo</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Funding Source</p>
@@ -191,7 +243,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
               <div>
                 <p className="text-sm text-muted-foreground">Avg. Monthly Growth</p>
                 <p className="text-lg font-semibold text-[var(--color-positive)]">
-                  {formatCurrency(goal.monthlyTarget, { signDisplay: "always" })}
+                  {formatCurrency(contributionValue, { signDisplay: "always" })}
                 </p>
               </div>
             </div>
@@ -317,16 +369,53 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
             </div>
 
             <div className="space-y-6 rounded-lg border p-4">
-              <SliderField
-                label="Monthly contribution"
-                description="Adjust to see how faster contributions change your goal date."
-                value={contribution}
-                onValueChange={setContribution}
-                min={0}
-                max={goal.monthlyTarget * 3}
-                step={50}
-                formatValue={(values) => formatCurrency(values[0])}
-              />
+              <div className="space-y-3">
+                <SliderField
+                  label="Monthly contribution"
+                  description="Adjust to see how faster contributions change your goal date."
+                  value={contribution}
+                  onValueChange={setContribution}
+                  min={sliderMin}
+                  max={sliderMax}
+                  step={50}
+                  formatValue={(values) => formatCurrency(values[0])}
+                />
+                <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="flex-1 space-y-1">
+                    <Label htmlFor="monthly-contribution-input" className="text-xs text-muted-foreground">
+                      Enter exact amount
+                    </Label>
+                    <Input
+                      id="monthly-contribution-input"
+                      type="number"
+                      inputMode="decimal"
+                      min={sliderMin}
+                      max={sliderMax}
+                      step={50}
+                      value={Number.isFinite(contributionValue) ? Math.round(contributionValue) : ""}
+                      onChange={(event) => {
+                        const nextValue = Number.parseFloat(event.target.value)
+                        if (Number.isNaN(nextValue)) {
+                          setContribution([sliderMin])
+                          return
+                        }
+                        const clamped = Math.min(Math.max(nextValue, sliderMin), sliderMax)
+                        setContribution([clamped])
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <p className="font-medium text-foreground">
+                      {monthsDelta > 0
+                        ? `${Math.abs(monthsDelta).toFixed(1)} months faster`
+                        : monthsDelta < 0
+                          ? `${Math.abs(monthsDelta).toFixed(1)} months slower`
+                          : "Matches baseline"}
+                    </p>
+                    <p>New ETA: {formattedPredictedDate}</p>
+                  </div>
+                </div>
+              </div>
               <SliderField
                 label="Risk preference"
                 description="Higher risk assumes more aggressive growth and more volatility."

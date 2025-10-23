@@ -19,12 +19,11 @@ import { AccountDetailPanel } from "./account-detail-panel"
 import { MiniSparkline } from "./mini-sparkline"
 import { bankLogos, defaultBankIcon, sharedIcons, typeColors } from "@/lib/mock"
 import type { GroupBy, SortField } from "./types"
-import type { Account, Transaction } from "@/types/domain"
+import type { Account, Transaction, AccountStatus } from "@/types/domain"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { getRecentTransactions } from "@/lib/services/accounts"
 
 const {
-  AlertCircle,
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
@@ -35,6 +34,33 @@ const {
   TrendingDown,
   TrendingUp,
 } = sharedIcons
+
+const statusStyles: Record<
+  AccountStatus,
+  { label: string; description: string; className: string; indicatorClass: string }
+> = {
+  active: {
+    label: "Active",
+    description: "Connection is healthy and syncing automatically.",
+    className:
+      "border-emerald-500/40 text-emerald-600 dark:text-emerald-300 bg-emerald-500/10", 
+    indicatorClass: "bg-emerald-500",
+  },
+  needs_update: {
+    label: "Update required",
+    description: "Authentication expired. Refresh to resume automatic syncs.",
+    className:
+      "border-amber-500/50 text-amber-700 dark:text-amber-300 bg-amber-500/10",
+    indicatorClass: "bg-amber-500",
+  },
+  disconnected: {
+    label: "Disconnected",
+    description: "We can't reach this institution. Reconnect to restore data.",
+    className:
+      "border-slate-500/40 text-slate-600 dark:text-slate-300 bg-slate-500/10",
+    indicatorClass: "bg-slate-400",
+  },
+}
 
 type VirtualRow =
   | { type: "group"; id: string; groupName: string; count: number }
@@ -152,7 +178,16 @@ export function AccountsTableDesktop({
       { className, ...props },
       ref,
     ) {
-      return <thead {...props} ref={ref} className={cn("sticky top-0 bg-card z-10", className)} />
+      return (
+        <thead
+          {...props}
+          ref={ref}
+          className={cn(
+            "sticky top-0 z-10 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80",
+            className,
+          )}
+        />
+      )
     })
 
     const VirtBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(function VirtBody(
@@ -328,7 +363,11 @@ export function AccountsTableDesktop({
             </td>,
             <td key={`${item.id}-change`} className="py-3 px-3 text-right align-middle">
               <div className="inline-flex items-center justify-end gap-1 whitespace-nowrap">
-                <MiniSparkline trend={account.change} />
+                <MiniSparkline
+                  trend={account.change}
+                  data={account.balanceHistory}
+                  label={`${account.name} balance trend for the last 30 days`}
+                />
                 {account.change > 0 ? (
                   <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
                 ) : (
@@ -352,26 +391,47 @@ export function AccountsTableDesktop({
               <p className="text-sm text-muted-foreground whitespace-nowrap">{account.lastSync}</p>
             </td>,
             <td key={`${item.id}-status`} className="py-3 px-3 align-middle">
-              {account.status === "needs_update" ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onUpdateConnection(account.id)
-                  }}
-                >
-                  <div className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-                  <span className="text-xs font-medium">Update Required</span>
-                  <AlertCircle className="h-3 w-3" />
-                </Button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-green-500" />
-                  <span className="text-xs text-muted-foreground">Active</span>
-                </div>
-              )}
+              <div className="flex items-center justify-start gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium",
+                          statusStyles[account.status].className,
+                        )}
+                      >
+                        <span
+                          className={cn("h-2 w-2 rounded-full", statusStyles[account.status].indicatorClass)}
+                          aria-hidden
+                        />
+                        {statusStyles[account.status].label}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs leading-relaxed text-muted-foreground">
+                        {statusStyles[account.status].description}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                {account.status === "needs_update" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    aria-label={`Reconnect ${account.name}`}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onUpdateConnection(account.id)
+                    }}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </td>,
             <td key={`${item.id}-actions`} className="py-3 px-1 text-right align-middle">
               <DropdownMenu>

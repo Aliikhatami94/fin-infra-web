@@ -1,12 +1,25 @@
 import type { GroupBy, SortDirection, SortField } from "./types"
-import type { Account } from "@/types/domain"
+import type { Account, AccountType } from "@/types/domain"
 
-export function filterAccounts(accounts: Account[], hideZeroBalance: boolean): Account[] {
-  if (!hideZeroBalance) {
-    return accounts
+interface AccountFilterOptions {
+  hideZeroBalance: boolean
+  typeFilters?: Set<AccountType>
+}
+
+export function filterAccounts(accounts: Account[], options: AccountFilterOptions): Account[] {
+  const { hideZeroBalance, typeFilters } = options
+
+  let filtered = accounts
+
+  if (hideZeroBalance) {
+    filtered = filtered.filter((account) => account.balance !== 0)
   }
 
-  return accounts.filter((account) => account.balance !== 0)
+  if (typeFilters && typeFilters.size > 0) {
+    filtered = filtered.filter((account) => typeFilters.has(account.type))
+  }
+
+  return filtered
 }
 
 export function sortAccounts(

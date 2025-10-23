@@ -8,13 +8,68 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useState } from "react"
 import { BRAND } from "@/lib/brand"
+import { PasswordInput } from "@/components/ui/password-input"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [touched, setTouched] = useState({ email: false, password: false })
+  const [errors, setErrors] = useState({ email: "", password: "" })
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const emailErrorId = "sign-in-email-error"
+  const passwordErrorId = "sign-in-password-error"
+  const passwordStrengthId = "sign-in-password-strength"
+  const submitErrorId = "sign-in-submit-error"
+
+  const validateField = (field: "email" | "password", value: string) => {
+    if (field === "email") {
+      if (!value.trim()) {
+        return "Email is required."
+      }
+
+      const emailPattern = /.+@.+\..+/
+      if (!emailPattern.test(value)) {
+        return "Enter a valid email address."
+      }
+    }
+
+    if (field === "password") {
+      if (!value.trim()) {
+        return "Password is required."
+      }
+
+      if (value.length < 8) {
+        return "Use at least 8 characters."
+      }
+    }
+
+    return ""
+  }
+
+  const runValidation = (field: "email" | "password", value: string) => {
+    const nextError = validateField(field, value)
+    setErrors((prev) => ({ ...prev, [field]: nextError }))
+    return nextError
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setTouched({ email: true, password: true })
+
+    const nextErrors = {
+      email: validateField("email", email),
+      password: validateField("password", password),
+    }
+
+    setErrors(nextErrors)
+
+    if (Object.values(nextErrors).some(Boolean)) {
+      setSubmitError("Please correct the highlighted fields before continuing.")
+      return
+    }
+
+    setSubmitError(null)
     // TODO: Implement authentication logic
   }
 
@@ -53,6 +108,7 @@ export default function SignInPage() {
             variant="outline"
             className="w-full h-11 text-sm font-medium bg-transparent"
             onClick={() => handleOAuthSignIn("google")}
+            aria-label="Continue with Google"
           >
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -80,6 +136,7 @@ export default function SignInPage() {
             variant="outline"
             className="w-full h-11 text-sm font-medium bg-transparent"
             onClick={() => handleOAuthSignIn("github")}
+            aria-label="Continue with GitHub"
           >
             <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -103,7 +160,7 @@ export default function SignInPage() {
         </div>
 
         {/* Email/Password Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium">
               Email
@@ -113,10 +170,32 @@ export default function SignInPage() {
               type="email"
               placeholder="name@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                const nextValue = e.target.value
+                setEmail(nextValue)
+                if (touched.email) {
+                  runValidation("email", nextValue)
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, email: true }))
+                runValidation("email", email)
+              }}
               required
               className="h-11"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? emailErrorId : undefined}
+              autoComplete="email"
             />
+            {errors.email ? (
+              <p
+                id={emailErrorId}
+                className="text-xs text-destructive"
+                aria-live="polite"
+              >
+                {errors.email}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -128,21 +207,57 @@ export default function SignInPage() {
                 Forgot password?
               </Link>
             </div>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                const nextValue = e.target.value
+                setPassword(nextValue)
+                if (touched.password) {
+                  runValidation("password", nextValue)
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, password: true }))
+                runValidation("password", password)
+              }}
               required
               className="h-11"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={[errors.password ? passwordErrorId : null, passwordStrengthId]
+                .filter(Boolean)
+                .join(" ") || undefined}
+              autoComplete="current-password"
+              showStrength
+              strengthHintId={passwordStrengthId}
             />
+            {errors.password ? (
+              <p
+                id={passwordErrorId}
+                className="text-xs text-destructive"
+                aria-live="polite"
+              >
+                {errors.password}
+              </p>
+            ) : null}
           </div>
 
           <Button type="submit" className="w-full h-11 text-sm font-medium">
             Sign in
           </Button>
         </form>
+
+        {submitError ? (
+          <div
+            id={submitErrorId}
+            role="alert"
+            aria-live="assertive"
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {submitError}
+          </div>
+        ) : null}
 
         {/* Sign Up Link */}
         <p className="text-center text-sm text-muted-foreground">

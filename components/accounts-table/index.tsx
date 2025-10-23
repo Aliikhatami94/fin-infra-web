@@ -18,8 +18,9 @@ import { AccountsListMobile } from "./accounts-list-mobile"
 import { AccountsTableDesktop } from "./accounts-table-desktop"
 import { sharedIcons } from "@/lib/mock"
 import { filterAccounts, groupAccounts, sortAccounts } from "./utils"
-import type { GroupBy, SortDirection, SortField } from "./types"
+import type { GroupBy, SortDirection, SortField, AccountType } from "./types"
 import { getAccounts } from "@/lib/services/accounts"
+import { cn } from "@/lib/utils"
 
 const { Filter, Plus } = sharedIcons
 
@@ -33,6 +34,13 @@ export function AccountsTable() {
   const [ignoredAccounts, setIgnoredAccounts] = useState<Set<number>>(new Set())
   const [groupBy, setGroupBy] = useState<GroupBy>("none")
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+  const [typeFilters, setTypeFilters] = useState<Set<AccountType>>(new Set())
+
+  const accountTypes = useMemo(() => {
+    const types = new Set<AccountType>()
+    accounts.forEach((account) => types.add(account.type))
+    return Array.from(types).sort((a, b) => a.localeCompare(b))
+  }, [accounts])
 
   const handleSort = (field: SortField) => {
     const newDirection = sortField === field && sortDirection === "asc" ? "desc" : "asc"
@@ -73,9 +81,25 @@ export function AccountsTable() {
     })
   }
 
+  const toggleTypeFilter = (accountType: AccountType) => {
+    setTypeFilters((current) => {
+      const next = new Set(current)
+      if (next.has(accountType)) {
+        next.delete(accountType)
+      } else {
+        next.add(accountType)
+      }
+      return next
+    })
+  }
+
+  const clearTypeFilters = () => {
+    setTypeFilters(new Set())
+  }
+
   const filteredAccounts = useMemo(
-    () => filterAccounts(accounts, hideZeroBalance),
-    [accounts, hideZeroBalance],
+    () => filterAccounts(accounts, { hideZeroBalance, typeFilters }),
+    [accounts, hideZeroBalance, typeFilters],
   )
 
   const groupedAccounts = useMemo(
@@ -117,6 +141,37 @@ export function AccountsTable() {
                   <Plus className="h-4 w-4" />
                   Connect Account
                 </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {accountTypes.map((type) => {
+                  const isActive = typeFilters.has(type)
+                  return (
+                    <Button
+                      key={type}
+                      variant="outline"
+                      size="sm"
+                      data-state={isActive ? "on" : "off"}
+                      aria-pressed={isActive}
+                      className={cn(
+                        "rounded-full border-dashed bg-transparent text-xs font-medium",
+                        isActive && "border-primary/60 bg-primary/10 text-primary",
+                      )}
+                      onClick={() => toggleTypeFilter(type)}
+                    >
+                      {type}
+                    </Button>
+                  )
+                })}
+                {typeFilters.size > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={clearTypeFilters}
+                  >
+                    Clear filters
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>

@@ -39,6 +39,21 @@ export const typeColors: Record<string, string> = {
   "Credit Card": "border-red-500/50 text-red-700 dark:text-red-300 bg-red-500/10",
 }
 
+function createBalanceHistory(currentBalance: number, changePercent: number): number[] {
+  const points = 30
+  const changeRatio = changePercent / 100
+  const startingBalance = changeRatio === -1 ? currentBalance : currentBalance / (1 + changeRatio || 1)
+  const amplitude = Math.abs(currentBalance - startingBalance) * 0.2
+
+  return Array.from({ length: points }, (_, index) => {
+    const progress = index / (points - 1)
+    const base = startingBalance + (currentBalance - startingBalance) * progress
+    const wave = Math.sin(progress * Math.PI * 2) * amplitude * 0.25
+    const value = base + wave
+    return Number(value.toFixed(2))
+  })
+}
+
 export const mockTransactions: Transaction[] = [
   {
     id: 1,
@@ -102,6 +117,7 @@ export const accountsData: Account[] = [
     institution: "Chase",
     balance: 12450.32,
     change: 2.3,
+    balanceHistory: createBalanceHistory(12450.32, 2.3),
     lastSync: "2 hours ago",
     status: "active",
     nextBillDue: "Jan 25, 2024",
@@ -114,6 +130,7 @@ export const accountsData: Account[] = [
     institution: "Chase",
     balance: 45230.0,
     change: 1.2,
+    balanceHistory: createBalanceHistory(45230.0, 1.2),
     lastSync: "2 hours ago",
     status: "active",
     nextBillDue: null,
@@ -126,6 +143,7 @@ export const accountsData: Account[] = [
     institution: "Fidelity",
     balance: 187650.45,
     change: 5.7,
+    balanceHistory: createBalanceHistory(187650.45, 5.7),
     lastSync: "1 hour ago",
     status: "active",
     nextBillDue: null,
@@ -138,6 +156,7 @@ export const accountsData: Account[] = [
     institution: "Chase",
     balance: -2340.12,
     change: -15.2,
+    balanceHistory: createBalanceHistory(-2340.12, -15.2),
     lastSync: "5 hours ago",
     status: "active",
     nextBillDue: "Feb 1, 2024",
@@ -150,6 +169,7 @@ export const accountsData: Account[] = [
     institution: "American Express",
     balance: -1234.56,
     change: -8.5,
+    balanceHistory: createBalanceHistory(-1234.56, -8.5),
     lastSync: "1 day ago",
     status: "needs_update",
     nextBillDue: "Jan 28, 2024",
@@ -162,6 +182,7 @@ export const accountsData: Account[] = [
     institution: "Capital One",
     balance: 0.0,
     change: 0.0,
+    balanceHistory: createBalanceHistory(0, 0),
     lastSync: "5 hours ago",
     status: "active",
     nextBillDue: null,

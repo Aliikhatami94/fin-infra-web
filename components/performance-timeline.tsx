@@ -9,23 +9,52 @@ import { usePersona } from "@/components/persona-provider"
 import { summarizeTimelinePerformance } from "@/lib/insights/service"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Clock } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const generateData = (days: number) => {
-  const data = []
+const BENCHMARKS = {
+  SPY: { label: "S&P 500 (SPY)", drift: 280, volatility: 900, color: "hsl(210, 16%, 55%)" },
+  QQQ: { label: "Nasdaq 100 (QQQ)", drift: 340, volatility: 1100, color: "hsl(271, 91%, 65%)" },
+  VT: { label: "Global Market (VT)", drift: 230, volatility: 750, color: "hsl(25, 95%, 60%)" },
+} as const
+
+type BenchmarkKey = keyof typeof BENCHMARKS
+
+type TimelinePoint = {
+  date: string
+  portfolio: number
+  planned: number
+} & Record<BenchmarkKey, number>
+
+const generateData = (days: number): TimelinePoint[] => {
+  const data: TimelinePoint[] = []
   let actual = 100000
   let planned = 98000
+  const benchmarkState = Object.fromEntries(
+    (Object.keys(BENCHMARKS) as BenchmarkKey[]).map((key) => [key, 100000]),
+  ) as Record<BenchmarkKey, number>
+
   for (let i = 0; i < days; i++) {
     actual += (Math.random() - 0.45) * 1000
     planned += 320
-    data.push({
+    const point: TimelinePoint = {
       date: new Date(Date.now() - (days - i - 1) * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       }),
       portfolio: actual,
       planned,
-      benchmark: 100000 + i * 300,
-    })
+      SPY: benchmarkState.SPY,
+      QQQ: benchmarkState.QQQ,
+      VT: benchmarkState.VT,
+    }
+
+    for (const key of Object.keys(BENCHMARKS) as BenchmarkKey[]) {
+      const { drift, volatility } = BENCHMARKS[key]
+      benchmarkState[key] += drift + (Math.random() - 0.5) * volatility
+      point[key] = benchmarkState[key]
+    }
+
+    data.push(point)
   }
   return data
 }
@@ -52,7 +81,7 @@ const milestoneBlueprint = [
 ]
 
 export function PerformanceTimeline() {
-  const [showBenchmark, setShowBenchmark] = useState(false)
+  const [benchmark, setBenchmark] = useState<BenchmarkKey | null>(null)
   const { dateRange } = useDateRange()
   const { persona } = usePersona()
 
@@ -101,19 +130,32 @@ export function PerformanceTimeline() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Performance Timeline</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {latestPoint && (
               <Badge variant={planDelta >= 0 ? "secondary" : "outline"} className="hidden sm:inline-flex text-xs">
                 {planDelta >= 0 ? "Ahead of plan" : "Behind plan"}
               </Badge>
             )}
-            <Button
-              variant={showBenchmark ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowBenchmark(!showBenchmark)}
+            <Select
+              value={benchmark ?? undefined}
+              onValueChange={(value) => setBenchmark(value as BenchmarkKey)}
             >
-              {showBenchmark ? "Hide SPY" : "Compare to SPY"}
-            </Button>
+              <SelectTrigger size="sm" aria-label="Overlay benchmark">
+                <SelectValue placeholder="Overlay benchmark" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {(Object.keys(BENCHMARKS) as BenchmarkKey[]).map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {BENCHMARKS[key].label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {benchmark && (
+              <Button variant="ghost" size="sm" onClick={() => setBenchmark(null)}>
+                Clear overlay
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -147,7 +189,9 @@ export function PerformanceTimeline() {
                   if (active && payload && payload.length) {
                     const portfolioValue = payload.find((item) => item.dataKey === "portfolio")?.value
                     const plannedValue = payload.find((item) => item.dataKey === "planned")?.value
-                    const benchmarkValue = payload.find((item) => item.dataKey === "benchmark")?.value
+                    const benchmarkValue = benchmark
+                      ? payload.find((item) => item.dataKey === benchmark)?.value
+                      : null
                     return (
                       <div className="rounded-lg border bg-card p-3 shadow-sm">
                         <p className="text-xs text-muted-foreground mb-1">{payload[0].payload.date}</p>
@@ -157,9 +201,11 @@ export function PerformanceTimeline() {
                         <p className="text-sm text-muted-foreground">
                           Plan: ${Number(plannedValue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
-                        {showBenchmark && benchmarkValue != null && (
+                        {benchmark && benchmarkValue != null && (
                           <p className="text-sm text-muted-foreground">
-                            SPY: ${Number(benchmarkValue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {BENCHMARKS[benchmark].label}: ${Number(benchmarkValue).toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                            })}
                           </p>
                         )}
                       </div>
@@ -194,11 +240,11 @@ export function PerformanceTimeline() {
                   strokeWidth={2}
                 />
               ))}
-              {showBenchmark && (
+              {benchmark && (
                 <Line
                   type="monotone"
-                  dataKey="benchmark"
-                  stroke="hsl(0, 0%, 60%)"
+                  dataKey={benchmark}
+                  stroke={BENCHMARKS[benchmark].color}
                   strokeWidth={1.5}
                   strokeDasharray="5 5"
                   dot={false}
@@ -208,8 +254,20 @@ export function PerformanceTimeline() {
           </ResponsiveContainer>
         </div>
         <div className="mt-4 grid gap-4 lg:grid-cols-[2fr,1fr]">
-          <div className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
-            {summary}
+          <div className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground space-y-3">
+            <p>{summary}</p>
+            {benchmark && (
+              <div className="flex items-center gap-2 text-xs">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: BENCHMARKS[benchmark].color }}
+                  aria-hidden
+                />
+                <span>
+                  Comparing against <span className="font-medium text-foreground">{BENCHMARKS[benchmark].label}</span> overlay.
+                </span>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             {milestones.map((milestone) => (
