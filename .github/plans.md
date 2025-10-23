@@ -110,19 +110,19 @@ Goal: Support households and advisors with shared visibility, tasking, and accou
 
 Deliverables
 
-- [ ] Shared workspace switcher in `TopBar` avatar menu for multi-member households, with access roles defined in `types/domain.ts`.
-- [ ] Comments & mentions drawer for transactions, goals, and documents leveraging `@/components/ui/textarea` + presence indicators.
-- [ ] Accountability checklist widgets (due bills, tasks) integrated into Overview and Documents with reminders.
-- [ ] Notification center revamp that groups alerts by workspace and channel (email, push) using `components/ui/tabs`.
+- [x] Shared workspace switcher in `TopBar` avatar menu for multi-member households, with access roles defined in `types/domain.ts`.
+- [x] Comments & mentions drawer for transactions, goals, and documents leveraging `@/components/ui/textarea` + presence indicators.
+- [x] Accountability checklist widgets (due bills, tasks) integrated into Overview and Documents with reminders.
+- [x] Notification center revamp that groups alerts by workspace and channel (email, push) using `components/ui/tabs`.
 
 Acceptance Criteria
 
-- [ ] Every actionable card exposes “Assign” or “Share” affordances respecting permissions.
+- [x] Every actionable card exposes “Assign” or “Share” affordances respecting permissions.
 - [ ] Activity log aggregates tasks, comments, and automations with filters.
 
 Implementation Tasks
 
-- [ ] Documents: Provide document type chips/tags with multi-select filtering; filter by year/account with persistent state.
+- [x] Documents: Provide document type chips/tags with multi-select filtering; filter by year/account with persistent state.
 
 #### WS-E – Mobile, Offline & Performance Polish
 

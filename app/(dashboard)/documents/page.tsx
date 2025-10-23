@@ -24,6 +24,7 @@ import type { Document } from "@/types/domain"
 import { DocumentUploadZone } from "@/components/document-upload-zone"
 import { toast } from "@/components/ui/sonner"
 import { SuccessCelebrationDialog } from "@/components/success-celebration-dialog"
+import { AccountabilityChecklist } from "@/components/accountability-checklist"
 
 export default function DocumentsPage() {
   const [scrolled, setScrolled] = useState(false)
@@ -386,6 +387,7 @@ export default function DocumentsPage() {
       </div>
 
       <div className="mx-auto max-w-[1600px] p-4 md:p-8 space-y-6">
+        <AccountabilityChecklist surface="documents" />
         <DocumentUploadZone id="document-upload" onUploadComplete={handleUploadComplete} />
         <ErrorBoundary feature="Document insights">
           <DocumentsAIInsights />

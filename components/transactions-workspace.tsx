@@ -21,6 +21,8 @@ import type { Transaction } from "@/types/domain"
 import { trackTransactionBulkAction, trackTransactionFilter } from "@/lib/analytics/events"
 import { toast } from "@/components/ui/sonner"
 import { Download, Tag, FolderGit2, Filter, Keyboard } from "lucide-react"
+import { AssignmentMenu } from "@/components/assignment-menu"
+import { CollaborationDrawer } from "@/components/collaboration-drawer"
 
 interface TransactionQuickFilter {
   id: string
@@ -166,11 +168,22 @@ export function TransactionsWorkspace() {
               Bulk manage categories, tags, and reviews with keyboard shortcuts and virtualized scrolling.
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Keyboard className="h-3.5 w-3.5" />
-            <span>
-              Press <kbd className="rounded bg-muted px-1">⌘</kbd> + <kbd className="rounded bg-muted px-1">A</kbd> to select all
-            </span>
+          <div className="flex flex-col items-end gap-2 text-xs text-muted-foreground md:items-center">
+            <div className="flex items-center gap-2">
+              <Keyboard className="h-3.5 w-3.5" />
+              <span>
+                Press <kbd className="rounded bg-muted px-1">⌘</kbd> + <kbd className="rounded bg-muted px-1">A</kbd> to select all
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <AssignmentMenu entityId="transaction-review" entityType="transaction" />
+              <CollaborationDrawer
+                entityId="transaction-review"
+                entityType="transaction"
+                entityName="Transactions workspace"
+                triggerLabel="Discuss"
+              />
+            </div>
           </div>
         </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">

@@ -198,7 +198,7 @@ export interface RecentActivity {
   color: string
   actions: ActivityAction[]
 }
-
+ 
 export type OnboardingStatus = "not_started" | "in_progress" | "completed" | "skipped"
 
 export type OnboardingGoalFocus = "wealth_building" | "debt_paydown" | "financial_stability"
@@ -292,4 +292,73 @@ export interface MoneyGraph {
   edges: MoneyGraphEdge[]
   personaSignals: OnboardingPersona
   lastSynced: string
+}
+
+export type WorkspaceRole = "owner" | "co-owner" | "member" | "viewer" | "advisor"
+
+export interface WorkspaceMember {
+  id: string
+  name: string
+  email: string
+  role: WorkspaceRole
+  avatarFallback: string
+  presence: "online" | "away" | "offline"
+}
+
+export interface WorkspaceSummary {
+  id: string
+  name: string
+  relationship: string
+  role: WorkspaceRole
+  members: WorkspaceMember[]
+}
+
+export type NotificationChannel = "in-app" | "email" | "push"
+
+export interface WorkspaceNotification {
+  id: string
+  workspaceId: string
+  title: string
+  description: string
+  channel: NotificationChannel
+  category: string
+  timestamp: string
+  unread: boolean
+  link?: string
+}
+
+export type AccountabilityTaskStatus = "pending" | "completed" | "overdue"
+
+export interface AccountabilityTask {
+  id: string
+  workspaceId: string
+  label: string
+  dueDate: string
+  reminder: string
+  assignedTo: string | null
+  status: AccountabilityTaskStatus
+  surfaces: ("overview" | "documents" | "global")[]
+  entityType: CollaborationEntityType
+  entityId: string
+}
+
+export type CollaborationEntityType = "document" | "transaction" | "goal" | "task"
+
+export interface CollaborationComment {
+  id: string
+  authorId: string
+  body: string
+  createdAt: string
+  mentions: string[]
+}
+
+export interface CollaborationThread {
+  id: string
+  workspaceId: string
+  entityType: CollaborationEntityType
+  entityId: string
+  entityName: string
+  comments: CollaborationComment[]
+  watchers: string[]
+  lastUpdated: string
 }

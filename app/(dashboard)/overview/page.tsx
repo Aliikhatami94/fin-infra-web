@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { AccountabilityChecklist } from "@/components/accountability-checklist"
 
 const AllocationChart = dynamic<AllocationChartProps>(
   () => import("@/components/allocation-chart").then((mod) => mod.AllocationChart),
@@ -131,6 +132,10 @@ export default function OverviewPage() {
       <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">Overview</h2>
         <KPICards />
+      </section>
+
+      <section>
+        <AccountabilityChecklist surface="overview" />
       </section>
 
       <section>

@@ -38,6 +38,7 @@ const appearanceDefaults: { fontScale: FontScale; dyslexia: boolean } = {
 }
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme()
   const initialState = {
     emailNotifications: true,
     pushNotifications: true,
