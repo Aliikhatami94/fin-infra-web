@@ -2,6 +2,7 @@
   "name": "my-v0-project",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.4.0",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
@@ -11,9 +12,14 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "env:check": "node ./scripts/check-env.mjs"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "unrs-resolver"
+    ]
+  },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",
-    "@hookform/resolvers": "^3.10.0",
+    "@hookform/resolvers": "^3.10.0",x
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "1.1.4",
     "@radix-ui/react-aspect-ratio": "1.1.1",
