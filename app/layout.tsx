@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PrivacyProvider } from "../components/privacy-provider"
 import { DateRangeProvider } from "@/components/date-range-provider"
+import { PersonaProvider } from "@/components/persona-provider"
 import { BRAND } from "@/lib/brand"
 import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
@@ -35,7 +36,9 @@ export default function RootLayout({
         </a>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <PrivacyProvider>
-            <DateRangeProvider>{children}</DateRangeProvider>
+            <PersonaProvider>
+              <DateRangeProvider>{children}</DateRangeProvider>
+            </PersonaProvider>
           </PrivacyProvider>
         </ThemeProvider>
         <Toaster richColors position="top-right" closeButton />

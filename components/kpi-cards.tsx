@@ -45,7 +45,6 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
 export function KPICards() {
   const { state, hydrated } = useOnboardingState()
   const kpis = useMemo(() => getDashboardKpis(hydrated ? state.persona : undefined), [hydrated, state.persona])
-
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {kpis.map((kpi, index) => {

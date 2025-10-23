@@ -4,6 +4,16 @@ export type IconComponent = ComponentType<{ className?: string }>
 
 export type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
 
+export type DashboardPersona = "wealth_builder" | "debt_destroyer" | "stability_seeker"
+
+export interface PersonaDefinition {
+  id: DashboardPersona
+  label: string
+  description: string
+  spotlight: string
+  highlightTone: "success" | "warning" | "info"
+}
+
 export type AccountStatus = "active" | "needs_update" | "disconnected"
 
 export type AccountType =
@@ -139,6 +149,16 @@ export interface Goal {
   status: GoalStatus
   color: string
   bgColor: string
+  milestones?: GoalMilestone[]
+  celebrationMessage?: string
+  scenarioNotes?: string
+}
+
+export interface GoalMilestone {
+  label: string
+  target: number
+  achieved: boolean
+  celebrationCta?: string
 }
 
 export type TrendDirection = "up" | "down" | "flat"
@@ -154,6 +174,9 @@ export interface KPI {
   lastSynced: string
   source: string
   href: string
+  urgency?: "low" | "medium" | "high"
+  personas?: DashboardPersona[]
+  narrative?: string
 }
 
 export type ActivityType = "transaction" | "sync" | "subscription" | (string & {})

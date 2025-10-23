@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { GoalsSummaryKPIs } from "@/components/goals-summary-kpis"
 import { GoalsGrid } from "@/components/goals-grid"
 import { GoalsAIInsights } from "@/components/goals-ai-insights"
@@ -12,9 +12,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react"
 import { GoalRecommendations } from "@/components/goal-recommendations"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { getGoals } from "@/lib/services/goals"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Slider } from "@/components/ui/slider"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default function GoalsPage() {
   const [showAddGoal, setShowAddGoal] = useState(false)
+  const [filter, setFilter] = useState<"all" | "active" | "paused" | "completed">("all")
+  const [contributionBoost, setContributionBoost] = useState(0)
+  const goals = useMemo(() => getGoals(), [])
+
+  const activeGoals = useMemo(() => goals.filter((goal) => goal.status === "active"), [goals])
+  const totalActiveContribution = useMemo(() => {
+    return activeGoals.reduce((total, goal) => {
+      const remaining = Math.max(goal.target - goal.current, 0)
+      const baseline = goal.monthlyTarget > 0 ? goal.monthlyTarget : Math.max(remaining / 12, 1)
+      return total + baseline
+    }, 0)
+  }, [activeGoals])
+
+  const projectedMonthsSaved = useMemo(() => {
+    if (totalActiveContribution === 0) return 0
+    return Math.max(0, (contributionBoost * activeGoals.length) / (totalActiveContribution || 1))
+  }, [activeGoals.length, contributionBoost, totalActiveContribution])
 
   return (
     <>
@@ -29,13 +50,60 @@ export default function GoalsPage() {
 
         <GoalsSummaryKPIs />
 
+        <Card className="card-standard">
+          <CardContent className="space-y-4 p-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Scenario planner</h2>
+                <p className="text-sm text-muted-foreground">
+                  Experiment with an extra monthly contribution and preview timeline impacts across active goals.
+                </p>
+              </div>
+              <div className="w-full max-w-md space-y-2">
+                <Slider
+                  value={[contributionBoost]}
+                  min={0}
+                  max={500}
+                  step={25}
+                  onValueChange={([value]) => setContributionBoost(value)}
+                  aria-label="Additional monthly contribution"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>$0</span>
+                  <span>${contributionBoost}</span>
+                  <span>$500</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {contributionBoost === 0
+                ? "No boost applied yet—drag the slider to explore acceleration scenarios."
+                : `Applying an additional $${contributionBoost}/mo could save roughly ${projectedMonthsSaved.toFixed(1)} months across your active goals.`}
+            </p>
+          </CardContent>
+        </Card>
+
         <ErrorBoundary feature="Goal insights">
           <GoalsAIInsights />
         </ErrorBoundary>
 
         <GoalRecommendations />
 
-        <GoalsGrid />
+        <Tabs value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
+          <TabsList>
+            <TabsTrigger value="all">All Goals</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="paused">On Hold</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <GoalsGrid
+          goals={goals}
+          filter={filter}
+          contributionBoost={contributionBoost}
+          totalActiveContribution={totalActiveContribution}
+        />
 
         <Dialog open={showAddGoal} onOpenChange={setShowAddGoal}>
           <DialogContent className="max-w-md">

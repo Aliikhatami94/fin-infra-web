@@ -1,16 +1,5 @@
-import {
-  DollarSign,
-  Wallet,
-  CreditCard,
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCw,
-  ShoppingCart,
-  PiggyBank,
-  Shield,
-} from "lucide-react"
-import type { Holding, KPI, OnboardingGoalFocus, RecentActivity } from "@/types/domain"
+import { DollarSign, Wallet, CreditCard, Activity, ArrowUpRight, ArrowDownRight, RefreshCw, ShoppingCart, PiggyBank, Shield } from "lucide-react"
+import type { Holding, KPI, RecentActivity, OnboardingGoalFocus } from "@/types/domain"
 
 export const kpis: KPI[] = [
   {

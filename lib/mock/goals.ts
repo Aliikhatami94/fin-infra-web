@@ -16,6 +16,13 @@ export const goals: Goal[] = [
     status: "active",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-500/10",
+    milestones: [
+      { label: "25% funded", target: 7500, achieved: true, celebrationCta: "Share win" },
+      { label: "50% funded", target: 15000, achieved: true, celebrationCta: "Send cheer" },
+      { label: "Full cushion", target: 30000, achieved: false },
+    ],
+    celebrationMessage: "Rainy-day reserves now cover 3.5 months of expenses.",
+    scenarioNotes: "An extra $150/mo finishes the fund by early winter.",
   },
   {
     id: 2,
@@ -31,6 +38,13 @@ export const goals: Goal[] = [
     status: "active",
     color: "text-green-600 dark:text-green-400",
     bgColor: "bg-green-500/10",
+    milestones: [
+      { label: "Inspection deposit saved", target: 20000, achieved: true },
+      { label: "Halfway mark", target: 50000, achieved: false },
+      { label: "Offer ready", target: 100000, achieved: false },
+    ],
+    celebrationMessage: "Pre-approval budget unlocked—keep momentum for closing costs.",
+    scenarioNotes: "Allocate tax refund and automation bump to regain schedule.",
   },
   {
     id: 3,
@@ -46,6 +60,13 @@ export const goals: Goal[] = [
     status: "active",
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-500/10",
+    milestones: [
+      { label: "Flights booked", target: 4000, achieved: true },
+      { label: "Lodging covered", target: 6500, achieved: false },
+      { label: "Experiences reserved", target: 8000, achieved: false },
+    ],
+    celebrationMessage: "Ready to lock in lodging upgrades with points.",
+    scenarioNotes: "Divert dining cash-back to finish in three paychecks.",
   },
   {
     id: 4,
@@ -61,6 +82,13 @@ export const goals: Goal[] = [
     status: "paused",
     color: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-500/10",
+    milestones: [
+      { label: "Account opened", target: 5000, achieved: true },
+      { label: "Scholarship buffer", target: 20000, achieved: false },
+      { label: "Freshman year covered", target: 50000, achieved: false },
+    ],
+    celebrationMessage: "Resume automatic deposits to capture state match.",
+    scenarioNotes: "Pause lifts 3 months after emergency fund completion.",
   },
   {
     id: 5,
@@ -76,5 +104,11 @@ export const goals: Goal[] = [
     status: "completed",
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-500/10",
+    milestones: [
+      { label: "Down payment secured", target: 15000, achieved: true },
+      { label: "Vehicle purchased", target: 20000, achieved: true, celebrationCta: "Share delivery photo" },
+    ],
+    celebrationMessage: "Keys in hand—transfer surplus toward insurance and maintenance reserve.",
+    scenarioNotes: "Keep $150/mo auto-transfer to seed EV upgrade goal.",
   },
 ]

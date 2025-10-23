@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import type { ActivityAction, ActivityType, KPI, RecentActivity } from "@/types/domain"
+import type { ActivityAction, ActivityType, DashboardPersona, KPI, RecentActivity } from "@/types/domain"
 import { iconSchema } from "./accounts"
 
 const buttonVariantSchema = z.enum(["default", "destructive", "outline", "secondary", "ghost", "link"])
@@ -30,6 +30,12 @@ export const recentActivitySchema: z.ZodType<RecentActivity> = z.object({
   actions: z.array(activityActionSchema),
 })
 
+const personaSchema: z.ZodType<DashboardPersona> = z.enum([
+  "wealth_builder",
+  "debt_destroyer",
+  "stability_seeker",
+])
+
 export const kpiSchema: z.ZodType<KPI> = z.object({
   label: z.string(),
   value: z.string(),
@@ -41,6 +47,9 @@ export const kpiSchema: z.ZodType<KPI> = z.object({
   lastSynced: z.string(),
   source: z.string(),
   href: z.string(),
+  urgency: z.enum(["low", "medium", "high"]).optional(),
+  personas: z.array(personaSchema).optional(),
+  narrative: z.string().optional(),
 })
 
 export const dashboardKpisResponseSchema = z.array(kpiSchema)
