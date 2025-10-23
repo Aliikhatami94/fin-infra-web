@@ -11,6 +11,11 @@ import { Check, HelpCircle, Pin, PinOff } from "lucide-react"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { cn } from "@/lib/utils"
 import type { InsightAction, InsightDefinition, InsightAccent } from "@/lib/insights/definitions"
+import {
+  trackInsightAction,
+  trackInsightPinChange,
+  trackInsightResolution,
+} from "@/lib/analytics/events"
 
 type InsightCardProps = {
   insight: InsightDefinition
@@ -94,14 +99,17 @@ export function InsightCard({ insight, index = 0, className, onAction, onPinChan
   const handlePinToggle = () => {
     const nextPinned = !isPinned
     setIsPinned(nextPinned)
+    trackInsightPinChange({ insight, pinned: nextPinned })
     onPinChange?.({ insight, pinned: nextPinned })
   }
 
   const handleResolve = () => {
     setResolved(true)
+    trackInsightResolution({ insight })
   }
 
   const handleAction = (action: InsightAction) => {
+    trackInsightAction({ insight, action })
     onAction?.({ insight, action })
   }
 

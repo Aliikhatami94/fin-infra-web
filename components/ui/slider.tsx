@@ -4,6 +4,7 @@ import * as React from "react"
 import * as SliderPrimitive from "@radix-ui/react-slider"
 
 import { cn } from "@/lib/utils"
+import { trackPreferenceSlider } from "@/lib/analytics/events"
 
 export type SliderProps = React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
 
@@ -58,6 +59,8 @@ interface SliderFieldProps extends SliderProps {
   formatValue?: (values: number[]) => string
   hideValueLabel?: boolean
   containerClassName?: string
+  analyticsId?: string
+  analyticsLabel?: string
 }
 
 export const SliderField = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, SliderFieldProps>(
@@ -75,6 +78,8 @@ export const SliderField = React.forwardRef<React.ElementRef<typeof SliderPrimit
       onValueChange,
       min = 0,
       max = 100,
+      analyticsId,
+      analyticsLabel,
       ...props
     },
     ref,
@@ -107,6 +112,12 @@ export const SliderField = React.forwardRef<React.ElementRef<typeof SliderPrimit
 
     const descriptionId = description ? `${fieldId}-description` : undefined
 
+    const resolvedAnalyticsLabel = React.useMemo(() => {
+      if (analyticsLabel) return analyticsLabel
+      if (typeof label === "string") return label
+      return undefined
+    }, [analyticsLabel, label])
+
     const renderedLabel = React.useMemo(() => {
       if (!label) return null
       if (React.isValidElement(label)) {
@@ -124,6 +135,8 @@ export const SliderField = React.forwardRef<React.ElementRef<typeof SliderPrimit
 
     const handleValueChange = (values: number[]) => {
       setDisplayValues(values)
+      const sliderIdForAnalytics = analyticsId ?? fieldId
+      trackPreferenceSlider({ sliderId: sliderIdForAnalytics, label: resolvedAnalyticsLabel, values })
       onValueChange?.(values)
     }
 

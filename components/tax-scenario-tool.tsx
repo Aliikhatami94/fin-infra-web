@@ -80,6 +80,8 @@ export function TaxScenarioTool() {
           label={taxRateLabel}
           description="Adjust to explore different marginal tax rates."
           formatValue={(values) => `${values[0]}%`}
+          analyticsId="tax-scenario:marginal-rate"
+          analyticsLabel="Marginal tax rate"
         />
 
         <div className="space-y-3">
