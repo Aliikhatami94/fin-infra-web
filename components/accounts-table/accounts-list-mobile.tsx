@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { AnimatePresence, motion } from "framer-motion"
 
-import { bankLogos, defaultBankIcon, mockTransactions, sharedIcons, typeColors } from "@/lib/mock"
+import { bankLogos, defaultBankIcon, sharedIcons, typeColors } from "@/lib/mock"
 import { MiniSparkline } from "./mini-sparkline"
-import type { Account, GroupBy } from "./types"
+import type { GroupBy } from "./types"
+import type { Account, Transaction } from "@/types/domain"
 import { formatCurrency, formatNumber } from "@/lib/format"
+import { getRecentTransactions } from "@/lib/services/accounts"
 
 const {
   Calendar,
@@ -23,6 +25,8 @@ const {
   MoreHorizontal,
   RefreshCw,
 } = sharedIcons
+
+const recentTransactions: Transaction[] = getRecentTransactions()
 
 interface AccountsListMobileProps {
   groupedAccounts: Record<string, Account[]>
@@ -224,7 +228,7 @@ export function AccountsListMobile({
                           <div>
                             <h4 className="text-sm font-semibold mb-2">Recent Transactions</h4>
                             <div className="space-y-2">
-                              {mockTransactions.slice(0, 3).map((txn) => {
+                              {recentTransactions.slice(0, 3).map((txn) => {
                                 const TxnIcon = txn.icon
                                 return (
                                   <div key={txn.id} className="flex items-center justify-between text-sm">

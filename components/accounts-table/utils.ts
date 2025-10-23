@@ -1,4 +1,5 @@
-import type { Account, GroupBy, SortDirection, SortField } from "./types"
+import type { GroupBy, SortDirection, SortField } from "./types"
+import type { Account } from "@/types/domain"
 
 export function filterAccounts(accounts: Account[], hideZeroBalance: boolean): Account[] {
   if (!hideZeroBalance) {

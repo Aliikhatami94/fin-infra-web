@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, RefreshCw } from "lucide-react"
 
-import type { Account, Transaction } from "./types"
+import type { Account, Transaction } from "@/types/domain"
 import { formatCurrency } from "@/lib/format"
 
 interface AccountDetailPanelProps {

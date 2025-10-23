@@ -1,6 +1,7 @@
 import { Target, Home, Plane, GraduationCap } from "lucide-react"
+import type { Goal } from "@/types/domain"
 
-export const goals = [
+export const goals: Goal[] = [
   {
     id: 1,
     name: "Emergency Fund",
