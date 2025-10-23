@@ -162,10 +162,10 @@ Goal: Distinguish Fin-Infra visually and emotionally while reinforcing security.
 
 Deliverables
 
-- [ ] Brand elevation: refine `app/globals.css` tokens, introduce gradient backgrounds, iconography set, and typographic hierarchy that differentiates wealth vs. cash flows.
-- [ ] Story-driven empty states & success modals with illustrations, microcopy, and confetti/motion primitives.
-- [ ] Security center page in `app/(dashboard)/settings/security` showing login history, privacy toggles, and export/download controls.
-- [ ] Compliance-ready copy & tooltips for sensitive metrics leveraging `InsightCard` `redactedBody` and `fallbackValue` fields.
+- [x] Brand elevation: refine `app/globals.css` tokens, introduce gradient backgrounds, iconography set, and typographic hierarchy that differentiates wealth vs. cash flows.
+- [x] Story-driven empty states & success modals with illustrations, microcopy, and confetti/motion primitives.
+- [x] Security center page in `app/(dashboard)/settings/security` showing login history, privacy toggles, and export/download controls.
+- [x] Compliance-ready copy & tooltips for sensitive metrics leveraging `InsightCard` `redactedBody` and `fallbackValue` fields.
 
 Acceptance Criteria
 
@@ -174,21 +174,21 @@ Acceptance Criteria
 
 Implementation Tasks
 
-- [ ] Global: Audit spacing, font, and color tokens usage across `app/globals.css`, `styles/themes`, and shared UI.
-- [ ] Global: Define updated spacing scale and typography ramp; document in `docs/design-tokens.md` and update CSS variables.
-- [ ] Global: Validate accent color contrast against WCAG AA; adjust success/danger palettes and delta text components.
-- [ ] Global: Confirm single font-family usage; remove redundant imports; enforce heading/body styles.
-- [ ] Global: Build reusable tooltip description map in `lib/tooltips`; apply to flagged data points.
-- [ ] Global: Introduce dark-mode + font-size preference control in Settings and propagate variables.
-- [ ] Overview: Confirm tooltips for net worth, investable assets, cash, debt, daily P/L, credit score use updated copy.
-- [ ] Documents: Enlarge drag-and-drop CTA, list accepted file types/sizes, and ensure keyboard operability.
-- [ ] Documents: Provide aria descriptions for upload feedback and error states.
-- [ ] Settings: Standardize toggle styling for notifications with helper text.
-- [ ] Settings: Build appearance settings for light/dark mode, font sizing, and dyslexia-friendly option.
-- [ ] Settings: Integrate Security Center into navigation with consistent visual language.
-- [ ] Home: Responsive hero typography clamp values; accessible/focus styles for buttons; sticky nav with logo/CTA.
-- [ ] Home: Align feature highlight cards (consistent icons) and add hover states linking to details.
-- [ ] Home: Insert social proof (logos/testimonial) near final CTA; single primary button to sign-up.
+- [x] Global: Audit spacing, font, and color tokens usage across `app/globals.css`, `styles/themes`, and shared UI.
+- [x] Global: Define updated spacing scale and typography ramp; document in `docs/design-tokens.md` and update CSS variables.
+- [x] Global: Validate accent color contrast against WCAG AA; adjust success/danger palettes and delta text components.
+- [x] Global: Confirm single font-family usage; remove redundant imports; enforce heading/body styles.
+- [x] Global: Build reusable tooltip description map in `lib/tooltips`; apply to flagged data points.
+- [x] Global: Introduce dark-mode + font-size preference control in Settings and propagate variables.
+- [x] Overview: Confirm tooltips for net worth, investable assets, cash, debt, daily P/L, credit score use updated copy.
+- [x] Documents: Enlarge drag-and-drop CTA, list accepted file types/sizes, and ensure keyboard operability.
+- [x] Documents: Provide aria descriptions for upload feedback and error states.
+- [x] Settings: Standardize toggle styling for notifications with helper text.
+- [x] Settings: Build appearance settings for light/dark mode, font sizing, and dyslexia-friendly option.
+- [x] Settings: Integrate Security Center into navigation with consistent visual language.
+- [x] Home: Responsive hero typography clamp values; accessible/focus styles for buttons; sticky nav with logo/CTA.
+- [x] Home: Align feature highlight cards (consistent icons) and add hover states linking to details.
+- [x] Home: Insert social proof (logos/testimonial) near final CTA; single primary button to sign-up.
 
 QA & Validation
 

@@ -21,6 +21,8 @@ interface DocumentsGridProps {
   onSelectionChange?: (selected: number[]) => void
   error?: string | null
   onRetry?: () => void
+  onStartUpload?: () => void
+  onClearFilters?: () => void
 }
 
 export function DocumentsGrid({
@@ -35,6 +37,8 @@ export function DocumentsGrid({
   onSelectionChange,
   error = null,
   onRetry,
+  onStartUpload,
+  onClearFilters,
 }: DocumentsGridProps) {
   const filteredAndSortedDocuments = useMemo(() => {
     const filtered = documents.filter((doc) => {
@@ -101,22 +105,43 @@ export function DocumentsGrid({
   }
 
   if (filteredAndSortedDocuments.length === 0) {
+    const isFiltered = Boolean(searchQuery || selectedTypes.length || selectedAccounts.length || selectedYears.length)
+
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
-        <FolderOpen className="h-12 w-12 mb-4 opacity-60" />
-        <p className="text-sm mb-2">
-          {searchQuery || selectedTypes.length > 0 ? "No documents found" : "No documents yet"}
-        </p>
-        <p className="text-xs mb-4">
-          {searchQuery || selectedTypes.length > 0
-            ? "Try adjusting your search or filters"
-            : "Upload your first document to get started"}
-        </p>
-        {!searchQuery && selectedTypes.length === 0 && (
-          <Button>
-            <Upload className="mr-2 h-4 w-4" /> Upload Document
-          </Button>
-        )}
+      <div className="relative overflow-hidden rounded-3xl border border-dashed border-border/50 bg-card p-12 text-center shadow-[var(--shadow-soft)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(94,114,255,0.15),transparent_55%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_45%)]" aria-hidden />
+        <div className="relative z-10 flex flex-col items-center gap-4 text-muted-foreground">
+          <FolderOpen className="h-14 w-14 text-primary" aria-hidden="true" />
+          <div className="space-y-2 max-w-xl">
+            <p className="text-lg font-semibold text-foreground">
+              {isFiltered ? "We couldn’t find documents that match those filters" : "Your vault is ready for its first upload"}
+            </p>
+            <p className="text-sm">
+              {isFiltered
+                ? "Adjust filters or clear the search to rediscover archived statements."
+                : "Securely store statements, receipts, and planning docs—Fin-Infra redacts account numbers and tracks access."}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-medium">
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Encrypted at rest</span>
+            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-600">Shareable audit trail</span>
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-amber-600">Auto-reminders before tax time</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            {isFiltered ? (
+              <Button variant="outline" onClick={onClearFilters ?? onRetry}>
+                Clear filters
+              </Button>
+            ) : (
+              <Button className="rounded-full px-6" onClick={onStartUpload}>
+                <Upload className="mr-2 h-4 w-4" aria-hidden /> Stage my first upload
+              </Button>
+            )}
+            <p className="text-[0.7rem] text-muted-foreground">
+              Need help? Visit the Security Center to review who can access shared vaults.
+            </p>
+          </div>
+        </div>
       </div>
     )
   }

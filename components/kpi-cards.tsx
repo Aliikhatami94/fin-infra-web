@@ -14,6 +14,7 @@ import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-var
 import { getValueColor, getValueBgColor } from "@/lib/color-utils"
 import { getDashboardKpis } from "@/lib/services"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { getMetricTooltipCopy } from "@/lib/tooltips"
 
 const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   const max = Math.max(...data)
@@ -49,6 +50,7 @@ export function KPICards() {
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {kpis.map((kpi, index) => {
         const trendValue = kpi.trend === "up" ? 1 : kpi.trend === "down" ? -1 : 0
+        const tooltipCopy = getMetricTooltipCopy(kpi.label)
 
         return (
           <TooltipProvider key={kpi.label}>
@@ -104,8 +106,14 @@ export function KPICards() {
                   </motion.div>
                 </Link>
               </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Click to view details • Last synced: {kpi.lastSynced}</p>
+              <TooltipContent className="max-w-xs space-y-1">
+                <p className="text-xs font-semibold text-foreground">{tooltipCopy?.title ?? kpi.label}</p>
+                <p className="text-xs leading-snug text-muted-foreground">
+                  {tooltipCopy?.description ?? `Last synced ${kpi.lastSynced}. Tap to view breakdowns and linked accounts.`}
+                </p>
+                <p className="text-[0.65rem] text-muted-foreground/90">
+                  {tooltipCopy?.disclaimer ?? "We mask sensitive details until you reveal them."}
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

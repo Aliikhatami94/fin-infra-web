@@ -15,6 +15,7 @@ import {
   Lightbulb,
   FileText,
   Settings,
+  Shield,
   ChevronLeft,
   X,
 } from "lucide-react"
@@ -37,6 +38,7 @@ const navigation = [
   { name: "Insights", href: "/insights", icon: Lightbulb },
   { name: "Documents", href: "/documents", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Security Center", href: "/settings/security", icon: Shield },
 ]
 
 interface SidebarProps {

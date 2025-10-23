@@ -23,6 +23,7 @@ import { getDocuments } from "@/lib/services/documents"
 import type { Document } from "@/types/domain"
 import { DocumentUploadZone } from "@/components/document-upload-zone"
 import { toast } from "@/components/ui/sonner"
+import { SuccessCelebrationDialog } from "@/components/success-celebration-dialog"
 
 export default function DocumentsPage() {
   const [scrolled, setScrolled] = useState(false)
@@ -31,6 +32,8 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [error, setError] = useState<string | null>(null)
+  const [celebration, setCelebration] = useState<{ count: number; firstName: string } | null>(null)
+  const [celebrationOpen, setCelebrationOpen] = useState(false)
   const fetchTimer = useRef<NodeJS.Timeout | null>(null)
   const {
     isUpdating,
@@ -169,6 +172,8 @@ export default function DocumentsPage() {
       })
 
       setDocuments((prev) => [...uploadedDocs, ...prev])
+      setCelebration({ count: files.length, firstName: files[0]?.name ?? "document" })
+      setCelebrationOpen(true)
       if (files.length > 1) {
         toast.success(`${files.length} documents staged for review`, {
           description: "New files appear at the top of your library.",
@@ -397,8 +402,19 @@ export default function DocumentsPage() {
           isLoading={isLoading}
           error={error}
           onRetry={loadDocuments}
+          onClearFilters={clearFilters}
+          onStartUpload={handleUploadButtonClick}
         />
       </div>
+      <SuccessCelebrationDialog
+        open={celebrationOpen && Boolean(celebration)}
+        onOpenChange={setCelebrationOpen}
+        title="Vault updated"
+        description={celebration?.count === 1 ? "Your latest document is encrypted and ready to tag." : `${celebration?.count ?? 0} new documents are secured and waiting in your vault.`}
+        detail={celebration ? `Latest upload: ${celebration.firstName}` : undefined}
+        actionLabel="Review uploads"
+        onAction={handleUploadButtonClick}
+      />
     </>
   )
 }

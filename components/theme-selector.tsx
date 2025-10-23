@@ -2,51 +2,76 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useMemo } from "react"
+import { useTheme } from "next-themes"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Monitor, Moon, Sun } from "lucide-react"
 import { cardHoverVariants } from "@/lib/motion-variants"
 
-type Theme = "light" | "dark" | "system"
+type ThemeOption = "light" | "dark" | "system"
 
 export function ThemeSelector() {
-  const [selected, setSelected] = useState<Theme>("dark")
+  const { theme, resolvedTheme, setTheme } = useTheme()
+  const activeTheme = (theme ?? "system") as ThemeOption
 
-  const themes: { value: Theme; label: string; icon: React.ReactNode }[] = [
-    { value: "light", label: "Light", icon: <Sun className="h-4 w-4" /> },
-    { value: "dark", label: "Dark", icon: <Moon className="h-4 w-4" /> },
-    { value: "system", label: "System", icon: <Monitor className="h-4 w-4" /> },
-  ]
+  const themes: { value: ThemeOption; label: string; icon: React.ReactNode; description: string }[] = useMemo(
+    () => [
+      {
+        value: "light" as const,
+        label: "Daylight",
+        icon: <Sun className="h-4 w-4" />,
+        description: "Bright whites with muted neutrals.",
+      },
+      {
+        value: "dark" as const,
+        label: "Midnight",
+        icon: <Moon className="h-4 w-4" />,
+        description: "High-contrast panels for low light.",
+      },
+      {
+        value: "system" as const,
+        label: "Match system",
+        icon: <Monitor className="h-4 w-4" />,
+        description: `Follows your OS preference (${resolvedTheme ?? "auto"}).`,
+      },
+    ],
+    [resolvedTheme],
+  )
 
   return (
-    <div className="grid grid-cols-3 gap-4">
-      {themes.map((theme) => (
+    <div className="grid gap-4 md:grid-cols-3">
+      {themes.map((option) => (
         <motion.button
-          key={theme.value}
+          key={option.value}
           {...cardHoverVariants}
           whileTap={{ scale: 0.98 }}
+          type="button"
+          onClick={() => setTheme(option.value)}
+          aria-pressed={activeTheme === option.value}
           className={cn(
-            "rounded-lg border transition-all duration-300 p-4 flex flex-col items-center gap-3",
-            selected === theme.value
-              ? "border-primary ring-2 ring-primary/20 bg-muted/40"
-              : "border-border/40 hover:border-border/80 hover:bg-muted/20",
+            "relative flex h-full flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all",
+            activeTheme === option.value
+              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+              : "border-border/50 hover:border-border/80 hover:bg-muted/20",
           )}
-          onClick={() => setSelected(theme.value)}
         >
           <div
             className={cn(
-              "w-full aspect-video rounded-md shadow-inner flex items-center justify-center",
-              theme.value === "light"
-                ? "bg-gradient-to-br from-slate-50 to-slate-100"
-                : theme.value === "dark"
-                  ? "bg-gradient-to-br from-slate-900 to-slate-950"
-                  : "bg-gradient-to-br from-slate-400 to-slate-600",
+              "flex h-12 w-12 items-center justify-center rounded-full text-primary",
+              option.value === "light"
+                ? "bg-[radial-gradient(circle_at_top_left,var(--primary)/35,transparent_55%)]"
+                : option.value === "dark"
+                  ? "bg-[radial-gradient(circle_at_bottom_right,rgba(15,23,42,0.75),transparent_60%)] text-white"
+                  : "bg-[radial-gradient(circle_at_center,var(--accent)/30,transparent_70%)]",
             )}
           >
-            {theme.icon}
+            {option.icon}
           </div>
-          <span className="text-xs font-medium capitalize">{theme.label}</span>
+          <div className="space-y-1">
+            <span className="text-sm font-semibold text-foreground">{option.label}</span>
+            <p className="text-xs text-muted-foreground">{option.description}</p>
+          </div>
         </motion.button>
       ))}
     </div>
