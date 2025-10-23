@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { forwardRef, useMemo, useState } from "react"
+import type { HTMLAttributes } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, ArrowUpDown, Sparkles } from "lucide-react"
@@ -8,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Area, AreaChart, ResponsiveContainer } from "recharts"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TableVirtuoso, type TableComponents } from "react-virtuoso"
+import { cn } from "@/lib/utils"
 
 const cryptos = [
   {
@@ -84,6 +87,8 @@ interface CryptoTableProps {
   showStablecoins: boolean
 }
 
+type CryptoAsset = (typeof cryptos)[number]
+
 export function CryptoTable({ selectedExchange, showStablecoins }: CryptoTableProps) {
   const router = useRouter()
   const [sortField, setSortField] = useState<SortField>("value")
@@ -130,15 +135,74 @@ export function CryptoTable({ selectedExchange, showStablecoins }: CryptoTablePr
     }
   }
 
+  const tableHeight = useMemo(() => {
+    const estimatedHeader = 48
+    const estimatedRow = 72
+    const totalHeight = estimatedHeader + sortedCryptos.length * estimatedRow
+    const maxHeight = 520
+    const minHeight = 240
+    return Math.max(minHeight, Math.min(maxHeight, totalHeight))
+  }, [sortedCryptos.length])
+
+  const tableComponents = useMemo<TableComponents<CryptoAsset>>(() => {
+    const VirtTable = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
+      ({ className, ...props }, ref) => (
+        <table {...props} ref={ref} className={cn("w-full min-w-[800px]", className)} />
+      ),
+    )
+    VirtTable.displayName = "CryptoVirtuosoTable"
+
+    const VirtHead = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
+      ({ className, ...props }, ref) => (
+        <thead {...props} ref={ref} className={cn("sticky top-0 bg-card z-10", className)} />
+      ),
+    )
+    VirtHead.displayName = "CryptoVirtuosoTableHead"
+
+    const VirtRow = forwardRef<
+      HTMLTableRowElement,
+      HTMLAttributes<HTMLTableRowElement> & { item: CryptoAsset }
+    >(({ className, item, onClick, ...props }, ref) => (
+      <tr
+        {...props}
+        ref={ref}
+        onClick={(event) => {
+          router.push(`/crypto/${item.coin.toLowerCase()}`)
+          onClick?.(event)
+        }}
+        className={cn(
+          "border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer",
+          className,
+        )}
+      />
+    ))
+    VirtRow.displayName = "CryptoVirtuosoTableRow"
+
+    const VirtBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
+      ({ className, ...props }, ref) => <tbody {...props} ref={ref} className={className} />,
+    )
+    VirtBody.displayName = "CryptoVirtuosoTableBody"
+
+    return {
+      Table: VirtTable,
+      TableHead: VirtHead,
+      TableRow: VirtRow,
+      TableBody: VirtBody,
+    }
+  }, [router])
+
   return (
     <Card className="card-standard">
       <CardHeader>
         <CardTitle>Holdings</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="hidden md:block overflow-x-auto -mx-6 px-6">
-          <table className="w-full min-w-[800px]">
-            <thead>
+        <div className="hidden md:block -mx-6 px-6">
+          <TableVirtuoso
+            data={sortedCryptos}
+            style={{ height: tableHeight }}
+            components={tableComponents}
+            fixedHeaderContent={() => (
               <tr className="border-b text-left text-sm text-muted-foreground">
                 <th className="pb-3 font-medium">
                   <Button
@@ -191,132 +255,122 @@ export function CryptoTable({ selectedExchange, showStablecoins }: CryptoTablePr
                 <th className="pb-3 font-medium text-right">Staking</th>
                 <th className="pb-3 font-medium">Exchange</th>
               </tr>
-            </thead>
-            <tbody>
-              {sortedCryptos.map((crypto) => {
-                const plAmount = (crypto.price - crypto.costBasis) * crypto.amount
-                const plPercent = ((crypto.price - crypto.costBasis) / crypto.costBasis) * 100
-                const weight = (crypto.value / totalValue) * 100
+            )}
+            itemContent={(index, crypto) => {
+              const plAmount = (crypto.price - crypto.costBasis) * crypto.amount
+              const plPercent = ((crypto.price - crypto.costBasis) / crypto.costBasis) * 100
+              const weight = (crypto.value / totalValue) * 100
 
-                return (
-                  <tr
-                    key={crypto.coin}
-                    className="border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => router.push(`/crypto/${crypto.coin.toLowerCase()}`)}
-                  >
-                    <td className="py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold">
-                          {crypto.coin.slice(0, 2)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">{crypto.coin}</p>
-                          <p className="text-xs text-muted-foreground">{crypto.name}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 text-right">
-                      <p className="text-sm tabular-nums text-foreground">{crypto.amount}</p>
-                    </td>
-                    <td className="py-4 text-right">
-                      <p className="text-sm tabular-nums text-muted-foreground">${crypto.costBasis.toLocaleString()}</p>
-                    </td>
-                    <td className="py-4 text-right">
-                      <p className="text-sm tabular-nums text-foreground">${crypto.price.toLocaleString()}</p>
-                    </td>
-                    <td className="py-4 text-right">
-                      <p className="text-sm font-semibold tabular-nums text-foreground">
-                        ${crypto.value.toLocaleString()}
-                      </p>
-                    </td>
-                    <td className="py-4 text-right">
-                      <div>
-                        <p
-                          className={`text-sm font-semibold tabular-nums ${plAmount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                        >
-                          {plAmount >= 0 ? "+" : ""}$
-                          {plAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                        <p
-                          className={`text-xs tabular-nums ${plAmount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                        >
-                          {plPercent >= 0 ? "+" : ""}
-                          {plPercent.toFixed(1)}%
-                        </p>
-                      </div>
-                    </td>
-                    <td className="py-4 text-right">
-                      <p className="text-sm tabular-nums text-foreground">{weight.toFixed(1)}%</p>
-                    </td>
-                    <td className="py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <ResponsiveContainer width={40} height={20}>
-                          <AreaChart data={crypto.trend.map((val, i) => ({ value: val }))}>
-                            <Area
-                              type="monotone"
-                              dataKey="value"
-                              stroke={crypto.change24h >= 0 ? "hsl(142, 76%, 36%)" : "hsl(0, 84%, 60%)"}
-                              fill={crypto.change24h >= 0 ? "hsl(142, 76%, 36%)" : "hsl(0, 84%, 60%)"}
-                              fillOpacity={0.3}
-                              strokeWidth={1.5}
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                        <div className="flex items-center gap-1">
-                          {crypto.change24h > 0 ? (
-                            <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
-                          ) : crypto.change24h < 0 ? (
-                            <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
-                          ) : null}
-                          <span
-                            className={`text-sm font-medium tabular-nums ${
-                              crypto.change24h > 0
-                                ? "text-green-600 dark:text-green-400"
-                                : crypto.change24h < 0
-                                  ? "text-red-600 dark:text-red-400"
-                                  : "text-muted-foreground"
-                            }`}
-                          >
-                            {crypto.change24h > 0 ? "+" : ""}
-                            {crypto.change24h}%
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 text-right">
-                      {crypto.staking ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-end gap-1 cursor-help">
-                                <Sparkles className="h-3 w-3 text-amber-500" />
-                                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                                  {crypto.staking.apy}%
-                                </span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="text-xs space-y-1">
-                                <p>Staking APY: {crypto.staking.apy}%</p>
-                                <p>
-                                  Rewards earned: {crypto.staking.rewards} {crypto.coin}
-                                </p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="py-4">
-                      <Badge variant="outline">{crypto.exchange}</Badge>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+              return [
+                <td key={`${crypto.coin}-asset`} className="py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold">
+                      {crypto.coin.slice(0, 2)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{crypto.coin}</p>
+                      <p className="text-xs text-muted-foreground">{crypto.name}</p>
+                    </div>
+                  </div>
+                </td>,
+                <td key={`${crypto.coin}-amount`} className="py-4 text-right">
+                  <p className="text-sm tabular-nums text-foreground">{crypto.amount}</p>
+                </td>,
+                <td key={`${crypto.coin}-basis`} className="py-4 text-right">
+                  <p className="text-sm tabular-nums text-muted-foreground">${crypto.costBasis.toLocaleString()}</p>
+                </td>,
+                <td key={`${crypto.coin}-price`} className="py-4 text-right">
+                  <p className="text-sm tabular-nums text-foreground">${crypto.price.toLocaleString()}</p>
+                </td>,
+                <td key={`${crypto.coin}-value`} className="py-4 text-right">
+                  <p className="text-sm font-semibold tabular-nums text-foreground">${crypto.value.toLocaleString()}</p>
+                </td>,
+                <td key={`${crypto.coin}-pl`} className="py-4 text-right">
+                  <div>
+                    <p
+                      className={`text-sm font-semibold tabular-nums ${plAmount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                    >
+                      {plAmount >= 0 ? "+" : ""}$
+                      {plAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p
+                      className={`text-xs tabular-nums ${plAmount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                    >
+                      {plPercent >= 0 ? "+" : ""}
+                      {plPercent.toFixed(1)}%
+                    </p>
+                  </div>
+                </td>,
+                <td key={`${crypto.coin}-weight`} className="py-4 text-right">
+                  <p className="text-sm tabular-nums text-foreground">{weight.toFixed(1)}%</p>
+                </td>,
+                <td key={`${crypto.coin}-trend`} className="py-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <ResponsiveContainer width={40} height={20}>
+                      <AreaChart data={crypto.trend.map((val) => ({ value: val }))}>
+                        <Area
+                          type="monotone"
+                          dataKey="value"
+                          stroke={crypto.change24h >= 0 ? "hsl(142, 76%, 36%)" : "hsl(0, 84%, 60%)"}
+                          fill={crypto.change24h >= 0 ? "hsl(142, 76%, 36%)" : "hsl(0, 84%, 60%)"}
+                          fillOpacity={0.3}
+                          strokeWidth={1.5}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                    <div className="flex items-center gap-1">
+                      {crypto.change24h > 0 ? (
+                        <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                      ) : crypto.change24h < 0 ? (
+                        <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                      ) : null}
+                      <span
+                        className={`text-sm font-medium tabular-nums ${
+                          crypto.change24h > 0
+                            ? "text-green-600 dark:text-green-400"
+                            : crypto.change24h < 0
+                              ? "text-red-600 dark:text-red-400"
+                              : "text-muted-foreground"
+                        }`}
+                      >
+                        {crypto.change24h > 0 ? "+" : ""}
+                        {crypto.change24h}%
+                      </span>
+                    </div>
+                  </div>
+                </td>,
+                <td key={`${crypto.coin}-staking`} className="py-4 text-right">
+                  {crypto.staking ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center justify-end gap-1 cursor-help">
+                            <Sparkles className="h-3 w-3 text-amber-500" />
+                            <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                              {crypto.staking.apy}%
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="text-xs space-y-1">
+                            <p>Staking APY: {crypto.staking.apy}%</p>
+                            <p>
+                              Rewards earned: {crypto.staking.rewards} {crypto.coin}
+                            </p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </td>,
+                <td key={`${crypto.coin}-exchange`} className="py-4">
+                  <Badge variant="outline">{crypto.exchange}</Badge>
+                </td>,
+              ]
+            }}
+          />
         </div>
 
         <div className="md:hidden space-y-3">

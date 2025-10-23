@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { forwardRef, useMemo, useState } from "react"
+import type { HTMLAttributes } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -26,8 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Fragment } from "react"
 import { ResponsiveContainer, LineChart, Line, AreaChart, Area, XAxis, YAxis } from "recharts"
+import { TableVirtuoso, type TableComponents } from "react-virtuoso"
 
 const holdings = [
   {
@@ -185,6 +186,88 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     return Array.from(groups.entries()).map(([group, items]) => ({ group, items }))
   }, [rows, groupBy])
 
+  type VirtualRow =
+    | { type: "group"; id: string; label: string }
+    | { type: "holding"; id: string; holding: (typeof holdings)[0] }
+
+  const virtualRows = useMemo<VirtualRow[]>(() => {
+    return groupedRows.flatMap(({ group, items }) => {
+      const entries: VirtualRow[] = []
+      if (group) {
+        entries.push({ type: "group", id: `group-${group}`, label: group })
+      }
+      entries.push(
+        ...items.map((holding) => ({
+          type: "holding" as const,
+          id: `${group || "none"}-${holding.ticker}`,
+          holding,
+        })),
+      )
+      return entries
+    })
+  }, [groupedRows])
+
+  const tableHeight = useMemo(() => {
+    const estimatedRowHeight = 68
+    const estimatedHeader = 48
+    const totalHeight = estimatedHeader + virtualRows.length * estimatedRowHeight
+    const maxHeight = 520
+    const minHeight = 260
+    return Math.max(minHeight, Math.min(maxHeight, totalHeight))
+  }, [virtualRows.length])
+
+  const tableComponents = useMemo<TableComponents<VirtualRow>>(() => {
+    const VirtTable = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
+      ({ className, ...props }, ref) => (
+        <table {...props} ref={ref} className={cn("w-full text-sm table-fixed", className)} />
+      ),
+    )
+    VirtTable.displayName = "HoldingsVirtuosoTable"
+
+    const VirtHead = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
+      ({ className, ...props }, ref) => (
+        <thead {...props} ref={ref} className={cn("sticky top-0 bg-card z-10", className)} />
+      ),
+    )
+    VirtHead.displayName = "HoldingsVirtuosoTableHead"
+
+    const VirtRow = forwardRef<
+      HTMLTableRowElement,
+      HTMLAttributes<HTMLTableRowElement> & { item: VirtualRow }
+    >(({ className, item, onClick, ...props }, ref) => (
+      <tr
+        {...props}
+        ref={ref}
+        onClick={(event) => {
+          if (item.type === "holding") {
+            setSelectedHolding(item.holding)
+          }
+          onClick?.(event)
+        }}
+        className={cn(
+          "border-b last:border-0",
+          item.type === "group"
+            ? "bg-muted/30"
+            : "hover:bg-muted/50 transition-colors cursor-pointer",
+          className,
+        )}
+      />
+    ))
+    VirtRow.displayName = "HoldingsVirtuosoTableRow"
+
+    const VirtBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
+      ({ className, ...props }, ref) => <tbody {...props} ref={ref} className={className} />,
+    )
+    VirtBody.displayName = "HoldingsVirtuosoTableBody"
+
+    return {
+      Table: VirtTable,
+      TableHead: VirtHead,
+      TableRow: VirtRow,
+      TableBody: VirtBody,
+    }
+  }, [setSelectedHolding])
+
   return (
     <>
       <Card className="card-standard">
@@ -208,18 +291,12 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm table-fixed">
-              <colgroup>
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "12%" }} />
-                <col style={{ width: "15%" }} />
-                <col style={{ width: "18%" }} />
-                <col style={{ width: "12%" }} />
-                <col style={{ width: "18%" }} />
-                <col style={{ width: "5%" }} />
-              </colgroup>
-              <thead className="sticky top-0 bg-card z-10">
+          <div className="hidden md:block">
+            <TableVirtuoso
+              data={virtualRows}
+              style={{ height: tableHeight }}
+              components={tableComponents}
+              fixedHeaderContent={() => (
                 <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="py-3 px-3" onClick={() => toggleSort("ticker")}>
                     Ticker
@@ -243,131 +320,118 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     <span className="text-xs uppercase tracking-wide">Actions</span>
                   </th>
                 </tr>
-              </thead>
-              <tbody>
-                {groupedRows.map(({ group, items }) => (
-                  <Fragment key={group || "no-group"}>
-                    {group && (
-                      <tr className="bg-muted/30">
-                        <td colSpan={7} className="py-3 px-3 font-semibold text-sm text-foreground">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4" />
-                            {group}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                    {items.map((holding) => (
-                      <tr
-                        key={holding.ticker}
-                        onClick={() => setSelectedHolding(holding)}
-                        className="border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
+              )}
+              itemContent={(index, item) => {
+                if (item.type === "group") {
+                  return [
+                    <td key={`${item.id}-group`} colSpan={7} className="py-3 px-3 font-semibold text-sm text-foreground">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4" />
+                        {item.label}
+                      </div>
+                    </td>,
+                  ]
+                }
+
+                const holding = item.holding
+                return [
+                  <td key={`${item.id}-ticker`} className="py-4 px-3 align-middle">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-lg">
+                        {holding.logo}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{holding.ticker}</p>
+                        <p className="text-xs text-muted-foreground">{holding.name}</p>
+                      </div>
+                    </div>
+                  </td>,
+                  <td key={`${item.id}-qty`} className="py-4 px-3 text-right align-middle">
+                    <p className="text-sm tabular-nums font-mono whitespace-nowrap text-foreground">{holding.qty}</p>
+                  </td>,
+                  <td key={`${item.id}-value`} className="py-4 px-3 text-right align-middle">
+                    <p className="text-sm font-semibold tabular-nums text-foreground font-mono whitespace-nowrap">
+                      <MaskableValue value={`$${holding.value.toLocaleString()}`} srLabel={`${holding.ticker} value`} />
+                    </p>
+                  </td>,
+                  <td key={`${item.id}-pl`} className="py-4 px-3 text-right align-middle">
+                    <div className="flex flex-col items-end gap-0.5">
+                      <p
+                        className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                       >
-                        <td className="py-4 px-3 align-middle">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-lg">
-                              {holding.logo}
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-foreground">{holding.ticker}</p>
-                              <p className="text-xs text-muted-foreground">{holding.name}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-3 text-right align-middle">
-                          <p className="text-sm tabular-nums font-mono whitespace-nowrap text-foreground">
-                            {holding.qty}
-                          </p>
-                        </td>
-                        <td className="py-4 px-3 text-right align-middle">
-                          <p className="text-sm font-semibold tabular-nums text-foreground font-mono whitespace-nowrap">
-                            <MaskableValue
-                              value={`$${holding.value.toLocaleString()}`}
-                              srLabel={`${holding.ticker} value`}
-                            />
-                          </p>
-                        </td>
-                        <td className="py-4 px-3 text-right align-middle">
-                          <div className="flex flex-col items-end gap-0.5">
-                            <p
-                              className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                            >
-                              <MaskableValue
-                                value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString()}`}
-                                srLabel={`${holding.ticker} profit and loss`}
+                        <MaskableValue
+                          value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString()}`}
+                          srLabel={`${holding.ticker} profit and loss`}
+                        />
+                      </p>
+                      <div className="flex items-center gap-1">
+                        {holding.plPercent > 0 ? (
+                          <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                        )}
+                        <span
+                          className={`text-xs tabular-nums ${
+                            holding.plPercent > 0
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          } whitespace-nowrap`}
+                        >
+                          {holding.plPercent > 0 ? "+" : ""}
+                          {holding.plPercent}%
+                        </span>
+                        <div className="ml-2 w-12 h-6">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={holding.sparkline.map((val) => ({ value: val }))}>
+                              <Line
+                                type="monotone"
+                                dataKey="value"
+                                stroke={holding.plPercent > 0 ? "hsl(142, 76%, 45%)" : "hsl(0, 84%, 60%)"}
+                                strokeWidth={1.5}
+                                dot={false}
                               />
-                            </p>
-                            <div className="flex items-center gap-1">
-                              {holding.plPercent > 0 ? (
-                                <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
-                              )}
-                              <span
-                                className={`text-xs tabular-nums ${
-                                  holding.plPercent > 0
-                                    ? "text-green-600 dark:text-green-400"
-                                    : "text-red-600 dark:text-red-400"
-                                } whitespace-nowrap`}
-                              >
-                                {holding.plPercent > 0 ? "+" : ""}
-                                {holding.plPercent}%
-                              </span>
-                              <div className="ml-2 w-12 h-6">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <LineChart data={holding.sparkline.map((val, i) => ({ value: val }))}>
-                                    <Line
-                                      type="monotone"
-                                      dataKey="value"
-                                      stroke={holding.plPercent > 0 ? "hsl(142, 76%, 45%)" : "hsl(0, 84%, 60%)"}
-                                      strokeWidth={1.5}
-                                      dot={false}
-                                    />
-                                  </LineChart>
-                                </ResponsiveContainer>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-3 text-right align-middle">
-                          <p className="text-sm tabular-nums whitespace-nowrap text-foreground">{holding.weight}%</p>
-                        </td>
-                        <td className="py-4 px-3 align-middle">
-                          <Badge variant="outline" className="whitespace-nowrap">
-                            {holding.account}
-                          </Badge>
-                        </td>
-                        <td className="py-4 px-3 text-right align-middle">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setSelectedHolding(holding)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <TrendingUpIcon className="mr-2 h-4 w-4" />
-                                Sell Position
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-muted-foreground">
-                                <EyeOff className="mr-2 h-4 w-4" />
-                                Exclude from Analytics
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    ))}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+                  </td>,
+                  <td key={`${item.id}-weight`} className="py-4 px-3 text-right align-middle">
+                    <p className="text-sm tabular-nums whitespace-nowrap text-foreground">{holding.weight}%</p>
+                  </td>,
+                  <td key={`${item.id}-account`} className="py-4 px-3 align-middle">
+                    <Badge variant="outline" className="whitespace-nowrap">
+                      {holding.account}
+                    </Badge>
+                  </td>,
+                  <td key={`${item.id}-actions`} className="py-4 px-3 text-right align-middle">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setSelectedHolding(holding)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <TrendingUpIcon className="mr-2 h-4 w-4" />
+                          Sell Position
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-muted-foreground">
+                          <EyeOff className="mr-2 h-4 w-4" />
+                          Exclude from Analytics
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>,
+                ]
+              }}
+            />
           </div>
 
           <div className="md:hidden space-y-3">
