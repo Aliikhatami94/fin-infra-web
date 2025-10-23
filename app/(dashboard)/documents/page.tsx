@@ -17,6 +17,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 export default function DocumentsPage() {
   const [scrolled, setScrolled] = useState(false)
@@ -189,7 +190,9 @@ export default function DocumentsPage() {
       </div>
 
       <div className="mx-auto max-w-[1600px] p-4 md:p-8 space-y-6">
-        <DocumentsAIInsights />
+        <ErrorBoundary feature="Document insights">
+          <DocumentsAIInsights />
+        </ErrorBoundary>
         <DocumentsGrid
           searchQuery={searchQuery}
           selectedTypes={selectedTypes}

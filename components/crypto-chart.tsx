@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import type { TooltipContentProps } from "recharts"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+import { useMemo, useState } from "react"
+import { ResponsiveContainer, AreaChart, Area, Tooltip } from "recharts"
+import type { TooltipProps } from "recharts"
+
+import { ChartContainer, ChartGrid, ThemedAxis, TooltipCard } from "@/components/chart-kit"
+import { SwitchField } from "@/components/ui/switch"
+import { cn } from "@/lib/utils"
 
 interface CryptoDatum {
   date: string
@@ -30,123 +30,103 @@ const timeRanges = ["1D", "7D", "30D", "6M", "1Y", "All"] as const
 
 type TimeRange = (typeof timeRanges)[number]
 
+const series = [
+  { key: "btc", name: "BTC", color: "var(--chart-1)" },
+  { key: "eth", name: "ETH", color: "var(--chart-2)" },
+  { key: "other", name: "Other", color: "var(--chart-3)" },
+  { key: "stablecoins", name: "Stablecoins", color: "var(--chart-4)" },
+] as const
+
 export interface CryptoChartProps {
   showStablecoins: boolean
   onToggleStablecoins: (value: boolean) => void
 }
 
+type ChartTooltipProps = TooltipProps<number, string>
+
 export function CryptoChart({ showStablecoins, onToggleStablecoins }: CryptoChartProps) {
   const [selectedRange, setSelectedRange] = useState<TimeRange>("30D")
 
-  return (
-    <Card className="card-standard">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <CardTitle>Portfolio Value Over Time</CardTitle>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Switch id="stablecoins" checked={showStablecoins} onCheckedChange={onToggleStablecoins} />
-              <Label htmlFor="stablecoins" className="text-sm">
-                Show Stablecoins
-              </Label>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {timeRanges.map((range) => (
-                <Button
-                  key={range}
-                  variant={selectedRange === range ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedRange(range)}
-                  className="h-8 px-3"
-                >
-                  {range}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="w-full overflow-x-auto">
-          <ResponsiveContainer width="100%" height={350} minWidth={300}>
-            <AreaChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="date" className="text-xs" />
-              <YAxis className="text-xs" />
-              <Tooltip
-                content={({ active, payload }: TooltipContentProps<number, string>) => {
-                  if (active && payload && payload.length) {
-                    const datum = payload[0]?.payload as CryptoDatum | undefined
-                    if (!datum) return null
+  const filteredSeries = useMemo(() => {
+    if (showStablecoins) return series
+    return series.filter((entry) => entry.key !== "stablecoins")
+  }, [showStablecoins])
 
+  return (
+    <ChartContainer
+      title="Portfolio Value Over Time"
+      description="Monitor total crypto value and compare asset classes across time horizons."
+      timeRanges={timeRanges}
+      selectedRange={selectedRange}
+      onRangeChange={(value) => setSelectedRange(value as TimeRange)}
+      unitLabel="USD"
+      actions={
+        <SwitchField
+          id="stablecoins-toggle"
+          label="Show stablecoins"
+          layout="inline"
+          checked={showStablecoins}
+          onCheckedChange={onToggleStablecoins}
+        />
+      }
+    >
+      <div className="w-full overflow-x-auto">
+        <ResponsiveContainer width="100%" height={360} minWidth={320}>
+          <AreaChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 12 }}>
+            <defs>
+              {series.map((entry) => (
+                <linearGradient key={entry.key} id={`crypto-${entry.key}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={`hsl(${entry.color})`} stopOpacity={0.24} />
+                  <stop offset="95%" stopColor={`hsl(${entry.color})`} stopOpacity={0.05} />
+                </linearGradient>
+              ))}
+            </defs>
+            <ChartGrid />
+            <ThemedAxis axis="x" dataKey="date" dy={8} />
+            <ThemedAxis axis="y" tickFormatter={(value) => `$${Number(value / 1000).toFixed(0)}k`} />
+            <Tooltip
+              cursor={{ stroke: "hsl(var(--border))", strokeDasharray: "4 4", strokeWidth: 1 }}
+              content={(props: ChartTooltipProps) => (
+                <TooltipCard
+                  {...props}
+                  labelFormatter={(label) => label}
+                  valueFormatter={(value, name) => `$${Number(value ?? 0).toLocaleString()}`}
+                  footer={(payload) => {
+                    const datum = (payload as any)?.[0]?.payload as CryptoDatum | undefined
+                    if (!datum?.transaction) return null
+                    const isBuy = datum.transaction.type === "buy"
                     return (
-                      <div className="bg-background border rounded-lg p-3 shadow-lg">
-                        <p className="text-sm font-semibold mb-2">{datum.date}</p>
-                        {payload.map((entry) => {
-                          if (!entry?.name) return null
-                          const value = typeof entry.value === "number" ? entry.value : Number(entry.value ?? 0)
-                          return (
-                            <div key={entry.name} className="flex items-center justify-between gap-4 text-xs">
-                              <span style={{ color: (entry as any).color ?? "inherit" }}>{entry.name}:</span>
-                              <span className="font-semibold">${value.toLocaleString()}</span>
-                            </div>
-                          )
-                        })}
-                        {datum.transaction && (
-                          <div className="mt-2 pt-2 border-t text-xs">
-                            <span className={datum.transaction.type === "buy" ? "text-green-600" : "text-red-600"}>
-                              {datum.transaction.type === "buy" ? "Buy" : "Sell"}: {datum.transaction.amount}
-                            </span>
-                          </div>
-                        )}
+                      <div className="flex items-center justify-between gap-3">
+                        <span>{isBuy ? "Recent buy" : "Recent sell"}</span>
+                        <span
+                          className={cn(
+                            "font-semibold tabular-nums",
+                            isBuy ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400",
+                          )}
+                        >
+                          {datum.transaction.amount}
+                        </span>
                       </div>
                     )
-                  }
-                  return null
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="btc"
-                stackId="1"
-                stroke="hsl(210, 100%, 60%)"
-                fill="hsl(210, 100%, 60%)"
-                fillOpacity={0.6}
-                name="BTC"
-              />
-              <Area
-                type="monotone"
-                dataKey="eth"
-                stackId="1"
-                stroke="hsl(145, 70%, 55%)"
-                fill="hsl(145, 70%, 55%)"
-                fillOpacity={0.6}
-                name="ETH"
-              />
-              {showStablecoins && (
-                <Area
-                  type="monotone"
-                  dataKey="stablecoins"
-                  stackId="1"
-                  stroke="hsl(45, 90%, 55%)"
-                  fill="hsl(45, 90%, 55%)"
-                  fillOpacity={0.6}
-                  name="Stablecoins"
+                  }}
                 />
               )}
+            />
+            {filteredSeries.map((entry) => (
               <Area
+                key={entry.key}
                 type="monotone"
-                dataKey="other"
+                dataKey={entry.key}
                 stackId="1"
-                stroke="hsl(280, 70%, 60%)"
-                fill="hsl(280, 70%, 60%)"
-                fillOpacity={0.6}
-                name="Other"
+                stroke={`hsl(${entry.color})`}
+                fill={`url(#crypto-${entry.key})`}
+                fillOpacity={1}
+                name={entry.name}
               />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
+            ))}
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </ChartContainer>
   )
 }

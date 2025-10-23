@@ -5,7 +5,7 @@ import type React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
+import { SwitchField } from "@/components/ui/switch"
 import { Play, Pause, Plus, TrendingUp, Shield, Zap } from "lucide-react"
 import {
   Dialog,
@@ -316,9 +316,12 @@ export function AutomationPanel() {
           {automationRules.map((rule) => {
             const Icon = rule.icon
             return (
-              <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <div
+                key={rule.id}
+                className="flex flex-col gap-4 rounded-lg border p-4 md:flex-row md:items-center md:justify-between"
+              >
+                <div className="flex flex-1 items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -326,7 +329,12 @@ export function AutomationPanel() {
                     <p className="text-sm text-muted-foreground">{rule.description}</p>
                   </div>
                 </div>
-                <Switch checked={rule.enabled} />
+                <SwitchField
+                  label="Enabled"
+                  layout="inline"
+                  defaultChecked={rule.enabled}
+                  containerClassName="self-start text-sm text-muted-foreground md:self-center"
+                />
               </div>
             )
           })}

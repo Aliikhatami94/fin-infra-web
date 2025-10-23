@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard,
   Building2,
@@ -45,6 +45,27 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const prefetchedRoutes = useRef(new Set<string>())
+
+  const handlePrefetch = (href: string) => {
+    if (prefetchedRoutes.current.has(href)) {
+      return
+    }
+    prefetchedRoutes.current.add(href)
+    try {
+      // Next.js App Router's router.prefetch returns void in v13+;
+      // if a Promise is ever returned, handle it defensively.
+      const maybePromise = (router as unknown as { prefetch: (h: string) => void | Promise<unknown> }).prefetch(href)
+      if (maybePromise && typeof (maybePromise as Promise<unknown>).catch === "function") {
+        ;(maybePromise as Promise<unknown>).catch(() => {
+          prefetchedRoutes.current.delete(href)
+        })
+      }
+    } catch {
+      prefetchedRoutes.current.delete(href)
+    }
+  }
 
   useEffect(() => {
     if (mobileOpen) {
@@ -97,6 +118,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                     key={item.name}
                     href={item.href}
                     onClick={onMobileClose}
+                    onMouseEnter={() => handlePrefetch(item.href)}
+                    onFocus={() => handlePrefetch(item.href)}
                     className={cn(
                       "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                       active

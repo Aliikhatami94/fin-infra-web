@@ -5,6 +5,7 @@ import { InsightsFeed } from "@/components/insights-feed"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search } from "lucide-react"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 type InsightFilter = "all" | "spending" | "investment" | "goals"
 
@@ -89,7 +90,9 @@ export default function InsightsPage() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <InsightsFeed filter={activeTab} searchQuery={searchQuery} timeRange={timeRange} />
+            <ErrorBoundary feature="Insights feed">
+              <InsightsFeed filter={activeTab} searchQuery={searchQuery} timeRange={timeRange} />
+            </ErrorBoundary>
           </motion.div>
         </AnimatePresence>
       </div>

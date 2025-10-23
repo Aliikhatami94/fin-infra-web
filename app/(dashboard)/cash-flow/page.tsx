@@ -10,6 +10,7 @@ import { CashFlowAIInsights } from "@/components/cashflow-ai-insights"
 import { UpcomingCharges } from "@/components/upcoming-charges"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { CashFlowChartProps } from "@/components/cash-flow-chart"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 const CashFlowChart = dynamic<CashFlowChartProps>(
   () => import("@/components/cash-flow-chart").then((mod) => mod.CashFlowChart),
@@ -30,7 +31,9 @@ export default function CashFlowPage() {
       <div className="space-y-6">
         <CashFlowKPIs />
 
-        <CashFlowAIInsights />
+        <ErrorBoundary feature="Cash flow insights">
+          <CashFlowAIInsights />
+        </ErrorBoundary>
 
         <CashFlowChart onMonthClick={setSelectedMonth} selectedMonth={selectedMonth} />
       </div>

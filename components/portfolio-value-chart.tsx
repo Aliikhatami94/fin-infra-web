@@ -1,10 +1,13 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 import type { TooltipContentProps } from "recharts"
 import { Button } from "@/components/ui/button"
+import { AccessibleChart } from "@/components/accessible-chart"
+import { currencySummaryFormatter, describeTimeSeries } from "@/lib/a11y"
+import { formatCurrency } from "@/lib/format"
 
 type Timeframe = "1D" | "1W" | "1M" | "3M" | "1Y" | "ALL"
 
@@ -134,6 +137,7 @@ const timeframes: Timeframe[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"]
 
 export function PortfolioValueChart() {
   const [activeTimeframe, setActiveTimeframe] = useState<Timeframe>("1M")
+  const timeframeRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   const chartData = useMemo(() => generateChartData(activeTimeframe), [activeTimeframe])
 
@@ -141,6 +145,40 @@ export function PortfolioValueChart() {
   const previousValue = chartData[0]?.value || 85000
   const change = currentValue - previousValue
   const changePercent = ((change / previousValue) * 100).toFixed(2)
+  const formattedCurrentValue = formatCurrency(currentValue, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })
+  const changeLabel = `${change >= 0 ? "Increase" : "Decrease"} of ${formatCurrency(Math.abs(change), {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })} (${changePercent}%)`
+  const summary = useMemo(
+    () =>
+      describeTimeSeries({
+        data: chartData,
+        metric: "Portfolio value",
+        getLabel: (point) => point.fullDate ?? point.time,
+        getValue: (point) => point.value,
+        formatValue: currencySummaryFormatter,
+      }),
+    [chartData],
+  )
+
+  const handleTimeframeKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
+      return
+    }
+
+    event.preventDefault()
+    const currentIndex = timeframes.findIndex((tf) => tf === activeTimeframe)
+    const direction = event.key === "ArrowRight" ? 1 : -1
+    const nextIndex = (currentIndex + direction + timeframes.length) % timeframes.length
+    const nextValue = timeframes[nextIndex]
+
+    setActiveTimeframe(nextValue)
+    timeframeRefs.current[nextIndex]?.focus()
+  }
 
   return (
     <Card className="w-full">
@@ -149,11 +187,14 @@ export function PortfolioValueChart() {
           <div className="space-y-1.5">
             <h3 className="text-xl font-semibold tracking-tight">Portfolio Value</h3>
             <div className="flex items-baseline gap-2.5">
-              <span className="text-3xl font-bold tracking-tight font-mono">
-                ${currentValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              <span className="text-3xl font-bold tracking-tight font-mono" aria-live="polite" aria-label={`Current portfolio value ${formattedCurrentValue}`}>
+                {formattedCurrentValue}
               </span>
               <span
                 className={`text-sm font-medium ${change >= 0 ? "text-emerald-600 dark:text-emerald-500" : "text-red-600 dark:text-red-500"}`}
+                role="status"
+                aria-live="polite"
+                aria-label={changeLabel}
               >
                 {change >= 0 ? "+" : ""}$
                 {Math.abs(change).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} (
@@ -162,10 +203,20 @@ export function PortfolioValueChart() {
               </span>
             </div>
           </div>
-          <div className="flex gap-0.5 bg-muted/50 rounded-lg p-0.5">
-            {timeframes.map((tf) => (
+          <div
+            className="flex gap-0.5 bg-muted/50 rounded-lg p-0.5"
+            role="radiogroup"
+            aria-label="Select portfolio value timeframe"
+            onKeyDown={handleTimeframeKeyDown}
+          >
+            {timeframes.map((tf, index) => (
               <Button
                 key={tf}
+                ref={(node) => {
+                  timeframeRefs.current[index] = node
+                }}
+                role="radio"
+                aria-checked={tf === activeTimeframe}
                 variant={tf === activeTimeframe ? "secondary" : "ghost"}
                 size="sm"
                 className={`h-8 px-3 text-xs font-medium ${
@@ -180,7 +231,12 @@ export function PortfolioValueChart() {
         </div>
       </CardHeader>
       <CardContent className="px-2 pb-2">
-        <div className="w-full h-[450px]">
+        <AccessibleChart
+          title="Portfolio value trend"
+          description={summary}
+          className="w-full h-[450px]"
+          contentClassName="h-full"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <defs>
@@ -221,7 +277,7 @@ export function PortfolioValueChart() {
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </AccessibleChart>
       </CardContent>
     </Card>
   )

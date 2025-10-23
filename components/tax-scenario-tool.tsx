@@ -4,21 +4,18 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Slider } from "@/components/ui/slider"
+import { SliderField } from "@/components/ui/slider"
 import { Calculator, TrendingDown, Info, Sparkles } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { getTaxHarvestingScenario } from "@/lib/services"
 
-const harvestablePositions = [
-  { asset: "GOOGL", loss: 850, selected: false },
-  { asset: "AMD", loss: 320, selected: false },
-  { asset: "PLTR", loss: 1200, selected: false },
-  { asset: "COIN", loss: 580, selected: false },
-  { asset: "SQ", loss: 250, selected: false },
-]
+const scenario = getTaxHarvestingScenario()
 
 export function TaxScenarioTool() {
-  const [selectedPositions, setSelectedPositions] = useState<boolean[]>(harvestablePositions.map(() => false))
-  const [taxRate, setTaxRate] = useState([32])
+  const [selectedPositions, setSelectedPositions] = useState<boolean[]>(
+    scenario.harvestablePositions.map((position: any) => Boolean(position.selected)),
+  )
+  const [taxRate, setTaxRate] = useState([scenario.defaultTaxRate])
 
   const togglePosition = (index: number) => {
     const newSelected = [...selectedPositions]
@@ -26,14 +23,33 @@ export function TaxScenarioTool() {
     setSelectedPositions(newSelected)
   }
 
-  const totalLossHarvested = harvestablePositions.reduce(
-    (sum, pos, idx) => sum + (selectedPositions[idx] ? pos.loss : 0),
+  const totalLossHarvested = scenario.harvestablePositions.reduce(
+    (sum: number, pos: any, idx: number) => sum + (selectedPositions[idx] ? pos.loss : 0),
     0,
   )
 
   const potentialSavings = Math.round(totalLossHarvested * (taxRate[0] / 100))
-  const currentTaxLiability = 18450
+  const currentTaxLiability = scenario.currentTaxLiability
   const newTaxLiability = currentTaxLiability - potentialSavings
+
+  const taxRateLabel = (
+    <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+      Your Marginal Tax Rate
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-foreground">
+              <Info className="h-4 w-4" />
+              <span className="sr-only">Why do we use this rate?</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Based on your income bracket.</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </span>
+  )
 
   return (
     <Card className="card-standard card-lift">
@@ -55,32 +71,21 @@ export function TaxScenarioTool() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-foreground">Your Marginal Tax Rate</label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-4 w-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">Based on your income bracket</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <div className="flex items-center gap-4">
-            <Slider value={taxRate} onValueChange={setTaxRate} min={10} max={37} step={1} className="flex-1" />
-            <Badge variant="outline" className="w-16 justify-center tabular-nums">
-              {taxRate[0]}%
-            </Badge>
-          </div>
-        </div>
+        <SliderField
+          value={taxRate}
+          onValueChange={setTaxRate}
+          min={10}
+          max={37}
+          step={1}
+          label={taxRateLabel}
+          description="Adjust to explore different marginal tax rates."
+          formatValue={(values) => `${values[0]}%`}
+        />
 
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">Select Positions to Harvest</label>
           <div className="space-y-2">
-            {harvestablePositions.map((position, index) => (
+            {scenario.harvestablePositions.map((position: any, index: number) => (
               <div
                 key={index}
                 onClick={() => togglePosition(index)}
@@ -145,10 +150,7 @@ export function TaxScenarioTool() {
             </div>
           </div>
 
-          <Button
-            className="w-full gap-2 bg-purple-600 hover:bg-purple-700 text-white"
-            disabled={totalLossHarvested === 0}
-          >
+          <Button className="w-full gap-2" variant="cta" disabled={totalLossHarvested === 0}>
             <TrendingDown className="h-4 w-4" />
             Execute Harvest Plan
           </Button>

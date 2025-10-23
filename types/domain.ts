@@ -61,6 +61,57 @@ export interface DocumentInsight {
   color: string
   bgColor: string
   action: string
+  priority?: "low" | "medium" | "high"
+}
+
+export type InsightVariant = "spending" | "investment" | "goals" | "alert"
+
+export interface InsightDataPoint {
+  label: string
+  value: string
+  highlight?: boolean
+}
+
+export interface InsightFeedItem {
+  id: number
+  type: string
+  icon: IconComponent
+  title: string
+  description: string
+  category: string
+  variant: InsightVariant
+  trend?: number
+  isPinned?: boolean
+  dataPoints?: InsightDataPoint[]
+  explanation?: string
+}
+
+export interface OverviewInsight {
+  id: number
+  type: string
+  icon: IconComponent
+  title: string
+  description: string
+  color: string
+  bgColor: string
+  borderColor: string
+  progress: number
+  isPinned: boolean
+}
+
+export interface TaxHarvestablePosition {
+  asset: string
+  loss: number
+  selected?: boolean
+}
+
+export interface TaxHarvestingScenario {
+  currentTaxLiability: number
+  defaultTaxRate: number
+  minTaxRate: number
+  maxTaxRate: number
+  step: number
+  harvestablePositions: TaxHarvestablePosition[]
 }
 
 export type GoalStatus = "active" | "paused" | "completed"

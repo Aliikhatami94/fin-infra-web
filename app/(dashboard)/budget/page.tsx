@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CalendarIcon, MoreVertical, FileText, FileSpreadsheet, Plus } from "lucide-react"
 import { format } from "date-fns"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 export default function BudgetPage() {
   const [date, setDate] = useState<Date>(new Date(2024, 0, 1))
@@ -60,7 +61,9 @@ export default function BudgetPage() {
 
         <BudgetSummary />
 
-        <BudgetAIInsights />
+        <ErrorBoundary feature="Budget insights">
+          <BudgetAIInsights />
+        </ErrorBoundary>
 
         <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
           <BudgetTable />

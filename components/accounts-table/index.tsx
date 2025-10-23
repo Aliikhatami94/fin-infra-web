@@ -12,8 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { SwitchField } from "@/components/ui/switch"
 
 import { AccountsListMobile } from "./accounts-list-mobile"
 import { AccountsTableDesktop } from "./accounts-table-desktop"
@@ -92,12 +91,13 @@ export function AccountsTable() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <CardTitle>All Accounts</CardTitle>
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <Switch id="hide-zero" checked={hideZeroBalance} onCheckedChange={setHideZeroBalance} />
-                  <Label htmlFor="hide-zero" className="text-sm cursor-pointer">
-                    Hide $0 balance
-                  </Label>
-                </div>
+                <SwitchField
+                  id="hide-zero"
+                  label="Hide $0 balance"
+                  layout="inline"
+                  checked={hideZeroBalance}
+                  onCheckedChange={setHideZeroBalance}
+                />
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

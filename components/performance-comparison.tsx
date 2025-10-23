@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Brush, CartesianGrid } from "recharts"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AccessibleChart } from "@/components/accessible-chart"
 
 const performanceData = [
   { date: "Jan", portfolio: 100, spy: 100 },
@@ -50,7 +51,12 @@ export function PerformanceComparison() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[400px]">
+        <AccessibleChart
+          title="Portfolio performance compared to SPY"
+          description="The chart shows percentage growth for your portfolio versus the SPY benchmark across the selected timeframe."
+          className="h-[400px]"
+          contentClassName="h-full"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={performanceData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
@@ -117,7 +123,7 @@ export function PerformanceComparison() {
               <Brush dataKey="date" height={30} stroke="hsl(var(--primary))" />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </AccessibleChart>
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-blue-600 dark:bg-blue-400" />

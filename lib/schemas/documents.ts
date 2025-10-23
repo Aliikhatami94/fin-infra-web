@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import type { Document, DocumentInsight } from "@/types/domain"
+import type { Document } from "@/types/domain"
 import { iconSchema } from "./accounts"
 
 export const documentSchema: z.ZodType<Document> = z.object({
@@ -16,12 +16,13 @@ export const documentSchema: z.ZodType<Document> = z.object({
 
 export const documentsResponseSchema = documentSchema.array()
 
-export const documentInsightSchema: z.ZodType<DocumentInsight> = z.object({
+export const documentInsightSchema = z.object({
   icon: iconSchema,
   text: z.string(),
   color: z.string(),
   bgColor: z.string(),
   action: z.string(),
+  priority: z.enum(["low", "medium", "high"]).optional(),
 })
 
 export const documentInsightsResponseSchema = documentInsightSchema.array()

@@ -2,6 +2,8 @@
 
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
+import { AccessibleChart } from "@/components/accessible-chart"
+import { describeTimeSeries, currencySummaryFormatter } from "@/lib/a11y"
 import { cn } from "@/lib/utils"
 
 export interface NetWorthPoint {
@@ -17,8 +19,21 @@ interface NetWorthHistoryChartProps {
 }
 
 export function NetWorthHistoryChart({ data, className }: NetWorthHistoryChartProps) {
+  const summary = describeTimeSeries({
+    data,
+    metric: "Net worth",
+    getLabel: (point) => point.date,
+    getValue: (point) => point.netWorth,
+    formatValue: currencySummaryFormatter,
+  })
+
   return (
-    <div className={cn("h-96", className)}>
+    <AccessibleChart
+      title="Net worth trend"
+      description={summary}
+      className={cn("h-96", className)}
+      contentClassName="h-full"
+    >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>
@@ -70,6 +85,6 @@ export function NetWorthHistoryChart({ data, className }: NetWorthHistoryChartPr
           />
         </AreaChart>
       </ResponsiveContainer>
-    </div>
+    </AccessibleChart>
   )
 }
