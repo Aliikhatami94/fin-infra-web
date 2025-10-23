@@ -3,7 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tv, Music, ShoppingBag, Palette, Dumbbell, Pause, X } from "lucide-react"
+import { Tv, Music, ShoppingBag, Palette, Dumbbell, Pause, X, PiggyBank } from "lucide-react"
+import { InsightCard } from "@/components/insights/InsightCard"
+import { trackInsightAction } from "@/lib/analytics/events"
+import type { InsightAction, InsightDefinition } from "@/lib/insights/definitions"
 
 const subscriptions = [
   {
@@ -52,6 +55,28 @@ export function RecurringExpenses({ selectedCategory }: RecurringExpensesProps) 
 
   const totalMonthly = filteredSubscriptions.reduce((sum, sub) => sum + sub.amount, 0)
 
+  const insight: InsightDefinition = {
+    id: "recurring-savings",
+    title: "Optimize recurring spend",
+    body: "Pausing two streaming subscriptions would save $30/month and keep you on track for the vacation fund.",
+    category: "spending",
+    topic: "Cash Flow",
+    surfaces: ["cash-flow"],
+    icon: PiggyBank,
+    accent: "emerald",
+    metrics: [
+      { id: "potential", label: "Potential savings", value: "$30/mo", highlight: true },
+      { id: "current", label: "Current recurring", value: `$${totalMonthly.toFixed(2)}/mo` },
+    ],
+    actions: [
+      { id: "pause-subscriptions", label: "Review subscriptions" },
+    ],
+  }
+
+  const handleInsightAction = (payload: { insight: InsightDefinition; action: InsightAction }) => {
+    trackInsightAction(payload)
+  }
+
   return (
     <Card className="card-standard">
       <CardHeader>
@@ -64,6 +89,9 @@ export function RecurringExpenses({ selectedCategory }: RecurringExpensesProps) 
         {selectedCategory && <p className="text-xs text-muted-foreground">Filtered by: {selectedCategory}</p>}
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+          <InsightCard insight={insight} onAction={handleInsightAction} />
+        </div>
         <div className="space-y-2">
           {filteredSubscriptions.map((sub, index) => {
             const Icon = sub.icon

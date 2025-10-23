@@ -13,6 +13,7 @@ const transactions = [
     amount: -127.45,
     type: "expense",
     icon: UtensilsCrossed,
+    account: "Sapphire Reserve",
   },
   {
     date: "Jan 11",
@@ -22,6 +23,7 @@ const transactions = [
     amount: -52.3,
     type: "expense",
     icon: Car,
+    account: "Sapphire Reserve",
   },
   {
     date: "Jan 10",
@@ -31,6 +33,7 @@ const transactions = [
     amount: 7500.0,
     type: "income",
     icon: DollarSign,
+    account: "Chase Total Checking",
   },
   {
     date: "Jan 9",
@@ -40,6 +43,7 @@ const transactions = [
     amount: -15.99,
     type: "expense",
     icon: Tv,
+    account: "Chase Total Checking",
   },
   {
     date: "Jan 8",
@@ -49,6 +53,7 @@ const transactions = [
     amount: -89.99,
     type: "expense",
     icon: ShoppingBag,
+    account: "Sapphire Reserve",
   },
   {
     date: "Jan 7",
@@ -58,6 +63,7 @@ const transactions = [
     amount: -6.75,
     type: "expense",
     icon: Coffee,
+    account: "Chase Total Checking",
   },
   {
     date: "Jan 6",
@@ -67,6 +73,7 @@ const transactions = [
     amount: -24.5,
     type: "expense",
     icon: Car,
+    account: "Chase Total Checking",
   },
   {
     date: "Jan 5",
@@ -76,6 +83,7 @@ const transactions = [
     amount: -2200.0,
     type: "expense",
     icon: Home,
+    account: "Chase Total Checking",
   },
   {
     date: "Jan 4",
@@ -85,6 +93,7 @@ const transactions = [
     amount: -120.0,
     type: "expense",
     icon: Zap,
+    account: "Chase Total Checking",
   },
 ]
 

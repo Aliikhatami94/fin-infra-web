@@ -7,6 +7,7 @@ import { PrivacyProvider } from "../components/privacy-provider"
 import { DateRangeProvider } from "@/components/date-range-provider"
 import { BRAND } from "@/lib/brand"
 import "./globals.css"
+import { Toaster } from "@/components/ui/sonner"
 
 const _inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -37,6 +38,7 @@ export default function RootLayout({
             <DateRangeProvider>{children}</DateRangeProvider>
           </PrivacyProvider>
         </ThemeProvider>
+        <Toaster richColors position="top-right" closeButton />
         <Analytics />
       </body>
     </html>

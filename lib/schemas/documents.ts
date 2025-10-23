@@ -8,10 +8,12 @@ export const documentSchema: z.ZodType<Document> = z.object({
   name: z.string(),
   institution: z.string(),
   type: z.string(),
+  account: z.string(),
   date: z.string(),
   dateValue: z.date(),
   size: z.string(),
   sizeValue: z.number(),
+  year: z.number(),
 })
 
 export const documentsResponseSchema = documentSchema.array()

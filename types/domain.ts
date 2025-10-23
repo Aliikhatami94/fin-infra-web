@@ -33,6 +33,13 @@ export interface Transaction {
   amount: number
   category: string
   icon: IconComponent
+  account: string
+  isNew?: boolean
+  isRecurring?: boolean
+  isFlagged?: boolean
+  isTransfer?: boolean
+  tags?: string[]
+  notes?: string
 }
 
 export interface Holding {
@@ -49,10 +56,12 @@ export interface Document {
   name: string
   institution: string
   type: string
+  account: string
   date: string
   dateValue: Date
   size: string
   sizeValue: number
+  year: number
 }
 
 export interface DocumentInsight {

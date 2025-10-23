@@ -113,19 +113,67 @@ Acceptance
 * Instrument toggles and sliders to capture user preferences (with dev‑only console output).
 * Expose typed analytics functions for AI cards (e.g., `trackInsightAction(insightId, actionType)`).
 
-#### WS8 – Security & Privacy (unchanged)
+#### WS8 – Security & Privacy (expanded)
 
-* Continue to scrub logs; ensure that sensitive financial values used in AI insights are masked when shown in logs.
-* Document environment variables (public Plaid keys, feature flags).
+Goal: Treat security controls and privacy guardrails as core functionality so that AI‑assisted financial insights never expose
+confidential data.
+
+Deliverables
+
+* Logging Guardrails: Extend the existing logging utilities to automatically redact account numbers, balances, SSNs and PII befo
+re messages leave the browser/server boundary. Add Vitest coverage for the redaction helpers.
+* AI Insights Hardening: Ensure the shared insight definitions allow marking sensitive metrics and redact or aggregate them befo
+re rendering. Provide fallbacks for anonymized values (e.g., show ranges instead of raw dollars when marked sensitive).
+* Secrets Management: Create `.env.example` entries for new feature flags (AI insight rollouts, analytics sampling) and document
+ required secrets (Plaid sandbox keys, encryption salts) in `README.md`. Validate at build time that required env vars exist.
+* Privacy Review Checklist: Add a lightweight checklist to the repo (e.g., `docs/security-privacy.md`) covering data retention,
+ consent for notifications, cookie usage and third‑party SDK audits. Reference it in CI and PR templates.
+* Session Handling: Audit pages that use client components (e.g., Settings toggles) to ensure no secrets are stored in localStor
+age. Add a shared `useSecureStorage` hook that namespaces and encrypts at‑rest values when local persistence is unavoidable.
+
+Acceptance
+
+* Logs and analytics payloads contain no raw PII during local dev or CI runs.
+* Sensitive insight cards render redacted values and display a tooltip explaining the masking.
+* CI fails fast when required secrets are missing or when the privacy checklist is not acknowledged in PR descriptions.
+* Storage utilities have unit tests demonstrating encryption and key rotation support.
 
 #### WS9 – Product Polish for Simplifi Parity (expanded)
 
-* Documents page: add drag‑and‑drop upload area and chip filters (already planned). Consider adding document preview modals with keyboard navigation and accessible controls for download/delete actions.
-* Transactions UX: as planned, add bulk select, badges and quick filters. Ensure virtualization if transaction lists are long.
-* Budget & Cash Flow: add “planned vs actual” toggles and recurring expense indicators, and unify with the ChartKit.
-* Goals: implement what‑if sliders (leveraging new Slider component) for adjusting contributions and visualizing target date changes.
-* Taxes: expand the What‑If Tax Scenario to allow simulating multiple harvest scenarios; unify slider with new component.
-* Crypto: allow grouping by exchange and staking state; prefetch stable‑coin data on demand; integrate cross‑asset risk allocation chart with ChartKit.
+Goal: Bring the final layer of UX polish, interaction depth and accessibility parity so the experience mirrors premium personal-finance apps.
+
+Focus Areas & Deliverables
+
+* **Documents hub**
+  * Implement drag‑and‑drop uploads with progress affordances and idle/hover states; reuse global toasts for success/error.
+  * Add chip filters (type, account, year) wired to a shared `useDocumentFilters` hook; persist selections via query params.
+  * Provide preview modals with keyboard traps, download/delete actions, and focus restoration; ensure thumbnails have descriptive alt text.
+  * Add empty, loading and error states aligned with WS2 skeleton patterns.
+* **Transactions workspace**
+  * Ship bulk select with sticky action bar (categorize, add tags, export) and keyboard shortcuts.
+  * Introduce inline badges (new, recurring, flagged) and quick filters (last 7 days, large transactions, transfers) backed by typed filter config.
+  * Virtualize long lists using the shared table virtualization utilities from WS3; maintain accessible row focus outlines.
+* **Budget & Cash Flow**
+  * Add “planned vs actual” toggle segments that sync with ChartKit legends and update accessible summaries.
+  * Surface recurring expense indicators and savings recommendations using the shared InsightCard.
+  * Ensure charts and tables share typography/spacing tokens introduced in WS2.
+* **Goals planner**
+  * Integrate reusable Slider component for contribution and risk “what‑if” simulations; animate target date impacts with ChartKit overlays.
+  * Persist adjustments to local storage mocks and emit analytics via WS7 `trackInsightAction` helpers.
+* **Taxes scenario lab**
+  * Expand What‑If Tax Scenario to support multiple harvest presets; allow comparing scenarios side‑by‑side with shared Slider + chart patterns.
+  * Add printable/exportable summaries with formatted marginal rate tables and accessible descriptions.
+* **Crypto dashboard**
+  * Enable grouping toggles (exchange, staking state) that coordinate with table virtualization and ChartKit donut views.
+  * Prefetch stable‑coin data on hover using suspense boundaries; display cross‑asset risk allocation insight cards.
+
+Acceptance Criteria
+
+* All new interactions reuse shared primitives (Slider, Toggle, InsightCard, ChartKit) and pass Axe checks.
+* Bulk actions, modals and toggles are fully keyboard navigable with visible focus and ARIA labelling.
+* Virtualized tables maintain smooth scroll performance and preserve accessible row announcements.
+* Analytics events fire for every major interaction (uploads, bulk actions, slider adjustments) using WS7 instrumentation.
+* Page-level smoke tests cover happy paths and empty/error states; visual QA complete with before/after captures where applicable.
 
 ---
 

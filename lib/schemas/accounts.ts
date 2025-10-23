@@ -26,6 +26,13 @@ export const transactionSchema: z.ZodType<Transaction> = z.object({
   amount: z.number(),
   category: z.string(),
   icon: iconSchema,
+  account: z.string(),
+  isNew: z.boolean().optional(),
+  isRecurring: z.boolean().optional(),
+  isFlagged: z.boolean().optional(),
+  isTransfer: z.boolean().optional(),
+  tags: z.array(z.string()).optional(),
+  notes: z.string().optional(),
 })
 
 export const accountSchema: z.ZodType<Account> = z.object({

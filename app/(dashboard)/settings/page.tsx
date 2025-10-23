@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { trackPreferenceToggle } from "@/lib/analytics/events"
 import {
   Bell,
   Lock,
@@ -47,6 +48,18 @@ export default function SettingsPage() {
   const [marketingConsent, setMarketingConsent] = useState(initialState.marketingConsent)
   const [dataSharing, setDataSharing] = useState(initialState.dataSharing)
   const [hasChanges, setHasChanges] = useState(false)
+
+  const handleToggleChange = (
+    preferenceId: string,
+    label: string,
+    section: string,
+    setter: (value: boolean) => void,
+  ) => {
+    return (value: boolean) => {
+      setter(value)
+      trackPreferenceToggle({ preferenceId, label, section, value })
+    }
+  }
 
   useEffect(() => {
     const changed =
@@ -122,7 +135,12 @@ export default function SettingsPage() {
             <AnimatedSwitch
               id="email-notifications"
               checked={emailNotifications}
-              onCheckedChange={setEmailNotifications}
+              onCheckedChange={handleToggleChange(
+                "email-notifications",
+                "Email Notifications",
+                "notifications",
+                setEmailNotifications,
+              )}
             />
           </div>
 
@@ -136,7 +154,12 @@ export default function SettingsPage() {
             <AnimatedSwitch
               id="push-notifications"
               checked={pushNotifications}
-              onCheckedChange={setPushNotifications}
+              onCheckedChange={handleToggleChange(
+                "push-notifications",
+                "Push Notifications",
+                "notifications",
+                setPushNotifications,
+              )}
             />
           </div>
 
@@ -147,7 +170,16 @@ export default function SettingsPage() {
               </Label>
               <p className="text-sm text-muted-foreground">Notify when stocks reach target prices</p>
             </div>
-            <AnimatedSwitch id="price-alerts" checked={priceAlerts} onCheckedChange={setPriceAlerts} />
+            <AnimatedSwitch
+              id="price-alerts"
+              checked={priceAlerts}
+              onCheckedChange={handleToggleChange(
+                "price-alerts",
+                "Price Alerts",
+                "notifications",
+                setPriceAlerts,
+              )}
+            />
           </div>
 
           <div className="flex items-center justify-between py-4">
@@ -160,7 +192,12 @@ export default function SettingsPage() {
             <AnimatedSwitch
               id="trade-confirmations"
               checked={tradeConfirmations}
-              onCheckedChange={setTradeConfirmations}
+              onCheckedChange={handleToggleChange(
+                "trade-confirmations",
+                "Trade Confirmations",
+                "notifications",
+                setTradeConfirmations,
+              )}
             />
           </div>
         </SettingsGroup>
@@ -202,7 +239,16 @@ export default function SettingsPage() {
               </Label>
               <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
             </div>
-            <AnimatedSwitch id="two-factor" checked={twoFactor} onCheckedChange={setTwoFactor} />
+            <AnimatedSwitch
+              id="two-factor"
+              checked={twoFactor}
+              onCheckedChange={handleToggleChange(
+                "two-factor",
+                "Two-Factor Authentication",
+                "security",
+                setTwoFactor,
+              )}
+            />
           </div>
 
           <div className="space-y-3 py-4">
@@ -272,7 +318,16 @@ export default function SettingsPage() {
               </Label>
               <p className="text-sm text-muted-foreground">Help us improve by sharing anonymous usage data</p>
             </div>
-            <AnimatedSwitch id="analytics-consent" checked={analyticsConsent} onCheckedChange={setAnalyticsConsent} />
+            <AnimatedSwitch
+              id="analytics-consent"
+              checked={analyticsConsent}
+              onCheckedChange={handleToggleChange(
+                "analytics-consent",
+                "Analytics & Performance",
+                "privacy",
+                setAnalyticsConsent,
+              )}
+            />
           </div>
 
           <div className="flex items-center justify-between py-4">
@@ -282,7 +337,16 @@ export default function SettingsPage() {
               </Label>
               <p className="text-sm text-muted-foreground">Receive product updates and offers</p>
             </div>
-            <AnimatedSwitch id="marketing-consent" checked={marketingConsent} onCheckedChange={setMarketingConsent} />
+            <AnimatedSwitch
+              id="marketing-consent"
+              checked={marketingConsent}
+              onCheckedChange={handleToggleChange(
+                "marketing-consent",
+                "Marketing Communications",
+                "privacy",
+                setMarketingConsent,
+              )}
+            />
           </div>
 
           <div className="flex items-center justify-between py-4">
@@ -292,7 +356,16 @@ export default function SettingsPage() {
               </Label>
               <p className="text-sm text-muted-foreground">Share aggregated data with financial service providers</p>
             </div>
-            <AnimatedSwitch id="data-sharing" checked={dataSharing} onCheckedChange={setDataSharing} />
+            <AnimatedSwitch
+              id="data-sharing"
+              checked={dataSharing}
+              onCheckedChange={handleToggleChange(
+                "data-sharing",
+                "Data Sharing with Partners",
+                "privacy",
+                setDataSharing,
+              )}
+            />
           </div>
 
           <div className="space-y-3 py-4">

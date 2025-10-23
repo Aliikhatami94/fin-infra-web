@@ -2,13 +2,26 @@
   "name": "my-v0-project",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.4.0",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "env:check": "node ./scripts/check-env.mjs",
+    "ci:local": "pnpm env:check && pnpm lint && pnpm typecheck && pnpm test",
+    "ci:local:vercel": "pnpm run ci:local:vercel:dlx",
+    "ci:local:vercel:dlx": "pnpm dlx vercel@latest build"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "unrs-resolver"
+    ]
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",
