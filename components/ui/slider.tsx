@@ -16,6 +16,14 @@ const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, S
       return 1
     }, [value, defaultValue])
 
+    // Ensure each Thumb (role="slider") has an accessible name for a11y/axe.
+    // Prefer aria-labelledby when provided; otherwise, fall back to aria-label.
+    const thumbA11yProps = React.useMemo(() => {
+      const labelledby = (props as any)["aria-labelledby"] as string | undefined
+      const label = (props as any)["aria-label"] as string | undefined
+      return labelledby ? { "aria-labelledby": labelledby } : label ? { "aria-label": label } : {}
+    }, [props])
+
     return (
       <SliderPrimitive.Root
         ref={ref}
@@ -44,6 +52,7 @@ const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, S
             data-slot="slider-thumb"
             key={index}
             className="block size-4 shrink-0 rounded-full border border-primary bg-background shadow-sm transition-[color,box-shadow] focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/50 hover:ring-4 disabled:pointer-events-none"
+            {...(thumbA11yProps as any)}
           />
         ))}
       </SliderPrimitive.Root>

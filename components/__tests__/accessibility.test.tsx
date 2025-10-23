@@ -31,6 +31,15 @@ async function runAxe(container: HTMLElement) {
   const serious = (results.violations as any[]).filter((v: any) =>
     ["serious", "critical"].includes(v.impact as string),
   )
+  if (serious.length > 0) {
+    // Log minimal rule info for debugging in CI when a11y fails
+    // This helps us tune or suppress specific false positives in jsdom.
+    // eslint-disable-next-line no-console
+    console.warn(
+      "Axe serious violations:",
+      serious.map((v: any) => ({ id: v.id, impact: v.impact, nodes: v.nodes?.length })),
+    )
+  }
   expect(serious).toHaveLength(0)
 }
 
@@ -72,7 +81,7 @@ describe("component accessibility", () => {
     await renderWithAxe(<InsightCard insight={testInsight} />)
   })
 
-  it.skip("renders Slider without axe violations", async () => {
+  it("renders Slider without axe violations", async () => {
     await renderWithAxe(
       <div className="p-4">
         <SliderField label="Adjust marginal rate" defaultValue={[32]} min={0} max={100} />
