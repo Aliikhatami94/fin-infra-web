@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Upload } from "lucide-react"
 import { useMemo } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
+import Link from "next/link"
 import type { Document } from "@/types/domain"
 
 interface DocumentsGridProps {
@@ -137,6 +138,11 @@ export function DocumentsGrid({
                 <Upload className="mr-2 h-4 w-4" aria-hidden /> Stage my first upload
               </Button>
             )}
+            <Button asChild variant="link" size="sm" className="text-xs">
+              <Link href="/taxes" className="inline-flex items-center gap-1">
+                Missing a 1099? Go to Taxes
+              </Link>
+            </Button>
             <p className="text-[0.7rem] text-muted-foreground">
               Need help? Visit the Security Center to review who can access shared vaults.
             </p>
