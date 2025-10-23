@@ -37,14 +37,17 @@ jobs:
         if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
         env:
           PR_BODY: ${{ github.event.pull_request.body || '' }}
-          BASE_REF: ${{ github.base_ref || '' }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          STRICT_PRIVACY_CHECK: ${{ github.event.repository.private && 'false' || '' }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
+          BASE="${BASE_REF:-}"
+          STRICT="${STRICT_PRIVACY_CHECK:-}"
           # Accept either a checked box with the phrase (flexible whitespace/case) or a direct link mention.
           if echo "$PR_BODY" | tr -d '\r' | grep -Eiq "\[[[:space:]]*[xX][[:space:]]*\].*reviewed.*completed.*checklist" || echo "$PR_BODY" | grep -qi "docs/security-privacy.md"; then
             echo "Privacy checklist acknowledged."
           else
-            if [ "$BASE_REF" = "main" ]; then
+            if [ "$STRICT" = "true" ] || [ "$BASE" = "main" ]; then
               echo "::error::Please acknowledge docs/security-privacy.md in the PR description (checked box or link)."
               exit 1
             else
