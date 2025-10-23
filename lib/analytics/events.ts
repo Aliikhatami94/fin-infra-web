@@ -1,4 +1,5 @@
 import type { InsightAction, InsightDefinition } from "@/lib/insights/definitions"
+import type { AutomationSuggestion, AutomationMetricDelta } from "@/types/automation"
 import { createRedactingLogger, sanitizeForLogging } from "@/lib/security/redaction"
 
 const shouldLogAnalytics = process.env.NODE_ENV === "development"
@@ -69,6 +70,24 @@ type TransactionFilterEvent = BaseAnalyticsEvent & {
   active: boolean
 }
 
+type AutomationDecisionEvent = BaseAnalyticsEvent & {
+  type: "automation_decision"
+  suggestionId: string
+  surface: AutomationSuggestion["surface"]
+  category: AutomationSuggestion["category"]
+  decision: "accepted" | "declined"
+  reason?: string
+  scheduledFor?: string
+  metrics: Array<Pick<AutomationMetricDelta, "id" | "before" | "after" | "unit">>
+}
+
+type AutomationUndoEvent = BaseAnalyticsEvent & {
+  type: "automation_undo"
+  suggestionId: string
+  surface: AutomationSuggestion["surface"]
+  category: AutomationSuggestion["category"]
+}
+
 type AnalyticsEvent =
   | InsightActionEvent
   | InsightPinEvent
@@ -78,6 +97,8 @@ type AnalyticsEvent =
   | DocumentUploadEvent
   | TransactionBulkActionEvent
   | TransactionFilterEvent
+  | AutomationDecisionEvent
+  | AutomationUndoEvent
 
 const emit = (event: AnalyticsEvent) => {
   if (!shouldLogAnalytics) {
@@ -186,6 +207,44 @@ export function trackTransactionFilter(payload: { filterId: string; active: bool
     type: "transaction_filter",
     filterId: payload.filterId,
     active: payload.active,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+export function trackAutomationDecision(payload: {
+  suggestion: AutomationSuggestion
+  decision: "accepted" | "declined"
+  reason?: string
+  scheduledFor?: string
+}) {
+  const { suggestion, decision } = payload
+
+  emit({
+    type: "automation_decision",
+    suggestionId: suggestion.id,
+    surface: suggestion.surface,
+    category: suggestion.category,
+    decision,
+    reason: payload.reason,
+    scheduledFor: payload.scheduledFor,
+    metrics: suggestion.metrics.map((metric) => ({
+      id: metric.id,
+      before: metric.before,
+      after: metric.after,
+      unit: metric.unit,
+    })),
+    timestamp: new Date().toISOString(),
+  })
+}
+
+export function trackAutomationUndo(payload: { suggestion: AutomationSuggestion }) {
+  const { suggestion } = payload
+
+  emit({
+    type: "automation_undo",
+    suggestionId: suggestion.id,
+    surface: suggestion.surface,
+    category: suggestion.category,
     timestamp: new Date().toISOString(),
   })
 }

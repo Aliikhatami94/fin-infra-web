@@ -16,6 +16,7 @@ import {
 import type { AllocationGridProps } from "@/components/allocation-grid"
 import type { HoldingsTableProps } from "@/components/holdings-table"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { ScenarioPlaybook } from "@/components/scenario-playbook"
 
 const PerformanceComparison = dynamic(
   () => import("@/components/performance-comparison").then((mod) => mod.PerformanceComparison),
@@ -78,6 +79,8 @@ export default function PortfolioPage() {
         <ErrorBoundary feature="Portfolio insights">
           <PortfolioAIInsights />
         </ErrorBoundary>
+
+        <ScenarioPlaybook surface="portfolio" />
 
         <RebalancingPreview />
 

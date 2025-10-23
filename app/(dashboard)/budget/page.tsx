@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CalendarIcon, MoreVertical, FileText, FileSpreadsheet, Plus } from "lucide-react"
 import { format } from "date-fns"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { ScenarioPlaybook } from "@/components/scenario-playbook"
 
 export default function BudgetPage() {
   const [date, setDate] = useState<Date>(new Date(2024, 0, 1))
@@ -64,6 +65,8 @@ export default function BudgetPage() {
         <ErrorBoundary feature="Budget insights">
           <BudgetAIInsights />
         </ErrorBoundary>
+
+        <ScenarioPlaybook surface="budget" />
 
         <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
           <BudgetTable />
