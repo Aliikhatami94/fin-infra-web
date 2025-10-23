@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Upload } from "lucide-react"
 import { useMemo } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { documents } from "@/lib/mock"
+import { getDocuments } from "@/lib/services/documents"
 
 interface DocumentsGridProps {
   isLoading?: boolean
@@ -26,8 +26,10 @@ export function DocumentsGrid({
   selectedDocuments = [],
   onSelectionChange,
 }: DocumentsGridProps) {
+  const documentsData = useMemo(() => getDocuments(), [])
+
   const filteredAndSortedDocuments = useMemo(() => {
-    const filtered = documents.filter((doc) => {
+    const filtered = documentsData.filter((doc) => {
       const matchesSearch =
         searchQuery === "" ||
         doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -50,7 +52,7 @@ export function DocumentsGrid({
     })
 
     return filtered
-  }, [searchQuery, selectedTypes, sortBy])
+  }, [documentsData, searchQuery, selectedTypes, sortBy])
 
   const allSelected =
     filteredAndSortedDocuments.length > 0 && selectedDocuments.length === filteredAndSortedDocuments.length

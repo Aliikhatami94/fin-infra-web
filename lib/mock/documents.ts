@@ -1,6 +1,7 @@
 import { AlertCircle, FileText } from "lucide-react"
+import type { Document } from "@/types/domain"
 
-export const documents = [
+export const documents: Document[] = [
   {
     id: 1,
     name: "Chase Statement - December 2024",

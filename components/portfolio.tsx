@@ -8,7 +8,8 @@ import { TrendingUp, TrendingDown, ChevronDown, ChevronUp } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { portfolioHoldings as holdings } from "@/lib/mock"
+import { getPortfolioHoldings } from "@/lib/services/portfolio"
+import type { Holding } from "@/types/domain"
 import { formatCurrency, formatNumber } from "@/lib/format"
 
 // holdings are provided via centralized mocks
@@ -24,8 +25,10 @@ export function Portfolio({ filter }: PortfolioProps) {
   const [sortKey, setSortKey] = useState<SortKey>("value")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
 
+  const holdings = useMemo(() => getPortfolioHoldings(), [])
+
   const computed = useMemo(() => {
-    const enriched = holdings.map((h) => {
+    const enriched = holdings.map((h: Holding) => {
       const value = h.shares * h.currentPrice
       const cost = h.shares * h.avgPrice
       const gain = value - cost
@@ -69,7 +72,7 @@ export function Portfolio({ filter }: PortfolioProps) {
     })
 
     return { totalValue, totalCost, totalGain, totalGainPercent, rows: sorted }
-  }, [query, sortKey, sortDir, filter])
+  }, [filter, holdings, query, sortDir, sortKey])
 
   const { totalValue, totalCost, totalGain, totalGainPercent, rows } = computed
 

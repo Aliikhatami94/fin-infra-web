@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -23,7 +23,8 @@ import {
 import { motion } from "framer-motion"
 import { GoalDetailModal } from "./goal-detail-modal"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
-import { goals } from "@/lib/mock"
+import { getGoals } from "@/lib/services/goals"
+import type { Goal } from "@/types/domain"
 
 function CircularProgress({
   percent,
@@ -73,13 +74,14 @@ function CircularProgress({
 }
 
 export function GoalsGrid() {
-  const [selectedGoal, setSelectedGoal] = useState<(typeof goals)[0] | null>(null)
+  const goalsData = useMemo(() => getGoals(), [])
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
 
-  const activeGoals = goals.filter((g) => g.status === "active")
-  const pausedGoals = goals.filter((g) => g.status === "paused")
-  const completedGoals = goals.filter((g) => g.status === "completed")
+  const activeGoals = goalsData.filter((g) => g.status === "active")
+  const pausedGoals = goalsData.filter((g) => g.status === "paused")
+  const completedGoals = goalsData.filter((g) => g.status === "completed")
 
-  const renderGoalCard = (goal: (typeof goals)[0], index: number) => (
+  const renderGoalCard = (goal: Goal, index: number) => (
     <motion.div key={goal.id} {...createStaggeredCardVariants(index, 0)}>
       <Card className="card-standard card-lift cursor-pointer group" onClick={() => setSelectedGoal(goal)}>
         <CardContent className="p-6">

@@ -1,242 +1,170 @@
-# Fin-Infra Web Remediation Plan
+# Fin‑Infra Web – Technical Excellence Plan (v2)
 
-This plan sequences focused PRs to address routing/layout correctness, type safety, accessibility, security, performance, and maintainability. Each PR is small, verifiable, and reversible. Follow the order to minimize risk and avoid cascading conflicts.
+Purpose: Evolve this Next.js 15 + React 19 UI into a production‑grade, competitive experience on par with Quicken Simplifi by elevating code quality, performance, accessibility, and UX polish. This plan replaces the prior remediation checklist and reflects the current codebase state (dynamic chart loading, centralized mocks, formatting utils, CI, and strict TS already present).
 
-## Progress Tracker
-
-- [x] PR01 – Navigation + Layout Corrections
-- [x] PR02 – Fix KPI Trend Color Bug
-- [x] PR03 – Type Hygiene (remove `any`/casts)
-- [x] PR04 – Branding + Fonts
-- [x] PR05 – Security: Vanta + Auth Logs
-- [x] PR06 – Re-enable Type + Lint Gates and Pin Versions
-- [ ] PR07 – Performance: Split Heavy UI (partial)
-- [x] PR08 – Refactor Large Components (no behavior change)
-- [ ] PR09 – Formatting Utilities + Mock Centralization
-- [x] PR10 – Tests + CI (targeted)
+Scope focuses on: architectural hygiene, design system hardening, performance and a11y, typed data boundaries, testing, and targeted product polish that improves perceived quality without overhauling features.
 
 ## Guiding Principles
-- Prefer small, incremental PRs with clear acceptance criteria.
-- Fix root causes, not symptoms (no band-aids).
-- Keep behavior stable unless explicitly called out.
-- Server components where possible; client only when needed.
-- Pin versions; re-enable safety nets (TS + ESLint) early.
+- Server Components by default; client only where interactivity is required.
+- One source of truth per concern (types, colors, formatters, mocks, chart theme).
+- Prefer composition over inheritance; keep components small, typed, testable.
+- Optimize for Core Web Vitals and perceived responsiveness (skeletons, defers, virtualization).
+- Accessibility is a product feature: WCAG AA color contrast, keyboard flows, and screen reader UX.
 
-## Execution Order (by PR)
+## Current State Summary (observations)
+- Strong foundation: App Router, providers (Theme/Privacy/DateRange), consistent tokens in `app/globals.css`, shadcn/ui primitives, dynamic import for heavy charts, centralized mocks in `lib/mock`, formatters in `lib/format`, color utils + tests, CI (lint, typecheck, vitest), and route‑scoped layouts.
+- Opportunities:
+  - Domain types scattered (e.g., `components/accounts-table/types.ts`); consolidate for reuse across features.
+  - Chart configurations and tooltips repeated across components.
+  - Several large tables could benefit from row virtualization and column helpers.
+  - A11y coverage is good but not systematic (no automated checks, inconsistent aria/labeling patterns).
+  - Analytics/telemetry and error boundaries are minimal.
+  - Some duplication and naming inconsistency across components and skeletons.
 
-### PR01 – Navigation + Layout Corrections
-Goal: Single source of layout truth, correct routes, and reliable active-state.
+## Workstreams
 
-Changes
-- Sidebar
-  - components/sidebar.tsx
-    - Update Overview href to `/overview` (was `/`).
-    - Active state: use `pathname.startsWith(item.href)`; keep `aria-current` when active.
-- Command Menu
-  - components/command-menu.tsx
-    - Update Overview route to `/overview`.
-- Remove duplicate layout usage
-  - app/(dashboard)/billing/page.tsx: render only page content (do not wrap in `DashboardLayout`).
-  - app/(dashboard)/accounts/[id]/page.tsx: remove local `TopBar`/`Sidebar`; rely on `(dashboard)/layout`.
-  - app/(dashboard)/documents/loading.tsx: remove `TopBar`/`Sidebar`; keep skeleton-only.
-- Skip link target
-  - app/page.tsx: wrap content in `<main id="main-content">…</main>` so the global skip link works on landing.
+### WS1 – Architecture & Types Hygiene
+Goal: Centralize domain contracts and reduce duplication.
 
-Acceptance Criteria
-- Navigating to nested routes (e.g., `/accounts/123`) keeps sidebar item highlighted.
-- Landing page skip link focuses the hero section’s main element.
-- No duplicate top bars/sidebars on dashboard pages and loading states.
+Deliverables
+- Create `types/domain.ts` with shared interfaces: `Account`, `Transaction`, `Holding`, `Document`, `Goal`.
+- Refactor consumers to import from `types/domain` instead of local type files where appropriate.
+- Introduce `lib/schemas/*` (zod) for runtime validation of external data (future API) that narrows to domain types.
+- Add `lib/services/*` as thin data adapters (mock now, API later) with typed return values.
 
-Rollback: Revert the PR safely; no data migrations.
+Acceptance
+- Single import path for domain types; no duplicate interface definitions.
+- `pnpm typecheck` passes; no `as any` in changed files.
 
----
+### WS2 – Design System Hardening
+Goal: Ensure a cohesive, professional UI across pages and states.
 
-### PR02 – Fix KPI Trend Color Bug
-Goal: Correct visual semantics in KPI cards.
+Deliverables
+- Extract a `components/charts/` kit:
+  - `ChartContainer`, `ThemedAxis`, `Grid`, `TooltipCard`, tick formatters using `lib/format` + `lib/color-utils`.
+  - Migrate: `performance-timeline`, `cash-flow`, `networth-chart`, `net-worth-history-chart`, `portfolio-value-chart`, `crypto-chart` to use the shared kit.
+- Normalize skeletons and empty states:
+  - Keep all skeletons in `components/*-skeletons.tsx` with consistent sizes and aria‑hints.
+- Token usage audit:
+  - Replace hardcoded HSL values in components with CSS variables or `colors.*` from `lib/color-utils` when possible.
 
-Changes
-- components/kpi-cards.tsx
-  - Compute `const trendSign = kpi.trend === 'up' ? 1 : -1;`
-  - Pass `trendSign` to `getValueColor` and `getValueBgColor` instead of string.
-- Optional (alternative): Update lib/color-utils.ts to accept `'up' | 'down'` union. Keep scope small for now.
+Acceptance
+- Visual consistency across charts and cards; fewer diff‑only style changes when iterating.
 
-Acceptance Criteria
-- “Up” trends render green, “down” render red consistently (icons, badges, sparklines). 
+### WS3 – Performance & Web Vitals
+Goal: Reduce JS, improve interactivity, and keep LCP/INP healthy.
 
-Rollback: Revert file; visuals return to prior state.
+Deliverables
+- Table virtualization for large lists (100+ rows):
+  - Apply to `components/holdings-table.tsx`, `components/crypto-table.tsx`, `components/accounts-table/*` using `@tanstack/react-virtual` or `react-virtuoso`.
+- Progressive hydration for non‑critical widgets (keep current dynamic imports; add `prefetch` hints where helpful).
+- Add optional bundle analyzer and budgets:
+  - Integrate `@next/bundle-analyzer` (dev only) and document size budgets per route.
+- Image/asset hygiene: confirm `images.unoptimized: true` is desired; otherwise enable Next Image where impactful.
 
----
+Acceptance
+- Measured reduction in hydrated JS on dashboard routes; smoother scroll in large tables.
+- No regressions in functionality; CI includes a “build with analyzer” job (non‑blocking).
 
-### PR03 – Type Hygiene (remove `any`/casts)
-Goal: Strengthen strict typing, remove unsafe casts.
+### WS4 – Accessibility (AA + keyboard flows)
+Goal: Systematize a11y rather than spot‑fixing.
 
-Changes
-- Charts/tooltips and handlers
-  - components/cash-flow-chart.tsx, components/stock-chart.tsx, components/networth-chart.tsx, components/portfolio-value-chart.tsx, components/allocation-grid.tsx, components/allocation-chart.tsx
-  - Replace `any` tooltip props with typed payloads (create small local interfaces per dataset).
-- Union type correctness in UI
-  - components/allocation-chart.tsx: `setView` typed; remove `as any`.
-  - components/top-bar.tsx: `setDateRange` typed; remove `as any`.
-  - app/(dashboard)/insights/page.tsx & app/(dashboard)/documents/page.tsx: remove casts for dropdown radio groups by defining unions.
-- Icon types
-  - components/goal-detail-modal.tsx: `icon` → `React.ComponentType<{ className?: string }>`.
-- tsconfig.json
-  - Set `allowJs: false` (no JS files present).
+Deliverables
+- Axe checks on key routes using Playwright + axe‑core (smoke suite for `/`, `/overview`, `/accounts`, `/portfolio`, `/documents`).
+- Ensure focus management and visible focus rings for dialogs/menus.
+- Expand `aria-label` and `aria-describedby` on interactive money values and chart controls.
+- Contrast audit for chart colors and badges against AA.
 
-Acceptance Criteria
-- `pnpm tsc --noEmit` passes locally.
-- No remaining `as any` in the touched files.
+Acceptance
+- Zero critical axe violations on smoke pages; documented follow‑ups for minors.
 
-Rollback: Revert individual files if a component regresses.
+### WS5 – Data Boundaries & Error Handling
+Goal: Prepare for real data with predictable failures.
 
----
+Deliverables
+- Route handlers under `app/api/mock/*` that serve `lib/mock` data with zod validation.
+- Lightweight error boundaries around chart heavy areas and data tables; friendly retry UIs.
+- Centralized fetch wrapper with abort + timeout and typed results.
 
-### PR04 – Branding + Fonts
-Goal: Consistent product name and typography.
+Acceptance
+- Client components fetch via typed adapters; errors render consistent fallbacks.
 
-Changes
-- Add `lib/brand.ts`
-  - `export const BRAND = { name: 'TradeHub', tagline: 'Stock Trading Dashboard' }`
-- Replace hardcoded names
-  - components/top-bar.tsx, app/(auth)/layout.tsx, app/(auth)/sign-in/page.tsx, app/page.tsx metadata/title
-- Fonts
-  - app/layout.tsx: apply `_inter.className` on `<body>` (and `_jetbrainsMono` on `.font-mono` if needed via CSS var).
+### WS6 – Testing & CI Maturity
+Goal: Targeted confidence without over‑engineering.
 
-Acceptance Criteria
-- App shows the same brand name across top bar, auth, landing, and metadata.
-- No unused font imports.
+Deliverables
+- Unit tests: `lib/format`, `lib/navigation`, `lib/color-utils` (edge cases), chart formatters.
+- Component tests (Vitest + RTL): one per major surface (KPIs, HoldingsTable sorting, AccountsListMobile interactions).
+- Add Playwright E2E for core journeys (navigate sidebar → overview → portfolio; open dialog; filter holdings).
+- Extend CI with E2E job (allowed to be opt‑in/skipped on external PRs).
 
-Rollback: Revert replacements; no functional risk.
+Acceptance
+- All tests pass in CI; flaky tests quarantined; coverage reports for utils.
 
----
+### WS7 – Observability & UX Instrumentation
+Goal: Understand user flows and issues to prioritize polish.
 
-### PR05 – Security: Vanta + Auth Logs
-Goal: Reduce exposure from remote scripts and remove sensitive logs.
+Deliverables
+- Event map for navigation, filters, dialogs; add typed `lib/analytics.ts` (console/no‑op in dev, plug‑in later).
+- Add `onError` logging in error boundaries with a centralized `lib/logging.ts` interface.
 
-Changes
-- components/vanta-background.tsx
-  - Use `next/script` with `strategy="afterInteractive"`.
-  - Gate effect behind `process.env.NEXT_PUBLIC_ENABLE_VANTA === 'true'`.
-  - Optionally defer init via IntersectionObserver.
-- Auth pages
-  - app/(auth)/sign-in/page.tsx, app/(auth)/sign-up/page.tsx, app/(auth)/reset-password/page.tsx, app/(auth)/forgot-password/page.tsx
-  - Remove `console.log` of credentials/providers or wrap in `if (process.env.NODE_ENV !== 'production')`.
+Acceptance
+- Events fire in dev console; errors include component name + route context.
 
-Acceptance Criteria
-- No console logs of credentials in production.
-- Vanta disabled by default unless explicitly enabled.
+### WS8 – Security & Privacy
+Goal: Minimize risk ahead of data integration.
 
-Rollback: Switch env var off to disable effect; logs already removed are safe.
+Deliverables
+- Scrub `console.log` used for demo/actions; gate behind `if (process.env.NODE_ENV !== 'production')` or remove.
+- Verify PII mask coverage with `MaskableValue`; add tests for masked vs unmasked rendering.
+- Document `.env.example` with future keys (Plaid/public tokens, feature flags such as `NEXT_PUBLIC_ENABLE_VANTA`).
 
----
+Acceptance
+- No stray logs in prod builds; masking works consistently.
 
-### PR06 – Re-enable Type + Lint Gates and Pin Versions
-Goal: Turn safety rails back on and stabilize dependency surface.
+### WS9 – Product Polish for Simplifi Parity (targeted)
+Goal: Improve perceived completeness without backend work.
 
-Status: Implemented (local); CI gating pending
-- `.eslintrc.json` extends `next/core-web-vitals` + `@typescript-eslint/recommended`; `lint` script present.
-- Dependencies are pinned (no `latest` ranges).
-- Note: No GitHub Actions workflow present to enforce gates in CI.
+Deliverables
+- Transactions UX: bulk select actions, category badges, quick filters (7/30/90d), and rule icon affordances (stubbed).
+- Budget/Cash‑flow views: add “planned vs actual” toggles and recurring expense indicators using mock cadence.
+- Goals: add “what‑if” sliders to `goal-detail-modal` using local state + `lib/format`.
+- Documents: quick actions toolbar (download/delete) already present; add drag‑and‑drop + multi‑type filter chips.
 
-Changes
-- next.config.mjs
-  - Remove `eslint.ignoreDuringBuilds` and `typescript.ignoreBuildErrors` overrides.
-- ESLint
-  - Add `.eslintrc` extending `next/core-web-vitals` + `plugin:@typescript-eslint/recommended`.
-  - Add `"lint": "next lint"` (or keep `eslint .`).
-- Dependencies
-  - Replace `"latest"` with pinned caret ranges for Radix, framer-motion, recharts, etc.
-  - Document the pinning strategy; schedule Renovate/Dependabot later.
+Acceptance
+- Demos feel cohesive and competitive; all polish uses existing mocks and components.
 
-Acceptance Criteria
-- CI and local builds fail on TS errors and lint errors.
-- No `latest` in `dependencies`.
+## Milestones & Sequencing
+- M1 (Week 1): WS1, WS2 (chart kit + types), small refactors only.
+- M2 (Week 2): WS3 (virtualization + analyzer), WS4 (axe smoke tests), WS5 (mock APIs).
+- M3 (Week 3): WS6 (tests), WS7 (analytics/logging), WS8 (privacy scrub).
+- M4 (Week 4): WS9 (product polish passes), final design QA and bug bash.
 
-Rollback: Temporarily re-introduce ignore flags if blocking, then roll forward.
+## Success Metrics
+- Core Web Vitals: LCP < 2.5s, INP < 200ms on dashboard routes (local + hosted preview).
+- Hydrated JS reduced on portfolio/crypto pages; table scroll FPS ≥ 55 on mid‑tier devices.
+- A11y: zero critical axe issues on smoke pages.
+- Type safety: no `any`/unsafe casts in changed areas; single domain types import path.
+- CI: green on lint, typecheck, unit, and smoke E2E.
 
----
+## Initial Ticket Backlog (concrete)
+1) types/domain.ts: move `Account`, `Transaction` from `components/accounts-table/types.ts`; add `Holding`, `Document`, `Goal`.
+2) components/charts/: add `ChartContainer`, `TooltipCard`, `ThemedAxis`; migrate `performance-timeline.tsx` and `cash-flow.tsx` first.
+3) holdings-table.tsx: add row virtualization; keep API identical; measure render time.
+4) crypto-table.tsx and accounts-table/*: introduce virtualization; ensure keyboard navigation remains intact.
+5) app/api/mock/: expose `accounts`, `documents`, `goals` from `lib/mock/*` with zod validation.
+6) Add Playwright + axe smoke suite for `/`, `/overview`, `/accounts`, `/portfolio`, `/documents`.
+7) Introduce `lib/analytics.ts` and instrument sidebar navigation and date‑range changes.
+8) Privacy sweep: replace demo `console.log` with dev‑guarded logs; add unit tests for `MaskableValue`.
+9) Documents page: add drag‑and‑drop area and keyboard accessible multi‑select (reusing existing selection state).
+10) Bundle analyzer: add optional `ANALYZE=true pnpm build` docs and CI job.
 
-### PR07 – Performance: Split Heavy UI
-Goal: Reduce main bundle and hydration cost.
+## Risks & Mitigations
+- Virtualization regressions (row height, focus): Ship behind a feature flag; add quick revert path.
+- Shared chart kit churn: Migrate 1–2 charts first, settle APIs, then roll out.
+- Test flakiness in CI: Quarantine flaky E2E; keep unit tests authoritative for merges.
 
-Status: Partial
-- Dynamic imports with `ssr: false` cover heavy charts plus overview holdings/insights/chat, the accounts dashboard surface, and key portfolio widgets (KPIs, AI insights, allocation grid, holdings table).
-- Accounts landing page now renders as a server component with lightweight skeleton fallbacks while client bundles hydrate in the background.
-- Next steps (tracked under UI-M07): measure bundle impact, consider table virtualization, and evaluate server components for additional shells.
-
-Changes
-- Dynamic imports with `ssr: false` for heavy charts
-  - components/performance-timeline.tsx, portfolio charts, crypto charts.
-- Reduce client component surface
-  - Convert shells/containers to server components where possible; keep charts and interactive widgets client.
-- Defer non-critical animations.
-
-Acceptance Criteria
-- Lower initial JS by bundle analyzer (manual check) and snappier hydration.
-
-Rollback: Revert individual dynamic imports if regressions occur.
-
----
-
-### PR08 – Refactor Large Components (no behavior change)
-Goal: Improve maintainability by splitting monoliths.
-
-Status: Implemented (AccountsTable)
-- `components/accounts-table/` folder contains extracted subcomponents and utilities; `index.tsx` provides the public API.
-- Optional cleanup: `components/dashboard-header.tsx` appears unused and can be removed after confirmation.
-
-Changes
-- components/accounts-table.tsx (>800 lines)
-  - Extract `AccountRow`, `AccountDetailPanel`, `AccountsTableDesktop`, `AccountsListMobile`, `filters/sort` utils.
-
-Acceptance Criteria
-- No visual/behavior change; file sizes shrink; easier to test.
-
-Rollback: Revert directory to original monolith file.
-
----
-
-### PR09 – Formatting Utilities + Mock Centralization
-Goal: Consistent number/date formatting and mock data management.
-
-Status: Not started
-- `lib/format.ts` and `lib/mock/` not present; formatting calls and mock data remain scattered.
-
-Changes
-- lib/format.ts
-  - `formatCurrency(n: number)`, `formatPercent(n: number)`, `formatDate(d: Date)` utilities.
-- Replace scattered `toLocaleString`/inline options with helpers.
-- Centralize mock data under `lib/mock/` for accounts, documents, goals, etc.
-
-Acceptance Criteria
-- Consistent display across components; single source for mocks.
-
-Rollback: Safe revert; helpers are additive.
-
----
-
-### PR10 – Tests + CI (targeted)
-Goal: Add confidence without over-investing.
-
-Status: Implemented
-- Vitest configured with targeted unit tests for `lib/color-utils` and navigation helpers (`isActiveRoute`).
-- GitHub Action runs lint, typecheck, and tests for pushes/PRs to main/dev.
-- Scripts added for `pnpm test` and `pnpm typecheck`.
-- Format helper coverage will follow once `lib/format.ts` lands (PR09).
-
-Changes
-- Unit tests (vitest or jest) for
-  - `lib/format.ts`
-  - `lib/color-utils.ts` edge cases
-  - `isActiveRoute(pathname, href)` helper (extract from sidebar)
-- Optional: add GitHub Action for `pnpm i && pnpm lint && pnpm typecheck && pnpm test`.
-
-Acceptance Criteria
-- Tests pass locally and in CI; coverage for critical helpers.
-
-Rollback: Disable workflow if needed; keep tests locally.
-
----
+— End of v2 plan —
 
 ## Cross-Cutting Items
 - Import Path Consistency: Prefer `@/…` aliases instead of mixed relative paths.
@@ -258,4 +186,3 @@ Rollback: Disable workflow if needed; keep tests locally.
 - Lint/type checks pass; no `any`/casts in critical paths.
 - Consistent branding, skip link works everywhere.
 - Reduced bundle and stable routing/layout across the app.
-

@@ -17,9 +17,10 @@ import { Switch } from "@/components/ui/switch"
 
 import { AccountsListMobile } from "./accounts-list-mobile"
 import { AccountsTableDesktop } from "./accounts-table-desktop"
-import { accountsData, sharedIcons } from "@/lib/mock"
+import { sharedIcons } from "@/lib/mock"
 import { filterAccounts, groupAccounts, sortAccounts } from "./utils"
 import type { GroupBy, SortDirection, SortField } from "./types"
+import { getAccounts } from "@/lib/services/accounts"
 
 const { Filter, Plus } = sharedIcons
 
@@ -27,7 +28,7 @@ export function AccountsTable() {
   const [isPlaidOpen, setIsPlaidOpen] = useState(false)
   const [sortField, setSortField] = useState<SortField>("balance")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
-  const [accounts, setAccounts] = useState(accountsData)
+  const [accounts, setAccounts] = useState(() => getAccounts())
   const [expandedAccount, setExpandedAccount] = useState<number | null>(null)
   const [hideZeroBalance, setHideZeroBalance] = useState(false)
   const [ignoredAccounts, setIgnoredAccounts] = useState<Set<number>>(new Set())

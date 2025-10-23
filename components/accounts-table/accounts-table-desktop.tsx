@@ -4,7 +4,8 @@ import { Fragment } from "react"
 
 import { AccountRow } from "./account-row"
 import { sharedIcons } from "@/lib/mock"
-import type { Account, GroupBy, SortField } from "./types"
+import type { GroupBy, SortField } from "./types"
+import type { Account } from "@/types/domain"
 
 const { ArrowUpDown, ChevronDown, ChevronRight } = sharedIcons
 

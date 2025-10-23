@@ -1,4 +1,5 @@
 import { DollarSign, Wallet, CreditCard, Activity, ArrowUpRight, ArrowDownRight, RefreshCw, ShoppingCart } from "lucide-react"
+import type { Holding } from "@/types/domain"
 
 export const kpis = [
   {
@@ -75,7 +76,7 @@ export const kpis = [
   },
 ]
 
-export const portfolioHoldings = [
+export const portfolioHoldings: Holding[] = [
   { symbol: "AAPL", name: "Apple Inc.", shares: 50, avgPrice: 178.5, currentPrice: 185.75, change: 4.06 },
   { symbol: "MSFT", name: "Microsoft Corp.", shares: 30, avgPrice: 380.2, currentPrice: 385.5, change: 1.39 },
   { symbol: "GOOGL", name: "Alphabet Inc.", shares: 25, avgPrice: 138.9, currentPrice: 142.3, change: 2.45 },

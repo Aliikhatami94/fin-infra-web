@@ -11,10 +11,11 @@ import { AnimatePresence, motion } from "framer-motion"
 import type { MouseEvent } from "react"
 
 import { AccountDetailPanel } from "./account-detail-panel"
-import { bankLogos, defaultBankIcon, mockTransactions, sharedIcons, typeColors } from "@/lib/mock"
+import { bankLogos, defaultBankIcon, sharedIcons, typeColors } from "@/lib/mock"
 import { MiniSparkline } from "./mini-sparkline"
-import type { Account } from "./types"
+import type { Account, Transaction } from "@/types/domain"
 import { formatCurrency, formatNumber } from "@/lib/format"
+import { getRecentTransactions } from "@/lib/services/accounts"
 
 const {
   AlertCircle,
@@ -25,6 +26,8 @@ const {
   TrendingDown,
   TrendingUp,
 } = sharedIcons
+
+const recentTransactions: Transaction[] = getRecentTransactions()
 
 interface AccountRowProps {
   account: Account
@@ -176,7 +179,7 @@ export function AccountRow({
               <AccountDetailPanel
                 account={account}
                 onReconnect={onUpdateConnection}
-                transactions={mockTransactions}
+                transactions={recentTransactions}
                 typeColors={typeColors}
               />
             </td>

@@ -21,9 +21,7 @@ import {
   ArrowUpDown,
 } from "lucide-react"
 import type { ComponentType } from "react"
-import type { Account, Transaction } from "@/components/accounts-table/types"
-
-// Types are colocated in components/accounts-table/types.ts; consumers should use those.
+import type { Account, Transaction } from "@/types/domain"
 
 export const defaultBankIcon = Building2
 
