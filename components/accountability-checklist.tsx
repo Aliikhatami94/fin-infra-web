@@ -1,7 +1,16 @@
 "use client"
 
 import { differenceInCalendarDays, parseISO } from "date-fns"
-import { AlarmClock, CheckCircle2, ClipboardList, Clock, MoreHorizontal } from "lucide-react"
+import { useMemo } from "react"
+import {
+  AlarmClock,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  MoreHorizontal,
+  CalendarClock,
+  BellRing,
+} from "lucide-react"
 
 import { useWorkspace } from "@/components/workspace-provider"
 import { AssignmentMenu } from "@/components/assignment-menu"
@@ -16,13 +25,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { toast } from "@/components/ui/sonner"
 
 interface AccountabilityChecklistProps {
   surface: "overview" | "documents"
 }
 
 export function AccountabilityChecklist({ surface }: AccountabilityChecklistProps) {
-  const { tasks, activeWorkspace, updateTaskStatus, snoozeTask, dismissTask } = useWorkspace()
+  const { tasks, activeWorkspace, updateTaskStatus, snoozeTask, dismissTask, getAssignee } = useWorkspace()
 
   const now = new Date()
   const relevantTasks = tasks
@@ -40,6 +51,11 @@ export function AccountabilityChecklist({ surface }: AccountabilityChecklistProp
         isSnoozed: !!task.snoozedUntil && differenceInCalendarDays(effectiveDueDate, now) > 0,
       }
     })
+
+  const memberMap = useMemo(
+    () => new Map(activeWorkspace.members.map((member) => [member.id, member])),
+    [activeWorkspace.members],
+  )
 
   const overdueTasks = relevantTasks
     .filter((task) => task.dueInDays < 0 || task.status === "overdue")
@@ -68,6 +84,15 @@ export function AccountabilityChecklist({ surface }: AccountabilityChecklistProp
     const dueSoon = task.dueInDays <= 2 && task.dueInDays >= 0
     const isCompleted = task.status === "completed"
     const snoozedUntil = task.snoozedUntil ? parseISO(task.snoozedUntil) : null
+    const explicitAssignee = task.assignedTo ? memberMap.get(task.assignedTo) ?? null : null
+    const resolvedAssignee = explicitAssignee ?? getAssignee(task.entityType, task.entityId)
+    const dueDateLabel = task.effectiveDueDate.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+    const dueDescriptor = overdue
+      ? `${Math.abs(task.dueInDays)} day${Math.abs(task.dueInDays) === 1 ? "" : "s"} past due`
+      : task.dueInDays === 0
+        ? "Due today"
+        : `Due in ${task.dueInDays} day${task.dueInDays === 1 ? "" : "s"}`
+    const reminderTargetName = resolvedAssignee?.name?.split(" ")[0] ?? activeWorkspace.name.split(" ")[0]
 
     return (
       <div
@@ -87,9 +112,14 @@ export function AccountabilityChecklist({ surface }: AccountabilityChecklistProp
             {isCompleted && <Badge variant="outline" className="border-primary text-primary">Completed</Badge>}
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <AlarmClock className="h-3.5 w-3.5" />
-              {task.effectiveDueDate.toLocaleDateString()}
+            <span className={cn("flex items-center gap-1", overdue && "text-destructive")}
+              aria-label={`Due ${dueDateLabel}${overdue ? `, ${dueDescriptor}` : ""}`}
+            >
+              <CalendarClock className="h-3.5 w-3.5" aria-hidden />
+              <span>
+                Due {dueDateLabel}
+                <span className="ml-1 text-muted-foreground/80">({dueDescriptor})</span>
+              </span>
             </span>
             {task.isSnoozed && snoozedUntil && (
               <span className="flex items-center gap-1">
@@ -98,14 +128,50 @@ export function AccountabilityChecklist({ surface }: AccountabilityChecklistProp
               </span>
             )}
             <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
+              <AlarmClock className="h-3.5 w-3.5" />
               {task.reminder}
             </span>
-            <AssignmentMenu entityId={task.entityId} entityType={task.entityType} showLabel />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <Avatar className="h-6 w-6 border border-border/40 bg-background">
+                <AvatarFallback className="text-[10px]">
+                  {resolvedAssignee?.avatarFallback ?? "?"}
+                </AvatarFallback>
+              </Avatar>
+              <span>
+                {resolvedAssignee ? (
+                  <>
+                    Assigned to <span className="font-medium text-foreground">{resolvedAssignee.name}</span>
+                  </>
+                ) : (
+                  <span className="font-medium text-foreground">Unassigned</span>
+                )}
+              </span>
+              <AssignmentMenu
+                entityId={task.entityId}
+                entityType={task.entityType}
+                variant="ghost"
+                showLabel={false}
+              />
+            </span>
           </div>
         </div>
         <div className="flex flex-col gap-2 md:items-end">
           <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+              onClick={() =>
+                toast.success("Reminder scheduled", {
+                  description: `${reminderTargetName} will get a nudge (${task.reminder.toLowerCase()}).`,
+                })
+              }
+            >
+              <BellRing className="mr-2 h-4 w-4" />
+              Send reminder
+            </Button>
             <Button
               size="sm"
               variant={isCompleted ? "outline" : "secondary"}

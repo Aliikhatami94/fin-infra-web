@@ -1,12 +1,15 @@
 "use client"
 
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { Sparkles } from "lucide-react"
 
 import { InsightCard } from "@/components/insights/InsightCard"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { getInsights } from "@/lib/insights/service"
-import type { InsightAction } from "@/lib/insights/definitions"
+import type { InsightAction, InsightDefinition } from "@/lib/insights/definitions"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 interface TaxesAIInsightsProps {
   onLaunchCopilot?: () => void
@@ -19,11 +22,51 @@ export function TaxesAIInsights({ onLaunchCopilot }: TaxesAIInsightsProps) {
     return null
   }
 
+  const priorityGroups: {
+    key: "high" | "medium" | "low"
+    label: string
+    description: string
+    tone: string
+    items: InsightDefinition[]
+  }[] = [
+    {
+      key: "high",
+      label: "Urgent",
+      description: "Items that guard against penalties or missed savings.",
+      tone: "text-red-600 dark:text-red-400",
+      items: [],
+    },
+    {
+      key: "medium",
+      label: "Upcoming",
+      description: "Plan these soon to stay on track for filing.",
+      tone: "text-amber-600 dark:text-amber-400",
+      items: [],
+    },
+    {
+      key: "low",
+      label: "On radar",
+      description: "Nice-to-haves that round out your tax package.",
+      tone: "text-slate-600 dark:text-slate-300",
+      items: [],
+    },
+  ]
+
+  insights.forEach((insight) => {
+    const priority = insight.priority ?? "medium"
+    const group = priorityGroups.find((entry) => entry.key === priority)
+    if (group) {
+      group.items.push(insight)
+    }
+  })
+
   const handleAction = ({ action }: { action: InsightAction }) => {
     if (action.id === "automation:tax-harvest") {
       onLaunchCopilot?.()
     }
   }
+
+  let cardIndex = 0
 
   return (
     <motion.section
@@ -39,10 +82,45 @@ export function TaxesAIInsights({ onLaunchCopilot }: TaxesAIInsightsProps) {
           AI Tax Insights
         </h3>
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {insights.map((insight, index) => (
-          <InsightCard key={insight.id} insight={insight} index={index} onAction={handleAction} />
-        ))}
+      <div className="space-y-6">
+        {priorityGroups
+          .filter((group) => group.items.length > 0)
+          .map((group) => {
+            const showDocumentsLink = group.items.some((item) => item.category === "documents")
+
+            return (
+              <section key={group.key} className="space-y-3" aria-label={`${group.label} tax insights`}>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div>
+                    <p className={`text-sm font-semibold ${group.tone}`}>{group.label}</p>
+                    <p className="text-xs text-muted-foreground">{group.description}</p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {group.items.length} item{group.items.length === 1 ? "" : "s"}
+                  </Badge>
+                  {showDocumentsLink && (
+                    <Button asChild variant="link" size="sm" className="px-0 text-xs">
+                      <Link href="/documents">View missing documents</Link>
+                    </Button>
+                  )}
+                </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {group.items.map((insight) => {
+                    const renderedCard = (
+                      <InsightCard
+                        key={insight.id}
+                        insight={insight}
+                        index={cardIndex}
+                        onAction={handleAction}
+                      />
+                    )
+                    cardIndex += 1
+                    return renderedCard
+                  })}
+                </div>
+              </section>
+            )
+          })}
       </div>
     </motion.section>
   )

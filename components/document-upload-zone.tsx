@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useRef, useState, useId, type DragEventHandler, type KeyboardEvent } from "react"
-import { UploadCloud, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react"
+import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, ShieldCheck, HardDrive } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { toast } from "@/components/ui/sonner"
@@ -178,15 +178,25 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
         </div>
         <div className="space-y-3 max-w-xl">
           <p className="text-base font-semibold text-foreground">Drop statements, receipts, and disclosures</p>
-          <p id={descriptionId} className="text-sm text-muted-foreground">
-            Secure uploads stay encrypted end-to-end. We redact sensitive numbers automatically and only surface summaries in
-            insights.
-          </p>
+          <div id={descriptionId} className="text-sm text-muted-foreground space-y-2">
+            <span className="flex items-center justify-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" aria-hidden />
+              <span>256-bit encryption at rest and in transit keeps vault uploads private.</span>
+            </span>
+            <span className="flex items-center justify-center gap-2">
+              <HardDrive className="h-4 w-4 text-muted-foreground" aria-hidden />
+              <span>Files stay on US-based servers with role-based access and full audit logs.</span>
+            </span>
+          </div>
           <ul className="mx-auto flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground/90">
             <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">PDF (statements & reports)</li>
             <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">JPG / PNG (receipts)</li>
             <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">CSV ≤ 15MB (exports)</li>
+            <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">Larger files? Use secure desktop</li>
           </ul>
+          <p className="text-[0.7rem] text-muted-foreground/80">
+            We automatically redact account numbers and surface reminders when tax packages look incomplete.
+          </p>
         </div>
         <Button
           size="lg"
@@ -194,7 +204,7 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
           onClick={handleBrowse}
           data-loading={isDragging}
         >
-          Browse secure vault
+          Browse files
         </Button>
       </div>
 

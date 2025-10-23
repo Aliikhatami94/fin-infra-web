@@ -134,10 +134,19 @@ export function useInsightDismissals({ surface }: UseInsightDismissalsOptions) {
     setState((previous) => ({ ...previous, values: new Set() }))
   }, [])
 
+  const undismiss = useCallback((insightId: string) => {
+    setState((previous) => {
+      const next = new Set(previous.values)
+      next.delete(insightId)
+      return { ...previous, values: next }
+    })
+  }, [])
+
   const isDismissed = useCallback((insightId: string) => state.values.has(insightId), [state.values])
 
   return {
     dismiss,
+    undismiss,
     reset,
     isDismissed,
     resolvedIds: Array.from(state.values),

@@ -45,7 +45,7 @@ const insights: InsightDefinition[] = [
 ]
 
 export function TransactionsInsights() {
-  const { dismiss, reset, isDismissed, resolvedIds, hydrated } = useInsightDismissals({ surface: "transactions" })
+  const { dismiss, undismiss, reset, isDismissed, resolvedIds, hydrated } = useInsightDismissals({ surface: "transactions" })
   const handleAction = (payload: { insight: InsightDefinition; action: InsightAction }) => {
     trackInsightAction(payload)
   }
@@ -105,7 +105,14 @@ export function TransactionsInsights() {
             insight={insight}
             index={index}
             onAction={handleAction}
-            onResolve={() => dismiss(insight.id)}
+            resolved={resolvedIds.includes(insight.id)}
+            onResolutionChange={({ resolved }) => {
+              if (resolved) {
+                dismiss(insight.id)
+              } else {
+                undismiss(insight.id)
+              }
+            }}
           />
         ))}
       </div>

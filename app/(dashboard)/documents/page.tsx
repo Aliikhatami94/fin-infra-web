@@ -4,7 +4,20 @@ import { DocumentsGrid } from "@/components/documents-grid"
 import { DocumentsAIInsights } from "@/components/documents-ai-insights"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Upload, Search, Filter, Download, Trash2, ArrowUpDown, X } from "lucide-react"
+import {
+  Upload,
+  Search,
+  Filter,
+  Download,
+  Trash2,
+  ArrowUpDown,
+  X,
+  FileText,
+  FileSpreadsheet,
+  FileBarChart,
+  FileCheck2,
+  ReceiptText,
+} from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   DropdownMenu,
@@ -25,6 +38,18 @@ import { DocumentUploadZone } from "@/components/document-upload-zone"
 import { toast } from "@/components/ui/sonner"
 import { SuccessCelebrationDialog } from "@/components/success-celebration-dialog"
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
+
+const resolveDocumentTypeIcon = (type: string) => {
+  const normalized = type.toLowerCase()
+  if (normalized.includes("tax") || normalized.includes("1099") || normalized.includes("form")) return FileSpreadsheet
+  if (normalized.includes("statement")) return FileText
+  if (normalized.includes("report")) return FileBarChart
+  if (normalized.includes("confirmation")) return FileCheck2
+  if (normalized.includes("receipt")) return ReceiptText
+  return FileText
+}
 
 export default function DocumentsPage() {
   const [scrolled, setScrolled] = useState(false)
@@ -344,43 +369,77 @@ export default function DocumentsPage() {
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2" aria-label="Document filter chips">
-              {fileTypes.map((type) => (
-                <Button
-                  key={type}
-                  variant={selectedTypes.includes(type) ? "secondary" : "outline"}
-                  size="sm"
-                  className="h-8 rounded-full"
-                  onClick={() => toggleType(type)}
-                  aria-pressed={selectedTypes.includes(type)}
-                >
-                  {type}
-                </Button>
-              ))}
-              {accounts.map((account) => (
-                <Button
-                  key={account}
-                  variant={selectedAccounts.includes(account) ? "secondary" : "outline"}
-                  size="sm"
-                  className="h-8 rounded-full"
-                  onClick={() => toggleAccount(account)}
-                  aria-pressed={selectedAccounts.includes(account)}
-                >
-                  {account}
-                </Button>
-              ))}
-              {years.map((year) => (
-                <Button
-                  key={year}
-                  variant={selectedYears.includes(year) ? "secondary" : "outline"}
-                  size="sm"
-                  className="h-8 rounded-full"
-                  onClick={() => toggleYear(year)}
-                  aria-pressed={selectedYears.includes(year)}
-                >
-                  {year}
-                </Button>
-              ))}
+            <div className="relative -mx-2" aria-label="Document filter chips">
+              <div
+                className="flex items-center gap-2 overflow-x-auto px-2 pb-2 text-xs sm:text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                style={{ msOverflowStyle: "none" }}
+              >
+                {fileTypes.map((type) => {
+                  const selected = selectedTypes.includes(type)
+                  const TypeIcon = resolveDocumentTypeIcon(type)
+                  return (
+                    <Button
+                      key={type}
+                      variant={selected ? "secondary" : "outline"}
+                      size="sm"
+                      className={cn(
+                        "h-8 rounded-full px-3 font-medium transition-shadow whitespace-nowrap",
+                        selected && "shadow-[var(--shadow-soft)]",
+                      )}
+                      onClick={() => toggleType(type)}
+                      aria-pressed={selected}
+                    >
+                      <TypeIcon
+                        className={cn(
+                          "mr-2 h-3.5 w-3.5",
+                          selected ? "text-foreground" : "text-muted-foreground",
+                        )}
+                        aria-hidden
+                      />
+                      {type}
+                    </Button>
+                  )
+                })}
+                {accounts.map((account) => {
+                  const selected = selectedAccounts.includes(account)
+                  return (
+                    <Button
+                      key={account}
+                      variant={selected ? "secondary" : "outline"}
+                      size="sm"
+                      className="h-8 rounded-full px-3 font-medium whitespace-nowrap"
+                      onClick={() => toggleAccount(account)}
+                      aria-pressed={selected}
+                    >
+                      {account}
+                    </Button>
+                  )
+                })}
+                {years.map((year) => {
+                  const selected = selectedYears.includes(year)
+                  return (
+                    <Button
+                      key={year}
+                      variant={selected ? "secondary" : "outline"}
+                      size="sm"
+                      className="h-8 rounded-full px-3 font-medium whitespace-nowrap"
+                      onClick={() => toggleYear(year)}
+                      aria-pressed={selected}
+                    >
+                      {year}
+                    </Button>
+                  )
+                })}
+              </div>
+              <span className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background via-background to-transparent" aria-hidden />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>Filters follow your workspace—shared collaborators see the same context.</span>
+              <Button asChild variant="link" size="sm" className="h-auto px-0 text-xs font-semibold">
+                <Link href="/taxes" className="flex items-center gap-1">
+                  Review missing tax docs
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

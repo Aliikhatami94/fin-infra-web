@@ -1,13 +1,18 @@
 "use client"
 
+import { useMemo, useState } from "react"
+import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, TrendingDown, Info, Clock, PieChart, TrendingUp } from "lucide-react"
+import { AlertTriangle, TrendingDown, Info, Clock, PieChart, TrendingUp, FileText, ShieldCheck } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BarChart, Bar, ResponsiveContainer, Cell } from "recharts"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { LastSyncBadge } from "@/components/last-sync-badge"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 
 interface CapitalGainSegment {
   name: "ST" | "LT"
@@ -20,11 +25,72 @@ const capitalGainsData: CapitalGainSegment[] = [
   { name: "LT", value: 8140, color: "hsl(142, 76%, 36%)" },
 ]
 
+type ReadinessItem = {
+  id: string
+  title: string
+  icon: "filing" | "documents" | "payments"
+  progress: number
+  status: string
+  summary: string
+  criteria: { label: string; complete: number; total: number }[]
+  action?: { type: "link"; label: string; href: string }
+}
+
 interface TaxSummaryProps {
   onFilterChange?: (filter: string | null) => void
 }
 
 export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
+  const [activeReadinessId, setActiveReadinessId] = useState<string | null>(null)
+
+  const readinessItems = useMemo<ReadinessItem[]>(
+    () => [
+      {
+        id: "filing",
+        title: "Filing readiness",
+        icon: "filing",
+        progress: 68,
+        status: "3 checklist items left",
+        summary: "Most core data is complete, but you still have three planning tasks that affect your final filing accuracy.",
+        criteria: [
+          { label: "Tax checklist tasks", complete: 8, total: 11 },
+          { label: "Income sources verified", complete: 5, total: 6 },
+          { label: "Adjustments planned", complete: 2, total: 3 },
+        ],
+      },
+      {
+        id: "documents",
+        title: "Document readiness",
+        icon: "documents",
+        progress: 72,
+        status: "2 forms outstanding",
+        summary: "Brokerage 1099s are mostly in, but two accounts still need uploads before you can share your packet.",
+        criteria: [
+          { label: "Brokerage 1099 forms", complete: 3, total: 5 },
+          { label: "Employer W-2 forms", complete: 2, total: 2 },
+          { label: "Prior-year carryforwards", complete: 1, total: 1 },
+        ],
+        action: { type: "link", label: "Open Documents", href: "/documents" },
+      },
+      {
+        id: "payments",
+        title: "Payment readiness",
+        icon: "payments",
+        progress: 87,
+        status: "Final estimate scheduled",
+        summary: "Estimated payments cover 87% of projected liability—January's remittance locks in the remainder.",
+        criteria: [
+          { label: "Quarterly estimates sent", complete: 3, total: 4 },
+          { label: "Withholding adjustments", complete: 1, total: 2 },
+          { label: "Balance remaining", complete: 0, total: 1 },
+        ],
+      },
+    ],
+    [],
+  )
+
+  const activeReadiness = readinessItems.find((item) => item.id === activeReadinessId) ?? null
+
   const handleBarClick = (segment: CapitalGainSegment) => {
     if (!onFilterChange) {
       return
@@ -37,7 +103,8 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
   }
 
   return (
-    <div className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
+    <>
+      <div className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
       <motion.div {...createStaggeredCardVariants(0, 0)}>
         <Card className="card-standard card-lift min-h-[140px]">
           <CardContent className="p-6">
@@ -207,6 +274,95 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
           </CardContent>
         </Card>
       </motion.div>
-    </div>
+        <motion.div {...createStaggeredCardVariants(4, 0)} className="md:col-span-2 lg:col-span-4">
+          <Card className="card-standard card-lift">
+            <CardContent className="p-6">
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Tax readiness overview</p>
+                    <p className="text-xs text-muted-foreground/80">
+                      Tap a bar to review the criteria and outstanding counts for each readiness category.
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    Updated moments ago
+                  </Badge>
+                </div>
+                <div className="space-y-4">
+                  {readinessItems.map((item) => {
+                    const Icon =
+                      item.icon === "documents" ? FileText : item.icon === "payments" ? Clock : ShieldCheck
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setActiveReadinessId(item.id)}
+                        className="w-full rounded-lg border border-border/50 bg-muted/40 p-4 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        aria-label={`View readiness details for ${item.title}`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                              <p className="text-xs text-muted-foreground">{item.status}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-semibold text-foreground">{item.progress}%</span>
+                          </div>
+                        </div>
+                        <Progress value={item.progress} className="mt-3 h-2" aria-hidden="true" />
+                        <span className="sr-only">Tap to view readiness explanation</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      <Dialog open={Boolean(activeReadiness)} onOpenChange={(open) => !open && setActiveReadinessId(null)}>
+        <DialogContent>
+          {activeReadiness && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{activeReadiness.title}</DialogTitle>
+                <DialogDescription>{activeReadiness.summary}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                  <span>{activeReadiness.status}</span>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {activeReadiness.criteria.map((criterion) => (
+                    <li key={criterion.label} className="flex items-center justify-between rounded-md border border-border/40 bg-muted/40 px-3 py-2">
+                      <span className="font-medium text-foreground">{criterion.label}</span>
+                      <span className="tabular-nums text-xs text-muted-foreground">
+                        {criterion.complete} of {criterion.total}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <DialogFooter className="mt-6">
+                <Button variant="ghost" onClick={() => setActiveReadinessId(null)}>
+                  Close
+                </Button>
+                {activeReadiness.action?.type === "link" && (
+                  <Button asChild>
+                    <Link href={activeReadiness.action.href}>{activeReadiness.action.label}</Link>
+                  </Button>
+                )}
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

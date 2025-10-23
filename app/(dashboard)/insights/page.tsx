@@ -1,11 +1,13 @@
 "use client"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { InsightsFeed } from "@/components/insights-feed"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search } from "lucide-react"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { SwitchField } from "@/components/ui/switch"
+import { useInsightPreferences } from "@/hooks/use-insight-preferences"
 
 type InsightFilter = "all" | "spending" | "investment" | "goals"
 
@@ -13,6 +15,7 @@ export default function InsightsPage() {
   const [activeTab, setActiveTab] = useState<InsightFilter>("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [timeRange, setTimeRange] = useState("30d")
+  const { hideResolved, setHideResolved } = useInsightPreferences()
 
   const tabs: ReadonlyArray<{ value: InsightFilter; label: string }> = [
     { value: "all", label: "All Insights" },
@@ -20,6 +23,8 @@ export default function InsightsPage() {
     { value: "investment", label: "Investment Health" },
     { value: "goals", label: "Goals Forecast" },
   ]
+
+  const activeTabId = useMemo(() => `insights-tab-${activeTab}`, [activeTab])
 
   return (
     <div className="mx-auto w-full max-w-[1600px]">
@@ -55,30 +60,53 @@ export default function InsightsPage() {
               </SelectContent>
             </Select>
           </div>
+          <SwitchField
+            layout="inline"
+            label="Hide resolved insights"
+            checked={hideResolved}
+            onCheckedChange={(next) => setHideResolved(Boolean(next))}
+            className="data-[state=checked]:bg-primary/80"
+            containerClassName="justify-end"
+          />
         </div>
       </div>
 
       <div className="space-y-6">
         <div className="relative">
-          <div className="flex gap-8 border-b border-border/30 overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={`relative px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-                  activeTab === tab.value ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab.label}
-                {activeTab === tab.value && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </button>
-            ))}
+          <div
+            className="flex items-center gap-2 overflow-x-auto rounded-full bg-muted/30 p-1"
+            role="tablist"
+            aria-label="Insight categories"
+          >
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.value
+              const tabId = `insights-tab-${tab.value}`
+              return (
+                <button
+                  key={tab.value}
+                  id={tabId}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls="insights-tabpanel"
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={
+                    "relative inline-flex items-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40"
+                  }
+                  data-state={isActive ? "active" : "inactive"}
+                >
+                  <span className="relative z-10">{tab.label}</span>
+                  {isActive ? (
+                    <motion.span
+                      layoutId="insights-tab-highlight"
+                      className="absolute inset-0 rounded-full bg-background shadow-sm"
+                      transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                    />
+                  ) : null}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -89,9 +117,17 @@ export default function InsightsPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
+            role="tabpanel"
+            id="insights-tabpanel"
+            aria-labelledby={activeTabId}
           >
             <ErrorBoundary feature="Insights feed">
-              <InsightsFeed filter={activeTab} searchQuery={searchQuery} timeRange={timeRange} />
+              <InsightsFeed
+                filter={activeTab}
+                searchQuery={searchQuery}
+                timeRange={timeRange}
+                hideResolved={hideResolved}
+              />
             </ErrorBoundary>
           </motion.div>
         </AnimatePresence>
