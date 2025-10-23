@@ -9,10 +9,18 @@ import { CryptoAIInsights } from "@/components/crypto-ai-insights"
 import { ExchangeAnalytics } from "@/components/exchange-analytics"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Fuel, Plus } from "lucide-react"
+import {
+  BadgePercent,
+  Coins,
+  Fuel,
+  Layers3,
+  Plus,
+  ShieldCheck,
+} from "lucide-react"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { CryptoChartProps } from "@/components/crypto-chart"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { cn } from "@/lib/utils"
 
 const CryptoChart = dynamic<CryptoChartProps>(
   () => import("@/components/crypto-chart").then((mod) => mod.CryptoChart),
@@ -30,6 +38,32 @@ export default function CryptoPage() {
   const handleStablecoinHover = () => {
     void import("@/components/crypto-table")
   }
+
+  const groupByOptions: Array<{
+    value: typeof groupBy
+    label: string
+    description: string
+    icon: typeof Layers3
+  }> = [
+    {
+      value: "asset",
+      label: "By asset",
+      description: "Coin level allocation",
+      icon: Layers3,
+    },
+    {
+      value: "exchange",
+      label: "By exchange",
+      description: "Wallet & custodian",
+      icon: Coins,
+    },
+    {
+      value: "staking",
+      label: "By staking",
+      description: "Yield vs. idle",
+      icon: ShieldCheck,
+    },
+  ]
 
   return (
     <>
@@ -62,40 +96,58 @@ export default function CryptoPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant={groupBy === "asset" ? "secondary" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => setGroupBy("asset")}
-          >
-            Group by asset
-          </Button>
-          <Button
-            variant={groupBy === "exchange" ? "secondary" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => setGroupBy("exchange")}
-          >
-            Group by exchange
-          </Button>
-          <Button
-            variant={groupBy === "staking" ? "secondary" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => setGroupBy("staking")}
-          >
-            Group by staking
-          </Button>
-          <Button
-            variant={showStablecoins ? "secondary" : "outline"}
-            size="sm"
-            className="rounded-full"
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="toolbar"
+          aria-label="Crypto grouping controls"
+        >
+          {groupByOptions.map((option) => {
+            const Icon = option.icon
+            const isActive = groupBy === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setGroupBy(option.value)}
+                className={cn(
+                  "flex items-center gap-2 rounded-full border px-4 py-2 text-left shadow-xs transition",
+                  "hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                  isActive
+                    ? "border-primary/80 bg-primary/10 text-foreground"
+                    : "border-border/80 bg-background/80 text-muted-foreground",
+                )}
+                aria-pressed={isActive}
+              >
+                <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground")}
+                  aria-hidden="true"
+                />
+                <span className="flex flex-col leading-tight">
+                  <span className="text-xs font-semibold uppercase tracking-wide">
+                    {option.label}
+                  </span>
+                  <span className="text-[0.7rem] text-muted-foreground">
+                    {option.description}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            className={cn(
+              "flex items-center gap-2 rounded-full border px-4 py-2 text-sm shadow-xs transition",
+              "hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              showStablecoins
+                ? "border-primary/80 bg-primary/10 text-foreground"
+                : "border-border/80 bg-background/80 text-muted-foreground",
+            )}
             onMouseEnter={handleStablecoinHover}
             onClick={() => setShowStablecoins((prev) => !prev)}
+            aria-pressed={showStablecoins}
           >
-            {showStablecoins ? "Hide stablecoins" : "Show stablecoins"}
-          </Button>
+            <BadgePercent className={cn("h-4 w-4", showStablecoins ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
+            {showStablecoins ? "Stablecoins included" : "Stablecoins hidden"}
+          </button>
         </div>
 
         <CryptoKPIs />

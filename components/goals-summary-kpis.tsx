@@ -8,6 +8,7 @@ import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Progress } from "@/components/ui/progress"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
 
 const sparklineData = [
@@ -90,33 +91,34 @@ export function GoalsSummaryKPIs() {
                   <p className="text-sm text-muted-foreground">{primaryLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
                 </div>
-                <p className="text-2xl font-bold tabular-nums">
-                  ${(totalSaved / 1000).toFixed(0)}k
-                  <span className="text-base font-normal text-muted-foreground">
-                    {" "}
-                    / ${(totalTarget / 1000).toFixed(0)}k
-                  </span>
-                </p>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+                    <span>
+                      Saved <span className="font-medium text-foreground">${totalSaved.toLocaleString()}</span>
+                    </span>
+                    <span>Target ${totalTarget.toLocaleString()}</span>
+                  </div>
+                  <Progress value={percentComplete} aria-label={`${percentComplete}% of goal funded`} />
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold">{percentComplete}%</span>
+                    <span className="text-xs text-muted-foreground">complete</span>
+                  </div>
+                </div>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
                 <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
             <div className="flex items-end justify-between">
-              <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <span className="text-sm font-medium text-[var(--color-positive)]">+{percentComplete}%</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Previous: $54,000</p>
-                      <p className="text-xs">Current: ${totalSaved.toLocaleString()}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <span className="text-xs text-muted-foreground">complete</span>
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-sm font-medium text-[var(--color-positive)]">Last 6 months</TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Previous balance: $54,000</p>
+                    <p className="text-xs">Current balance: ${totalSaved.toLocaleString()}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <MiniSparkline data={sparklineData} color="hsl(217, 91%, 60%)" />
             </div>
           </CardContent>

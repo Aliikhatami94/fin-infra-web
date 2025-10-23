@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { FormEvent, useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
@@ -21,8 +21,6 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Check,
-  X,
   Search,
   Settings,
   TrendingUp,
@@ -32,6 +30,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Virtuoso } from "react-virtuoso"
+import { Slider } from "@/components/ui/slider"
 
 type Budget = {
   category: string
@@ -121,11 +120,13 @@ export function BudgetTable() {
   const [budgets, setBudgets] = useState<Budget[]>(initialBudgets)
   const [sortField, setSortField] = useState<SortField>("category")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [editValue, setEditValue] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
+  const [quickEditOpen, setQuickEditOpen] = useState(false)
+  const [quickEditBudget, setQuickEditBudget] = useState<Budget | null>(null)
+  const [quickEditValue, setQuickEditValue] = useState("")
+  const [quickEditError, setQuickEditError] = useState<string | null>(null)
   const [rolloverEnabled, setRolloverEnabled] = useState(false)
   const [warningThreshold, setWarningThreshold] = useState("90")
   const [showSuggested, _setShowSuggested] = useState(true)
@@ -163,35 +164,73 @@ export function BudgetTable() {
     return Math.max(minHeight, Math.min(maxHeight, totalHeight))
   }, [filteredBudgets.length])
 
-  const handleEdit = (index: number, budget: Budget) => {
-    setEditingIndex(index)
-    setEditValue(budget.budget.toString())
+  const handleQuickEdit = (budget: Budget) => {
+    setQuickEditBudget(budget)
+    setQuickEditValue(budget.budget.toString())
+    setQuickEditError(null)
+    setQuickEditOpen(true)
   }
 
-  const handleSave = (index: number) => {
-    const newBudgets = [...budgets]
-    const newBudget = Number.parseFloat(editValue)
-    if (!isNaN(newBudget)) {
-      newBudgets[index].budget = newBudget
-      newBudgets[index].variance = newBudget - newBudgets[index].actual
-      newBudgets[index].percent = (newBudgets[index].actual / newBudget) * 100
-      setBudgets(newBudgets)
+  const quickEditNumericValue = Number.parseFloat(quickEditValue) || 0
+  const sliderMax = useMemo(() => {
+    if (!quickEditBudget) return 1000
+    const base = Math.max(quickEditBudget.actual, quickEditBudget.budget, 500)
+    return Math.ceil(base * 1.5)
+  }, [quickEditBudget])
+  const sliderValue = quickEditBudget ? Math.min(Math.max(quickEditNumericValue, 0), sliderMax) : 0
+
+  const handleQuickEditChange = (value: string) => {
+    setQuickEditValue(value)
+    setQuickEditError(null)
+  }
+
+  const handleQuickEditSliderChange = (values: number[]) => {
+    handleQuickEditChange(values[0]?.toString() ?? "")
+  }
+
+  const handleQuickEditSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!quickEditBudget) return
+
+    const parsed = Number.parseFloat(quickEditValue)
+    if (Number.isNaN(parsed) || parsed <= 0) {
+      setQuickEditError("Enter a positive budget amount")
+      return
     }
-    setEditingIndex(null)
-  }
 
-  const handleCancel = () => {
-    setEditingIndex(null)
-    setEditValue("")
+    setBudgets((previous) =>
+      previous.map((item) =>
+        item.category === quickEditBudget.category
+          ? {
+              ...item,
+              budget: parsed,
+              variance: parsed - item.actual,
+              percent: Number.isFinite(item.actual / parsed) ? (item.actual / parsed) * 100 : 0,
+            }
+          : item,
+      ),
+    )
+
+    setQuickEditOpen(false)
+    setQuickEditBudget(null)
   }
 
   const handleAdvancedEdit = (budget: Budget) => {
     setEditingBudget(budget)
     setEditDialogOpen(true)
+    setRolloverEnabled(budget.rolloverEnabled)
+    setWarningThreshold(Math.round(budget.percent).toString())
   }
 
   const handleSaveAdvanced = () => {
-    // Save advanced settings logic here
+    if (editingBudget) {
+      setBudgets((previous) =>
+        previous.map((item) =>
+          item.category === editingBudget.category ? { ...item, rolloverEnabled } : item,
+        ),
+      )
+      setEditingBudget({ ...editingBudget, rolloverEnabled })
+    }
     setEditDialogOpen(false)
   }
 
@@ -302,7 +341,8 @@ export function BudgetTable() {
                               variant="ghost"
                               size="sm"
                               className="h-7 w-7 p-0"
-                              onClick={() => handleEdit(index, budget)}
+                              onClick={() => handleQuickEdit(budget)}
+                              aria-label={`Quick edit ${budget.category} budget`}
                             >
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
@@ -311,33 +351,16 @@ export function BudgetTable() {
                               size="sm"
                               className="h-7 w-7 p-0"
                               onClick={() => handleAdvancedEdit(budget)}
+                              aria-label={`Open advanced settings for ${budget.category}`}
                             >
                               <Settings className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </div>
                         <div className="text-right min-w-[100px]">
-                          {editingIndex === index ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                className="h-7 w-20 text-sm"
-                                autoFocus
-                              />
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleSave(index)}>
-                                <Check className="h-3.5 w-3.5 text-green-600" />
-                              </Button>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleCancel}>
-                                <X className="h-3.5 w-3.5 text-red-600" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="text-sm font-medium tabular-nums text-foreground">
-                              ${budget.budget.toLocaleString()}
-                            </div>
-                          )}
+                          <div className="text-sm font-medium tabular-nums text-foreground">
+                            ${budget.budget.toLocaleString()}
+                          </div>
                         </div>
                         {showSuggested && (
                           <TooltipProvider>
@@ -466,7 +489,8 @@ export function BudgetTable() {
                           variant="ghost"
                           size="sm"
                           className="h-7 w-7 p-0"
-                          onClick={() => handleEdit(index, budget)}
+                          onClick={() => handleQuickEdit(budget)}
+                          aria-label={`Quick edit ${budget.category} budget`}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
@@ -475,6 +499,7 @@ export function BudgetTable() {
                           size="sm"
                           className="h-7 w-7 p-0"
                           onClick={() => handleAdvancedEdit(budget)}
+                          aria-label={`Open advanced settings for ${budget.category}`}
                         >
                           <Settings className="h-3.5 w-3.5" />
                         </Button>
@@ -594,6 +619,70 @@ export function BudgetTable() {
             </Button>
             <Button onClick={handleSaveAdvanced}>Save Changes</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={quickEditOpen}
+        onOpenChange={(open) => {
+          setQuickEditOpen(open)
+          if (!open) {
+            setQuickEditBudget(null)
+            setQuickEditError(null)
+            setQuickEditValue("")
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Quick edit budget</DialogTitle>
+            <DialogDescription>
+              Adjust the monthly allocation for {quickEditBudget?.category}
+            </DialogDescription>
+          </DialogHeader>
+          <form className="space-y-6" onSubmit={handleQuickEditSubmit}>
+            <div className="space-y-2">
+              <Label htmlFor="quick-edit-amount">Budget amount</Label>
+              <Input
+                id="quick-edit-amount"
+                type="number"
+                inputMode="decimal"
+                value={quickEditValue}
+                onChange={(event) => handleQuickEditChange(event.target.value)}
+                aria-describedby="quick-edit-help"
+                aria-invalid={Boolean(quickEditError)}
+                autoFocus
+              />
+              <p id="quick-edit-help" className="text-xs text-muted-foreground">
+                Current actual spend: ${quickEditBudget?.actual.toLocaleString() ?? "0"}
+              </p>
+              {quickEditError && <p className="text-xs text-destructive">{quickEditError}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quick-edit-slider" className="flex items-center justify-between text-xs">
+                Fine-tune with slider
+                <span className="font-medium text-foreground">${quickEditNumericValue.toLocaleString()}</span>
+              </Label>
+              <Slider
+                id="quick-edit-slider"
+                value={[sliderValue]}
+                min={0}
+                max={sliderMax}
+                step={25}
+                onValueChange={handleQuickEditSliderChange}
+                aria-label={`Adjust ${quickEditBudget?.category ?? "budget"} amount`}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Drag to match your plan faster — slider caps at 150% of actual spend.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setQuickEditOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Save budget</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </>

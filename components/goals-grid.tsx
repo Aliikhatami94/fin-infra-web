@@ -12,6 +12,8 @@ import { GoalDetailModal } from "./goal-detail-modal"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import type { Goal, GoalStatus } from "@/types/domain"
 import { toast } from "@/components/ui/sonner"
+import { Progress } from "@/components/ui/progress"
+import { formatCurrency } from "@/lib/format"
 
 function CircularProgress({
   percent,
@@ -112,14 +114,18 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
                       </Badge>
                     )}
                   </div>
-                  <p className="text-2xl font-bold tabular-nums">
-                    ${goal.current.toLocaleString()}
-                    <span className="text-sm font-normal text-muted-foreground">
-                      {" "}
-                      / ${goal.target.toLocaleString()}
-                    </span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">Target: {goal.eta}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>Saved</span>
+                      <span>{formatCurrency(goal.current)}</span>
+                    </div>
+                    <Progress value={goal.percent} aria-label={`${goal.percent}% complete toward ${goal.name}`} />
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">{goal.percent}% funded</span>
+                      <span>Target {formatCurrency(goal.target)}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">ETA: {goal.eta}</p>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>

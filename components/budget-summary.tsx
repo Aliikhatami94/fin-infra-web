@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { type ComponentType, type SVGProps, useMemo } from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +21,7 @@ const sparklineData = {
 type SummaryItem = {
   label: string
   value: string
-  icon: React.ComponentType<any>
+  icon: ComponentType<SVGProps<SVGSVGElement>>
   color?: string
   sparkline?: number[]
   subtext?: string
@@ -139,6 +139,29 @@ export function BudgetSummary() {
       {summary.map((item, index) => {
         const TrendIcon = item.trend === "down" ? ArrowDown : ArrowUp
         const Icon = item.icon
+        const progressValue = item.progress ?? 0
+        const progressState =
+          item.progress === undefined
+            ? null
+            : progressValue > 110
+              ? "critical"
+              : progressValue > 100
+                ? "over"
+                : progressValue >= 90
+                  ? "near"
+                  : "under"
+        const progressColorClass =
+          progressState === "over" || progressState === "critical"
+            ? "text-[var(--color-negative)]"
+            : progressState === "near"
+              ? "text-orange-500 dark:text-orange-400"
+              : "text-[var(--color-positive)]"
+        const progressStatusLabel =
+          progressState === "over" || progressState === "critical"
+            ? "over budget"
+            : progressState === "near"
+              ? "nearing budget limit"
+              : "under budget"
         return (
           <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
             <Card className="card-standard card-lift">
@@ -207,8 +230,13 @@ export function BudgetSummary() {
                         <Plus className="h-4 w-4" />
                       </Button>
                     ) : item.progress !== undefined ? (
-                      <div className="relative">
-                        <svg className="h-14 w-14 -rotate-90">
+                      <div
+                        className="relative"
+                        role="img"
+                        aria-label={`${item.label} is ${progressValue}% complete, ${progressStatusLabel}.`}
+                        data-progress-state={progressState ?? undefined}
+                      >
+                        <svg className="h-14 w-14 -rotate-90" aria-hidden="true">
                           <circle
                             cx="28"
                             cy="28"
@@ -227,13 +255,7 @@ export function BudgetSummary() {
                             fill="none"
                             strokeDasharray={`${2 * Math.PI * 24}`}
                             strokeDashoffset={`${2 * Math.PI * 24 * (1 - item.progress / 100)}`}
-                            className={
-                              item.progress > 100
-                                ? "text-red-500"
-                                : item.progress > 90
-                                  ? "text-orange-500"
-                                  : "text-green-500"
-                            }
+                            className={progressColorClass}
                             strokeLinecap="round"
                           />
                         </svg>
