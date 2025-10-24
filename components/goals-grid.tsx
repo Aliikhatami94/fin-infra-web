@@ -88,12 +88,18 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
       <Card className="card-standard card-lift cursor-pointer group" onClick={() => setSelectedGoal(goal)}>
         <CardContent className="p-6">
           <div className="flex gap-6">
-            <div className="relative shrink-0">
-              <CircularProgress percent={goal.percent} size={100} strokeWidth={6} />
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <goal.icon className={`h-6 w-6 ${goal.color} mb-1`} />
-                <span className="text-lg font-bold">{goal.percent}%</span>
+            <div className="relative shrink-0 flex flex-col items-center gap-3">
+              <div className="relative">
+                <CircularProgress percent={goal.percent} size={100} strokeWidth={6} />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div
+                    className={`flex h-16 w-16 items-center justify-center rounded-full border border-border/40 shadow-sm ${goal.bgColor}`}
+                  >
+                    <goal.icon className={`h-6 w-6 ${goal.color}`} />
+                  </div>
+                </div>
               </div>
+              <span className="pointer-events-none text-lg font-bold">{goal.percent}%</span>
             </div>
 
             <div className="flex-1 space-y-3">

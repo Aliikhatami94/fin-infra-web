@@ -69,6 +69,11 @@ const resolveTone = (value: number, neutral = false): SemanticTone => {
   return value > 0 ? "positive" : "negative"
 }
 
+export const getSemanticToneStyles = (tone: SemanticTone) => ({
+  tone,
+  ...semanticToneStyles[tone],
+})
+
 // Utility function to get color classes for numeric trends
 export const getValueColor = (value: number, neutral = false) => {
   const tone = resolveTone(value, neutral)
@@ -87,13 +92,8 @@ export const getValueBorderColor = (value: number, neutral = false) => {
   return semanticToneStyles[tone].borderClass
 }
 
-export const getTrendSemantic = (value: number, neutral = false) => {
-  const tone = resolveTone(value, neutral)
-  return {
-    tone,
-    ...semanticToneStyles[tone],
-  }
-}
+export const getTrendSemantic = (value: number, neutral = false) =>
+  getSemanticToneStyles(resolveTone(value, neutral))
 
 // Category colors for consistent badge styling
 export const categoryColors = {

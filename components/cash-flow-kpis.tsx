@@ -11,6 +11,7 @@ import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { formatCurrency } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { KPIIcon } from "@/components/ui/kpi-icon"
 
 type TimeScale = "daily" | "weekly" | "monthly"
 
@@ -285,9 +286,7 @@ export function CashFlowKPIs() {
                     {formattedNetCashFlow}
                   </p>
                 </div>
-                <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-                  <TrendingUp className="h-5 w-5 text-blue-500" />
-                </div>
+                <KPIIcon icon={TrendingUp} tone="info" />
               </div>
               <div className="flex items-center justify-between">
                 <Tooltip>
@@ -341,9 +340,7 @@ export function CashFlowKPIs() {
                     {formattedTotalInflow}
                   </p>
                 </div>
-                <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-                  <ArrowDownRight className="h-5 w-5 text-[var(--color-positive)]" />
-                </div>
+                <KPIIcon icon={ArrowDownRight} tone="positive" />
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">{snapshot.inflowNote}</p>
@@ -382,9 +379,7 @@ export function CashFlowKPIs() {
                     {formattedTotalOutflow}
                   </p>
                 </div>
-                <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
-                  <ArrowUpRight className="h-5 w-5 text-[var(--color-warning)]" />
-                </div>
+                <KPIIcon icon={ArrowUpRight} tone="warning" />
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">{snapshot.outflowNote}</p>

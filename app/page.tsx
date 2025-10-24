@@ -59,16 +59,16 @@ export default function LandingPage() {
             <div className="mx-auto max-w-5xl">
               <div className="text-center">
                 <h1 className="mb-7 text-foreground text-[clamp(2.75rem,6vw,4.75rem)] font-semibold tracking-tight leading-tight">
-                  Trading Made
+                  Financial clarity for every
                   <br />
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    Simplified
+                    decision you make
                   </span>
                 </h1>
 
                 <p className="mx-auto mb-12 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:text-xl">
-                  Track your portfolio, analyze market trends, and make informed decisions with our comprehensive trading
-                  platform.
+                  Orchestrate portfolios, cash flow, and planning in one secure platform built to surface actionable insights
+                  the moment your finance team needs them.
                 </p>
 
                 <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -77,8 +77,8 @@ export default function LandingPage() {
                     size="lg"
                     className="h-12 rounded-full px-8 text-base font-medium shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-offset-2"
                   >
-                    <Link href="/sign-up" aria-label={`Start trading with ${BRAND.name} by creating your account`}>
-                      Start Trading
+                    <Link href="/sign-up" aria-label={`Launch your ${BRAND.name} workspace by creating an account`}>
+                      Launch Your Workspace
                     </Link>
                   </Button>
                   <Button
@@ -87,20 +87,20 @@ export default function LandingPage() {
                     variant="ghost"
                     className="h-12 rounded-full px-8 text-base font-medium text-foreground hover:bg-foreground/5 focus-visible:ring-offset-2"
                   >
-                    <Link href="/demo" aria-label={`Watch a guided demo of the ${BRAND.name} trading platform`}>
-                      Watch Demo
+                    <Link href="/demo" aria-label={`Watch a guided tour of the ${BRAND.name} financial platform`}>
+                      Watch Platform Tour
                     </Link>
                   </Button>
                 </div>
                 <div className="mt-12 flex flex-col items-center justify-center gap-6 text-sm text-muted-foreground sm:flex-row">
                   <div className="flex flex-wrap items-center justify-center gap-3 rounded-full border border-border/40 bg-card/80 px-5 py-2.5 shadow-sm">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Trusted by teams at</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Trusted by finance teams at</span>
                     <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Fortress Bank</span>
                     <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Radial Ventures</span>
                     <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Northern Equity</span>
                   </div>
                   <div className="max-w-xs text-center text-xs italic text-muted-foreground">
-                    {`“Our auditors praised the transparency ${BRAND.name} provides during every quarterly review.”`}
+                    {`“Our auditors praised the visibility ${BRAND.name} provides across every quarterly review.”`}
                   </div>
                 </div>
                 <Link
@@ -205,12 +205,12 @@ export default function LandingPage() {
           <section className="relative px-6 py-32 lg:px-8">
             <div className="mx-auto max-w-4xl text-center">
               <h2 className="mb-6 text-[clamp(2.25rem,5vw,3.5rem)] font-semibold tracking-tight">
-                Ready to start
+                Ready to unify your
                 <br />
-                trading?
+                finance operations?
               </h2>
               <p className="mb-10 text-xl font-light text-muted-foreground lg:text-2xl">
-                Join thousands of traders who trust {BRAND.name}
+                Join leading finance teams who rely on {BRAND.name} for real-time clarity
               </p>
               <div className="mb-10 flex flex-col items-center gap-4 text-sm text-muted-foreground sm:flex-row sm:justify-center">
                 <div className="flex items-center gap-3 rounded-full border border-border/40 bg-card/80 px-4 py-2 shadow-sm">
@@ -219,7 +219,7 @@ export default function LandingPage() {
                   <span className="font-semibold uppercase tracking-wide text-foreground/80">Northern Equity</span>
                 </div>
                 <div className="max-w-sm text-xs italic text-muted-foreground">
-                  “Fin-Infra delivers the clarity our family office needed to act quickly and confidently.” — Maya, CIO
+                  {`“${BRAND.name} delivers the clarity our family office needed to act quickly and confidently.” — Maya, CIO`}
                 </div>
               </div>
               <Button
@@ -270,11 +270,11 @@ const features = [
   },
   {
     icon: <Zap className="h-7 w-7" />,
-    title: "Lightning Fast",
-    description: "Execute trades instantly with our optimized platform and real-time data.",
+    title: "Integrated Workflows",
+    description: "Automate reconciliations, approvals, and reporting without leaving your finance hub.",
     href: "#feature-automation",
     tooltip: "Explore our automation highlight to see rules, approvals, and alerts working together.",
-    ariaSuffix: "the Transactions workspace",
+    ariaSuffix: "the workflow automation space",
   },
   {
     icon: <Sparkles className="h-7 w-7" />,
@@ -305,8 +305,8 @@ const features = [
 const featureHighlights = [
   {
     id: "feature-analytics",
-    title: "Command the market with a live control center",
-    body: "Stay ahead of volatility with streaming balances, performance benchmarks, and alerting that surfaces the moments that matter most.",
+    title: "Command your finances with a live control center",
+    body: "Stay ahead of shifting markets and budgets with streaming balances, performance benchmarks, and alerting that surfaces the moments that matter most.",
     points: [
       "Customize dashboards with saved views for every strategy.",
       "Benchmark against major indices with intraday refreshes.",
@@ -344,7 +344,7 @@ const featureHighlights = [
     title: "Automate tedious workflows end-to-end",
     body: "Smart rules tag transactions, trigger approvals, and nudge teammates so nothing slips between quarterly reviews.",
     points: [
-      "Segment trades by strategy, desk, or custodian automatically.",
+      "Segment transactions by strategy, entity, or custodian automatically.",
       "Send instant alerts to Slack or email when thresholds hit.",
       "Sync clean data to your reporting stack via API or CSV.",
     ],

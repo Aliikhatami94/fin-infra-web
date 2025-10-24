@@ -9,6 +9,7 @@ import { LastSyncBadge } from "@/components/last-sync-badge"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { RiskMetricModal } from "@/components/risk-metric-modal"
+import { KPIIcon } from "@/components/ui/kpi-icon"
 
 type RiskMetricKey = "sharpe" | "beta" | "volatility"
 
@@ -137,9 +138,7 @@ export function PortfolioKPIs() {
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
+                      <KPIIcon icon={Icon} tone="info" />
                     </div>
                     <p className="text-2xl font-bold tabular-nums text-foreground">{kpi.value}</p>
                     <Tooltip>

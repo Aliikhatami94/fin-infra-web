@@ -19,6 +19,7 @@ import { getMetricTooltipCopy } from "@/lib/tooltips"
 import { Button } from "@/components/ui/button"
 import { navigateInApp } from "@/lib/linking"
 import { PlanAdjustModal } from "@/components/plan-adjust-modal"
+import { KPIIcon } from "@/components/ui/kpi-icon"
 
 const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   const max = Math.max(...data)
@@ -86,17 +87,7 @@ export function KPICards() {
                               <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
                             </p>
                           </div>
-                          <div
-                            className={cn(
-                              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border",
-                              trendStyles.surfaceClass,
-                              trendStyles.borderClass,
-                            )}
-                            data-tone={trendStyles.tone}
-                            aria-hidden="true"
-                          >
-                            <kpi.icon className={cn("h-5 w-5", trendStyles.iconClass)} aria-hidden="true" />
-                          </div>
+                          <KPIIcon icon={kpi.icon} tone={trendStyles.tone} size="md" />
                         </div>
                         <div className="flex items-end justify-between gap-4">
                           <Tooltip>

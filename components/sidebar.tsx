@@ -16,12 +16,30 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface SidebarProps {
   mobileOpen?: boolean
   onMobileClose?: () => void
+  collapsed?: boolean
+  onCollapsedChange?: (collapsed: boolean) => void
 }
 
 
 
-export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false)
+export function Sidebar({
+  mobileOpen = false,
+  onMobileClose,
+  collapsed: collapsedProp,
+  onCollapsedChange,
+}: SidebarProps) {
+  const [internalCollapsed, setInternalCollapsed] = useState(false)
+  const collapsed = collapsedProp ?? internalCollapsed
+
+  const toggleCollapsed = () => {
+    const nextCollapsed = !collapsed
+
+    if (collapsedProp === undefined) {
+      setInternalCollapsed(nextCollapsed)
+    }
+
+    onCollapsedChange?.(nextCollapsed)
+  }
   const pathname = usePathname()
   const router = useRouter()
   const prefetchedRoutes = useRef(new Set<string>())
@@ -85,7 +103,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="space-y-1 px-2">
               {DASHBOARD_NAVIGATION.map((item) => {
-                const active = isActiveRoute(pathname, item.href)
+                const active = isActiveRoute(pathname, item.href, { exact: item.exact })
                 const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
                 const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
                 return (
@@ -148,7 +166,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={toggleCollapsed}
                 className="w-full justify-start"
                 aria-pressed={collapsed}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}

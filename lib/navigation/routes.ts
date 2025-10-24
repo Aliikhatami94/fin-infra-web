@@ -25,6 +25,7 @@ export interface NavigationItem {
   badge?: NavigationBadge
   badgeTooltip?: string
   featureFlag?: FeatureFlagKey
+  exact?: boolean
 }
 
 const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
@@ -46,7 +47,7 @@ const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
   { name: "Insights", href: "/insights", icon: Lightbulb },
   { name: "Growth", href: "/growth", icon: BarChart3, featureFlag: "growthDashboards" },
   { name: "Documents", href: "/documents", icon: FileText },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Settings", href: "/settings", icon: Settings, exact: true },
   { name: "Security Center", href: "/settings/security", icon: Shield },
 ]
 
