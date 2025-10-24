@@ -168,7 +168,7 @@ Acceptance Criteria
 Tasks (likely files)
 - CTA/FAB and empty state: `app/(dashboard)/accounts/page.tsx`, `components/accounts-kpi-cards.tsx`.
 - Toasts: `components/ui/sonner`.
-- Optional: `components/plaid-link-dialog.tsx` (mock flow).
+- Optional: `components/plaid-link-dialog.tsx`xxxxxxxxx (mock flow).
 
 ## PR12 – Landing (Home)
 Goal: Fix CTA routing and dead links; add trust hints.

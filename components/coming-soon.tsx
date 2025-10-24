@@ -1,8 +1,6 @@
 "use client"
 
-import { cloneElement, isValidElement, type ReactElement } from "react"
-
-import { cn } from "@/lib/utils"
+import type { ReactElement } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 type ComingSoonProps = {
@@ -11,22 +9,14 @@ type ComingSoonProps = {
 }
 
 export function ComingSoon({ children, message = "Coming soon" }: ComingSoonProps) {
-  if (!isValidElement(children)) {
-    return children
-  }
-
-  const disabledChild = cloneElement(children, {
-    disabled: true,
-    tabIndex: -1,
-    className: cn("pointer-events-none opacity-60", children.props.className),
-    "aria-disabled": true,
-  })
-
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex w-full max-w-full cursor-not-allowed">
-          {disabledChild}
+        <span
+          className="inline-flex w-full max-w-full cursor-not-allowed opacity-60 pointer-events-none"
+          aria-disabled="true"
+        >
+          {children}
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" align="center" role="status">
