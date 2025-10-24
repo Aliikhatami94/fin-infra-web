@@ -5,12 +5,12 @@ import type React from "react"
 import { useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { TopBar } from "@/components/top-bar"
-import { MobileNav } from "@/components/mobile-nav"
 import { OfflineBanner } from "@/components/offline-banner"
 import { ConnectivityProvider } from "@/components/connectivity-provider"
 import { Button } from "@/components/ui/button"
 import { Bot } from "lucide-react"
 import dynamic from "next/dynamic"
+import { cn } from "@/lib/utils"
 
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar").then((m) => m.AIChatSidebar), {
   ssr: false,
@@ -19,15 +19,26 @@ const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar").then(
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   return (
     <ConnectivityProvider>
       <div className="flex min-h-screen flex-col bg-background md:flex-row">
-        <Sidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
+        <Sidebar
+          mobileOpen={mobileMenuOpen}
+          onMobileClose={() => setMobileMenuOpen(false)}
+          collapsed={isSidebarCollapsed}
+          onCollapsedChange={setIsSidebarCollapsed}
+        />
 
         <div className="flex min-h-screen w-full flex-1 flex-col">
           <TopBar onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
-          <div className="flex flex-1 flex-col pt-16 lg:pl-64">
+          <div
+            className={cn(
+              "flex flex-1 flex-col pt-16 transition-[padding] duration-300",
+              isSidebarCollapsed ? "lg:pl-16" : "lg:pl-64",
+            )}
+          >
             <OfflineBanner />
 
             <main
@@ -50,7 +61,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <MobileNav />
       </div>
     </ConnectivityProvider>
   )

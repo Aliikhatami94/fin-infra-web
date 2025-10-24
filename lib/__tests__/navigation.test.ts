@@ -36,6 +36,11 @@ describe("navigation helpers", () => {
       expect(isActiveRoute("/accounts/123/details", "/accounts")).toBe(true)
     })
 
+    it("supports exact matching for selected routes", () => {
+      expect(isActiveRoute("/settings", "/settings", { exact: true })).toBe(true)
+      expect(isActiveRoute("/settings/security", "/settings", { exact: true })).toBe(false)
+    })
+
     it("does not match when prefix differs", () => {
       expect(isActiveRoute("/accounting", "/accounts")).toBe(false)
       expect(isActiveRoute("/portfolio-2024", "/portfolio")).toBe(false)

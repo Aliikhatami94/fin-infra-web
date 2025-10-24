@@ -10,6 +10,7 @@ import { LastSyncBadge } from "@/components/last-sync-badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Progress } from "@/components/ui/progress"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { KPIIcon } from "@/components/ui/kpi-icon"
 
 const sparklineData = [
   { month: "Jan", value: 42000 },
@@ -105,9 +106,7 @@ export function GoalsSummaryKPIs() {
                   </div>
                 </div>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
-                <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
+              <KPIIcon icon={Target} tone="info" shape="circle" />
             </div>
             <div className="flex items-end justify-between">
               <TooltipProvider>
@@ -139,9 +138,7 @@ export function GoalsSummaryKPIs() {
                   <span className="text-base font-normal text-muted-foreground">/mo</span>
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
-                <DollarSign className="h-5 w-5 text-[var(--color-positive)]" />
-              </div>
+              <KPIIcon icon={DollarSign} tone="positive" shape="circle" />
             </div>
             <div className="flex items-end justify-between">
               <div className="flex items-center gap-2">
@@ -175,9 +172,7 @@ export function GoalsSummaryKPIs() {
                 </div>
                 <p className="text-2xl font-bold">On Track</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
-                <TrendingUp className="h-5 w-5 text-[var(--color-positive)]" />
-              </div>
+              <KPIIcon icon={TrendingUp} tone="positive" shape="circle" />
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs">

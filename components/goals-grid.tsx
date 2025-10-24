@@ -90,8 +90,10 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
           <div className="flex gap-6">
             <div className="relative shrink-0">
               <CircularProgress percent={goal.percent} size={100} strokeWidth={6} />
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <goal.icon className={`h-6 w-6 ${goal.color} mb-1`} />
+              <div className="absolute inset-0 grid place-items-center pointer-events-none">
+                <goal.icon className={`h-6 w-6 ${goal.color}`} />
+              </div>
+              <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none">
                 <span className="text-lg font-bold">{goal.percent}%</span>
               </div>
             </div>

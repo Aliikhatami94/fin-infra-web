@@ -4,10 +4,13 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Wallet, CreditCard, TrendingUp, TrendingDown } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { MicroSparkline } from "@/components/ui/micro-sparkline"
+import { KPIIcon } from "@/components/ui/kpi-icon"
+import type { SemanticTone } from "@/lib/color-utils"
 
 interface AccountsKPICardsProps {
   totalCash: number
@@ -30,15 +33,24 @@ const createSparklineSeries = (currentValue: number, baselineValue: number) => {
 }
 
 export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments }: AccountsKPICardsProps) {
-  const kpis = [
+  const kpis: Array<{
+    title: string
+    value: number
+    trend: number
+    baselineValue: number
+    icon: LucideIcon
+    tone: SemanticTone
+    sparklineColor: string
+    lastSynced: string
+    source: string
+  }> = [
     {
       title: "Total Cash",
       value: totalCash,
       trend: 2.3,
       baselineValue: totalCash / 1.023,
       icon: Wallet,
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-500/10",
+      tone: "info",
       sparklineColor: "rgb(37, 99, 235)",
       lastSynced: "3 min ago",
       source: "Plaid",
@@ -49,8 +61,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       trend: -1.2,
       baselineValue: totalCreditDebt / 0.988,
       icon: CreditCard,
-      color: "text-red-600 dark:text-red-400",
-      bgColor: "bg-red-500/10",
+      tone: "negative",
       sparklineColor: "rgb(220, 38, 38)",
       lastSynced: "3 min ago",
       source: "Plaid",
@@ -61,8 +72,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       trend: 5.1,
       baselineValue: totalInvestments / 1.051,
       icon: TrendingUp,
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-500/10",
+      tone: "positive",
       sparklineColor: "rgb(22, 163, 74)",
       lastSynced: "5 min ago",
       source: "Teller",
@@ -93,9 +103,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                         />
                       </p>
                     </div>
-                    <div className={`h-10 w-10 rounded-lg ${kpi.bgColor} flex items-center justify-center shrink-0`}>
-                      <Icon className={`h-5 w-5 ${kpi.color}`} />
-                    </div>
+                    <KPIIcon icon={Icon} tone={kpi.tone} />
                   </div>
                   <div className="flex items-end justify-between">
                     <Tooltip>

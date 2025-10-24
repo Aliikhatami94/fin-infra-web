@@ -1,7 +1,7 @@
 export const BRAND = {
-  name: "TradeHub",
-  tagline: "Stock Trading Dashboard",
-  description: "Professional stock trading dashboard",
+  name: "ClarityLedger",
+  tagline: "Unified Financial Intelligence Platform",
+  description: "Holistic finance management and insights workspace",
 } as const
 
 type Brand = typeof BRAND
