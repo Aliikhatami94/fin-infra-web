@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useSecureStorage } from "@/hooks/use-secure-storage"
 import { cn } from "@/lib/utils"
+import { ReviewSavingsPlanButton } from "@/components/review-savings-plan-button"
 
 interface CalloutConfig {
   id: string
@@ -168,9 +169,13 @@ export function AccountsCallouts() {
                   ))}
                 </div>
                 <div>
-                  <Button variant="outline" size="sm" className={cn("text-xs", callout.indicatorClass)}>
-                    {callout.ctaLabel}
-                  </Button>
+                  {callout.id === "emergency-fund" ? (
+                    <ReviewSavingsPlanButton className={cn("text-xs", callout.indicatorClass)} />
+                  ) : (
+                    <Button variant="outline" size="sm" className={cn("text-xs", callout.indicatorClass)}>
+                      {callout.ctaLabel}
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>

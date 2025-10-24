@@ -1,6 +1,6 @@
 "use client"
 
-import type { ButtonHTMLAttributes, KeyboardEvent, MouseEvent } from "react"
+import type { ButtonHTMLAttributes, KeyboardEvent } from "react"
 
 import { motion } from "framer-motion"
 

@@ -23,12 +23,19 @@ export interface NavigationItem {
   href: string
   icon: LucideIcon
   badge?: NavigationBadge
+  badgeTooltip?: string
   featureFlag?: FeatureFlagKey
 }
 
 const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
   { name: "Overview", href: "/overview", icon: LayoutDashboard },
-  { name: "Accounts", href: "/accounts", icon: Building2, badge: 2 },
+  {
+    name: "Accounts",
+    href: "/accounts",
+    icon: Building2,
+    badge: 2,
+    badgeTooltip: "Two accounts need your review",
+  },
   { name: "Portfolio", href: "/portfolio", icon: Wallet },
   { name: "Crypto", href: "/crypto", icon: Bitcoin },
   { name: "Cash Flow", href: "/cash-flow", icon: TrendingUp },

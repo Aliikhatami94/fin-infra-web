@@ -18,7 +18,7 @@ import {
   FileCheck2,
   ReceiptText,
 } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +73,7 @@ export default function DocumentsPage() {
     toggleYear,
     clearAll,
   } = useDocumentFilters()
+  const chipListLabelId = useId()
 
   const isSortOption = (value: string): value is typeof sortBy => {
     return value === "date" || value === "name" || value === "size"
@@ -369,10 +370,16 @@ export default function DocumentsPage() {
               )}
             </div>
 
-            <div className="relative -mx-2" aria-label="Document filter chips">
+            <div className="relative -mx-2">
+              <span id={chipListLabelId} className="sr-only">
+                Filter documents by type, account, or year
+              </span>
               <div
                 className="flex items-center gap-2 overflow-x-auto px-2 pb-2 text-xs sm:text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{ msOverflowStyle: "none" }}
+                role="listbox"
+                aria-labelledby={chipListLabelId}
+                aria-multiselectable="true"
               >
                 {fileTypes.map((type) => {
                   const selected = selectedTypes.includes(type)
@@ -380,19 +387,24 @@ export default function DocumentsPage() {
                   return (
                     <Button
                       key={type}
-                      variant={selected ? "secondary" : "outline"}
+                      variant="outline"
                       size="sm"
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      data-selected={selected}
                       className={cn(
-                        "h-8 rounded-full px-3 font-medium transition-shadow whitespace-nowrap",
-                        selected && "shadow-[var(--shadow-soft)]",
+                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        selected
+                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
+                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
                       )}
                       onClick={() => toggleType(type)}
-                      aria-pressed={selected}
                     >
                       <TypeIcon
                         className={cn(
                           "mr-2 h-3.5 w-3.5",
-                          selected ? "text-foreground" : "text-muted-foreground",
+                          selected ? "text-primary" : "text-muted-foreground",
                         )}
                         aria-hidden
                       />
@@ -405,11 +417,19 @@ export default function DocumentsPage() {
                   return (
                     <Button
                       key={account}
-                      variant={selected ? "secondary" : "outline"}
+                      variant="outline"
                       size="sm"
-                      className="h-8 rounded-full px-3 font-medium whitespace-nowrap"
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      data-selected={selected}
+                      className={cn(
+                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        selected
+                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
+                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                      )}
                       onClick={() => toggleAccount(account)}
-                      aria-pressed={selected}
                     >
                       {account}
                     </Button>
@@ -420,11 +440,19 @@ export default function DocumentsPage() {
                   return (
                     <Button
                       key={year}
-                      variant={selected ? "secondary" : "outline"}
+                      variant="outline"
                       size="sm"
-                      className="h-8 rounded-full px-3 font-medium whitespace-nowrap"
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      data-selected={selected}
+                      className={cn(
+                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        selected
+                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
+                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                      )}
                       onClick={() => toggleYear(year)}
-                      aria-pressed={selected}
                     >
                       {year}
                     </Button>

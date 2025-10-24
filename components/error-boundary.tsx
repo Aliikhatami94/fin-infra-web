@@ -1,7 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import { Component, type ErrorInfo, type ReactNode } from "react"
-import { AlertTriangle, RefreshCw } from "lucide-react"
+import { AlertTriangle, Home, RefreshCw } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -42,16 +43,26 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <AlertTriangle className="h-5 w-5" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm font-medium text-foreground">We couldn&apos;t load the {this.props.feature}.</p>
+                <p className="text-sm font-medium text-foreground">
+                  Something went wrong while loading the {this.props.feature}.
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  Please try again. If the issue persists, refresh the page or check your connection.
+                  You can retry this section or head back to the dashboard while we look into it.
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={this.handleReset} className="gap-2">
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              Retry section
-            </Button>
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+              <Button variant="outline" size="sm" onClick={this.handleReset} className="gap-2">
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                Retry section
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="gap-2">
+                <Link href="/overview">
+                  <Home className="h-4 w-4" aria-hidden="true" />
+                  Back to dashboard
+                </Link>
+              </Button>
+            </div>
           </div>
         </Card>
       )

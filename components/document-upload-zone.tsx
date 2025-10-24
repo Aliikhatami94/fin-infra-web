@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useRef, useState, useId, type DragEventHandler, type KeyboardEvent } from "react"
-import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, ShieldCheck, HardDrive } from "lucide-react"
+import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, ShieldCheck, HardDrive, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { toast } from "@/components/ui/sonner"
@@ -20,11 +20,16 @@ interface UploadItem {
   progress: number
 }
 
+const ACCEPTED_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png", ".csv"] as const
+const MAX_FILE_SIZE_BYTES = 15_000_000
+const MAX_FILE_SIZE_LABEL = `${Math.round(MAX_FILE_SIZE_BYTES / 1_000_000)} MB`
+
 export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [uploads, setUploads] = useState<UploadItem[]>([])
   const descriptionId = useId()
+  const guidanceId = useId()
 
   const beginUpload = useCallback(
     (files: FileList | null) => {
@@ -58,7 +63,7 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
           )
 
           if (performance.now() - start >= duration) {
-            const shouldFail = file.size > 15_000_000
+            const shouldFail = file.size > MAX_FILE_SIZE_BYTES
 
             setUploads((prev) =>
               prev.map((item) =>
@@ -74,7 +79,7 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
 
             if (shouldFail) {
               toast.error(`Upload failed for ${file.name}`, {
-                description: "Files larger than 15MB must be uploaded via secure desktop",
+                description: `Files larger than ${MAX_FILE_SIZE_LABEL} must be uploaded via secure desktop`,
               })
               trackDocumentUpload({
                 fileName: file.name,
@@ -164,6 +169,9 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        role="group"
+        aria-labelledby={guidanceId}
+        aria-describedby={descriptionId}
       >
         <input
           ref={inputRef}
@@ -172,12 +180,19 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
           className="sr-only"
           onChange={(event) => beginUpload(event.target.files)}
           aria-hidden
+          accept={ACCEPTED_EXTENSIONS.join(",")}
         />
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary shadow-[var(--shadow-soft)]">
           <UploadCloud className="h-8 w-8" aria-hidden="true" />
         </div>
         <div className="space-y-3 max-w-xl">
           <p className="text-base font-semibold text-foreground">Drop statements, receipts, and disclosures</p>
+          <div id={guidanceId} className="flex items-center justify-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+            <Info className="h-3.5 w-3.5" aria-hidden />
+            <span>
+              Accepted: PDF, JPG, PNG, CSV • Max {MAX_FILE_SIZE_LABEL} per file
+            </span>
+          </div>
           <div id={descriptionId} className="text-sm text-muted-foreground space-y-2">
             <span className="flex items-center justify-center gap-2">
               <ShieldCheck className="h-4 w-4 text-primary" aria-hidden />
@@ -191,7 +206,7 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
           <ul className="mx-auto flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground/90">
             <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">PDF (statements & reports)</li>
             <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">JPG / PNG (receipts)</li>
-            <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">CSV ≤ 15MB (exports)</li>
+            <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">CSV ≤ {MAX_FILE_SIZE_LABEL} (exports)</li>
             <li className="rounded-full border border-border/60 bg-card/80 px-3 py-1">Larger files? Use secure desktop</li>
           </ul>
           <p className="text-[0.7rem] text-muted-foreground/80">
@@ -203,13 +218,18 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
           className="mt-4 rounded-full px-7 text-sm font-semibold shadow-[var(--shadow-soft)] focus-visible:ring-offset-2"
           onClick={handleBrowse}
           data-loading={isDragging}
+          type="button"
         >
           Browse files
         </Button>
       </div>
 
       {uploads.length > 0 ? (
-        <div className="space-y-2 border-t border-border/40 bg-card/60 p-4" aria-live="polite">
+        <div
+          className="space-y-2 border-t border-border/40 bg-card/60 p-4"
+          aria-live="polite"
+          aria-busy={uploads.some((item) => item.status === "uploading")}
+        >
           {uploads.map((item) => (
             <div
               key={item.id}

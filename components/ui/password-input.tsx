@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { CheckCircle2, Circle, Eye, EyeOff } from "lucide-react"
 
 import { evaluatePasswordStrength } from "@/lib/password-strength"
 import { cn } from "@/lib/utils"
@@ -41,19 +41,15 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           <button
             type="button"
             onClick={() => setIsVisible((prev) => !prev)}
-            className="absolute inset-y-0 right-2 flex items-center rounded-md px-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="absolute right-2 top-1/2 flex -translate-y-1/2 transform items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 touch-target touch-target-circle"
             aria-label={isVisible ? "Hide password" : "Show password"}
           >
             {isVisible ? <EyeOff aria-hidden="true" className="h-4 w-4" /> : <Eye aria-hidden="true" className="h-4 w-4" />}
           </button>
         </div>
         {showStrength ? (
-          <div
-            id={resolvedStrengthId}
-            className="mt-2 space-y-1.5 text-xs text-muted-foreground"
-            aria-live="polite"
-          >
-            <div className="flex items-center gap-2">
+          <div id={resolvedStrengthId} className="mt-2 space-y-2" aria-live="polite">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                 <div
                   className={cn("h-full transition-all duration-300 ease-out", strengthColorClasses[strength.level])}
@@ -62,7 +58,21 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
               </div>
               <span className="font-medium text-foreground">{strength.label}</span>
             </div>
-            <p>{strength.guidance}</p>
+            <p className="text-xs text-muted-foreground">{strength.guidance}</p>
+            <ul className="space-y-1.5">
+              {strength.requirements.map((requirement) => (
+                <li key={requirement.id} className="flex items-center gap-2 text-xs">
+                  {requirement.met ? (
+                    <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5 text-emerald-500" />
+                  ) : (
+                    <Circle aria-hidden="true" className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <span className={requirement.met ? "text-foreground" : "text-muted-foreground"}>
+                    {requirement.label}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
       </div>

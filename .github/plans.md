@@ -1,252 +1,239 @@
-# TradeHub UI/UX Implementation Plan (Detailed PR Series)
+# TradeHub Remediation Plan (UI/UX fixes by page)
 
-This document replaces prior plans. It breaks the refreshed UX review into concrete PR-scoped work with goals, acceptance criteria, and tasks mapped to likely files to touch. Use one PR per section (or bundle adjacent ones) and check items as you ship.
+This replaces the prior plan. It captures concrete PRs to resolve the observed UI/UX issues. One PR per section (or small bundles). Each PR lists goals, acceptance criteria, and tasks with likely files.
 
 PR index
-- PR01–PR02: Landing & Authentication
-- PR03–PR15: Dashboard & Core Pages
-- PR16: General UX Baseline
-- PR17: Landing Deep‑Dive
-- PR18: Acceptance & QA
+- PR01: Navigation & Routing Resilience (global)
+- PR02: Overview
+- PR03: Accounts
+- PR04: Cash Flow
+- PR05: Portfolio & Insights interactions
+- PR06: Documents – Tasks clarity & overdue
+- PR07: Documents – Uploads & filters
+- PR08: Settings
+- PR09: Security Center
+- PR10: Accessibility & Visual Baseline (global)
+- PR11: Link/Onboarding – Add/Link Accounts CTA
+- PR12: Landing (Home)
+- PR13: Sign‑In
+- PR14: Sign‑Up
+- PR15: Demo Page
+- PR16: Error Handling & Feedback (global)
 
 Global assumptions
-- Follow App Router patterns in `app/*`; prefer Server Components by default, add "use client" when needed.
-- Reuse primitives in `components/ui/*`, Radix-based overlays, and Tailwind tokens from `app/globals.css`.
-- Keep accessibility first: visible focus, keyboard-only flows, aria-labels, proper roles.
+- Follow Next.js App Router; prefer Server Components, add "use client" where needed.
+- Reuse `components/ui/*`, Radix overlays, and Tailwind tokens in `app/globals.css`.
+- Ship accessibility: visible focus, keyboard flows, aria labels/roles, adequate touch targets.
 
-## 1) Public Landing & Authentication
+---
 
-### PR01 – Home / Landing Page
-Goal: Improve clarity, accessibility, and polish on the marketing homepage.
+## PR01 – Navigation & Routing Resilience (global)
+Goal: Prevent pop‑up blockers and cross‑origin issues; keep navigation in‑app with graceful fallback.
 
 Acceptance Criteria
-- Header is sticky; primary CTA (“Get Started”) appears as a solid button, “Sign In” as a text/ghost link.
-- “Start Trading” and “Watch Demo” are keyboard-focusable with descriptive aria-labels.
-- Feature cards align icons left, have equal heights, and subtle hover micro-interactions.
-- On small screens, hero text has a semi-transparent overlay for legibility (meets WCAG AA).
+- All internal actions (e.g., “Review Assets”) navigate within the same origin/tab by default.
+- Links that were opening blocked pages now open in‑app routes or modals; no pop‑up blocker triggers.
+- If a navigation fails (network/guard), show an in‑app error and a “Back to dashboard” link.
+- Badges on nav items (e.g., Accounts “2”) include a tooltip explaining the count.
 
 Tasks (likely files)
-- Header layout and CTAs: `app/page.tsx`, `components/*landing*`, `components/ui/button` usage.
-- Feature cards polish: `components/*feature*`, equal heights via flex/grid utilities.
-- Overlay on mobile: tweaks in `app/globals.css` or component-level class for hero background.
-- Focus and aria audit: add aria-labels on CTAs, ensure tab order, visible focus styles.
+- Centralize link helpers: `lib/linking.ts` (ensure internal-only navigation for app routes).
+- Replace target="_blank" for app routes: portfolio insights, CTA links.
+- Tooltip for nav badges: `components/sidebar.tsx`, `components/mobile-nav.tsx`.
+- Error boundary/fallback messaging: `components/error-boundary.tsx` and shared empty/error states.
 
-### PR02 – Sign‑in / Sign‑up Flows
-Goal: Reduce friction while improving validation and accessibility.
+## PR02 – Overview
+Goal: Make plan actions real or clearly “coming soon”; preserve masking UX.
 
 Acceptance Criteria
-- Inline validation appears on field blur/type; invalid states are announced to screen readers.
-- Password field has visibility toggle and strength meter with guidance text.
-- Social sign-in buttons appear above email/password with icons and aria-labels.
-- Submit errors are shown as an accessible alert region; “Forgot password?” routes correctly.
+- “Adjust plan” opens a real plan modal or dedicated route; if not available, the button is disabled with a tooltip “Coming soon”.
+- Savings Rate card no longer shows misleading tooltip-only behavior.
+- Hide/Show amounts toggle keeps the current mask behavior and exposes an eye/eye‑slash icon state.
 
 Tasks (likely files)
-- Forms: `app/(auth)/sign-in/page.tsx`, `app/(auth)/sign-up/page.tsx`.
-- UI inputs: create/enhance a PasswordInput in `components/ui/input` or enhance existing with strength meter.
-- Validation: client hints with Zod/Yup or custom; aria-invalid, aria-describedby wiring.
-- Error region: add `role="alert"` containers; route for reset if missing.
+- Plan modal/route: `components/plan-adjust-modal.tsx` (new) or `app/(dashboard)/overview/plan/page.tsx`.
+- Wire CTA from Savings Rate card: `components/kpi-cards.tsx` or specific savings card.
+- Toggle icon/state: `components/animated-switch.tsx`, `components/privacy-provider.tsx`.
 
-## 2) Dashboard & Core Pages
-
-### PR03 – Overview
-Goal: Make KPIs scannable, tasks actionable, and chart comparisons quicker.
+## PR03 – Accounts
+Goal: Add a clear “Link account” CTA, clarify badges, and wire “Review savings plan”.
 
 Acceptance Criteria
-- KPI cards have consistent widths/spacing and tooltips with clear definitions.
-- Quick actions exist for major metrics (e.g., Net Worth → “See details”).
-- Overdue tasks are grouped separately and support snooze/dismiss (persisted).
-- Performance timeline can overlay a benchmark (e.g., SPY) without navigation.
+- Prominent “Link account” / “Add bank” CTA visible above the table on desktop and via FAB on mobile.
+- Accounts tab red badge has an explanatory tooltip (e.g., unresolved items).
+- “Review savings plan” triggers a modal/route or is disabled with a clear tooltip if not ready.
 
 Tasks (likely files)
-- KPIs: `components/kpi-cards.tsx`, tooltip copy map in `lib/tooltips`.
-- Task grouping: `components/accountability-checklist.tsx` or related checklist components.
-- Chart overlay: `components/performance-timeline.tsx` add benchmark toggle and series.
+- CTA + FAB: `app/(dashboard)/accounts/page.tsx`, `components/accounts-kpi-cards.tsx`.
+- Tooltip for tab badge: `components/sidebar.tsx`.
+- Wire/migrate plan action: `components/accounts-kpi-cards.tsx` or a small modal.
 
-### PR04 – Accounts
-Goal: Improve at-a-glance trends and table ergonomics.
+## PR04 – Cash Flow
+Goal: Keep structure; minor UX improvements.
 
 Acceptance Criteria
-- Summary cards show 30‑day micro-sparklines.
-- Callouts (utilization, emergency fund) are dismissible and persist.
-- Accounts table has sticky/sortable headers, type filters, institution logos, and status badges with tooltips.
+- Ensure pinning and suggestions render consistently and persist.
+- Time scale controls are visible and keyboard accessible.
 
 Tasks (likely files)
-- Cards/sparklines: `components/accounts-kpi-cards.tsx` and a tiny sparkline component.
-- Dismiss persistence: use `lib/security/use-secure-storage` or local storage hook.
-- Table upgrades: `components/accounts-table/*` add sorting, filters, sticky header classes.
+- Persistence: `components/cashflow-ai-insights.tsx`, `hooks/use-insight-pins.ts`.
+- Controls: `components/cash-flow-kpis.tsx`, `components/cash-flow.tsx` (tab/aria polish).
 
-### PR05 – Portfolio
-Goal: Clarify complex metrics and streamline actions.
+## PR05 – Portfolio & Insights interactions
+Goal: Prevent blocked navigation; clarify “Pin”/“Resolve” results.
 
 Acceptance Criteria
-- Sharpe, Beta, Volatility have info icons with explainers.
-- AI insights are collapsible/hide-resolved with persistence.
-- Direct “Rebalance” link exists; overweight/target visuals are clear.
-- Filters for asset class/timeframe affect metrics panels.
+- “Review Assets” and similar actions use in‑app navigation or modals (no pop‑ups). 
+- “Pin” shows a visible pinned badge and a Pinned section surfaces above other insights on that surface.
+- “Resolve” toggles state and persists per surface; resolved items can be restored.
 
 Tasks (likely files)
-- Metric info: popovers/tooltips in `components/portfolio-kpis.tsx`.
-- Insights collapse: `components/portfolio-ai-insights.tsx` with persisted UI state.
-- Rebalance link: wire to `components/rebalancing-preview.tsx` or a route.
+- Adjust links to stay in‑app: `components/portfolio-ai-insights.tsx` and related.
+- Pinned section: `components/ai-insights.tsx` (group pinned first), `components/insights/InsightCard.tsx` (badge already).
+- Persistence: `hooks/use-insight-pins.ts`, `hooks/use-insight-dismissals.ts` (we added undismiss).
 
-### PR06 – Crypto
-Goal: Make grouping tools clear and add trend context.
+## PR06 – Documents – Tasks clarity & overdue
+Goal: Clarify actions and overdue messaging.
 
 Acceptance Criteria
-- Group-by toolbar with selected states (asset/exchange/staking); stablecoin toggle.
-- Market cards include micro-sparklines and consistent arrows.
-- Diversification suggestions include recommended weights (e.g., BTC/ETH/Alt pie) with actions.
+- Actions like “Send reminder”, “Complete”, “Discuss” show a confirmation modal with a short description of impact.
+- Overdue labels show the due date + relative time (e.g., “Due Apr 30 2024 – 541 days ago”) with a tooltip.
+- Overdue badge toned to a readable, non-alarming palette; option to snooze/reschedule exists.
 
 Tasks (likely files)
-- Toolbar: `components/crypto-kpis.tsx`, `components/crypto-chart.tsx`.
-- Insights: `components/crypto-ai-insights.tsx` add visuals and actions.
+- Confirmations: `components/accountability-checklist.tsx` (documents surface), small `ConfirmDialog` component.
+- Overdue formatting: `lib/format.ts`, documents task item where dates render.
+- Snooze/reschedule: small dialog; persist via secure/local storage mock.
 
-### PR07 – Cash Flow
-Goal: Surface time scale controls and actionable savings guidance.
+## PR07 – Documents – Uploads & filters
+Goal: Clarify accepted types/sizes and make filters obviously active.
 
 Acceptance Criteria
-- Net flow cards toggle daily/weekly/monthly.
-- AI insights allow pinning; budget suggestions appear for overspending categories.
+- Upload zone shows accepted file types and max size; shows progress during upload.
+- Filter chips display selected state and aria-selected; multiple chips can be toggled.
 
 Tasks (likely files)
-- Cards toggle: `components/cash-flow-kpis.tsx`, `components/cash-flow.tsx`.
-- Insights: `components/cashflow-ai-insights.tsx`, persistence hook.
+- Upload zone: `components/document-upload-zone.tsx` (helper text, progress bar, ARIA).
+- Filter chips: `components/documents-grid.tsx` (active styles, aria attributes).
 
-### PR08 – Transactions
-Goal: Improve triage speed and batch actions.
+## PR08 – Settings
+Goal: Make saving transparent and safe.
 
 Acceptance Criteria
-- Insight cards are dismissible; resolved items don’t reappear.
-- Quick filters chips + account tabs; add date-range picker.
-- Multi-select with batch actions (categorize, tag, export).
+- Toggles autosave with feedback (“Saving…” → “Saved”).
+- Each toggle has helper text describing effect (Email, Push, Price Alerts, Trade Confirmations).
+- “Reset to Defaults” shows a confirmation modal listing what resets.
 
 Tasks (likely files)
-- Insights: `components/insights-feed.tsx` (transactions context), persistence.
-- Filters/table: `components/recent-transactions.tsx` or transactions workspace components.
+- Autosave + toasts: `app/(dashboard)/settings/page.tsx`, `components/settings-group.tsx`, `components/ui/sonner`.
+- Helper text copy: settings components.
+- Reset confirm: `components/confirm-dialog.tsx` (new) used in settings.
 
-### PR09 – Budget
-Goal: Faster adjustments and clearer status.
+## PR09 – Security Center
+Goal: Show recent sessions, clarify downloads and masking.
 
 Acceptance Criteria
-- Progress ring color codes states (under/over budget).
-- Inline quick-edit modal for category budgets.
-- Month selector fully keyboard-accessible with aria.
+- Recent sessions table renders sample data or an empty state with explanation; actions to end sessions work (mocked).
+- “Download full audit log” shows confirmation with size estimate and directs to email link if large.
+- Login alerts and masking toggles have tooltips/help icons explaining behavior.
+- Alternate email is masked by default with “Reveal” and shows “Verified/Unverified” status.
 
 Tasks (likely files)
-- Ring and colors: `components/budget-summary.tsx`.
-- Quick edit: `components/budget-table.tsx` modal + validation.
+- Sessions table: `app/(dashboard)/settings/security/page.tsx` (add sample data + empty state).
+- Audit log flow: same page; confirm dialog + mock async.
+- Help icons: inline `Tooltip`/`HelpCircle` next to toggles.
+- Masked field component: `components/ui/masked-input.tsx` (new) used for alternate email.
 
-### PR10 – Goals
-Goal: Improve comprehension and scenario planning.
+## PR10 – Accessibility & Visual Baseline (global)
+Goal: Improve ARIA, focus, touch targets, and color semantics.
 
 Acceptance Criteria
-- Replace raw “$60k | $188k” strings with progress bar + %.
-- Slider + numeric input both drive live projections; show date impact.
-- “Add to calendar” for contribution reminders.
+- All interactive icons (dismiss X, arrows) meet 44×44 touch target on mobile.
+- Icons that convey meaning have text labels or aria-labels; decorative icons are aria-hidden.
+- Positive/negative color semantics include shape/icon cues; meet WCAG contrast.
 
 Tasks (likely files)
-- UI: `components/goals-summary-kpis.tsx`, `components/goals-grid.tsx`.
-- Planner: `components/goal-detail-modal.tsx`.
+- Touch targets + aria: pass across components (dismiss buttons, feature cards).
+- Color semantics helpers: `lib/color-utils.ts` and usage in KPIs/charts.
+- Focus styles: ensure consistent tokens in `app/globals.css`.
 
-### PR11 – Taxes
-Goal: Bring urgency forward and explain readiness.
+## PR11 – Link/Onboarding – Add/Link Accounts CTA
+Goal: Make account linking obvious and track progress.
 
 Acceptance Criteria
-- Planning banner includes countdown to key dates (e.g., Dec 31).
-- Insights grouped by urgency; document tasks link to Documents.
-- Readiness bars open explainers describing criteria and counts.
+- “Link accounts” CTA visible on Accounts; FAB on mobile.
+- If no accounts linked, show an onboarding empty state with “Link now” and short explainer.
+- Progress indicator shown during linking (mocked) with success toast.
 
 Tasks (likely files)
-- Banner/insights: `components/tax-summary.tsx`, `components/tax-year-comparison.tsx`.
-- Explain readiness: `components/tax-scenario-tool.tsx` or a new explainer component.
+- CTA/FAB and empty state: `app/(dashboard)/accounts/page.tsx`, `components/accounts-kpi-cards.tsx`.
+- Toasts: `components/ui/sonner`.
+- Optional: `components/plaid-link-dialog.tsx`xxxxxxxxx (mock flow).
 
-### PR12 – Insights
-Goal: Reduce clutter and add clarity.
+## PR12 – Landing (Home)
+Goal: Fix CTA routing and dead links; add trust hints.
 
 Acceptance Criteria
-- Consistent tab styles; active tab clearly highlighted.
-- Category icons on cards; “Hide resolved insights” toggle persisted.
-- Primary vs secondary actions are visually distinct.
+- “Get Started” and “Start Trading” route to Sign‑Up (not Sign‑In).
+- “Explore product highlights” links navigate to real feature pages or open in‑page sections.
+- Add brief trust markers near top (e.g., partner logos/testimonials snippet).
 
 Tasks (likely files)
-- Tabs/cards: `components/ai-insights.tsx`, `components/ai-insights-banner.tsx`.
-- Persistence: secure/local storage for hide-resolved state.
+- CTA routing: `app/page.tsx`.
+- Feature highlight links/scroll: `app/page.tsx` + IDs or new routes under `app/(public)/features/*`.
+- Trust markers: small component on landing.
 
-### PR13 – Documents
-Goal: Faster filtering and clearer uploads.
+## PR13 – Sign‑In
+Goal: Improve provider UX and validation feedback.
 
 Acceptance Criteria
-- Filter chips scroll horizontally; icons indicate doc type.
-- Overdue tasks show due dates and assignees; reminders and mark-as-done available.
-- Upload zone clarifies encryption and accepted types/sizes; “Browse files” is prominent.
-- Missing tax docs link back to Taxes page for context.
+- Third‑party buttons show loading and error states.
+- Dynamic password strength hints removed (not needed on sign-in) but show inline error feedback on submit failures.
+- Keyboard and screen reader users receive proper alerts (role="alert").
 
 Tasks (likely files)
-- Filters/chips: `components/documents-grid.tsx`.
-- Upload zone: `components/document-upload-zone.tsx`.
-- Tasks: `components/accountability-checklist.tsx` on documents surface.
+- Provider buttons: `app/(auth)/sign-in/page.tsx`.
+- Error/alert region and aria: same page.
 
-### PR14 – Settings
-Goal: Clearer controls and safe save flows.
+## PR14 – Sign‑Up
+Goal: Dynamic password strength and inline validation.
 
 Acceptance Criteria
-- Notification toggles grouped with helper text; accessible labels.
-- Appearance shows themes (Daylight, Midnight, Match System) + font scales with live preview; consider high-contrast.
-- “Save All Settings” disabled until changes; toast confirmation on save; “Reset to Defaults” available.
+- Password strength meter updates live with checks for length, numbers, symbols; shows progress bar and checklist.
+- Inline validation for all fields before submit; mismatched passwords highlighted with helpful text.
 
 Tasks (likely files)
-- Settings pages: `app/(dashboard)/settings/page.tsx`, `app/(dashboard)/settings/appearance/page.tsx`, `app/(dashboard)/settings/security/page.tsx`.
+- Strength meter: `components/ui/password-input.tsx` (new) or enhance existing input.
+- Form validation (Zod/Yup or custom): `app/(auth)/sign-up/page.tsx`.
 
-### PR15 – Security Center
-Goal: Increase trust and control.
+## PR15 – Demo Page
+Goal: Fix routing and upgrade video.
 
 Acceptance Criteria
-- Recent sessions table sortable/filterable by device/status; optional mini-map icon (IP anonymized).
-- Alerting allows alternate emails/phones; masking toggles accessible.
-- Exports (CSV/PDF) include tooltip on retention; in-app notification when ready to download.
+- “Back to home” returns to `/`.
+- “Browse product” scrolls to highlights on the home page; no dashboard navigation when unauthenticated.
+- Replace placeholder video with a real demo link or a neutral placeholder; provide transcripts/captions if possible.
 
 Tasks (likely files)
-- Security center: `app/(dashboard)/settings/security/page.tsx` and related components.
+- Routing fixes: `app/demo/page.tsx`.
+- Scroll-to-section wiring: landing IDs + anchor handling.
+- Video component: accessible embeds with title and captions.
 
-## PR16 – General UX Baseline
-Goal: Apply consistent design and performance patterns.
-
-Acceptance Criteria
-- Consistent padding, radius, and type scale across cards/tables.
-- All interactive elements have keyboard access and aria-labels; meaningful icons have alt text/labels.
-- Large tables virtualized; heavy charts deferred until in-view; no major CLS on key pages.
-
-Tasks
-- Token and utility pass: `app/globals.css`, shared card utilities, and `components/ui/*`.
-- Virtualize long lists (where applicable) and add intersection observers for heavy charts.
-
-## PR17 – Landing Page Deep‑Dive
-Goal: Fix routing, clarify features, and improve discovery.
+## PR16 – Error Handling & Feedback (global)
+Goal: Provide clear feedback for actions and failures.
 
 Acceptance Criteria
-- “Watch Demo” routes to a real demo page or a video modal; if not ready, disabled/hidden.
-- Feature cards route correctly; if “Risk Management” maps to Cash Flow, rename or add a dedicated risk page.
-- Tooltips describe destination content; optional scroll-to-section on the landing page.
-- CTAs have visible focus and descriptive aria-labels.
+- Buttons that trigger async work show in-button loading and toasts on completion/error.
+- Feature-gated or unimplemented actions are disabled by default with a “Coming soon” tooltip.
+- App-wide error boundaries show friendly messages with retry/back actions.
 
 Tasks (likely files)
-- Routing: `app/page.tsx`, possibly `app/demo/page.tsx` (new) or a video modal component.
-- Card hover/focus states and tooltips: landing components.
-
-## PR18 – Acceptance Criteria & QA
-Goal: Verify accessibility, performance, and UX polish across surfaces.
-
-Acceptance Criteria
-- axe-core audits pass on landing, auth, and main dashboard routes.
-- Deferred charts and table virtualization verified; keyboard-only navigation validated.
-- Tooltips exist for complex metrics; sticky header and clear CTAs on landing confirmed.
-- All CTAs/feature cards have valid routes; deep-links between related pages (e.g., Taxes → Documents) work.
-
-Tasks
-- Add a lightweight QA checklist; optional scripts for lighthouse/axe where feasible.
+- Loading states/toasts: shared `components/ui/button` usage + `components/ui/sonner`.
+- Disabled + tooltip patterns: action buttons across cards/pages.
+- Error boundary messaging: `components/error-boundary.tsx`.
 
 ---
 
 Notes
-- Keep PRs small and focused. If a section balloons, split follow-ups as PRxx-a/PRxx-b.
-- Where persistence is specified, use existing secure storage hooks where possible.
+- Keep PRs small and focused; split follow-ups as PRxx‑a/PRxx‑b if scope grows.
+- Prefer secure storage hooks for persistence; mock data/flows until backends are ready.

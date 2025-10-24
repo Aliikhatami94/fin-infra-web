@@ -181,10 +181,15 @@ export interface KPI {
   quickActions?: KPIQuickAction[]
 }
 
+export type KPIQuickActionIntent = "navigate" | "plan-adjust"
+
 export interface KPIQuickAction {
   label: string
-  href: string
+  href?: string
   description?: string
+  intent?: KPIQuickActionIntent
+  disabled?: boolean
+  tooltip?: string
 }
 
 export type ActivityType = "transaction" | "sync" | "subscription" | (string & {})

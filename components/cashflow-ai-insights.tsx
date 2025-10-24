@@ -41,8 +41,10 @@ const priorityWeight: Record<"low" | "medium" | "high", number> = {
   high: 2,
 }
 
+const loadingMessageId = "cashflow-insights-loading"
+
 export function CashFlowAIInsights() {
-  const { pinnedIds, setPinned } = useInsightPins()
+  const { hydrated, pinnedIds, setPinned } = useInsightPins()
 
   const insights = useMemo(() => {
     const baseInsights = getInsights({ surface: "cash-flow" })
@@ -68,6 +70,8 @@ export function CashFlowAIInsights() {
     })
   }, [pinnedIds])
 
+  const isLoadingPins = !hydrated
+
   return (
     <motion.section
       {...createStaggeredCardVariants(0, 0.2)}
@@ -82,14 +86,25 @@ export function CashFlowAIInsights() {
           AI Cash Flow Insights
         </h3>
       </div>
-      <div className="grid gap-4">
+      {!hydrated && (
+        <p id={loadingMessageId} className="sr-only" role="status" aria-live="polite">
+          Loading your saved cash flow insight pins.
+        </p>
+      )}
+      <div
+        role="list"
+        aria-busy={isLoadingPins}
+        aria-describedby={isLoadingPins ? loadingMessageId : undefined}
+        className="grid gap-4"
+      >
         {insights.map((insight, index) => (
-          <InsightCard
-            key={insight.id}
-            insight={insight}
-            index={index}
-            onPinChange={({ insight: changedInsight, pinned }) => setPinned(changedInsight.id, pinned)}
-          />
+          <div key={insight.id} role="listitem">
+            <InsightCard
+              insight={insight}
+              index={index}
+              onPinChange={({ insight: changedInsight, pinned }) => setPinned(changedInsight.id, pinned)}
+            />
+          </div>
         ))}
       </div>
       <Card className="border-dashed border-border/70 bg-muted/30">

@@ -1,11 +1,18 @@
 export type PasswordStrengthLevel = "weak" | "fair" | "good" | "strong"
 
+export interface PasswordRequirement {
+  id: "length" | "number" | "symbol" | "case"
+  label: string
+  met: boolean
+}
+
 export interface PasswordStrengthResult {
   score: number
   percentage: number
   level: PasswordStrengthLevel
   label: string
   guidance: string
+  requirements: PasswordRequirement[]
 }
 
 const guidanceByLevel: Record<PasswordStrengthLevel, string> = {
@@ -25,18 +32,24 @@ const labelByLevel: Record<PasswordStrengthLevel, string> = {
 export function evaluatePasswordStrength(password: string): PasswordStrengthResult {
   let score = 0
 
-  const lengthScore = password.length >= 12 ? 2 : password.length >= 8 ? 1 : 0
-  score += lengthScore
+  const hasMinLength = password.length >= 8
+  const hasExtendedLength = password.length >= 12
+  const hasMixedCase = /[a-z]/.test(password) && /[A-Z]/.test(password)
+  const hasNumber = /\d/.test(password)
+  const hasSymbol = /[^\w\s]/.test(password)
 
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
+  // Award two points for extended length, one for minimum length
+  score += hasExtendedLength ? 2 : hasMinLength ? 1 : 0
+
+  if (hasMixedCase) {
     score += 1
   }
 
-  if (/\d/.test(password)) {
+  if (hasNumber) {
     score += 1
   }
 
-  if (/[^\w\s]/.test(password)) {
+  if (hasSymbol) {
     score += 1
   }
 
@@ -60,5 +73,11 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
     level,
     label: labelByLevel[level],
     guidance: guidanceByLevel[level],
+    requirements: [
+      { id: "length", label: "At least 8 characters", met: hasMinLength },
+      { id: "case", label: "Upper & lowercase letters", met: hasMixedCase },
+      { id: "number", label: "Contains a number", met: hasNumber },
+      { id: "symbol", label: "Contains a symbol", met: hasSymbol },
+    ],
   }
 }

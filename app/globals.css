@@ -45,6 +45,19 @@
   --color-warning: oklch(0.79 0.15 70);
   --color-info: oklch(0.63 0.12 240);
 
+  --semantic-positive-surface: color-mix(in oklab, var(--color-positive) 20%, var(--card) 80%);
+  --semantic-positive-border: color-mix(in oklab, var(--color-positive) 45%, transparent);
+  --semantic-positive-text: color-mix(in oklab, var(--color-positive) 55%, black 45%);
+  --semantic-negative-surface: color-mix(in oklab, var(--color-negative) 18%, var(--card) 82%);
+  --semantic-negative-border: color-mix(in oklab, var(--color-negative) 46%, transparent);
+  --semantic-negative-text: color-mix(in oklab, var(--color-negative) 60%, black 40%);
+  --semantic-warning-surface: color-mix(in oklab, var(--color-warning) 25%, var(--card) 75%);
+  --semantic-warning-border: color-mix(in oklab, var(--color-warning) 48%, transparent);
+  --semantic-warning-text: color-mix(in oklab, var(--color-warning) 40%, black 60%);
+  --semantic-info-surface: color-mix(in oklab, var(--color-info) 24%, var(--card) 76%);
+  --semantic-info-border: color-mix(in oklab, var(--color-info) 46%, transparent);
+  --semantic-info-text: color-mix(in oklab, var(--color-info) 55%, black 45%);
+
   --surface-wealth: linear-gradient(135deg, oklch(0.86 0.18 265) 0%, oklch(0.74 0.16 300) 100%);
   --surface-cashflow: linear-gradient(135deg, oklch(0.87 0.11 155) 0%, oklch(0.78 0.08 120) 100%);
   --surface-security: linear-gradient(135deg, oklch(0.88 0.05 230) 0%, oklch(0.78 0.12 260) 100%);
@@ -109,6 +122,19 @@
   --color-negative: oklch(0.55 0.25 25);
   --color-warning: oklch(0.75 0.16 70);
   --color-info: oklch(0.74 0.15 240);
+
+  --semantic-positive-surface: color-mix(in oklab, var(--color-positive) 32%, var(--card) 68%);
+  --semantic-positive-border: color-mix(in oklab, var(--color-positive) 65%, transparent);
+  --semantic-positive-text: color-mix(in oklab, var(--color-positive) 78%, white 22%);
+  --semantic-negative-surface: color-mix(in oklab, var(--color-negative) 34%, var(--card) 66%);
+  --semantic-negative-border: color-mix(in oklab, var(--color-negative) 68%, transparent);
+  --semantic-negative-text: color-mix(in oklab, var(--color-negative) 82%, white 18%);
+  --semantic-warning-surface: color-mix(in oklab, var(--color-warning) 36%, var(--card) 64%);
+  --semantic-warning-border: color-mix(in oklab, var(--color-warning) 64%, transparent);
+  --semantic-warning-text: color-mix(in oklab, var(--color-warning) 74%, white 26%);
+  --semantic-info-surface: color-mix(in oklab, var(--color-info) 34%, var(--card) 66%);
+  --semantic-info-border: color-mix(in oklab, var(--color-info) 64%, transparent);
+  --semantic-info-text: color-mix(in oklab, var(--color-info) 78%, white 22%);
 
   --surface-wealth: linear-gradient(135deg, oklch(0.36 0.08 280) 0%, oklch(0.32 0.06 300) 100%);
   --surface-cashflow: linear-gradient(135deg, oklch(0.34 0.05 150) 0%, oklch(0.32 0.04 120) 100%);
@@ -182,6 +208,26 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+
+  :where(button,
+      [role="button"],
+      a[href],
+      input,
+      select,
+      textarea,
+      summary):focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring-shadow);
+    outline-offset: 2px;
+  }
+
+  :where(button,
+      [role="button"],
+      a[href],
+      summary) {
+    touch-action: manipulation;
+    transition: box-shadow 180ms var(--ease-standard);
   }
   body {
     @apply bg-background text-foreground;
@@ -277,6 +323,25 @@
 
   .spacing-content {
     @apply space-y-4;
+  }
+}
+
+@layer utilities {
+  .touch-target {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+  }
+
+  .touch-target-circle {
+    border-radius: 9999px;
+  }
+
+  .focus-ring-soft:focus-visible {
+    box-shadow: var(--focus-ring-shadow), 0 0 0 1px color-mix(in oklab, var(--ring) 35%, transparent);
   }
 }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, type MouseEvent } from "react"
 import { useRouter } from "next/navigation"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,11 +12,13 @@ import { LastSyncBadge } from "@/components/last-sync-badge"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
-import { getValueColor, getValueBgColor } from "@/lib/color-utils"
+import { getTrendSemantic } from "@/lib/color-utils"
 import { getDashboardKpis } from "@/lib/services"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
 import { getMetricTooltipCopy } from "@/lib/tooltips"
 import { Button } from "@/components/ui/button"
+import { navigateInApp } from "@/lib/linking"
+import { PlanAdjustModal } from "@/components/plan-adjust-modal"
 
 const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   const max = Math.max(...data)
@@ -49,10 +51,17 @@ export function KPICards() {
   const { state, hydrated } = useOnboardingState()
   const router = useRouter()
   const kpis = useMemo(() => getDashboardKpis(hydrated ? state.persona : undefined), [hydrated, state.persona])
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
+
+  const handlePlanModalChange = (open: boolean) => {
+    setIsPlanModalOpen(open)
+  }
+
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
       {kpis.map((kpi, index) => {
         const trendValue = kpi.trend === "up" ? 1 : kpi.trend === "down" ? -1 : 0
+        const trendStyles = getTrendSemantic(trendValue)
         const tooltipCopy = getMetricTooltipCopy(kpi.label)
         const hasQuickActions = kpi.quickActions && kpi.quickActions.length > 0
 
@@ -79,25 +88,29 @@ export function KPICards() {
                           </div>
                           <div
                             className={cn(
-                              "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
-                              getValueBgColor(trendValue),
+                              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border",
+                              trendStyles.surfaceClass,
+                              trendStyles.borderClass,
                             )}
+                            data-tone={trendStyles.tone}
+                            aria-hidden="true"
                           >
-                            <kpi.icon className={cn("h-5 w-5", getValueColor(trendValue))} />
+                            <kpi.icon className={cn("h-5 w-5", trendStyles.iconClass)} aria-hidden="true" />
                           </div>
                         </div>
                         <div className="flex items-end justify-between gap-4">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1 text-xs cursor-help">
+                              <div className="flex items-center gap-1 text-xs font-medium cursor-help">
                                 {kpi.trend === "up" ? (
-                                  <TrendingUp className={cn("h-3 w-3", getValueColor(trendValue))} />
+                                  <TrendingUp className={cn("h-3.5 w-3.5", trendStyles.iconClass)} aria-hidden="true" />
                                 ) : (
-                                  <TrendingDown className={cn("h-3 w-3", getValueColor(trendValue))} />
+                                  <TrendingDown className={cn("h-3.5 w-3.5", trendStyles.iconClass)} aria-hidden="true" />
                                 )}
-                                <span className={cn(getValueColor(trendValue))}>
+                                <span className={cn(trendStyles.textClass)}>
                                   <MaskableValue value={kpi.change} srLabel={`${kpi.label} change`} />
                                 </span>
+                                <span className="sr-only">{trendStyles.tone === "positive" ? "Improving" : trendStyles.tone === "negative" ? "Declining" : "No change"}</span>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -106,30 +119,65 @@ export function KPICards() {
                               </p>
                             </TooltipContent>
                           </Tooltip>
-                          <Sparkline data={kpi.sparkline} color={getValueColor(trendValue)} />
+                          <Sparkline data={kpi.sparkline} color={trendStyles.strokeColor} />
                         </div>
                         {hasQuickActions && (
                           <div className="flex flex-wrap items-center gap-2 border-t border-border/40 pt-3">
-                            {kpi.quickActions?.map((action) => (
-                              <Button
-                                key={`${kpi.label}-${action.label}`}
-                                variant="ghost"
-                                size="sm"
-                                type="button"
-                                className="h-7 px-2 text-xs font-medium"
-                                aria-label={action.description ?? `${action.label} for ${kpi.label}`}
-                                onClick={(event) => {
-                                  event.preventDefault()
-                                  event.stopPropagation()
-                                  router.push(action.href)
-                                }}
-                              >
-                                <span className="inline-flex items-center gap-1">
-                                  <span>{action.label}</span>
-                                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                                </span>
-                              </Button>
-                            ))}
+                            {kpi.quickActions?.map((action) => {
+                              const isDisabled = action.disabled
+                              const actionLabel = action.description ?? `${action.label} for ${kpi.label}`
+                              const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                if (isDisabled) {
+                                  return
+                                }
+
+                                if (action.intent === "plan-adjust") {
+                                  setIsPlanModalOpen(true)
+                                  return
+                                }
+
+                                if (action.href) {
+                                  await navigateInApp(router, action.href, {
+                                    toastMessage: `We couldn't open ${action.label}.`,
+                                    toastDescription:
+                                      `Try again shortly or head back to your dashboard to continue exploring.`,
+                                  })
+                                }
+                              }
+
+                              const button = (
+                                <Button
+                                  key={`${kpi.label}-${action.label}`}
+                                  variant="ghost"
+                                  size="sm"
+                                  type="button"
+                                  className="h-7 px-2 text-xs font-medium"
+                                  aria-label={actionLabel}
+                                  onClick={handleClick}
+                                  disabled={isDisabled}
+                                >
+                                  <span className="inline-flex items-center gap-1">
+                                    <span>{action.label}</span>
+                                    {!isDisabled && <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />}
+                                  </span>
+                                </Button>
+                              )
+
+                              if (!action.tooltip) {
+                                return button
+                              }
+
+                              return (
+                                <Tooltip key={`${kpi.label}-${action.label}`}>
+                                  <TooltipTrigger asChild>
+                                    <span className="inline-flex">{button}</span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{action.tooltip}</TooltipContent>
+                                </Tooltip>
+                              )
+                            })}
                           </div>
                         )}
                       </CardContent>
@@ -150,6 +198,7 @@ export function KPICards() {
           </TooltipProvider>
         )
       })}
+      <PlanAdjustModal open={isPlanModalOpen} onOpenChange={handlePlanModalChange} />
     </div>
   )
 }
