@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useSecureStorage } from "@/hooks/use-secure-storage"
 import { insightDefinitions } from "@/lib/insights/definitions"
+import { namespacedKey } from "@/lib/security/secure-storage"
 
 const STORAGE_KEY = "pinned-insights"
+const FALLBACK_STORAGE_KEY = namespacedKey("insights", STORAGE_KEY)
 
 const defaultPinnedIds = insightDefinitions
   .filter((insight) => insight.pinned)
@@ -38,15 +40,19 @@ export function useInsightPins() {
     let cancelled = false
 
     async function load() {
-      if (!storage) {
-        setHydrated(true)
-        return
-      }
-
       try {
-        const value = await storage.getItem(STORAGE_KEY)
-        if (!cancelled) {
-          setPinnedIds(parseStored(value))
+        if (storage) {
+          const value = await storage.getItem(STORAGE_KEY)
+          if (!cancelled) {
+            setPinnedIds(parseStored(value))
+          }
+        } else if (typeof window !== "undefined") {
+          const value = window.localStorage.getItem(FALLBACK_STORAGE_KEY)
+          if (!cancelled) {
+            setPinnedIds(parseStored(value))
+          }
+        } else if (!cancelled) {
+          setPinnedIds(new Set(defaultPinnedIds))
         }
       } catch {
         if (!cancelled) {
@@ -68,14 +74,21 @@ export function useInsightPins() {
 
   const persist = useCallback(
     (next: Set<string>) => {
-      if (!storage) {
+      const payload = JSON.stringify(Array.from(next))
+
+      if (storage) {
+        const persistNext = () => storage.setItem(STORAGE_KEY, payload).catch(() => {})
+        persistQueue.current = persistQueue.current.catch(() => {}).then(persistNext)
         return
       }
 
-      const payload = JSON.stringify(Array.from(next))
-
-      const persistNext = () => storage.setItem(STORAGE_KEY, payload).catch(() => {})
-      persistQueue.current = persistQueue.current.catch(() => {}).then(persistNext)
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(FALLBACK_STORAGE_KEY, payload)
+        } catch {
+          // Swallow errors when localStorage is unavailable (e.g., private mode)
+        }
+      }
     },
     [storage],
   )

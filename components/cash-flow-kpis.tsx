@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react"
@@ -10,6 +10,7 @@ import { LastSyncBadge } from "@/components/last-sync-badge"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { formatCurrency } from "@/lib/format"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 type TimeScale = "daily" | "weekly" | "monthly"
 
@@ -18,6 +19,8 @@ const timeScaleOptions: Array<{ id: TimeScale; label: string; srHint: string }> 
   { id: "weekly", label: "Weekly", srHint: "Show the last 6 weeks" },
   { id: "monthly", label: "Monthly", srHint: "Show the last 6 months" },
 ]
+
+const timeScaleHelpId = "cashflow-time-scale-help"
 
 const timeScaleSnapshots: Record<TimeScale, {
   netCashFlow: number
@@ -143,6 +146,64 @@ const timeScaleSnapshots: Record<TimeScale, {
 
 export function CashFlowKPIs() {
   const [activeTimeScale, setActiveTimeScale] = useState<TimeScale>("monthly")
+  const optionRefs = useRef<Record<TimeScale, HTMLButtonElement | null>>({
+    daily: null,
+    weekly: null,
+    monthly: null,
+  })
+
+  const handleTimeScaleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      const { key } = event
+      if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(key)) {
+        return
+      }
+
+      event.preventDefault()
+
+      const refs = optionRefs.current
+      const activeElement = document.activeElement as HTMLButtonElement | null
+      const focusedIndex = timeScaleOptions.findIndex((option) => refs[option.id] === activeElement)
+      const currentIndex =
+        focusedIndex >= 0
+          ? focusedIndex
+          : timeScaleOptions.findIndex((option) => option.id === activeTimeScale)
+
+      if (currentIndex < 0) {
+        return
+      }
+
+      let nextIndex = currentIndex
+
+      if (key === "ArrowRight") {
+        nextIndex = (currentIndex + 1) % timeScaleOptions.length
+      } else if (key === "ArrowLeft") {
+        nextIndex = (currentIndex - 1 + timeScaleOptions.length) % timeScaleOptions.length
+      } else if (key === "Home") {
+        nextIndex = 0
+      } else if (key === "End") {
+        nextIndex = timeScaleOptions.length - 1
+      }
+
+      const nextOption = timeScaleOptions[nextIndex]
+      setActiveTimeScale(nextOption.id)
+
+      const focusTarget = optionRefs.current[nextOption.id]
+      if (!focusTarget) {
+        return
+      }
+
+      if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(() => {
+          focusTarget.focus()
+        })
+        return
+      }
+
+      focusTarget.focus()
+    },
+    [activeTimeScale, setActiveTimeScale],
+  )
 
   const snapshot = useMemo(() => timeScaleSnapshots[activeTimeScale], [activeTimeScale])
 
@@ -168,7 +229,16 @@ export function CashFlowKPIs() {
             Viewing {timeScaleOptions.find((option) => option.id === activeTimeScale)?.label ?? ""} totals
           </p>
         </div>
-        <div role="group" aria-label="Select cash flow time scale" className="flex items-center gap-1.5">
+        <div className="sr-only" id={timeScaleHelpId}>
+          Use left and right arrow keys to move between time scale options.
+        </div>
+        <div
+          role="group"
+          aria-label="Select cash flow time scale"
+          aria-describedby={timeScaleHelpId}
+          className="flex items-center gap-1.5"
+          onKeyDown={handleTimeScaleKeyDown}
+        >
           {timeScaleOptions.map((option) => {
             const isActive = option.id === activeTimeScale
             return (
@@ -178,11 +248,19 @@ export function CashFlowKPIs() {
                 variant="outline"
                 size="sm"
                 aria-pressed={isActive}
-                aria-label={`${option.label} · ${option.srHint}`}
-                className="h-8 rounded-full border-border/50 px-3 text-xs font-medium aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+                ref={(node) => {
+                  optionRefs.current[option.id] = node
+                }}
+                className={cn(
+                  "h-8 rounded-full border-border/50 px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-background/60 text-muted-foreground hover:text-foreground",
+                )}
                 onClick={() => setActiveTimeScale(option.id)}
               >
                 {option.label}
+                <span className="sr-only"> – {option.srHint}</span>
               </Button>
             )
           })}

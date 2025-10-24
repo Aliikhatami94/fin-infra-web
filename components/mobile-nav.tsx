@@ -3,8 +3,10 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
+import { getBadgeTooltipCopy } from "@/lib/linking"
 
 export function MobileNav() {
   const pathname = usePathname()
@@ -17,6 +19,8 @@ export function MobileNav() {
       <ul className="flex items-stretch justify-between gap-1 overflow-x-auto px-1">
         {DASHBOARD_NAVIGATION.slice(0, 6).map((item) => {
           const active = pathname ? pathname.startsWith(item.href) : false
+          const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
+          const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
 
           return (
             <li key={item.name} className="flex-1 min-w-[70px]">
@@ -31,13 +35,20 @@ export function MobileNav() {
                 <item.icon className="h-5 w-5" aria-hidden />
                 <span className="sr-only sm:not-sr-only">{item.name}</span>
                 {item.badge ? (
-                  <Badge
-                    variant="secondary"
-                    className="mt-1 min-h-4 min-w-4 px-1 text-[10px] leading-none"
-                    aria-hidden
-                  >
-                    {item.badge}
-                  </Badge>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="secondary"
+                        className="mt-1 min-h-4 min-w-4 px-1 text-[10px] leading-none"
+                        aria-label={fallbackTooltip}
+                      >
+                        {item.badge}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>{fallbackTooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ) : null}
               </Link>
             </li>

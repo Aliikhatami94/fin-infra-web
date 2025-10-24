@@ -12,7 +12,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command"
-import { usePrivacy } from "@/components/privacy-provider"
+import { useMaskToggleDetails } from "@/components/privacy-provider"
 
 const routes = [
   { label: "Overview", href: "/overview" },
@@ -29,7 +29,7 @@ const routes = [
 export function CommandMenu() {
   const [open, setOpen] = React.useState(false)
   const router = useRouter()
-  const { masked, toggleMasked } = usePrivacy()
+  const { toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -67,7 +67,10 @@ export function CommandMenu() {
               setOpen(false)
             }}
           >
-            {masked ? "Show amounts" : "Hide amounts"}
+            <span className="mr-2 inline-flex h-5 w-5 items-center justify-center text-muted-foreground">
+              <MaskIcon className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <span className="flex-1">{maskLabel}</span>
             <CommandShortcut>H</CommandShortcut>
           </CommandItem>
         </CommandGroup>

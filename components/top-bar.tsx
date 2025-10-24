@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Search, Calendar, Eye, EyeOff, Menu, Building2 } from "lucide-react"
+import { Bell, Search, Calendar, Menu, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Moon, Sun, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-react"
-import { usePrivacy } from "@/components/privacy-provider"
+import { useMaskToggleDetails } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
 import { useDateRange } from "@/components/date-range-provider"
@@ -32,7 +32,7 @@ import { NotificationCenter } from "@/components/notification-center"
 
 export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { setTheme, theme } = useTheme()
-  const { masked, toggleMasked } = usePrivacy()
+  const { masked, toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
   const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
   const { progress: onboardingProgress, state: onboardingState, hydrated } = useOnboardingState()
@@ -107,11 +107,11 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             variant="ghost"
             size="icon"
             aria-pressed={!masked}
-            aria-label={masked ? "Show amounts" : "Hide amounts"}
+            aria-label={maskLabel}
             onClick={toggleMasked}
             className="hidden sm:flex"
           >
-            {masked ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+            <MaskIcon className="h-5 w-5" />
           </Button>
 
           <Select value={dateRange} onValueChange={handleDateRangeChange}>

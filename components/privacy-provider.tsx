@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { Eye, EyeOff } from "lucide-react"
 
 import { useSecureStorage } from "@/hooks/use-secure-storage"
 
@@ -55,6 +56,20 @@ export function usePrivacy() {
   const ctx = useContext(PrivacyContext)
   if (!ctx) throw new Error("usePrivacy must be used within a PrivacyProvider")
   return ctx
+}
+
+export function useMaskToggleDetails() {
+  const { masked, toggleMasked, setMasked } = usePrivacy()
+  const Icon = masked ? EyeOff : Eye
+  const label = masked ? "Show amounts" : "Hide amounts"
+
+  return {
+    masked,
+    toggleMasked,
+    setMasked,
+    label,
+    Icon,
+  }
 }
 
 // A value component that masks its children visually while keeping accessible name/description optional

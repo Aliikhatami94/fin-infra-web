@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, type MouseEvent } from "react"
 import { useRouter } from "next/navigation"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,6 +17,8 @@ import { getDashboardKpis } from "@/lib/services"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
 import { getMetricTooltipCopy } from "@/lib/tooltips"
 import { Button } from "@/components/ui/button"
+import { navigateInApp } from "@/lib/linking"
+import { PlanAdjustModal } from "@/components/plan-adjust-modal"
 
 const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   const max = Math.max(...data)
@@ -49,6 +51,12 @@ export function KPICards() {
   const { state, hydrated } = useOnboardingState()
   const router = useRouter()
   const kpis = useMemo(() => getDashboardKpis(hydrated ? state.persona : undefined), [hydrated, state.persona])
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
+
+  const handlePlanModalChange = (open: boolean) => {
+    setIsPlanModalOpen(open)
+  }
+
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
       {kpis.map((kpi, index) => {
@@ -110,26 +118,61 @@ export function KPICards() {
                         </div>
                         {hasQuickActions && (
                           <div className="flex flex-wrap items-center gap-2 border-t border-border/40 pt-3">
-                            {kpi.quickActions?.map((action) => (
-                              <Button
-                                key={`${kpi.label}-${action.label}`}
-                                variant="ghost"
-                                size="sm"
-                                type="button"
-                                className="h-7 px-2 text-xs font-medium"
-                                aria-label={action.description ?? `${action.label} for ${kpi.label}`}
-                                onClick={(event) => {
-                                  event.preventDefault()
-                                  event.stopPropagation()
-                                  router.push(action.href)
-                                }}
-                              >
-                                <span className="inline-flex items-center gap-1">
-                                  <span>{action.label}</span>
-                                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                                </span>
-                              </Button>
-                            ))}
+                            {kpi.quickActions?.map((action) => {
+                              const isDisabled = action.disabled
+                              const actionLabel = action.description ?? `${action.label} for ${kpi.label}`
+                              const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                if (isDisabled) {
+                                  return
+                                }
+
+                                if (action.intent === "plan-adjust") {
+                                  setIsPlanModalOpen(true)
+                                  return
+                                }
+
+                                if (action.href) {
+                                  await navigateInApp(router, action.href, {
+                                    toastMessage: `We couldn't open ${action.label}.`,
+                                    toastDescription:
+                                      `Try again shortly or head back to your dashboard to continue exploring.`,
+                                  })
+                                }
+                              }
+
+                              const button = (
+                                <Button
+                                  key={`${kpi.label}-${action.label}`}
+                                  variant="ghost"
+                                  size="sm"
+                                  type="button"
+                                  className="h-7 px-2 text-xs font-medium"
+                                  aria-label={actionLabel}
+                                  onClick={handleClick}
+                                  disabled={isDisabled}
+                                >
+                                  <span className="inline-flex items-center gap-1">
+                                    <span>{action.label}</span>
+                                    {!isDisabled && <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />}
+                                  </span>
+                                </Button>
+                              )
+
+                              if (!action.tooltip) {
+                                return button
+                              }
+
+                              return (
+                                <Tooltip key={`${kpi.label}-${action.label}`}>
+                                  <TooltipTrigger asChild>
+                                    <span className="inline-flex">{button}</span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{action.tooltip}</TooltipContent>
+                                </Tooltip>
+                              )
+                            })}
                           </div>
                         )}
                       </CardContent>
@@ -150,6 +193,7 @@ export function KPICards() {
           </TooltipProvider>
         )
       })}
+      <PlanAdjustModal open={isPlanModalOpen} onOpenChange={handlePlanModalChange} />
     </div>
   )
 }

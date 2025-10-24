@@ -1,7 +1,9 @@
 "use client"
 
+import Link from "next/link"
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { motion, useInView } from "framer-motion"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,6 +27,7 @@ import {
 
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { cn } from "@/lib/utils"
+import { getAnchorRel, getAnchorTarget, isInternalNavigation } from "@/lib/linking"
 import type { InsightAction, InsightDefinition, InsightAccent, InsightCategory } from "@/lib/insights/definitions"
 import {
   trackInsightAction,
@@ -153,6 +156,10 @@ export function InsightCard({
   useEffect(() => {
     setIsResolved(Boolean(resolved))
   }, [resolved])
+
+  useEffect(() => {
+    setIsPinned(Boolean(insight.pinned))
+  }, [insight.pinned])
 
   useEffect(() => {
     if (unread && !hasLoggedHighlight.current) {
@@ -437,11 +444,25 @@ export function InsightCard({
                 }
 
                 if (action.href) {
+                  const isInternalLink = isInternalNavigation(action.href)
+                  const anchorProps = {
+                    href: action.href,
+                    "aria-label": action.ariaLabel ?? action.label,
+                  } as const
+
                   return (
                     <Button key={action.id} {...commonProps} asChild>
-                      <a href={action.href} aria-label={action.ariaLabel ?? action.label}>
-                        {action.label}
-                      </a>
+                      {isInternalLink ? (
+                        <Link {...anchorProps}>{action.label}</Link>
+                      ) : (
+                        <a
+                          {...anchorProps}
+                          target={getAnchorTarget(action.href)}
+                          rel={getAnchorRel(action.href)}
+                        >
+                          {action.label}
+                        </a>
+                      )}
                     </Button>
                   )
                 }

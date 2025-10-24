@@ -193,7 +193,11 @@ export const personaKpiExtras: Record<OnboardingGoalFocus, KPI[]> = {
       source: "Money Graph",
       href: "/cash-flow",
       quickActions: [
-        { label: "Adjust plan", href: "/cash-flow" },
+        {
+          label: "Adjust plan",
+          intent: "plan-adjust",
+          description: "Tune your monthly savings contribution",
+        },
       ],
     },
   ],
