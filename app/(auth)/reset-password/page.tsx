@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useState } from "react"
 import { BRAND } from "@/lib/brand"
+import { ComingSoon } from "@/components/coming-soon"
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -107,9 +108,11 @@ export default function ResetPasswordPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full h-11 text-sm font-medium">
-                Reset password
-              </Button>
+              <ComingSoon>
+                <Button type="submit" className="w-full h-11 text-sm font-medium">
+                  Reset password
+                </Button>
+              </ComingSoon>
             </form>
 
             {/* Back to Sign In */}

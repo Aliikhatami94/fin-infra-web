@@ -54,18 +54,44 @@ export default function DemoPage() {
             <div className="space-y-4">
               <div className="overflow-hidden rounded-3xl border border-border/30 bg-card shadow-[var(--shadow-soft)]">
                 <div className="aspect-video bg-muted">
-                  <iframe
-                    title={`${BRAND.name} platform demo video`}
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
+                  <video
+                    controls
+                    poster="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80"
                     className="h-full w-full"
-                  />
+                    aria-describedby="demo-video-description"
+                  >
+                    <source
+                      src="https://cdn.coverr.co/videos/coverr-man-looking-at-stock-market-data-8809/1080p.mp4"
+                      type="video/mp4"
+                    />
+                    <track
+                      default
+                      kind="captions"
+                      src="/demo-captions.vtt"
+                      srcLang="en"
+                      label="English captions"
+                    />
+                    {`Your browser does not support the video tag.`}
+                  </video>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Prefer a personal walkthrough? Reach out to our team and we&apos;ll tailor the experience to your workflows.
-              </p>
+              <div className="space-y-1 text-sm text-muted-foreground" id="demo-video-description">
+                <p>
+                  This narrated walkthrough highlights how {BRAND.name} centralizes oversight, surfaces timely insights, and
+                  keeps your team aligned. Captions are available through the player controls.
+                </p>
+                <p>
+                  Prefer a personal walkthrough? Reach out to our team and we&apos;ll tailor the experience to your workflows. You
+                  can also{' '}
+                  <Link
+                    href="/demo-transcript.txt"
+                    className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    download the full transcript
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
           </div>
 
@@ -96,7 +122,10 @@ export default function DemoPage() {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="flex-1 focus-visible:ring-offset-2">
-                    <Link href="/(dashboard)/overview" aria-label="Skip to the product overview after the demo">
+                    <Link
+                      href="/#product-highlights"
+                      aria-label={`Browse ${BRAND.name} product highlights without leaving the landing page`}
+                    >
                       Browse product
                     </Link>
                   </Button>

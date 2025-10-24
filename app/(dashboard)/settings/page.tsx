@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { SettingsGroup } from "@/components/settings-group"
 import { AnimatedSwitch } from "@/components/animated-switch"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { ThemeSelector } from "@/components/theme-selector"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -86,6 +87,8 @@ export default function SettingsPage() {
   const [timezone, setTimezone] = useState("est")
   const [appearanceLoaded, setAppearanceLoaded] = useState(false)
   const [baseline, setBaseline] = useState<SettingsSnapshot | null>(null)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle")
+  const [resetDialogOpen, setResetDialogOpen] = useState(false)
 
   const activeTheme = (theme ?? "system") as ThemeSetting
 
@@ -124,17 +127,60 @@ export default function SettingsPage() {
     ],
   )
 
+  const computeSnapshot = useCallback(
+    (overrides: Partial<SettingsSnapshot> = {}) => ({
+      ...currentSnapshot,
+      ...overrides,
+    }),
+    [currentSnapshot],
+  )
+
+  const handlePreferenceAutosave = useCallback(
+    (preferenceId: string, label: string, nextSnapshot: SettingsSnapshot) => {
+      setSaveStatus("saving")
+      const savePromise = new Promise<void>((resolve) => {
+        setTimeout(() => {
+          setBaseline(nextSnapshot)
+          setSaveStatus("saved")
+          resolve()
+        }, 500)
+      })
+
+      toast.promise(savePromise, {
+        loading: "Saving…",
+        success: `${label} saved`,
+        error: `Couldn't save ${label}`,
+      })
+
+      return savePromise
+    },
+    [setBaseline],
+  )
+
   const handleToggleChange = (
     preferenceId: string,
     label: string,
     section: string,
     setter: (value: boolean) => void,
+    snapshotKey: keyof SettingsSnapshot,
   ) => {
     return (value: boolean) => {
       setter(value)
       trackPreferenceToggle({ preferenceId, label, section, value })
+      const nextSnapshot = computeSnapshot({ [snapshotKey]: value } as Partial<SettingsSnapshot>)
+      handlePreferenceAutosave(preferenceId, label, nextSnapshot)
     }
   }
+
+  useEffect(() => {
+    if (saveStatus !== "saved") {
+      return
+    }
+
+    const timeout = setTimeout(() => setSaveStatus("idle"), 2000)
+
+    return () => clearTimeout(timeout)
+  }, [saveStatus])
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -221,29 +267,72 @@ export default function SettingsPage() {
   }, [baseline, currentSnapshot])
 
   const handleReset = () => {
-    setEmailNotifications(initialState.emailNotifications)
-    setPushNotifications(initialState.pushNotifications)
-    setPriceAlerts(initialState.priceAlerts)
-    setTradeConfirmations(initialState.tradeConfirmations)
-    setTwoFactor(initialState.twoFactor)
-    setAnalyticsConsent(initialState.analyticsConsent)
-    setMarketingConsent(initialState.marketingConsent)
-    setDataSharing(initialState.dataSharing)
-    setFontScale(appearanceDefaults.fontScale)
-    setDyslexiaMode(appearanceDefaults.dyslexia)
-    setHighContrastMode(appearanceDefaults.highContrast)
-    setLanguage("en")
-    setTimezone("est")
-    setTheme("system")
+    setSaveStatus("saving")
+    const resetSnapshot: SettingsSnapshot = {
+      emailNotifications: initialState.emailNotifications,
+      pushNotifications: initialState.pushNotifications,
+      priceAlerts: initialState.priceAlerts,
+      tradeConfirmations: initialState.tradeConfirmations,
+      twoFactor: initialState.twoFactor,
+      analyticsConsent: initialState.analyticsConsent,
+      marketingConsent: initialState.marketingConsent,
+      dataSharing: initialState.dataSharing,
+      fontScale: appearanceDefaults.fontScale,
+      dyslexiaMode: appearanceDefaults.dyslexia,
+      highContrastMode: appearanceDefaults.highContrast,
+      theme: "system",
+      language: "en",
+      timezone: "est",
+    }
+
+    setEmailNotifications(resetSnapshot.emailNotifications)
+    setPushNotifications(resetSnapshot.pushNotifications)
+    setPriceAlerts(resetSnapshot.priceAlerts)
+    setTradeConfirmations(resetSnapshot.tradeConfirmations)
+    setTwoFactor(resetSnapshot.twoFactor)
+    setAnalyticsConsent(resetSnapshot.analyticsConsent)
+    setMarketingConsent(resetSnapshot.marketingConsent)
+    setDataSharing(resetSnapshot.dataSharing)
+    setFontScale(resetSnapshot.fontScale)
+    setDyslexiaMode(resetSnapshot.dyslexiaMode)
+    setHighContrastMode(resetSnapshot.highContrastMode)
+    setLanguage(resetSnapshot.language)
+    setTimezone(resetSnapshot.timezone)
+    setTheme(resetSnapshot.theme)
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(APPEARANCE_STORAGE_KEY)
     }
+
+    const resetPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setBaseline(resetSnapshot)
+        setSaveStatus("saved")
+        resolve()
+      }, 500)
+    })
+
+    toast.promise(resetPromise, {
+      loading: "Restoring defaults…",
+      success: "Defaults restored",
+      error: "Couldn't reset settings",
+    })
   }
 
   const handleSave = () => {
-    setBaseline(currentSnapshot)
-    toast.success("Settings saved", {
-      description: "Your preferences are now synced across devices.",
+    setSaveStatus("saving")
+    const snapshot = currentSnapshot
+    const savePromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setBaseline(snapshot)
+        setSaveStatus("saved")
+        resolve()
+      }, 500)
+    })
+
+    toast.promise(savePromise, {
+      loading: "Saving…",
+      success: "Settings saved",
+      error: "Couldn't save settings",
     })
   }
 
@@ -261,6 +350,7 @@ export default function SettingsPage() {
         description: "Trade receipts, balance alerts, and weekly summaries.",
         value: emailNotifications,
         setter: setEmailNotifications,
+        snapshotKey: "emailNotifications" as const,
       },
       {
         id: "push-notifications",
@@ -268,6 +358,7 @@ export default function SettingsPage() {
         description: "Instant alerts on mobile and desktop apps.",
         value: pushNotifications,
         setter: setPushNotifications,
+        snapshotKey: "pushNotifications" as const,
       },
       {
         id: "price-alerts",
@@ -275,6 +366,7 @@ export default function SettingsPage() {
         description: "Notifies when equities cross your guardrails.",
         value: priceAlerts,
         setter: setPriceAlerts,
+        snapshotKey: "priceAlerts" as const,
       },
       {
         id: "trade-confirmations",
@@ -282,6 +374,7 @@ export default function SettingsPage() {
         description: "Require one-tap approval before orders execute.",
         value: tradeConfirmations,
         setter: setTradeConfirmations,
+        snapshotKey: "tradeConfirmations" as const,
       },
     ],
     [emailNotifications, pushNotifications, priceAlerts, tradeConfirmations],
@@ -295,6 +388,7 @@ export default function SettingsPage() {
         description: "Share anonymized usage data to improve reliability.",
         value: analyticsConsent,
         setter: setAnalyticsConsent,
+        snapshotKey: "analyticsConsent" as const,
       },
       {
         id: "marketing-consent",
@@ -302,6 +396,7 @@ export default function SettingsPage() {
         description: "Receive curated product news and early feature access.",
         value: marketingConsent,
         setter: setMarketingConsent,
+        snapshotKey: "marketingConsent" as const,
       },
       {
         id: "data-sharing",
@@ -309,6 +404,7 @@ export default function SettingsPage() {
         description: "Allow trusted institutions to pull aggregated insights.",
         value: dataSharing,
         setter: setDataSharing,
+        snapshotKey: "dataSharing" as const,
       },
     ],
     [analyticsConsent, marketingConsent, dataSharing],
@@ -336,6 +432,22 @@ export default function SettingsPage() {
         : fontScale === "focus"
           ? "text-base"
           : "text-[0.8rem]"
+
+  const statusLabel =
+    saveStatus === "saving"
+      ? "Saving…"
+      : saveStatus === "saved"
+        ? "Saved"
+        : hasChanges
+          ? "Unsaved changes"
+          : "All settings saved"
+
+  const statusVariant =
+    saveStatus === "saving" || hasChanges
+      ? "secondary"
+      : saveStatus === "saved"
+        ? "default"
+        : "outline"
 
   return (
     <div className="p-6">
@@ -389,6 +501,7 @@ export default function SettingsPage() {
                       preference.label,
                       "notifications",
                       preference.setter,
+                      preference.snapshotKey,
                     )}
                   />
                 </div>
@@ -467,6 +580,8 @@ export default function SettingsPage() {
                       section: "appearance",
                       value,
                     })
+                    const nextSnapshot = computeSnapshot({ dyslexiaMode: value })
+                    handlePreferenceAutosave("dyslexia-mode", "Dyslexia-friendly mode", nextSnapshot)
                   }}
                 />
               </div>
@@ -492,6 +607,8 @@ export default function SettingsPage() {
                       section: "appearance",
                       value,
                     })
+                    const nextSnapshot = computeSnapshot({ highContrastMode: value })
+                    handlePreferenceAutosave("high-contrast-mode", "High contrast preview", nextSnapshot)
                   }}
                 />
               </div>
@@ -507,22 +624,27 @@ export default function SettingsPage() {
           </div>
         </SettingsGroup>
 
-        <SettingsGroup title="Security" description="Manage your security settings" icon={<Lock className="h-5 w-5" />}>
+        <SettingsGroup title="Security" description="Manage your security settings" icon={<Lock className="h-5 w-5" />}> 
           <div className="flex items-center justify-between py-4">
             <div className="space-y-0.5">
-              <Label htmlFor="two-factor" className="font-medium">
+              <Label id="two-factor-label" htmlFor="two-factor" className="font-medium">
                 Two-Factor Authentication
               </Label>
-              <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
+              <p id="two-factor-description" className="text-sm text-muted-foreground">
+                Add an extra layer of security before approving logins.
+              </p>
             </div>
             <AnimatedSwitch
               id="two-factor"
+              aria-labelledby="two-factor-label"
+              aria-describedby="two-factor-description"
               checked={twoFactor}
               onCheckedChange={handleToggleChange(
                 "two-factor",
                 "Two-Factor Authentication",
                 "security",
                 setTwoFactor,
+                "twoFactor",
               )}
             />
           </div>
@@ -616,6 +738,7 @@ export default function SettingsPage() {
                     preference.label,
                     "privacy",
                     preference.setter,
+                    preference.snapshotKey,
                   )}
                 />
               </div>
@@ -688,19 +811,43 @@ export default function SettingsPage() {
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between border-t border-border/20 bg-background/95 px-6 py-4 shadow-lg backdrop-blur-md lg:left-64"
         >
-          <Button variant="ghost" size="lg" onClick={handleReset}>
+          <Button variant="ghost" size="lg" onClick={() => setResetDialogOpen(true)}>
             Reset to Defaults
           </Button>
           <div className="flex items-center gap-3">
-            <Badge variant={hasChanges ? "secondary" : "outline"} className="text-xs" aria-live="polite">
-              {hasChanges ? "Unsaved changes" : "All settings saved"}
+            <Badge variant={statusVariant} className="text-xs" aria-live="polite">
+              {statusLabel}
             </Badge>
-            <Button size="lg" onClick={handleSave} disabled={!hasChanges || !baseline} aria-disabled={!hasChanges || !baseline}>
+            <Button
+              size="lg"
+              onClick={handleSave}
+              disabled={!baseline || !hasChanges || saveStatus === "saving"}
+              aria-disabled={!baseline || !hasChanges || saveStatus === "saving"}
+            >
               Save All Settings
             </Button>
           </div>
         </motion.div>
       </motion.div>
+
+      <ConfirmDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+        title="Reset settings to defaults?"
+        description="We'll restore the recommended notification and accessibility defaults. This won't disconnect linked accounts."
+        confirmLabel="Restore defaults"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          setResetDialogOpen(false)
+          handleReset()
+        }}
+      >
+        <ul className="list-disc space-y-1 pl-4">
+          <li>Email, push, price alert, and trade confirmation toggles</li>
+          <li>Appearance preferences including font scale, dyslexia mode, and contrast</li>
+          <li>Theme, language, and timezone selections</li>
+        </ul>
+      </ConfirmDialog>
     </div>
   )
 }

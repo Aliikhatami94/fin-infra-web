@@ -40,9 +40,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { AnimatedSwitch } from "@/components/animated-switch"
 import { toast } from "@/components/ui/sonner"
 import { trackPreferenceToggle } from "@/lib/analytics/events"
+import { MaskedInput, maskEmail } from "@/components/ui/masked-input"
 
 type SessionStatus = "Active" | "Signed out"
 type StatusFilter = "all" | SessionStatus
@@ -101,6 +112,8 @@ const statusRank: Record<SessionStatus, number> = {
   "Signed out": 1,
 }
 
+const AUDIT_LOG_ESTIMATE_MB = 42
+
 export default function SecurityCenterPage() {
   const [loginAlerts, setLoginAlerts] = useState(true)
   const [maskSensitive, setMaskSensitive] = useState(true)
@@ -110,18 +123,21 @@ export default function SecurityCenterPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
   const [alternateEmail, setAlternateEmail] = useState("security.backup@mail.com")
   const [alternatePhone, setAlternatePhone] = useState("+1 (917) 555-0199")
+  const [sessions, setSessions] = useState(loginHistorySeed)
+  const [isAuditDialogOpen, setIsAuditDialogOpen] = useState(false)
+  const [isAuditScheduling, setIsAuditScheduling] = useState(false)
 
   const loginAlertsLabelId = useId()
   const loginAlertsDescriptionId = useId()
   const maskSensitiveLabelId = useId()
   const maskSensitiveDescriptionId = useId()
 
-  const loginHistory = useMemo(() => loginHistorySeed, [])
+  const currentSessionId = loginHistorySeed[0]?.id ?? null
 
   const filteredSessions = useMemo(() => {
     const direction = sortDirection === "asc" ? 1 : -1
 
-    return [...loginHistory]
+    return [...sessions]
       .filter((session) => {
         const matchesDevice = session.device.toLowerCase().includes(deviceQuery.toLowerCase())
         const matchesStatus = statusFilter === "all" || session.status === statusFilter
@@ -137,7 +153,11 @@ export default function SecurityCenterPage() {
             return (a.timestamp - b.timestamp) * direction
         }
       })
-  }, [deviceQuery, loginHistory, sortDirection, sortKey, statusFilter])
+  }, [deviceQuery, sessions, sortDirection, sortKey, statusFilter])
+
+  const hasOtherActiveSessions = useMemo(() => {
+    return sessions.some((session) => session.status === "Active" && session.id !== currentSessionId)
+  }, [currentSessionId, sessions])
 
   const handleAlertingSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -150,6 +170,59 @@ export default function SecurityCenterPage() {
     toast(`Preparing ${format.toUpperCase()} export`, {
       description: "We\u2019ll send an in-app notification as soon as your encrypted file is ready.",
     })
+  }
+
+  const handleEndSession = (sessionId: string) => {
+    setSessions((previous) =>
+      previous.map((session) =>
+        session.id === sessionId
+          ? {
+              ...session,
+              status: "Signed out",
+              timeLabel: "Just now",
+              timestamp: Date.now(),
+            }
+          : session,
+      ),
+    )
+
+    const endedSession = sessions.find((session) => session.id === sessionId)
+    toast("Session ended", {
+      description:
+        endedSession?.device
+          ? `${endedSession.device} was signed out remotely. We’ll alert you if it attempts to reconnect.`
+          : "The session was signed out remotely. We’ll alert you if it attempts to reconnect.",
+    })
+  }
+
+  const handleEndAllOtherSessions = () => {
+    setSessions((previous) =>
+      previous.map((session) =>
+        session.id === currentSessionId
+          ? session
+          : {
+              ...session,
+              status: "Signed out",
+              timeLabel: "Just now",
+              timestamp: Date.now(),
+            },
+      ),
+    )
+
+    toast("Signed out of other devices", {
+      description: "All other active sessions were ended. Keep an eye on your alerts for any new sign-ins.",
+    })
+  }
+
+  const handleAuditConfirm = () => {
+    setIsAuditScheduling(true)
+    globalThis.setTimeout(() => {
+      toast("Audit log export scheduled", {
+        description: `We’ll email an encrypted link to ${alternateEmail} and notify you in TradeHub when it’s ready.`,
+      })
+      setIsAuditScheduling(false)
+      setIsAuditDialogOpen(false)
+    }, 900)
   }
 
   return (
@@ -173,10 +246,41 @@ export default function SecurityCenterPage() {
               <span className="rounded-full bg-white/20 px-3 py-1">Masked identifiers</span>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button variant="cta" size="sm" className="rounded-full px-5">
-                <History className="h-4 w-4" />
-                Download full audit log
-              </Button>
+              <Dialog open={isAuditDialogOpen} onOpenChange={setIsAuditDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="cta" size="sm" className="rounded-full px-5">
+                    <History className="h-4 w-4" />
+                    Download full audit log
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>Download full audit log</DialogTitle>
+                    <DialogDescription>
+                      Export every authentication event from the last 12 months. Estimated file size: ~{AUDIT_LOG_ESTIMATE_MB} MB.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 text-sm text-muted-foreground">
+                    <p>
+                      Files larger than 25 MB are delivered via encrypted email to
+                      <span className="font-medium text-foreground"> {maskEmail(alternateEmail)}</span>. We’ll also send an in-app
+                      notification when the link is ready.
+                    </p>
+                    <p>The download link remains active for 24 hours and can be forwarded to your compliance partner.</p>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button type="button" variant="ghost">
+                        Cancel
+                      </Button>
+                    </DialogClose>
+                    <Button type="button" onClick={handleAuditConfirm} disabled={isAuditScheduling} className="gap-2">
+                      <Download className="h-4 w-4" />
+                      {isAuditScheduling ? "Scheduling…" : "Confirm export"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               <Button asChild variant="ghost" size="sm" className="text-white hover:bg-white/10">
                 <Link href="/settings">
                   <ExternalLink className="h-4 w-4" /> Back to settings
@@ -273,22 +377,25 @@ export default function SecurityCenterPage() {
             </div>
             <TooltipProvider delayDuration={100}>
               <div className="divide-y divide-border/30" role="table" aria-label="Recent login history">
-                <div className="hidden px-6 py-3 text-xs uppercase tracking-wide text-muted-foreground sm:grid sm:grid-cols-[2fr_1.5fr_1fr_5rem]">
+                <div className="hidden px-6 py-3 text-xs uppercase tracking-wide text-muted-foreground sm:grid sm:grid-cols-[2fr_1.5fr_1fr_6rem_7rem]">
                   <span>Device</span>
                   <span>Location</span>
                   <span>Time</span>
                   <span className="text-center">Status</span>
+                  <span className="text-right">Action</span>
                 </div>
                 {filteredSessions.length === 0 ? (
                   <div className="px-6 py-8 text-sm text-muted-foreground" role="row">
-                    No sessions match your filters. Adjust filters to review more activity.
+                    {sessions.length === 0
+                      ? "All clear — we’ll show new sign-ins here once they occur."
+                      : "No sessions match your filters. Adjust filters to review more activity."}
                   </div>
                 ) : (
                   filteredSessions.map((entry) => (
                     <div
                       key={entry.id}
                       role="row"
-                      className="grid gap-4 px-6 py-4 sm:grid-cols-[2fr_1.5fr_1fr_5rem]"
+                      className="grid gap-4 px-6 py-4 sm:grid-cols-[2fr_1.5fr_1fr_6rem_7rem] sm:items-center"
                     >
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-foreground">{entry.device}</p>
@@ -311,7 +418,7 @@ export default function SecurityCenterPage() {
                         </Tooltip>
                       </div>
                       <p className="text-sm text-muted-foreground">{entry.timeLabel}</p>
-                      <div className="flex items-center justify-start sm:justify-center">
+                      <div className="hidden sm:flex sm:justify-center">
                         <Badge
                           variant="secondary"
                           className={
@@ -323,6 +430,42 @@ export default function SecurityCenterPage() {
                           {entry.status}
                         </Badge>
                       </div>
+                      <div className="hidden sm:flex sm:justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={() => handleEndSession(entry.id)}
+                          disabled={entry.status !== "Active"}
+                        >
+                          End
+                          <span className="sr-only"> session for {entry.device}</span>
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 sm:hidden">
+                        <Badge
+                          variant="secondary"
+                          className={
+                            entry.status === "Active"
+                              ? "bg-emerald-500/15 text-emerald-600"
+                              : "bg-muted text-muted-foreground"
+                          }
+                        >
+                          {entry.status}
+                        </Badge>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={() => handleEndSession(entry.id)}
+                          disabled={entry.status !== "Active"}
+                        >
+                          End
+                          <span className="sr-only"> session for {entry.device}</span>
+                        </Button>
+                      </div>
                     </div>
                   ))
                 )}
@@ -333,7 +476,13 @@ export default function SecurityCenterPage() {
             <p className="text-xs text-muted-foreground">
               Need to revoke a device? Visit <span className="font-medium text-foreground">Settings → Security</span> to manage sessions.
             </p>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={handleEndAllOtherSessions}
+              disabled={!hasOtherActiveSessions}
+            >
               <Activity className="h-4 w-4" /> End all other sessions
             </Button>
           </CardFooter>
@@ -347,64 +496,97 @@ export default function SecurityCenterPage() {
                 <CardDescription>Stay informed when suspicious activity occurs.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <p id={loginAlertsLabelId} className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <BellRing className="h-4 w-4 text-primary" /> Login alerts
-                    </p>
-                    <p id={loginAlertsDescriptionId} className="text-xs text-muted-foreground">
-                      Email and push notifications for new device sign-ins.
-                    </p>
+                <TooltipProvider delayDuration={100}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p id={loginAlertsLabelId} className="flex items-center gap-2 text-sm font-medium text-foreground">
+                        <BellRing className="h-4 w-4 text-primary" />
+                        <span>Login alerts</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="rounded-full border border-transparent p-1 text-muted-foreground transition-colors hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                            >
+                              <Info aria-hidden className="h-3.5 w-3.5" />
+                              <span className="sr-only">Learn about login alerts</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-xs leading-relaxed">
+                            We’ll alert you when a new device, unusual location, or blocked attempt hits your account.
+                          </TooltipContent>
+                        </Tooltip>
+                      </p>
+                      <p id={loginAlertsDescriptionId} className="text-xs text-muted-foreground">
+                        Email and push notifications for new device sign-ins.
+                      </p>
+                    </div>
+                    <AnimatedSwitch
+                      aria-labelledby={loginAlertsLabelId}
+                      aria-describedby={loginAlertsDescriptionId}
+                      checked={loginAlerts}
+                      onCheckedChange={(value) => {
+                        setLoginAlerts(value)
+                        trackPreferenceToggle({
+                          preferenceId: "login-alerts",
+                          label: "Login alerts",
+                          section: "security",
+                          value,
+                        })
+                      }}
+                    />
                   </div>
-                  <AnimatedSwitch
-                    aria-labelledby={loginAlertsLabelId}
-                    aria-describedby={loginAlertsDescriptionId}
-                    checked={loginAlerts}
-                    onCheckedChange={(value) => {
-                      setLoginAlerts(value)
-                      trackPreferenceToggle({
-                        preferenceId: "login-alerts",
-                        label: "Login alerts",
-                        section: "security",
-                        value,
-                      })
-                    }}
-                  />
-                </div>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <p id={maskSensitiveLabelId} className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <EyeOff className="h-4 w-4 text-primary" /> Mask sensitive data
-                    </p>
-                    <p id={maskSensitiveDescriptionId} className="text-xs text-muted-foreground">
-                      Require reveal tap for account numbers and personally identifiable data.
-                    </p>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p id={maskSensitiveLabelId} className="flex items-center gap-2 text-sm font-medium text-foreground">
+                        <EyeOff className="h-4 w-4 text-primary" />
+                        <span>Mask sensitive data</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="rounded-full border border-transparent p-1 text-muted-foreground transition-colors hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                            >
+                              <Info aria-hidden className="h-3.5 w-3.5" />
+                              <span className="sr-only">Learn about masking</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-xs leading-relaxed">
+                            Hide account numbers and identifiers until you tap reveal. We’ll re-mask automatically after inactivity.
+                          </TooltipContent>
+                        </Tooltip>
+                      </p>
+                      <p id={maskSensitiveDescriptionId} className="text-xs text-muted-foreground">
+                        Require reveal tap for account numbers and personally identifiable data.
+                      </p>
+                    </div>
+                    <AnimatedSwitch
+                      aria-labelledby={maskSensitiveLabelId}
+                      aria-describedby={maskSensitiveDescriptionId}
+                      checked={maskSensitive}
+                      onCheckedChange={(value) => {
+                        setMaskSensitive(value)
+                        trackPreferenceToggle({
+                          preferenceId: "mask-sensitive",
+                          label: "Mask sensitive data",
+                          section: "security",
+                          value,
+                        })
+                      }}
+                    />
                   </div>
-                  <AnimatedSwitch
-                    aria-labelledby={maskSensitiveLabelId}
-                    aria-describedby={maskSensitiveDescriptionId}
-                    checked={maskSensitive}
-                    onCheckedChange={(value) => {
-                      setMaskSensitive(value)
-                      trackPreferenceToggle({
-                        preferenceId: "mask-sensitive",
-                        label: "Mask sensitive data",
-                        section: "security",
-                        value,
-                      })
-                    }}
-                  />
-                </div>
+                </TooltipProvider>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="alternate-email">Alternate email</Label>
-                    <Input
+                    <MaskedInput
                       id="alternate-email"
                       type="email"
                       autoComplete="email"
                       value={alternateEmail}
                       onChange={(event) => setAlternateEmail(event.target.value)}
                       aria-describedby="alternate-email-help"
+                      status="verified"
                     />
                     <p id="alternate-email-help" className="text-xs text-muted-foreground">
                       Used when we can’t reach your primary inbox. We’ll mask this address in notifications.

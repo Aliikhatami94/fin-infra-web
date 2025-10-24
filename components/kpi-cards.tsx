@@ -12,7 +12,7 @@ import { LastSyncBadge } from "@/components/last-sync-badge"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
-import { getValueColor, getValueBgColor } from "@/lib/color-utils"
+import { getTrendSemantic } from "@/lib/color-utils"
 import { getDashboardKpis } from "@/lib/services"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
 import { getMetricTooltipCopy } from "@/lib/tooltips"
@@ -61,6 +61,7 @@ export function KPICards() {
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
       {kpis.map((kpi, index) => {
         const trendValue = kpi.trend === "up" ? 1 : kpi.trend === "down" ? -1 : 0
+        const trendStyles = getTrendSemantic(trendValue)
         const tooltipCopy = getMetricTooltipCopy(kpi.label)
         const hasQuickActions = kpi.quickActions && kpi.quickActions.length > 0
 
@@ -87,25 +88,29 @@ export function KPICards() {
                           </div>
                           <div
                             className={cn(
-                              "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
-                              getValueBgColor(trendValue),
+                              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border",
+                              trendStyles.surfaceClass,
+                              trendStyles.borderClass,
                             )}
+                            data-tone={trendStyles.tone}
+                            aria-hidden="true"
                           >
-                            <kpi.icon className={cn("h-5 w-5", getValueColor(trendValue))} />
+                            <kpi.icon className={cn("h-5 w-5", trendStyles.iconClass)} aria-hidden="true" />
                           </div>
                         </div>
                         <div className="flex items-end justify-between gap-4">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1 text-xs cursor-help">
+                              <div className="flex items-center gap-1 text-xs font-medium cursor-help">
                                 {kpi.trend === "up" ? (
-                                  <TrendingUp className={cn("h-3 w-3", getValueColor(trendValue))} />
+                                  <TrendingUp className={cn("h-3.5 w-3.5", trendStyles.iconClass)} aria-hidden="true" />
                                 ) : (
-                                  <TrendingDown className={cn("h-3 w-3", getValueColor(trendValue))} />
+                                  <TrendingDown className={cn("h-3.5 w-3.5", trendStyles.iconClass)} aria-hidden="true" />
                                 )}
-                                <span className={cn(getValueColor(trendValue))}>
+                                <span className={cn(trendStyles.textClass)}>
                                   <MaskableValue value={kpi.change} srLabel={`${kpi.label} change`} />
                                 </span>
+                                <span className="sr-only">{trendStyles.tone === "positive" ? "Improving" : trendStyles.tone === "negative" ? "Declining" : "No change"}</span>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -114,7 +119,7 @@ export function KPICards() {
                               </p>
                             </TooltipContent>
                           </Tooltip>
-                          <Sparkline data={kpi.sparkline} color={getValueColor(trendValue)} />
+                          <Sparkline data={kpi.sparkline} color={trendStyles.strokeColor} />
                         </div>
                         {hasQuickActions && (
                           <div className="flex flex-wrap items-center gap-2 border-t border-border/40 pt-3">

@@ -23,6 +23,9 @@ interface CollaborationDrawerProps {
   entityType: CollaborationEntityType
   entityName: string
   triggerLabel?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  hideTrigger?: boolean
 }
 
 export function CollaborationDrawer({
@@ -30,13 +33,26 @@ export function CollaborationDrawer({
   entityType,
   entityName,
   triggerLabel = "Discuss",
+  open,
+  onOpenChange,
+  hideTrigger = false,
 }: CollaborationDrawerProps) {
   const { activeWorkspace, getThread, addComment } = useWorkspace()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [mentionIds, setMentionIds] = useState<string[]>([])
 
   const thread = getThread(entityType, entityId)
+
+  const isControlled = open !== undefined
+  const dialogOpen = isControlled ? open : internalOpen
+
+  const handleOpenChange = (value: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(value)
+    }
+    onOpenChange?.(value)
+  }
 
   const availableMembers = useMemo(() => activeWorkspace.members, [activeWorkspace.members])
 
@@ -54,13 +70,15 @@ export function CollaborationDrawer({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(value) => setOpen(value)}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 rounded-full">
-          <MessageSquare className="h-4 w-4" />
-          {triggerLabel}
-        </Button>
-      </DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm" className="gap-2 rounded-full">
+            <MessageSquare className="h-4 w-4" />
+            {triggerLabel}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-left">

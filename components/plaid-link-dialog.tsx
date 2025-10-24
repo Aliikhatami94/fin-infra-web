@@ -24,9 +24,11 @@ const popularBanks = [
 interface PlaidLinkDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onLinkStart?: (institution: string | null) => void
+  onLinkSuccess?: (institution: string | null) => void
 }
 
-export function PlaidLinkDialog({ open, onOpenChange }: PlaidLinkDialogProps) {
+export function PlaidLinkDialog({ open, onOpenChange, onLinkStart, onLinkSuccess }: PlaidLinkDialogProps) {
   const [step, setStep] = useState<"search" | "credentials" | "connecting" | "success">("search")
   const [selectedBank, setSelectedBank] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -40,9 +42,11 @@ export function PlaidLinkDialog({ open, onOpenChange }: PlaidLinkDialogProps) {
 
   const handleConnect = () => {
     setStep("connecting")
+    onLinkStart?.(selectedBank)
     // Simulate connection
     setTimeout(() => {
       setStep("success")
+      onLinkSuccess?.(selectedBank)
       setTimeout(() => {
         onOpenChange(false)
         // Reset state
