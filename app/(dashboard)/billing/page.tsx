@@ -98,7 +98,7 @@ export default function BillingPage() {
                 <div className="flex items-center gap-4">
                   <p className="font-mono font-medium">{invoice.amount}</p>
                   <Badge variant="outline">{invoice.status}</Badge>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" aria-label={`Download invoice from ${invoice.date}`}>
                     <Download className="h-4 w-4" />
                   </Button>
                 </div>

@@ -127,6 +127,7 @@ export function RecurringExpenses({ selectedCategory }: RecurringExpensesProps) 
                       size="icon"
                       className="h-7 w-7 hover:bg-yellow-500/10"
                       title="Pause subscription"
+                      aria-label={`Pause ${sub.name}`}
                     >
                       <Pause className="h-3.5 w-3.5 text-yellow-600" />
                     </Button>
@@ -135,6 +136,7 @@ export function RecurringExpenses({ selectedCategory }: RecurringExpensesProps) 
                       size="icon"
                       className="h-7 w-7 hover:bg-red-500/10"
                       title="Cancel subscription"
+                      aria-label={`Cancel ${sub.name}`}
                     >
                       <X className="h-3.5 w-3.5 text-red-500" />
                     </Button>

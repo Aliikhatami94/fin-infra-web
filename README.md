@@ -65,6 +65,8 @@ CI and `next build` will fail if the required environment variables are missing.
 - `lint`: run ESLint
 - `test`: run Vitest test suites
 - `typecheck`: run TypeScript without emit
+- `qa:axe`: run axe-core accessibility audits against key routes (requires a running local server)
+- `qa:lighthouse`: capture Lighthouse reports for landing and dashboard routes via `@lhci/cli`
 
 ## Project structure
 
@@ -108,6 +110,13 @@ Vitest is configured for unit tests.
 ```bash
 pnpm test
 ```
+
+## Quality assurance
+
+- Follow the [QA checklist](docs/qa-checklist.md) before shipping user-facing changes.
+- Run automated accessibility checks with `pnpm qa:axe -- --baseUrl http://localhost:3000` while the app is
+  running locally.
+- Capture Lighthouse baselines for landing and dashboard routes via `pnpm qa:lighthouse`.
 
 ## Continuous integration
 

@@ -228,6 +228,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
       <tr
         {...props}
         ref={ref}
+        style={{ borderColor: "var(--table-divider)" }}
         onClick={(event) => {
           if (item.type === "holding") {
             setSelectedHolding(item.holding)
@@ -282,31 +283,78 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
         </CardHeader>
         <CardContent>
           <div className="hidden md:block">
-            <TableVirtuoso
-              data={virtualRows}
-              style={{ height: tableHeight }}
-              components={tableComponents}
+            <div className="table-surface">
+              <TableVirtuoso
+                data={virtualRows}
+                style={{ height: tableHeight }}
+                components={tableComponents}
+                className="min-w-full"
               fixedHeaderContent={() => (
-                <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                  <th className="py-3 px-3" onClick={() => toggleSort("ticker")}>
-                    Ticker
+                <tr
+                  className="border-b text-xs uppercase tracking-wide text-muted-foreground"
+                  style={{ borderColor: "var(--table-divider)" }}
+                >
+                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("ticker")}
+                      className="flex items-center gap-1 font-medium transition-colors hover:text-foreground"
+                      aria-label="Sort by ticker"
+                    >
+                      Ticker
+                    </button>
                   </th>
-                  <th className="py-3 px-3 text-right" onClick={() => toggleSort("qty")}>
-                    Quantity
+                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("qty")}
+                      className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
+                      aria-label="Sort by quantity"
+                    >
+                      Quantity
+                    </button>
                   </th>
-                  <th className="py-3 px-3 text-right" onClick={() => toggleSort("value")}>
-                    Value
+                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("value")}
+                      className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
+                      aria-label="Sort by value"
+                    >
+                      Value
+                    </button>
                   </th>
-                  <th className="py-3 px-3 text-right" onClick={() => toggleSort("pl")}>
-                    P/L
+                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("pl")}
+                      className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
+                      aria-label="Sort by profit and loss"
+                    >
+                      P/L
+                    </button>
                   </th>
-                  <th className="py-3 px-3 text-right" onClick={() => toggleSort("weight")}>
-                    Weight
+                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("weight")}
+                      className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
+                      aria-label="Sort by portfolio weight"
+                    >
+                      Weight
+                    </button>
                   </th>
-                  <th className="py-3 px-3" onClick={() => toggleSort("account")}>
-                    Account
+                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("account")}
+                      className="flex items-center gap-1 transition-colors hover:text-foreground"
+                      aria-label="Sort by account"
+                    >
+                      Account
+                    </button>
                   </th>
-                  <th className="py-3 px-3 text-right">
+                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
                     <span className="text-xs uppercase tracking-wide">Actions</span>
                   </th>
                 </tr>
@@ -314,7 +362,11 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
               itemContent={(index, item) => {
                 if (item.type === "group") {
                   return [
-                    <td key={`${item.id}-group`} colSpan={7} className="py-3 px-3 font-semibold text-sm text-foreground">
+                    <td
+                      key={`${item.id}-group`}
+                      colSpan={7}
+                      className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] font-semibold text-sm text-foreground"
+                    >
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4" />
                         {item.label}
@@ -325,7 +377,10 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
 
                 const holding = item.holding
                 return [
-                  <td key={`${item.id}-ticker`} className="py-4 px-3 align-middle">
+                  <td
+                    key={`${item.id}-ticker`}
+                    className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
+                  >
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-lg">
                         {holding.logo}
@@ -336,15 +391,24 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                       </div>
                     </div>
                   </td>,
-                  <td key={`${item.id}-qty`} className="py-4 px-3 text-right align-middle">
+                  <td
+                    key={`${item.id}-qty`}
+                    className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
+                  >
                     <p className="text-sm tabular-nums font-mono whitespace-nowrap text-foreground">{holding.qty}</p>
                   </td>,
-                  <td key={`${item.id}-value`} className="py-4 px-3 text-right align-middle">
+                  <td
+                    key={`${item.id}-value`}
+                    className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
+                  >
                     <p className="text-sm font-semibold tabular-nums text-foreground font-mono whitespace-nowrap">
                       <MaskableValue value={`$${holding.value.toLocaleString()}`} srLabel={`${holding.ticker} value`} />
                     </p>
                   </td>,
-                  <td key={`${item.id}-pl`} className="py-4 px-3 text-right align-middle">
+                  <td
+                    key={`${item.id}-pl`}
+                    className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
+                  >
                     <div className="flex flex-col items-end gap-0.5">
                       <p
                         className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
@@ -386,15 +450,24 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                       </div>
                     </div>
                   </td>,
-                  <td key={`${item.id}-weight`} className="py-4 px-3 text-right align-middle">
+                  <td
+                    key={`${item.id}-weight`}
+                    className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
+                  >
                     <p className="text-sm tabular-nums whitespace-nowrap text-foreground">{holding.weight}%</p>
                   </td>,
-                  <td key={`${item.id}-account`} className="py-4 px-3 align-middle">
+                  <td
+                    key={`${item.id}-account`}
+                    className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
+                  >
                     <Badge variant="outline" className="whitespace-nowrap">
                       {holding.account}
                     </Badge>
                   </td>,
-                  <td key={`${item.id}-actions`} className="py-4 px-3 text-right align-middle">
+                  <td
+                    key={`${item.id}-actions`}
+                    className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
+                  >
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -422,6 +495,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                 ]
               }}
             />
+            </div>
           </div>
 
           <div className="md:hidden space-y-3">

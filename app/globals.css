@@ -53,6 +53,18 @@
   --line-height-base: 1.6;
   --letter-spacing-tight: -0.01em;
 
+  --space-card-inline: clamp(1.25rem, 0.85rem + 1vw, 2.25rem);
+  --space-card-block: clamp(1rem, 0.8rem + 0.6vw, 1.9rem);
+  --space-card-gap: clamp(1rem, 0.85rem + 0.5vw, 1.75rem);
+  --card-radius: calc(var(--radius) + 0.35rem);
+  --table-cell-padding-y: 0.75rem;
+  --table-cell-padding-x: clamp(0.75rem, 0.65rem + 0.4vw, 1.35rem);
+  --table-surface-bg: color-mix(in oklab, var(--card) 92%, transparent);
+  --table-header-bg: color-mix(in oklab, var(--background) 75%, var(--card) 25%);
+  --table-divider: color-mix(in oklab, var(--border) 82%, transparent);
+  --focus-ring-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 55%, transparent);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
   --shadow-soft: 0 24px 60px -32px oklch(0.5 0.08 250 / 0.4);
   --shadow-bold: 0 32px 80px -40px oklch(0.42 0.12 250 / 0.6);
 }
@@ -104,6 +116,10 @@
 
   --shadow-soft: 0 24px 60px -32px oklch(0.22 0.05 250 / 0.65);
   --shadow-bold: 0 36px 90px -38px oklch(0.18 0.08 260 / 0.7);
+
+  --table-surface-bg: color-mix(in oklab, var(--card) 75%, transparent);
+  --table-header-bg: color-mix(in oklab, var(--background) 55%, var(--card) 45%);
+  --table-divider: color-mix(in oklab, var(--border) 70%, transparent);
 }
 
 [data-font-scale="compact"] {
@@ -186,9 +202,35 @@
   /* Added unified design system utilities */
   /* Standard card styling - use this for all card components */
   .card-standard {
-    @apply rounded-xl border border-border/30 bg-card shadow-sm px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-7;
-    @apply transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)];
-    @apply hover:shadow-md hover:border-border/60;
+    border-radius: var(--card-radius);
+    background-color: var(--card);
+    border: 1px solid color-mix(in oklab, var(--border) 82%, transparent);
+    box-shadow: var(--shadow-soft);
+    padding-block: var(--space-card-block);
+    padding-inline: var(--space-card-inline);
+    transition:
+      border-color 200ms var(--ease-standard),
+      box-shadow 220ms var(--ease-standard),
+      transform 220ms var(--ease-standard);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-card-gap);
+  }
+
+  .card-standard:hover {
+    box-shadow: var(--shadow-bold);
+    border-color: color-mix(in oklab, var(--border) 94%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .card-standard:focus-within {
+    box-shadow: var(--shadow-bold);
+    border-color: color-mix(in oklab, var(--ring) 55%, var(--border) 45%);
+  }
+
+  .card-standard:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-bold), var(--focus-ring-shadow);
   }
 
   /* Page fade-in animation */
@@ -236,6 +278,46 @@
   .spacing-content {
     @apply space-y-4;
   }
+}
+
+.table-surface {
+  border-radius: var(--card-radius);
+  border: 1px solid var(--table-divider);
+  background: var(--table-surface-bg);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.table-surface table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-surface thead {
+  background: var(--table-header-bg);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--foreground) 55%, var(--muted-foreground) 45%);
+}
+
+.table-surface th,
+.table-surface td {
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+}
+
+.table-surface tbody tr {
+  border-bottom: 1px solid var(--table-divider);
+  transition: background-color 180ms var(--ease-standard);
+}
+
+.table-surface tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table-surface tbody tr:hover {
+  background: color-mix(in oklab, var(--card) 90%, transparent);
 }
 
 @keyframes fadeIn {

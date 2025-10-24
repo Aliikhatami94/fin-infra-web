@@ -304,6 +304,8 @@ export function AutomationPanel() {
                 variant="outline"
                 size="icon"
                 className={strategy.status === "active" ? "text-orange-600" : "text-green-600"}
+                aria-label={strategy.status === "active" ? `Pause ${strategy.name}` : `Resume ${strategy.name}`}
+                aria-pressed={strategy.status === "active"}
               >
                 {strategy.status === "active" ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </Button>
