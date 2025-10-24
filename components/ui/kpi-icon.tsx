@@ -2,6 +2,7 @@
 
 import type { HTMLAttributes } from "react"
 import type { LucideIcon } from "lucide-react"
+import type { IconComponent } from "@/types/domain"
 
 import { cn } from "@/lib/utils"
 import { getSemanticToneStyles, type SemanticTone } from "@/lib/color-utils"
@@ -11,7 +12,7 @@ type KPIIconSize = "sm" | "md" | "lg"
 type KPIIconShape = "rounded" | "circle"
 
 export interface KPIIconProps extends HTMLAttributes<HTMLDivElement> {
-  icon: LucideIcon
+  icon: LucideIcon | IconComponent
   tone?: SemanticTone
   size?: KPIIconSize
   shape?: KPIIconShape
