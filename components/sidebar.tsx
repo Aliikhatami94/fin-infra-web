@@ -78,7 +78,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b p-4 lg:hidden">
             <h2 className="text-lg font-semibold">Menu</h2>
-            <Button variant="ghost" size="icon" onClick={onMobileClose}>
+            <Button variant="ghost" size="icon" onClick={onMobileClose} aria-label="Close navigation">
               <X className="h-5 w-5" />
             </Button>
           </div>

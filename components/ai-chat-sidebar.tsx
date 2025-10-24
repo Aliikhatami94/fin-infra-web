@@ -117,7 +117,7 @@ export function AIChatSidebar({
           <Icon className="h-5 w-5 text-primary" />
           <h2 className="font-semibold">{title}</h2>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close assistant">
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -170,7 +170,7 @@ export function AIChatSidebar({
             placeholder={promptPlaceholder}
             className="flex-1"
           />
-          <Button type="submit" size="icon">
+          <Button type="submit" size="icon" aria-label="Send message">
             <Send className="h-4 w-4" />
           </Button>
         </form>

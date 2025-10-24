@@ -14,11 +14,11 @@ const watchlist = [
 
 export function Watchlist() {
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Watchlist</CardTitle>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" type="button" aria-label="Add a symbol to your watchlist">
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -28,7 +28,14 @@ export function Watchlist() {
           {watchlist.map((stock) => (
             <div key={stock.symbol} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  type="button"
+                  aria-label={`Pinned ${stock.symbol} in watchlist`}
+                  aria-pressed="true"
+                >
                   <Star className="h-4 w-4" />
                 </Button>
                 <div>

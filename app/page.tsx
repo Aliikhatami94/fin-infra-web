@@ -1,9 +1,10 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { VantaBackground } from "@/components/vanta-background"
-import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock, ExternalLink } from "lucide-react"
+import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock, ExternalLink, ArrowDownRight } from "lucide-react"
 import { BRAND } from "@/lib/brand"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function LandingPage() {
   return (
@@ -86,42 +87,59 @@ export default function LandingPage() {
                     variant="ghost"
                     className="h-12 rounded-full px-8 text-base font-medium text-foreground hover:bg-foreground/5 focus-visible:ring-offset-2"
                   >
-                    <Link href="/(dashboard)/overview" aria-label={`Watch a product demo of the ${BRAND.name} trading dashboard`}>
+                    <Link href="/demo" aria-label={`Watch a guided demo of the ${BRAND.name} trading platform`}>
                       Watch Demo
                     </Link>
                   </Button>
                 </div>
+                <Link
+                  href="#features"
+                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
+                  aria-label="Scroll to the feature highlights section"
+                >
+                  Explore product highlights
+                  <ArrowDownRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
               </div>
             </div>
           </section>
 
-          <section className="relative px-6 py-32 lg:px-8">
+          <section id="features" className="relative px-6 py-32 lg:px-8">
             <div className="mx-auto max-w-7xl">
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {features.map((feature) => (
-                  <Link
-                    key={feature.title}
-                    href={feature.href}
-                    className={cn(
-                      "group relative flex h-full min-h-[20rem] flex-col justify-between overflow-hidden rounded-3xl border border-border/30 bg-card/80 p-8 text-left shadow-[var(--shadow-soft)] transition-all",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
-                      "hover:-translate-y-1 hover:shadow-[var(--shadow-bold)] hover:border-primary/40",
-                    )}
-                    aria-label={`${feature.title} – learn more`}
-                  >
-                    <div className="mb-6 flex h-14 w-14 items-center justify-center self-start rounded-2xl bg-[var(--surface-security)]/25 text-primary transition-transform duration-300 group-hover:-translate-y-1">
-                      {feature.icon}
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-semibold tracking-tight text-foreground">{feature.title}</h3>
-                      <p className="text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
-                    </div>
-                    <span className="mt-6 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                      Explore <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                    </span>
-                  </Link>
-                ))}
-              </div>
+              <TooltipProvider delayDuration={200}>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {features.map((feature) => (
+                    <Tooltip key={feature.title}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          href={feature.href}
+                          className={cn(
+                            "group relative flex h-full min-h-[20rem] flex-col justify-between overflow-hidden rounded-3xl border border-border/30 bg-card/80 p-8 text-left shadow-[var(--shadow-soft)] transition-all",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
+                            "hover:-translate-y-1 hover:shadow-[var(--shadow-bold)] hover:border-primary/40",
+                          )}
+                          aria-label={`${feature.title} – learn more about ${feature.ariaSuffix}`}
+                        >
+                          <div className="mb-6 flex h-14 w-14 items-center justify-center self-start rounded-2xl bg-[var(--surface-security)]/25 text-primary transition-transform duration-300 group-hover:-translate-y-1">
+                            {feature.icon}
+                          </div>
+                          <div className="space-y-2">
+                            <h3 className="text-lg font-semibold tracking-tight text-foreground">{feature.title}</h3>
+                            <p className="text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
+                          </div>
+                          <span className="mt-6 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                            Explore <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                          </span>
+                          <span className="sr-only">{feature.tooltip}</span>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs text-sm leading-relaxed">
+                        {feature.tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </TooltipProvider>
             </div>
           </section>
 
@@ -180,35 +198,47 @@ const features = [
     title: "Real-time Analytics",
     description: "Track your portfolio performance with live data and comprehensive analytics.",
     href: "/overview",
+    tooltip: "Jump into the Overview dashboard to monitor KPIs, net worth, and recent performance at a glance.",
+    ariaSuffix: "the Overview dashboard",
   },
   {
     icon: <Lock className="h-7 w-7" />,
     title: "Secure & Reliable",
     description: "Bank-level security with encrypted data storage and secure authentication.",
     href: "/settings/security",
+    tooltip: "Review security settings, enable advanced protections, and manage trusted devices.",
+    ariaSuffix: "security preferences",
   },
   {
     icon: <Zap className="h-7 w-7" />,
     title: "Lightning Fast",
     description: "Execute trades instantly with our optimized platform and real-time data.",
     href: "/transactions",
+    tooltip: "Open the Transactions workspace to categorize, tag, and act on recent activity in seconds.",
+    ariaSuffix: "the Transactions workspace",
   },
   {
     icon: <Sparkles className="h-7 w-7" />,
     title: "Smart Insights",
     description: "AI-powered insights help you make informed decisions and spot opportunities.",
     href: "/insights",
+    tooltip: "Head to Insights for AI-generated recommendations and alerts tailored to your portfolio.",
+    ariaSuffix: "Insights recommendations",
   },
   {
     icon: <TrendingUp className="h-7 w-7" />,
     title: "Portfolio Tracking",
     description: "Monitor all your investments in one place with detailed performance metrics.",
     href: "/portfolio",
+    tooltip: "Dive into Portfolio analytics to compare allocation, risk, and returns across every account.",
+    ariaSuffix: "portfolio analytics",
   },
   {
     icon: <Shield className="h-7 w-7" />,
-    title: "Risk Management",
-    description: "Advanced tools to help you manage risk and protect your investments.",
+    title: "Cash Flow Planning",
+    description: "Stay ahead of inflows and outflows with guidance that keeps liquidity on track.",
     href: "/cash-flow",
+    tooltip: "Visit Cash Flow to review spending trends, plan liquidity, and fine-tune savings goals.",
+    ariaSuffix: "cash flow planning tools",
   },
 ]

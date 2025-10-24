@@ -205,6 +205,7 @@ export function AccountsTableDesktop({
         <tr
           {...props}
           ref={ref}
+          style={{ borderColor: "var(--table-divider)" }}
           onClick={(event) => {
             if (item.type === "account") {
               onToggleExpand(item.account.id)
@@ -235,23 +236,28 @@ export function AccountsTableDesktop({
 
   return (
     <div className="hidden md:block">
-      <TableVirtuoso
-        data={virtualRows}
-        style={{ height: tableHeight }}
-        components={tableComponents}
+      <div className="table-surface">
+        <TableVirtuoso
+          data={virtualRows}
+          style={{ height: tableHeight }}
+          components={tableComponents}
+          className="min-w-full"
         fixedHeaderContent={() => (
-          <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-            <th className="py-3 px-3 text-left">
+          <tr
+            className="border-b text-xs uppercase tracking-wide text-muted-foreground"
+            style={{ borderColor: "var(--table-divider)" }}
+          >
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">
               <button
                 onClick={() => onSort("name")}
                 className="flex items-center gap-1 hover:text-foreground transition-colors"
-              >
+                >
                 Account
                 <ArrowUpDown className="h-3 w-3" />
               </button>
             </th>
-            <th className="py-3 px-3 text-left">Type</th>
-            <th className="py-3 px-3 text-right">
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">Type</th>
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
               <button
                 onClick={() => onSort("balance")}
                 className="flex items-center gap-1 ml-auto hover:text-foreground transition-colors"
@@ -260,7 +266,7 @@ export function AccountsTableDesktop({
                 <ArrowUpDown className="h-3 w-3" />
               </button>
             </th>
-            <th className="py-3 px-3 text-right">
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -278,15 +284,19 @@ export function AccountsTableDesktop({
                 </Tooltip>
               </TooltipProvider>
             </th>
-            <th className="py-3 px-3 text-left">Last Sync</th>
-            <th className="py-3 px-3 text-left">Status</th>
-            <th className="py-3 px-1 text-right" aria-hidden />
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">Last Sync</th>
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">Status</th>
+            <th className="px-[calc(var(--table-cell-padding-x)/2)] py-[var(--table-cell-padding-y)] text-right" aria-hidden />
           </tr>
         )}
         itemContent={(index, item) => {
           if (item.type === "group") {
             return [
-              <td key={`${item.id}-group`} colSpan={7} className="py-3 px-3">
+              <td
+                key={`${item.id}-group`}
+                colSpan={7}
+                className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)]"
+              >
                 <button
                   onClick={(event) => {
                     event.stopPropagation()
@@ -327,7 +337,10 @@ export function AccountsTableDesktop({
           const isIgnored = item.isIgnored
 
           return [
-            <td key={`${item.id}-account`} className="py-3 px-3 align-middle">
+            <td
+              key={`${item.id}-account`}
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
+            >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
                   <BankIcon className="h-4 w-4 text-muted-foreground" />
@@ -345,12 +358,18 @@ export function AccountsTableDesktop({
                 </div>
               </div>
             </td>,
-            <td key={`${item.id}-type`} className="py-3 px-3 align-middle">
+            <td
+              key={`${item.id}-type`}
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
+            >
               <Badge variant="outline" className={cn("whitespace-nowrap", typeColors[account.type] || "")}>
                 {account.type}
               </Badge>
             </td>,
-            <td key={`${item.id}-balance`} className="py-3 px-3 text-right align-middle">
+            <td
+              key={`${item.id}-balance`}
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
+            >
               <p className="text-sm font-semibold tabular-nums font-mono text-foreground whitespace-nowrap">
                 <MaskableValue
                   value={formatCurrency(Math.abs(account.balance), {
@@ -361,7 +380,10 @@ export function AccountsTableDesktop({
                 />
               </p>
             </td>,
-            <td key={`${item.id}-change`} className="py-3 px-3 text-right align-middle">
+            <td
+              key={`${item.id}-change`}
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
+            >
               <div className="inline-flex items-center justify-end gap-1 whitespace-nowrap">
                 <MiniSparkline
                   trend={account.change}
@@ -387,10 +409,16 @@ export function AccountsTableDesktop({
                 </span>
               </div>
             </td>,
-            <td key={`${item.id}-sync`} className="py-3 px-3 align-middle">
+            <td
+              key={`${item.id}-sync`}
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
+            >
               <p className="text-sm text-muted-foreground whitespace-nowrap">{account.lastSync}</p>
             </td>,
-            <td key={`${item.id}-status`} className="py-3 px-3 align-middle">
+            <td
+              key={`${item.id}-status`}
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
+            >
               <div className="flex items-center justify-start gap-2">
                 <TooltipProvider>
                   <Tooltip>
@@ -472,7 +500,8 @@ export function AccountsTableDesktop({
             </td>,
           ]
         }}
-      />
+        />
+      </div>
     </div>
   )
 }

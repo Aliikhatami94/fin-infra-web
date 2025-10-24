@@ -1,6 +1,6 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -25,6 +25,9 @@ interface ChartContainerProps {
   selectedComparisons?: readonly string[]
   onComparisonToggle?: (id: string) => void
   unitLabel?: string
+  deferUntilInView?: boolean
+  deferredContentMinHeight?: number
+  fallback?: ReactNode
 }
 
 export function ChartContainer({
@@ -41,8 +44,46 @@ export function ChartContainer({
   selectedComparisons = [],
   onComparisonToggle,
   unitLabel,
+  deferUntilInView = true,
+  deferredContentMinHeight = 240,
+  fallback,
 }: ChartContainerProps) {
   const hasToolbar = (timeRanges?.length ?? 0) > 0 || (comparisonOptions?.length ?? 0) > 0 || unitLabel
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const [hasIntersected, setHasIntersected] = useState(!deferUntilInView)
+
+  useEffect(() => {
+    if (!deferUntilInView || hasIntersected) {
+      return
+    }
+
+    const node = contentRef.current
+    if (!node) {
+      return
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      setHasIntersected(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        const [entry] = entries
+        if (entry?.isIntersecting) {
+          setHasIntersected(true)
+          obs.disconnect()
+        }
+      },
+      { rootMargin: "200px 0px" },
+    )
+
+    observer.observe(node)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [deferUntilInView, hasIntersected])
 
   return (
     <Card className={cn("card-standard", className)}>
@@ -110,7 +151,24 @@ export function ChartContainer({
           </div>
         ) : null}
       </CardHeader>
-      <CardContent className={cn("pt-0", contentClassName)}>{children}</CardContent>
+      <CardContent className={cn("pt-0", contentClassName)}>
+        <div ref={contentRef} className="min-h-[120px] w-full">
+          {hasIntersected ? (
+            children
+          ) : (
+            fallback ?? (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex w-full items-center justify-center rounded-lg border border-dashed border-border/40 bg-muted/10 text-sm text-muted-foreground"
+                style={{ minHeight: deferredContentMinHeight }}
+              >
+                Preparing visualization…
+              </div>
+            )
+          )}
+        </div>
+      </CardContent>
     </Card>
   )
 }

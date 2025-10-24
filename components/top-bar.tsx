@@ -147,7 +147,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
 
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" aria-label="Open account menu">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder.svg?height=32&width=32" />
                   <AvatarFallback>{activeMember.avatarFallback}</AvatarFallback>

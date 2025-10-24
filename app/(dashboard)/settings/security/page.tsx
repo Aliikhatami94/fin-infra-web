@@ -1,8 +1,19 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { FormEvent, useId, useMemo, useState } from "react"
 import Link from "next/link"
-import { ShieldCheck, History, Download, ExternalLink, Activity, BellRing, EyeOff } from "lucide-react"
+import {
+  ShieldCheck,
+  History,
+  Download,
+  ExternalLink,
+  Activity,
+  BellRing,
+  EyeOff,
+  MapPin,
+  ArrowUpDown,
+  Info,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -14,21 +25,132 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { AnimatedSwitch } from "@/components/animated-switch"
+import { toast } from "@/components/ui/sonner"
 import { trackPreferenceToggle } from "@/lib/analytics/events"
 
-const loginHistorySeed = [
-  { device: "MacBook Pro · Safari", location: "New York, USA", time: "2 minutes ago", status: "Active" },
-  { device: "iPhone 15 · Fin-Infra app", location: "Brooklyn, USA", time: "3 hours ago", status: "Active" },
-  { device: "Windows · Edge", location: "Philadelphia, USA", time: "Yesterday 21:14", status: "Signed out" },
-  { device: "iPad · Safari", location: "Boston, USA", time: "Apr 12 · 08:02", status: "Signed out" },
+type SessionStatus = "Active" | "Signed out"
+type StatusFilter = "all" | SessionStatus
+type SortKey = "recent" | "device" | "status"
+type SortDirection = "asc" | "desc"
+
+const loginHistorySeed: Array<{
+  id: string
+  device: string
+  location: string
+  ip: string
+  timeLabel: string
+  timestamp: number
+  status: SessionStatus
+}> = [
+  {
+    id: "macbook-pro",
+    device: "MacBook Pro · Safari",
+    location: "New York, USA",
+    ip: "198.51.100.48",
+    timeLabel: "2 minutes ago",
+    timestamp: new Date("2024-04-15T14:10:00Z").getTime(),
+    status: "Active",
+  },
+  {
+    id: "iphone-15",
+    device: "iPhone 15 · Fin-Infra app",
+    location: "Brooklyn, USA",
+    ip: "198.51.100.124",
+    timeLabel: "3 hours ago",
+    timestamp: new Date("2024-04-15T11:12:00Z").getTime(),
+    status: "Active",
+  },
+  {
+    id: "windows-edge",
+    device: "Windows · Edge",
+    location: "Philadelphia, USA",
+    ip: "198.51.100.212",
+    timeLabel: "Yesterday · 21:14",
+    timestamp: new Date("2024-04-14T21:14:00Z").getTime(),
+    status: "Signed out",
+  },
+  {
+    id: "ipad-safari",
+    device: "iPad · Safari",
+    location: "Boston, USA",
+    ip: "198.51.100.87",
+    timeLabel: "Apr 12 · 08:02",
+    timestamp: new Date("2024-04-12T08:02:00Z").getTime(),
+    status: "Signed out",
+  },
 ]
+
+const statusRank: Record<SessionStatus, number> = {
+  Active: 0,
+  "Signed out": 1,
+}
 
 export default function SecurityCenterPage() {
   const [loginAlerts, setLoginAlerts] = useState(true)
   const [maskSensitive, setMaskSensitive] = useState(true)
+  const [deviceQuery, setDeviceQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
+  const [sortKey, setSortKey] = useState<SortKey>("recent")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [alternateEmail, setAlternateEmail] = useState("security.backup@mail.com")
+  const [alternatePhone, setAlternatePhone] = useState("+1 (917) 555-0199")
+
+  const loginAlertsLabelId = useId()
+  const loginAlertsDescriptionId = useId()
+  const maskSensitiveLabelId = useId()
+  const maskSensitiveDescriptionId = useId()
 
   const loginHistory = useMemo(() => loginHistorySeed, [])
+
+  const filteredSessions = useMemo(() => {
+    const direction = sortDirection === "asc" ? 1 : -1
+
+    return [...loginHistory]
+      .filter((session) => {
+        const matchesDevice = session.device.toLowerCase().includes(deviceQuery.toLowerCase())
+        const matchesStatus = statusFilter === "all" || session.status === statusFilter
+        return matchesDevice && matchesStatus
+      })
+      .sort((a, b) => {
+        switch (sortKey) {
+          case "device":
+            return a.device.localeCompare(b.device) * direction
+          case "status":
+            return (statusRank[a.status] - statusRank[b.status]) * direction
+          default:
+            return (a.timestamp - b.timestamp) * direction
+        }
+      })
+  }, [deviceQuery, loginHistory, sortDirection, sortKey, statusFilter])
+
+  const handleAlertingSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    toast("Alerting preferences updated", {
+      description: "We\u2019ll use your alternate contacts if we can\u2019t reach your primary inbox.",
+    })
+  }
+
+  const handleExportRequest = (format: "csv" | "pdf") => {
+    toast(`Preparing ${format.toUpperCase()} export`, {
+      description: "We\u2019ll send an in-app notification as soon as your encrypted file is ready.",
+    })
+  }
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-8">
@@ -68,43 +190,144 @@ export default function SecurityCenterPage() {
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card className="border-border/40">
           <CardHeader className="border-b border-border/30">
-            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <CardTitle className="flex flex-wrap items-center gap-2 text-base font-semibold">
               <ShieldCheck className="h-5 w-5 text-primary" />
               Recent sessions
             </CardTitle>
             <CardDescription>End sessions you do not recognize. Locations are approximated from IP address.</CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <div className="divide-y divide-border/30" role="table" aria-label="Recent login history">
-              <div className="hidden px-6 py-3 text-xs uppercase tracking-wide text-muted-foreground sm:grid sm:grid-cols-[2fr_1.5fr_1fr_5rem]">
-                <span>Device</span>
-                <span>Location</span>
-                <span>Time</span>
-                <span className="text-center">Status</span>
+            <div className="flex flex-col gap-4 px-6 pb-4 pt-6 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex w-full flex-col gap-2 sm:max-w-xs">
+                <Label htmlFor="device-filter" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Filter by device
+                </Label>
+                <Input
+                  id="device-filter"
+                  placeholder="Search device or browser"
+                  value={deviceQuery}
+                  onChange={(event) => setDeviceQuery(event.target.value)}
+                  className="h-9"
+                />
               </div>
-              {loginHistory.map((entry) => (
-                <div
-                  key={`${entry.device}-${entry.time}`}
-                  role="row"
-                  className="grid gap-4 px-6 py-4 sm:grid-cols-[2fr_1.5fr_1fr_5rem]"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground">{entry.device}</p>
-                    <p className="text-xs text-muted-foreground sm:hidden">{entry.location}</p>
-                  </div>
-                  <p className="hidden text-sm text-muted-foreground sm:block">{entry.location}</p>
-                  <p className="text-sm text-muted-foreground">{entry.time}</p>
-                  <div className="flex items-center justify-start sm:justify-center">
-                    <Badge
-                      variant="secondary"
-                      className={entry.status === "Active" ? "bg-emerald-500/15 text-emerald-600" : "bg-muted text-muted-foreground"}
+              <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="status-filter" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Status
+                  </Label>
+                  <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+                    <SelectTrigger
+                      id="status-filter"
+                      size="sm"
+                      className="min-w-[160px]"
+                      aria-label={
+                        statusFilter === "all"
+                          ? "Showing all statuses"
+                          : `Showing only ${statusFilter.toLowerCase()} sessions`
+                      }
                     >
-                      {entry.status}
-                    </Badge>
+                      <SelectValue placeholder="All statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All statuses</SelectItem>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Signed out">Signed out</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="sort-by" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Sort
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Select value={sortKey} onValueChange={(value) => setSortKey(value as SortKey)}>
+                      <SelectTrigger
+                        id="sort-by"
+                        size="sm"
+                        className="min-w-[160px]"
+                        aria-label={`Sorting by ${
+                          sortKey === "recent" ? "most recent" : sortKey === "device" ? "device" : "status"
+                        }`}
+                      >
+                        <SelectValue placeholder="Most recent" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="recent">Most recent</SelectItem>
+                        <SelectItem value="device">Device name</SelectItem>
+                        <SelectItem value="status">Status</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
+                    >
+                      <ArrowUpDown className="h-4 w-4" />
+                      <span className="sr-only">Toggle sort direction</span>
+                    </Button>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
+            <TooltipProvider delayDuration={100}>
+              <div className="divide-y divide-border/30" role="table" aria-label="Recent login history">
+                <div className="hidden px-6 py-3 text-xs uppercase tracking-wide text-muted-foreground sm:grid sm:grid-cols-[2fr_1.5fr_1fr_5rem]">
+                  <span>Device</span>
+                  <span>Location</span>
+                  <span>Time</span>
+                  <span className="text-center">Status</span>
+                </div>
+                {filteredSessions.length === 0 ? (
+                  <div className="px-6 py-8 text-sm text-muted-foreground" role="row">
+                    No sessions match your filters. Adjust filters to review more activity.
+                  </div>
+                ) : (
+                  filteredSessions.map((entry) => (
+                    <div
+                      key={entry.id}
+                      role="row"
+                      className="grid gap-4 px-6 py-4 sm:grid-cols-[2fr_1.5fr_1fr_5rem]"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-foreground">{entry.device}</p>
+                        <p className="text-xs text-muted-foreground sm:hidden">
+                          {entry.timeLabel} • {entry.status}
+                        </p>
+                        <p className="text-xs text-muted-foreground sm:hidden">{entry.location}</p>
+                      </div>
+                      <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center gap-1.5 text-left">
+                              <MapPin className="h-4 w-4 text-primary" aria-hidden />
+                              <span>{entry.location}</span>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            Last known IP: {entry.ip.replace(/(\.\d+)$/, ".xxx")} (masked)
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{entry.timeLabel}</p>
+                      <div className="flex items-center justify-start sm:justify-center">
+                        <Badge
+                          variant="secondary"
+                          className={
+                            entry.status === "Active"
+                              ? "bg-emerald-500/15 text-emerald-600"
+                              : "bg-muted text-muted-foreground"
+                          }
+                        >
+                          {entry.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </TooltipProvider>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
@@ -118,54 +341,100 @@ export default function SecurityCenterPage() {
 
         <div className="space-y-6">
           <Card className="border-border/40">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Alerting</CardTitle>
-              <CardDescription>Stay informed when suspicious activity occurs.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground flex items-center gap-2">
-                    <BellRing className="h-4 w-4 text-primary" /> Login alerts
-                  </p>
-                  <p className="text-xs text-muted-foreground">Email and push notifications for new device sign-ins.</p>
+            <form onSubmit={handleAlertingSubmit} className="flex h-full flex-col">
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">Alerting</CardTitle>
+                <CardDescription>Stay informed when suspicious activity occurs.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p id={loginAlertsLabelId} className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <BellRing className="h-4 w-4 text-primary" /> Login alerts
+                    </p>
+                    <p id={loginAlertsDescriptionId} className="text-xs text-muted-foreground">
+                      Email and push notifications for new device sign-ins.
+                    </p>
+                  </div>
+                  <AnimatedSwitch
+                    aria-labelledby={loginAlertsLabelId}
+                    aria-describedby={loginAlertsDescriptionId}
+                    checked={loginAlerts}
+                    onCheckedChange={(value) => {
+                      setLoginAlerts(value)
+                      trackPreferenceToggle({
+                        preferenceId: "login-alerts",
+                        label: "Login alerts",
+                        section: "security",
+                        value,
+                      })
+                    }}
+                  />
                 </div>
-                <AnimatedSwitch
-                  id="login-alerts"
-                  checked={loginAlerts}
-                  onCheckedChange={(value) => {
-                    setLoginAlerts(value)
-                    trackPreferenceToggle({
-                      preferenceId: "login-alerts",
-                      label: "Login alerts",
-                      section: "security",
-                      value,
-                    })
-                  }}
-                />
-              </div>
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground flex items-center gap-2">
-                    <EyeOff className="h-4 w-4 text-primary" /> Mask sensitive data
-                  </p>
-                  <p className="text-xs text-muted-foreground">Require reveal tap for account numbers and personally identifiable data.</p>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p id={maskSensitiveLabelId} className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <EyeOff className="h-4 w-4 text-primary" /> Mask sensitive data
+                    </p>
+                    <p id={maskSensitiveDescriptionId} className="text-xs text-muted-foreground">
+                      Require reveal tap for account numbers and personally identifiable data.
+                    </p>
+                  </div>
+                  <AnimatedSwitch
+                    aria-labelledby={maskSensitiveLabelId}
+                    aria-describedby={maskSensitiveDescriptionId}
+                    checked={maskSensitive}
+                    onCheckedChange={(value) => {
+                      setMaskSensitive(value)
+                      trackPreferenceToggle({
+                        preferenceId: "mask-sensitive",
+                        label: "Mask sensitive data",
+                        section: "security",
+                        value,
+                      })
+                    }}
+                  />
                 </div>
-                <AnimatedSwitch
-                  id="mask-sensitive"
-                  checked={maskSensitive}
-                  onCheckedChange={(value) => {
-                    setMaskSensitive(value)
-                    trackPreferenceToggle({
-                      preferenceId: "mask-sensitive",
-                      label: "Mask sensitive data",
-                      section: "security",
-                      value,
-                    })
-                  }}
-                />
-              </div>
-            </CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="alternate-email">Alternate email</Label>
+                    <Input
+                      id="alternate-email"
+                      type="email"
+                      autoComplete="email"
+                      value={alternateEmail}
+                      onChange={(event) => setAlternateEmail(event.target.value)}
+                      aria-describedby="alternate-email-help"
+                    />
+                    <p id="alternate-email-help" className="text-xs text-muted-foreground">
+                      Used when we can’t reach your primary inbox. We’ll mask this address in notifications.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="alternate-phone">Backup phone</Label>
+                    <Input
+                      id="alternate-phone"
+                      type="tel"
+                      autoComplete="tel"
+                      value={alternatePhone}
+                      onChange={(event) => setAlternatePhone(event.target.value)}
+                      aria-describedby="alternate-phone-help"
+                    />
+                    <p id="alternate-phone-help" className="text-xs text-muted-foreground">
+                      SMS alerts are only sent for high-risk events. We display your number as ••••{alternatePhone.slice(-4)}.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Alternate contacts receive alerts after your primary channels fail.
+                </p>
+                <Button type="submit" variant="outline" size="sm" className="gap-2">
+                  Save alerting preferences
+                </Button>
+              </CardFooter>
+            </form>
           </Card>
 
           <Card className="border-border/40">
@@ -174,12 +443,48 @@ export default function SecurityCenterPage() {
               <CardDescription>Generate encrypted exports for compliance or record keeping.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                <Download className="h-4 w-4" /> Export access log (CSV)
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                <Download className="h-4 w-4" /> Download masking report (PDF)
-              </Button>
+              <TooltipProvider delayDuration={100}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-2"
+                  onClick={() => handleExportRequest("csv")}
+                >
+                  <Download className="h-4 w-4" /> Export access log (CSV)
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="ml-auto inline-flex items-center text-muted-foreground">
+                        <Info className="h-4 w-4" aria-hidden />
+                        <span className="sr-only">Retention policy</span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs text-xs leading-relaxed">
+                      Encrypted download link remains active for 24 hours and is auto-deleted after pickup.
+                    </TooltipContent>
+                  </Tooltip>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-2"
+                  onClick={() => handleExportRequest("pdf")}
+                >
+                  <Download className="h-4 w-4" /> Download masking report (PDF)
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="ml-auto inline-flex items-center text-muted-foreground">
+                        <Info className="h-4 w-4" aria-hidden />
+                        <span className="sr-only">Retention policy</span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs text-xs leading-relaxed">
+                      Reports are retained for 24 hours, then purged from the Security Center and storage logs.
+                    </TooltipContent>
+                  </Tooltip>
+                </Button>
+              </TooltipProvider>
             </CardContent>
             <CardFooter>
               <p className="text-xs text-muted-foreground">

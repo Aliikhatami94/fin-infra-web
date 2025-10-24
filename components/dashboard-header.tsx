@@ -42,13 +42,13 @@ export function DashboardHeader({ activeTab: _activeTab, onTabChange: _onTabChan
             <Input placeholder="Search stocks..." className="pl-9 w-64" />
           </div>
 
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" aria-label="View notifications">
             <Bell className="h-5 w-5" />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative" aria-label="Open profile menu">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
                   <AvatarFallback>JD</AvatarFallback>
