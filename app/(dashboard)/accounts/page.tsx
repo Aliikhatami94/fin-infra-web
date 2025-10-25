@@ -1,4 +1,4 @@
-import AccountsPageClient from "@/components/accounts-page.client"
+import { AccountsPageClient } from "@/components/accounts-page.client"
 
 export default function AccountsPage() {
   const totalCash = 12450.32 + 45230.0 + 32000.0
@@ -6,10 +6,6 @@ export default function AccountsPage() {
   const totalInvestments = 187650.45
 
   return (
-    <AccountsPageClient
-      totalCash={totalCash}
-      totalCreditDebt={totalCreditDebt}
-      totalInvestments={totalInvestments}
-    />
+    <AccountsPageClient totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
   )
 }

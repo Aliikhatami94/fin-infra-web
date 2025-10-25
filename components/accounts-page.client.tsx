@@ -6,32 +6,31 @@ import { Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 
-const AccountsKPICards = dynamic(
-  () => import("@/components/accounts-kpi-cards").then((m) => m.AccountsKPICards),
-  { ssr: false },
-)
-const AccountsCallouts = dynamic(
-  () => import("@/components/accounts-callouts").then((m) => m.AccountsCallouts),
-  { ssr: false },
-)
-const AIInsightsBanner = dynamic(
-  () => import("@/components/ai-insights-banner").then((m) => m.AIInsightsBanner),
-  { ssr: false },
-)
-const AccountsTable = dynamic(() => import("@/components/accounts-table").then((m) => m.AccountsTable), {
+const AccountsKPICards = dynamic(() => import("@/components/accounts-kpi-cards").then((m) => m.AccountsKPICards), {
   ssr: false,
 })
-const PlaidLinkDialog = dynamic(
-  () => import("@/components/plaid-link-dialog").then((m) => m.PlaidLinkDialog),
-  { ssr: false },
-)
 
-export default function AccountsPageClient(props: {
+const AccountsCallouts = dynamic(() => import("@/components/accounts-callouts").then((m) => m.AccountsCallouts), {
+  ssr: false,
+})
+
+const AIInsightsBanner = dynamic(() => import("@/components/ai-insights-banner").then((m) => m.AIInsightsBanner), {
+  ssr: false,
+})
+
+const AccountsTable = dynamic(() => import("@/components/accounts-table").then((m) => m.AccountsTable), { ssr: false })
+
+const PlaidLinkDialog = dynamic(() => import("@/components/plaid-link-dialog").then((m) => m.PlaidLinkDialog), {
+  ssr: false,
+})
+
+interface AccountsPageClientProps {
   totalCash: number
   totalCreditDebt: number
   totalInvestments: number
-}) {
-  const { totalCash, totalCreditDebt, totalInvestments } = props
+}
+
+export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestments }: AccountsPageClientProps) {
   const [isPlaidOpen, setIsPlaidOpen] = useState(false)
   const [isLinking, setIsLinking] = useState(false)
   const [linkingInstitution, setLinkingInstitution] = useState<string | null>(null)
@@ -81,13 +80,7 @@ export default function AccountsPageClient(props: {
             </div>
           )}
         </div>
-        <Button
-          variant="cta"
-          size="lg"
-          className="w-full sm:w-auto"
-          onClick={handleRequestLink}
-          disabled={isLinking}
-        >
+        <Button variant="cta" size="lg" className="w-full sm:w-auto" onClick={handleRequestLink} disabled={isLinking}>
           {isLinking ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
@@ -108,11 +101,7 @@ export default function AccountsPageClient(props: {
 
       <AIInsightsBanner />
 
-      <AccountsTable
-        onRequestLink={handleRequestLink}
-        isLinking={isLinking}
-        linkingInstitution={linkingInstitution}
-      />
+      <AccountsTable onRequestLink={handleRequestLink} isLinking={isLinking} linkingInstitution={linkingInstitution} />
 
       <PlaidLinkDialog
         open={isPlaidOpen}
@@ -123,3 +112,5 @@ export default function AccountsPageClient(props: {
     </div>
   )
 }
+
+export default AccountsPageClient

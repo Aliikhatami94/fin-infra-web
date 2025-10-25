@@ -205,3 +205,5 @@ export const sharedIcons = {
   TrendingUp,
   ArrowUpDown,
 }
+
+// Additional updates can be added here if needed
