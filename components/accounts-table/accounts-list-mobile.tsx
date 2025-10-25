@@ -127,7 +127,11 @@ export function AccountsListMobile({
                       <div className="text-right">
                         <p className="text-xs text-muted-foreground mb-1">30d Change</p>
                         <div className="flex items-center gap-1">
-                          <MiniSparkline trend={account.change} />
+                          <MiniSparkline
+                            trend={account.change}
+                            data={account.balanceHistory}
+                            label={`${account.name} 30d balance trend`}
+                          />
                           <span
                             className={`text-sm font-medium tabular-nums ${
                               account.change > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
@@ -159,7 +163,12 @@ export function AccountsListMobile({
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            aria-label={`More actions for ${account.name}`}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

@@ -1,5 +1,7 @@
 // Formatting utilities for consistent number/date display across the app
 
+import { format, formatDistanceStrict } from "date-fns"
+
 export type NumberFormatOptions = Intl.NumberFormatOptions & {
   signDisplay?: "auto" | "always" | "never" | "exceptZero"
 }
@@ -46,4 +48,30 @@ export function formatPercent(value: number, opts: NumberFormatOptions = {}) {
 
 export function formatDate(date: Date, opts: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "2-digit" }) {
   return new Intl.DateTimeFormat(undefined, opts).format(date)
+}
+
+interface FormatDueDateWithRelativeOptions {
+  baseDate?: Date
+  includeYear?: boolean
+  roundingMethod?: "floor" | "ceil" | "round"
+}
+
+export function formatDueDateWithRelative(
+  date: Date,
+  { baseDate = new Date(), includeYear = true, roundingMethod = "floor" }: FormatDueDateWithRelativeOptions = {},
+) {
+  const absolute = format(date, includeYear ? "MMM d, yyyy" : "MMM d")
+  const absoluteFull = format(date, "MMMM d, yyyy")
+  const relative = formatDistanceStrict(date, baseDate, {
+    addSuffix: true,
+    unit: "day",
+    roundingMethod,
+  })
+
+  return {
+    absolute,
+    absoluteFull,
+    relative,
+    isPast: date.getTime() < baseDate.getTime(),
+  }
 }

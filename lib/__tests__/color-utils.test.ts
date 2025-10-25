@@ -27,11 +27,11 @@ describe("color utils", () => {
 
   describe("getValueBgColor", () => {
     it("returns positive bg for positive values", () => {
-      expect(getValueBgColor(8)).toBe("bg-green-500/10")
+      expect(getValueBgColor(8)).toBe("bg-[var(--semantic-positive-surface)]")
     })
 
     it("returns negative bg for negative values", () => {
-      expect(getValueBgColor(-2)).toBe("bg-red-500/10")
+      expect(getValueBgColor(-2)).toBe("bg-[var(--semantic-negative-surface)]")
     })
 
     it("returns muted bg for zero or neutral", () => {
@@ -42,11 +42,11 @@ describe("color utils", () => {
 
   describe("getValueBorderColor", () => {
     it("returns positive border for positive values", () => {
-      expect(getValueBorderColor(1)).toBe("border-green-500/20")
+      expect(getValueBorderColor(1)).toBe("border-[var(--semantic-positive-border)]")
     })
 
     it("returns negative border for negative values", () => {
-      expect(getValueBorderColor(-1)).toBe("border-red-500/20")
+      expect(getValueBorderColor(-1)).toBe("border-[var(--semantic-negative-border)]")
     })
 
     it("returns neutral border for zero or neutral", () => {

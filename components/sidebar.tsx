@@ -8,16 +8,38 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { isActiveRoute } from "@/lib/navigation"
+import { prefetchAppRoute, getBadgeTooltipCopy } from "@/lib/linking"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SidebarProps {
   mobileOpen?: boolean
   onMobileClose?: () => void
+  collapsed?: boolean
+  onCollapsedChange?: (collapsed: boolean) => void
 }
 
-export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false)
+
+
+export function Sidebar({
+  mobileOpen = false,
+  onMobileClose,
+  collapsed: collapsedProp,
+  onCollapsedChange,
+}: SidebarProps) {
+  const [internalCollapsed, setInternalCollapsed] = useState(false)
+  const collapsed = collapsedProp ?? internalCollapsed
+
+  const toggleCollapsed = () => {
+    const nextCollapsed = !collapsed
+
+    if (collapsedProp === undefined) {
+      setInternalCollapsed(nextCollapsed)
+    }
+
+    onCollapsedChange?.(nextCollapsed)
+  }
   const pathname = usePathname()
   const router = useRouter()
   const prefetchedRoutes = useRef(new Set<string>())
@@ -26,19 +48,13 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     if (prefetchedRoutes.current.has(href)) {
       return
     }
+
     prefetchedRoutes.current.add(href)
-    try {
-      // Next.js App Router's router.prefetch returns void in v13+;
-      // if a Promise is ever returned, handle it defensively.
-      const maybePromise = (router as unknown as { prefetch: (h: string) => void | Promise<unknown> }).prefetch(href)
-      if (maybePromise && typeof (maybePromise as Promise<unknown>).catch === "function") {
-        ;(maybePromise as Promise<unknown>).catch(() => {
-          prefetchedRoutes.current.delete(href)
-        })
+    void prefetchAppRoute(router, href).then((success) => {
+      if (!success) {
+        prefetchedRoutes.current.delete(href)
       }
-    } catch {
-      prefetchedRoutes.current.delete(href)
-    }
+    })
   }
 
   useEffect(() => {
@@ -54,14 +70,15 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   }, [mobileOpen])
 
   return (
-    <>
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
-          onClick={onMobileClose}
-          aria-hidden="true"
-        />
-      )}
+    <TooltipProvider delayDuration={200}>
+      <>
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+            onClick={onMobileClose}
+            aria-hidden="true"
+          />
+        )}
 
       <aside
         className={cn(
@@ -78,7 +95,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b p-4 lg:hidden">
             <h2 className="text-lg font-semibold">Menu</h2>
-            <Button variant="ghost" size="icon" onClick={onMobileClose}>
+            <Button variant="ghost" size="icon" onClick={onMobileClose} aria-label="Close navigation">
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -86,7 +103,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="space-y-1 px-2">
               {DASHBOARD_NAVIGATION.map((item) => {
-                const active = isActiveRoute(pathname, item.href)
+                const active = isActiveRoute(pathname, item.href, { exact: item.exact })
+                const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
+                const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
                 return (
                   <Link
                     key={item.name}
@@ -107,9 +126,20 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                       <>
                         <span className="flex-1">{item.name}</span>
                         {item.badge && (
-                          <Badge variant="destructive" className="h-5 min-w-5 px-1 text-xs">
-                            {item.badge}
-                          </Badge>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="destructive"
+                                className="h-5 min-w-5 px-1 text-xs"
+                                aria-label={fallbackTooltip}
+                              >
+                                {item.badge}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                              <p>{fallbackTooltip}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         )}
                       </>
                     )}
@@ -136,7 +166,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={toggleCollapsed}
                 className="w-full justify-start"
                 aria-pressed={collapsed}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -148,6 +178,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           </div>
         </div>
       </aside>
-    </>
+      </>
+    </TooltipProvider>
   )
 }

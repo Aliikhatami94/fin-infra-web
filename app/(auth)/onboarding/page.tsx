@@ -18,6 +18,7 @@ import {
   trackOnboardingStepCompleted,
   trackOnboardingStepViewed,
 } from "@/lib/analytics/events"
+import { toast } from "@/components/ui/sonner"
 import type {
   InstitutionConnectionStatus,
   LinkedInstitution,
@@ -262,10 +263,17 @@ export default function OnboardingPage() {
       const result = await simulateInstitutionLink(definition.id)
       upsertInstitution(result)
       setLinkModalOpen(false)
+      toast.success(`${definition.name} connected`, {
+        description: "We\u2019ll refresh balances and transactions in the background.",
+      })
     } catch (error) {
-      const message = error instanceof Error ? error.message : "We couldn't connect this institution."
+      const message =
+        error instanceof Error ? error.message : "We couldn\u2019t connect this institution."
       upsertInstitution({ ...optimistic, status: "error", errorMessage: message })
       setLinkErrors((prev) => ({ ...prev, [institutionId]: message }))
+      toast.error(`Couldn\u2019t connect to ${definition.name}`, {
+        description: message,
+      })
     } finally {
       setLinkingInstitution(null)
     }
@@ -454,7 +462,7 @@ export default function OnboardingPage() {
                         variant="outline"
                         className="mt-2"
                         onClick={() => handleLinkInstitution(institution.id)}
-                        disabled={linkingInstitution === institution.id}
+                        isLoading={linkingInstitution === institution.id}
                       >
                         Retry
                       </Button>
@@ -482,11 +490,11 @@ export default function OnboardingPage() {
 
   const renderPersonalizeStep = () => (
     <Card className="card-standard">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold text-foreground">Your Money Graph preview</CardTitle>
-        <CardDescription>
-          Here's how we'll stitch together accounts, recurring cash flow, and your goals to drive insights.
-        </CardDescription>
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold text-foreground">Your Money Graph preview</CardTitle>
+          <CardDescription>
+            Here’s how we’ll stitch together accounts, recurring cash flow, and your goals to drive insights.
+          </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -629,16 +637,31 @@ export default function OnboardingPage() {
                   className={`rounded-lg border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary ${status === "connected" ? "border-primary bg-primary/5" : "border-border hover:border-primary/60"}`}
                   onClick={() => handleLinkInstitution(institution.id)}
                   disabled={linkingInstitution === institution.id}
+                  aria-busy={linkingInstitution === institution.id}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">{institution.name}</p>
                       <p className="text-xs text-muted-foreground">{institution.description}</p>
                     </div>
-                    <span className={`rounded-full px-2 py-1 text-xs ${institution.color}`}>OAuth mock</span>
+                    <div className="flex items-center gap-2">
+                      {linkingInstitution === institution.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
+                          <span className="text-xs text-muted-foreground">Connecting…</span>
+                        </>
+                      ) : (
+                        <span className={`rounded-full px-2 py-1 text-xs ${institution.color}`}>OAuth mock</span>
+                      )}
+                    </div>
                   </div>
                   {linkErrors[institution.id] ? (
                     <p className="mt-2 text-xs text-destructive">{linkErrors[institution.id]}</p>
+                  ) : null}
+                  {linkingInstitution === institution.id ? (
+                    <span className="sr-only" aria-live="polite">
+                      Connecting to {institution.name}
+                    </span>
                   ) : null}
                 </button>
               )

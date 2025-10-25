@@ -1,15 +1,17 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { SettingsGroup } from "@/components/settings-group"
 import { AnimatedSwitch } from "@/components/animated-switch"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { ThemeSelector } from "@/components/theme-selector"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "@/components/ui/sonner"
 import { trackPreferenceToggle } from "@/lib/analytics/events"
 import {
   Bell,
@@ -28,13 +30,33 @@ import {
   Trash2,
   Type,
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
+
+type ThemeSetting = "light" | "dark" | "system"
 
 type FontScale = "compact" | "default" | "comfort" | "focus"
 const APPEARANCE_STORAGE_KEY = "fin-infra-appearance"
-const appearanceDefaults: { fontScale: FontScale; dyslexia: boolean } = {
+const appearanceDefaults: { fontScale: FontScale; dyslexia: boolean; highContrast: boolean } = {
   fontScale: "default",
   dyslexia: false,
+  highContrast: false,
+}
+
+type SettingsSnapshot = {
+  emailNotifications: boolean
+  pushNotifications: boolean
+  priceAlerts: boolean
+  tradeConfirmations: boolean
+  twoFactor: boolean
+  analyticsConsent: boolean
+  marketingConsent: boolean
+  dataSharing: boolean
+  fontScale: FontScale
+  dyslexiaMode: boolean
+  highContrastMode: boolean
+  theme: ThemeSetting
+  language: string
+  timezone: string
 }
 
 export default function SettingsPage() {
@@ -60,20 +82,105 @@ export default function SettingsPage() {
   const [dataSharing, setDataSharing] = useState(initialState.dataSharing)
   const [fontScale, setFontScale] = useState<FontScale>(appearanceDefaults.fontScale)
   const [dyslexiaMode, setDyslexiaMode] = useState<boolean>(appearanceDefaults.dyslexia)
+  const [highContrastMode, setHighContrastMode] = useState<boolean>(appearanceDefaults.highContrast)
+  const [language, setLanguage] = useState("en")
+  const [timezone, setTimezone] = useState("est")
   const [appearanceLoaded, setAppearanceLoaded] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
+  const [baseline, setBaseline] = useState<SettingsSnapshot | null>(null)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle")
+  const [resetDialogOpen, setResetDialogOpen] = useState(false)
+
+  const activeTheme = (theme ?? "system") as ThemeSetting
+
+  const currentSnapshot = useMemo<SettingsSnapshot>(
+    () => ({
+      emailNotifications,
+      pushNotifications,
+      priceAlerts,
+      tradeConfirmations,
+      twoFactor,
+      analyticsConsent,
+      marketingConsent,
+      dataSharing,
+      fontScale,
+      dyslexiaMode,
+      highContrastMode,
+      theme: activeTheme,
+      language,
+      timezone,
+    }),
+    [
+      activeTheme,
+      analyticsConsent,
+      dataSharing,
+      dyslexiaMode,
+      emailNotifications,
+      fontScale,
+      highContrastMode,
+      language,
+      marketingConsent,
+      priceAlerts,
+      pushNotifications,
+      timezone,
+      tradeConfirmations,
+      twoFactor,
+    ],
+  )
+
+  const computeSnapshot = useCallback(
+    (overrides: Partial<SettingsSnapshot> = {}) => ({
+      ...currentSnapshot,
+      ...overrides,
+    }),
+    [currentSnapshot],
+  )
+
+  const handlePreferenceAutosave = useCallback(
+    (preferenceId: string, label: string, nextSnapshot: SettingsSnapshot) => {
+      setSaveStatus("saving")
+      const savePromise = new Promise<void>((resolve) => {
+        setTimeout(() => {
+          setBaseline(nextSnapshot)
+          setSaveStatus("saved")
+          resolve()
+        }, 500)
+      })
+
+      toast.promise(savePromise, {
+        loading: "Saving…",
+        success: `${label} saved`,
+        error: `Couldn't save ${label}`,
+      })
+
+      return savePromise
+    },
+    [setBaseline],
+  )
 
   const handleToggleChange = (
     preferenceId: string,
     label: string,
     section: string,
     setter: (value: boolean) => void,
+    snapshotKey: keyof SettingsSnapshot,
   ) => {
     return (value: boolean) => {
       setter(value)
       trackPreferenceToggle({ preferenceId, label, section, value })
+      const nextSnapshot = computeSnapshot({ [snapshotKey]: value } as Partial<SettingsSnapshot>)
+      handlePreferenceAutosave(preferenceId, label, nextSnapshot)
     }
   }
+
+  useEffect(() => {
+    if (saveStatus !== "saved") {
+      return
+    }
+
+    const timeout = setTimeout(() => setSaveStatus("idle"), 2000)
+
+    return () => clearTimeout(timeout)
+  }, [saveStatus])
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -82,12 +189,15 @@ export default function SettingsPage() {
     try {
       const stored = window.localStorage.getItem(APPEARANCE_STORAGE_KEY)
       if (stored) {
-        const parsed = JSON.parse(stored) as Partial<{ fontScale: FontScale; dyslexia: boolean }>
+        const parsed = JSON.parse(stored) as Partial<{ fontScale: FontScale; dyslexia: boolean; highContrast: boolean }>
         if (parsed.fontScale && ["compact", "default", "comfort", "focus"].includes(parsed.fontScale)) {
           setFontScale(parsed.fontScale)
         }
         if (typeof parsed.dyslexia === "boolean") {
           setDyslexiaMode(parsed.dyslexia)
+        }
+        if (typeof parsed.highContrast === "boolean") {
+          setHighContrastMode(parsed.highContrast)
         }
       }
     } catch {
@@ -112,60 +222,118 @@ export default function SettingsPage() {
     } else {
       root.removeAttribute("data-dyslexia")
     }
+    if (highContrastMode) {
+      root.setAttribute("data-contrast", "high")
+    } else {
+      root.removeAttribute("data-contrast")
+    }
 
     if (typeof window !== "undefined") {
       window.localStorage.setItem(
         APPEARANCE_STORAGE_KEY,
-        JSON.stringify({ fontScale, dyslexia: dyslexiaMode }),
+        JSON.stringify({ fontScale, dyslexia: dyslexiaMode, highContrast: highContrastMode }),
       )
     }
-  }, [appearanceLoaded, fontScale, dyslexiaMode])
+  }, [appearanceLoaded, fontScale, dyslexiaMode, highContrastMode])
 
   useEffect(() => {
-    const changed =
-      emailNotifications !== initialState.emailNotifications ||
-      pushNotifications !== initialState.pushNotifications ||
-      priceAlerts !== initialState.priceAlerts ||
-      tradeConfirmations !== initialState.tradeConfirmations ||
-      twoFactor !== initialState.twoFactor ||
-      analyticsConsent !== initialState.analyticsConsent ||
-      marketingConsent !== initialState.marketingConsent ||
-      dataSharing !== initialState.dataSharing ||
-      fontScale !== appearanceDefaults.fontScale ||
-      dyslexiaMode !== appearanceDefaults.dyslexia ||
-      (theme ?? "system") !== "system"
-    setHasChanges(changed)
-    // We intentionally compare to initialState (component-constant) here; adding it to deps is unnecessary
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    emailNotifications,
-    pushNotifications,
-    priceAlerts,
-    tradeConfirmations,
-    twoFactor,
-    analyticsConsent,
-    marketingConsent,
-    dataSharing,
-    fontScale,
-    dyslexiaMode,
-    theme,
-  ])
+    if (!appearanceLoaded || baseline || typeof theme === "undefined") {
+      return
+    }
+
+    setBaseline(currentSnapshot)
+  }, [appearanceLoaded, baseline, currentSnapshot, theme])
+
+  const hasChanges = useMemo(() => {
+    if (!baseline) {
+      return false
+    }
+    return (
+      currentSnapshot.emailNotifications !== baseline.emailNotifications ||
+      currentSnapshot.pushNotifications !== baseline.pushNotifications ||
+      currentSnapshot.priceAlerts !== baseline.priceAlerts ||
+      currentSnapshot.tradeConfirmations !== baseline.tradeConfirmations ||
+      currentSnapshot.twoFactor !== baseline.twoFactor ||
+      currentSnapshot.analyticsConsent !== baseline.analyticsConsent ||
+      currentSnapshot.marketingConsent !== baseline.marketingConsent ||
+      currentSnapshot.dataSharing !== baseline.dataSharing ||
+      currentSnapshot.fontScale !== baseline.fontScale ||
+      currentSnapshot.dyslexiaMode !== baseline.dyslexiaMode ||
+      currentSnapshot.highContrastMode !== baseline.highContrastMode ||
+      currentSnapshot.theme !== baseline.theme ||
+      currentSnapshot.language !== baseline.language ||
+      currentSnapshot.timezone !== baseline.timezone
+    )
+  }, [baseline, currentSnapshot])
 
   const handleReset = () => {
-    setEmailNotifications(initialState.emailNotifications)
-    setPushNotifications(initialState.pushNotifications)
-    setPriceAlerts(initialState.priceAlerts)
-    setTradeConfirmations(initialState.tradeConfirmations)
-    setTwoFactor(initialState.twoFactor)
-    setAnalyticsConsent(initialState.analyticsConsent)
-    setMarketingConsent(initialState.marketingConsent)
-    setDataSharing(initialState.dataSharing)
-    setFontScale(appearanceDefaults.fontScale)
-    setDyslexiaMode(appearanceDefaults.dyslexia)
-    setTheme("system")
+    setSaveStatus("saving")
+    const resetSnapshot: SettingsSnapshot = {
+      emailNotifications: initialState.emailNotifications,
+      pushNotifications: initialState.pushNotifications,
+      priceAlerts: initialState.priceAlerts,
+      tradeConfirmations: initialState.tradeConfirmations,
+      twoFactor: initialState.twoFactor,
+      analyticsConsent: initialState.analyticsConsent,
+      marketingConsent: initialState.marketingConsent,
+      dataSharing: initialState.dataSharing,
+      fontScale: appearanceDefaults.fontScale,
+      dyslexiaMode: appearanceDefaults.dyslexia,
+      highContrastMode: appearanceDefaults.highContrast,
+      theme: "system",
+      language: "en",
+      timezone: "est",
+    }
+
+    setEmailNotifications(resetSnapshot.emailNotifications)
+    setPushNotifications(resetSnapshot.pushNotifications)
+    setPriceAlerts(resetSnapshot.priceAlerts)
+    setTradeConfirmations(resetSnapshot.tradeConfirmations)
+    setTwoFactor(resetSnapshot.twoFactor)
+    setAnalyticsConsent(resetSnapshot.analyticsConsent)
+    setMarketingConsent(resetSnapshot.marketingConsent)
+    setDataSharing(resetSnapshot.dataSharing)
+    setFontScale(resetSnapshot.fontScale)
+    setDyslexiaMode(resetSnapshot.dyslexiaMode)
+    setHighContrastMode(resetSnapshot.highContrastMode)
+    setLanguage(resetSnapshot.language)
+    setTimezone(resetSnapshot.timezone)
+    setTheme(resetSnapshot.theme)
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(APPEARANCE_STORAGE_KEY)
     }
+
+    const resetPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setBaseline(resetSnapshot)
+        setSaveStatus("saved")
+        resolve()
+      }, 500)
+    })
+
+    toast.promise(resetPromise, {
+      loading: "Restoring defaults…",
+      success: "Defaults restored",
+      error: "Couldn't reset settings",
+    })
+  }
+
+  const handleSave = () => {
+    setSaveStatus("saving")
+    const snapshot = currentSnapshot
+    const savePromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setBaseline(snapshot)
+        setSaveStatus("saved")
+        resolve()
+      }, 500)
+    })
+
+    toast.promise(savePromise, {
+      loading: "Saving…",
+      success: "Settings saved",
+      error: "Couldn't save settings",
+    })
   }
 
   const connectedAccounts = [
@@ -182,6 +350,7 @@ export default function SettingsPage() {
         description: "Trade receipts, balance alerts, and weekly summaries.",
         value: emailNotifications,
         setter: setEmailNotifications,
+        snapshotKey: "emailNotifications" as const,
       },
       {
         id: "push-notifications",
@@ -189,6 +358,7 @@ export default function SettingsPage() {
         description: "Instant alerts on mobile and desktop apps.",
         value: pushNotifications,
         setter: setPushNotifications,
+        snapshotKey: "pushNotifications" as const,
       },
       {
         id: "price-alerts",
@@ -196,6 +366,7 @@ export default function SettingsPage() {
         description: "Notifies when equities cross your guardrails.",
         value: priceAlerts,
         setter: setPriceAlerts,
+        snapshotKey: "priceAlerts" as const,
       },
       {
         id: "trade-confirmations",
@@ -203,6 +374,7 @@ export default function SettingsPage() {
         description: "Require one-tap approval before orders execute.",
         value: tradeConfirmations,
         setter: setTradeConfirmations,
+        snapshotKey: "tradeConfirmations" as const,
       },
     ],
     [emailNotifications, pushNotifications, priceAlerts, tradeConfirmations],
@@ -216,6 +388,7 @@ export default function SettingsPage() {
         description: "Share anonymized usage data to improve reliability.",
         value: analyticsConsent,
         setter: setAnalyticsConsent,
+        snapshotKey: "analyticsConsent" as const,
       },
       {
         id: "marketing-consent",
@@ -223,6 +396,7 @@ export default function SettingsPage() {
         description: "Receive curated product news and early feature access.",
         value: marketingConsent,
         setter: setMarketingConsent,
+        snapshotKey: "marketingConsent" as const,
       },
       {
         id: "data-sharing",
@@ -230,10 +404,13 @@ export default function SettingsPage() {
         description: "Allow trusted institutions to pull aggregated insights.",
         value: dataSharing,
         setter: setDataSharing,
+        snapshotKey: "dataSharing" as const,
       },
     ],
     [analyticsConsent, marketingConsent, dataSharing],
   )
+
+  const notificationHelperId = "notification-helper"
 
   const fontScaleOptions: { value: FontScale; label: string; helper: string }[] = [
     { value: "compact", label: "Compact", helper: "Tight tables" },
@@ -241,6 +418,36 @@ export default function SettingsPage() {
     { value: "comfort", label: "Comfort", helper: "Reading focus" },
     { value: "focus", label: "Focus", helper: "Maximum legibility" },
   ]
+
+  const previewCopy = {
+    heading: "Preview",
+    body: "Market updates and insights adapt instantly to your preferences.",
+  }
+
+  const previewTypography =
+    fontScale === "compact"
+      ? "text-xs"
+      : fontScale === "comfort"
+        ? "text-sm"
+        : fontScale === "focus"
+          ? "text-base"
+          : "text-[0.8rem]"
+
+  const statusLabel =
+    saveStatus === "saving"
+      ? "Saving…"
+      : saveStatus === "saved"
+        ? "Saved"
+        : hasChanges
+          ? "Unsaved changes"
+          : "All settings saved"
+
+  const statusVariant =
+    saveStatus === "saving" || hasChanges
+      ? "secondary"
+      : saveStatus === "saved"
+        ? "default"
+        : "outline"
 
   return (
     <div className="p-6">
@@ -267,26 +474,40 @@ export default function SettingsPage() {
           description="Configure how you receive updates"
           icon={<Bell className="h-5 w-5" />}
         >
-          {notificationPreferences.map((preference) => (
-            <div key={preference.id} className="flex items-start justify-between gap-6 py-4">
-              <div className="space-y-1">
-                <Label htmlFor={preference.id} className="font-medium">
-                  {preference.label}
-                </Label>
-                <p className="text-xs text-muted-foreground max-w-sm">{preference.description}</p>
-              </div>
-              <AnimatedSwitch
-                id={preference.id}
-                checked={preference.value}
-                onCheckedChange={handleToggleChange(
-                  preference.id,
-                  preference.label,
-                  "notifications",
-                  preference.setter,
-                )}
-              />
-            </div>
-          ))}
+          <p id={notificationHelperId} className="text-xs text-muted-foreground">
+            Choose how TradeHub keeps you in the loop. Each option announces its state to screen readers.
+          </p>
+          <fieldset className="mt-4 space-y-4" aria-describedby={notificationHelperId}>
+            {notificationPreferences.map((preference) => {
+              const labelId = `${preference.id}-label`
+              const descriptionId = `${preference.id}-description`
+              return (
+                <div key={preference.id} className="flex items-start justify-between gap-6 rounded-xl border border-border/30 bg-muted/5 px-4 py-4">
+                  <div className="space-y-1">
+                    <Label id={labelId} htmlFor={preference.id} className="font-medium">
+                      {preference.label}
+                    </Label>
+                    <p id={descriptionId} className="text-xs text-muted-foreground max-w-sm">
+                      {preference.description}
+                    </p>
+                  </div>
+                  <AnimatedSwitch
+                    id={preference.id}
+                    aria-labelledby={labelId}
+                    aria-describedby={descriptionId}
+                    checked={preference.value}
+                    onCheckedChange={handleToggleChange(
+                      preference.id,
+                      preference.label,
+                      "notifications",
+                      preference.setter,
+                      preference.snapshotKey,
+                    )}
+                  />
+                </div>
+              )
+            })}
+          </fieldset>
         </SettingsGroup>
 
         <SettingsGroup
@@ -332,48 +553,98 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-start justify-between gap-6 rounded-xl border border-border/40 bg-muted/10 px-4 py-4">
-              <div className="space-y-1">
-                <Label htmlFor="dyslexia-mode" className="font-medium flex items-center gap-2">
-                  Dyslexia-friendly mode <Type className="h-3.5 w-3.5" />
-                </Label>
-                <p className="text-xs text-muted-foreground max-w-sm">
-                  Switches to Atkinson Hyperlegible and slightly increases letter spacing for easier scanning.
-                </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex h-full flex-col justify-between gap-6 rounded-xl border border-border/40 bg-muted/10 px-4 py-4">
+                <div className="space-y-1">
+                  <Label
+                    id="dyslexia-mode-label"
+                    htmlFor="dyslexia-mode"
+                    className="flex items-center gap-2 font-medium"
+                  >
+                    Dyslexia-friendly mode <Type className="h-3.5 w-3.5" />
+                  </Label>
+                  <p id="dyslexia-mode-description" className="text-xs text-muted-foreground max-w-sm">
+                    Switches to Atkinson Hyperlegible and slightly increases letter spacing for easier scanning.
+                  </p>
+                </div>
+                <AnimatedSwitch
+                  id="dyslexia-mode"
+                  aria-labelledby="dyslexia-mode-label"
+                  aria-describedby="dyslexia-mode-description"
+                  checked={dyslexiaMode}
+                  onCheckedChange={(value) => {
+                    setDyslexiaMode(value)
+                    trackPreferenceToggle({
+                      preferenceId: "dyslexia-mode",
+                      label: "Dyslexia-friendly mode",
+                      section: "appearance",
+                      value,
+                    })
+                    const nextSnapshot = computeSnapshot({ dyslexiaMode: value })
+                    handlePreferenceAutosave("dyslexia-mode", "Dyslexia-friendly mode", nextSnapshot)
+                  }}
+                />
               </div>
-              <AnimatedSwitch
-                id="dyslexia-mode"
-                checked={dyslexiaMode}
-                onCheckedChange={(value) => {
-                  setDyslexiaMode(value)
-                  trackPreferenceToggle({
-                    preferenceId: "dyslexia-mode",
-                    label: "Dyslexia-friendly mode",
-                    section: "appearance",
-                    value,
-                  })
-                }}
-              />
+              <div className="flex h-full flex-col justify-between gap-6 rounded-xl border border-border/40 bg-muted/10 px-4 py-4">
+                <div className="space-y-1">
+                  <Label id="high-contrast-mode-label" htmlFor="high-contrast-mode" className="font-medium">
+                    High contrast preview
+                  </Label>
+                  <p id="high-contrast-mode-description" className="text-xs text-muted-foreground max-w-sm">
+                    Adds stronger borders and color separation for low-vision scenarios.
+                  </p>
+                </div>
+                <AnimatedSwitch
+                  id="high-contrast-mode"
+                  aria-labelledby="high-contrast-mode-label"
+                  aria-describedby="high-contrast-mode-description"
+                  checked={highContrastMode}
+                  onCheckedChange={(value) => {
+                    setHighContrastMode(value)
+                    trackPreferenceToggle({
+                      preferenceId: "high-contrast-mode",
+                      label: "High contrast preview",
+                      section: "appearance",
+                      value,
+                    })
+                    const nextSnapshot = computeSnapshot({ highContrastMode: value })
+                    handlePreferenceAutosave("high-contrast-mode", "High contrast preview", nextSnapshot)
+                  }}
+                />
+              </div>
+            </div>
+
+            <div
+              aria-live="polite"
+              className={`rounded-xl border border-dashed border-border/50 bg-background/70 p-4 transition-colors ${highContrastMode ? "ring-2 ring-primary/40" : ""}`}
+            >
+              <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{previewCopy.heading}</p>
+              <p className={`mt-2 font-medium leading-relaxed ${previewTypography}`}>{previewCopy.body}</p>
             </div>
           </div>
         </SettingsGroup>
 
-        <SettingsGroup title="Security" description="Manage your security settings" icon={<Lock className="h-5 w-5" />}>
+        <SettingsGroup title="Security" description="Manage your security settings" icon={<Lock className="h-5 w-5" />}> 
           <div className="flex items-center justify-between py-4">
             <div className="space-y-0.5">
-              <Label htmlFor="two-factor" className="font-medium">
+              <Label id="two-factor-label" htmlFor="two-factor" className="font-medium">
                 Two-Factor Authentication
               </Label>
-              <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
+              <p id="two-factor-description" className="text-sm text-muted-foreground">
+                Add an extra layer of security before approving logins.
+              </p>
             </div>
             <AnimatedSwitch
               id="two-factor"
+              aria-labelledby="two-factor-label"
+              aria-describedby="two-factor-description"
               checked={twoFactor}
               onCheckedChange={handleToggleChange(
                 "two-factor",
                 "Two-Factor Authentication",
                 "security",
                 setTwoFactor,
+                "twoFactor",
               )}
             />
           </div>
@@ -406,7 +677,7 @@ export default function SettingsPage() {
               <Label htmlFor="language" className="font-medium">
                 Language
               </Label>
-              <Select defaultValue="en">
+              <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger id="language">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
@@ -423,7 +694,7 @@ export default function SettingsPage() {
               <Label htmlFor="timezone" className="font-medium">
                 Timezone
               </Label>
-              <Select defaultValue="est">
+              <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger id="timezone">
                   <SelectValue placeholder="Select timezone" />
                 </SelectTrigger>
@@ -444,26 +715,35 @@ export default function SettingsPage() {
           description="Manage your data sharing preferences and privacy settings"
           icon={<Eye className="h-5 w-5" />}
         >
-          {privacyPreferences.map((preference) => (
-            <div key={preference.id} className="flex items-start justify-between gap-6 py-4">
-              <div className="space-y-1">
-                <Label htmlFor={preference.id} className="font-medium capitalize">
-                  {preference.label}
-                </Label>
-                <p className="text-xs text-muted-foreground max-w-sm">{preference.description}</p>
+          {privacyPreferences.map((preference) => {
+            const labelId = `${preference.id}-label`
+            const descriptionId = `${preference.id}-description`
+            return (
+              <div key={preference.id} className="flex items-start justify-between gap-6 rounded-xl border border-border/30 bg-muted/5 px-4 py-4">
+                <div className="space-y-1">
+                  <Label id={labelId} htmlFor={preference.id} className="font-medium capitalize">
+                    {preference.label}
+                  </Label>
+                  <p id={descriptionId} className="text-xs text-muted-foreground max-w-sm">
+                    {preference.description}
+                  </p>
+                </div>
+                <AnimatedSwitch
+                  id={preference.id}
+                  aria-labelledby={labelId}
+                  aria-describedby={descriptionId}
+                  checked={preference.value}
+                  onCheckedChange={handleToggleChange(
+                    preference.id,
+                    preference.label,
+                    "privacy",
+                    preference.setter,
+                    preference.snapshotKey,
+                  )}
+                />
               </div>
-              <AnimatedSwitch
-                id={preference.id}
-                checked={preference.value}
-                onCheckedChange={handleToggleChange(
-                  preference.id,
-                  preference.label,
-                  "privacy",
-                  preference.setter,
-                )}
-              />
-            </div>
-          ))}
+            )
+          })}
 
           <div className="space-y-3 py-4">
             <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
@@ -525,28 +805,49 @@ export default function SettingsPage() {
           </div>
         </SettingsGroup>
 
-        <AnimatePresence>
-          {hasChanges && (
-            <motion.div
-              initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="fixed bottom-0 left-0 right-0 lg:left-64 bg-background/95 backdrop-blur-md border-t border-border/20 px-6 py-4 flex justify-between items-center z-30 shadow-lg"
+        <motion.div
+          initial={false}
+          animate={{ y: hasChanges ? 0 : 40, opacity: hasChanges ? 1 : 0.85 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between border-t border-border/20 bg-background/95 px-6 py-4 shadow-lg backdrop-blur-md lg:left-64"
+        >
+          <Button variant="ghost" size="lg" onClick={() => setResetDialogOpen(true)}>
+            Reset to Defaults
+          </Button>
+          <div className="flex items-center gap-3">
+            <Badge variant={statusVariant} className="text-xs" aria-live="polite">
+              {statusLabel}
+            </Badge>
+            <Button
+              size="lg"
+              onClick={handleSave}
+              disabled={!baseline || !hasChanges || saveStatus === "saving"}
+              aria-disabled={!baseline || !hasChanges || saveStatus === "saving"}
             >
-              <Button variant="ghost" size="lg" onClick={handleReset}>
-                Reset to Defaults
-              </Button>
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="text-xs">
-                  Unsaved changes
-                </Badge>
-                <Button size="lg">Save All Settings</Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              Save All Settings
+            </Button>
+          </div>
+        </motion.div>
       </motion.div>
+
+      <ConfirmDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+        title="Reset settings to defaults?"
+        description="We'll restore the recommended notification and accessibility defaults. This won't disconnect linked accounts."
+        confirmLabel="Restore defaults"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          setResetDialogOpen(false)
+          handleReset()
+        }}
+      >
+        <ul className="list-disc space-y-1 pl-4">
+          <li>Email, push, price alert, and trade confirmation toggles</li>
+          <li>Appearance preferences including font scale, dyslexia mode, and contrast</li>
+          <li>Theme, language, and timezone selections</li>
+        </ul>
+      </ConfirmDialog>
     </div>
   )
 }

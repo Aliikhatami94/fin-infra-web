@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { type ComponentType, type SVGProps, useMemo } from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +21,7 @@ const sparklineData = {
 type SummaryItem = {
   label: string
   value: string
-  icon: React.ComponentType<any>
+  icon: ComponentType<SVGProps<SVGSVGElement>>
   color?: string
   sparkline?: number[]
   subtext?: string
@@ -135,80 +135,116 @@ export function BudgetSummary() {
   }, [persona])
 
   return (
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
       {summary.map((item, index) => {
         const TrendIcon = item.trend === "down" ? ArrowDown : ArrowUp
         const Icon = item.icon
+        const progressValue = item.progress ?? 0
+        const progressState =
+          item.progress === undefined
+            ? null
+            : progressValue > 110
+              ? "critical"
+              : progressValue > 100
+                ? "over"
+                : progressValue >= 90
+                  ? "near"
+                  : "under"
+        const progressColorClass =
+          progressState === "over" || progressState === "critical"
+            ? "text-[var(--color-negative)]"
+            : progressState === "near"
+              ? "text-orange-500 dark:text-orange-400"
+              : "text-[var(--color-positive)]"
+        const progressStatusLabel =
+          progressState === "over" || progressState === "critical"
+            ? "over budget"
+            : progressState === "near"
+              ? "nearing budget limit"
+              : "under budget"
         return (
-          <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
-            <Card className="card-standard card-lift">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-3 flex-1">
-                    <div className="flex items-center gap-2">
-                      {Icon && (
-                        <div className="rounded-lg bg-primary/10 p-2">
-                          <Icon className="h-4 w-4 text-primary" />
-                        </div>
-                      )}
-                      <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
-                      <LastSyncBadge timestamp="3 min ago" source="Plaid" />
-                    </div>
-                    <div className="space-y-2">
-                      <p className={`text-3xl font-bold tabular-nums tracking-tight ${item.color}`}>{item.value}</p>
-                      {item.subtext && (
-                        <div className="flex items-center gap-1.5 text-xs">
-                          {item.trend && (
-                            <TrendIcon
-                              className={`h-3.5 w-3.5 ${item.trend === "down" ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
-                            />
-                          )}
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <span
-                                  className={`font-medium ${item.trend === "down" ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
-                                >
-                                  {item.subtext}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-xs">Last Month: $6,150</p>
-                                <p className="text-xs">This Month: $5,840</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      )}
-                      {item.badge && (
-                        <Badge variant="secondary" className="bg-green-500/10 text-[var(--color-positive)] border-0">
-                          {item.badge}
-                        </Badge>
-                      )}
-                      {item.sparkline && (
-                        <div className="pt-2">
-                          <Sparkline
-                            data={item.sparkline}
-                            color={
-                              item.color?.includes("green")
-                                ? "var(--color-positive)"
-                                : item.color?.includes("red")
-                                  ? "var(--color-negative)"
-                                  : "hsl(var(--primary))"
-                            }
-                          />
-                        </div>
-                      )}
-                    </div>
+          <motion.div key={index} className="h-full" {...createStaggeredCardVariants(index, 0)}>
+            <Card className="card-standard card-lift h-full">
+              <CardContent className="flex h-full flex-col gap-6 p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    {Icon && (
+                      <div className="rounded-lg bg-primary/10 p-2">
+                        <Icon className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                    <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
                   </div>
-                  <div className="relative">
+                  <LastSyncBadge timestamp="3 min ago" source="Plaid" className="flex-shrink-0" />
+                </div>
+                <div className="flex flex-1 flex-wrap items-end justify-between gap-4">
+                  <div className="space-y-3">
+                    <p className={`text-3xl font-bold tabular-nums tracking-tight ${item.color}`}>{item.value}</p>
+                    {item.subtext && (
+                      <div className="flex items-center gap-1.5 text-xs">
+                        {item.trend && (
+                          <TrendIcon
+                            className={`h-3.5 w-3.5 ${
+                              item.trend === "down"
+                                ? "text-[var(--color-positive)]"
+                                : "text-[var(--color-negative)]"
+                            }`}
+                          />
+                        )}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span
+                                className={`font-medium ${
+                                  item.trend === "down"
+                                    ? "text-[var(--color-positive)]"
+                                    : "text-[var(--color-negative)]"
+                                }`}
+                              >
+                                {item.subtext}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">Last Month: $6,150</p>
+                              <p className="text-xs">This Month: $5,840</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    )}
+                    {item.badge && (
+                      <Badge variant="secondary" className="border-0 bg-green-500/10 text-[var(--color-positive)]">
+                        {item.badge}
+                      </Badge>
+                    )}
+                    {item.sparkline && (
+                      <div className="pt-2">
+                        <Sparkline
+                          data={item.sparkline}
+                          color={
+                            item.color?.includes("green")
+                              ? "var(--color-positive)"
+                              : item.color?.includes("red")
+                                ? "var(--color-negative)"
+                                : "hsl(var(--primary))"
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex min-w-[3rem] items-center justify-end">
                     {item.actionable ? (
-                      <Button variant="outline" size="sm" className="h-9 w-9 p-0 bg-transparent">
+                      <Button variant="outline" size="sm" className="h-9 w-9 bg-transparent p-0">
                         <Plus className="h-4 w-4" />
                       </Button>
                     ) : item.progress !== undefined ? (
-                      <div className="relative">
-                        <svg className="h-14 w-14 -rotate-90">
+                      <div
+                        className="relative"
+                        role="img"
+                        aria-label={`${item.label} is ${progressValue}% complete, ${progressStatusLabel}.`}
+                        data-progress-state={progressState ?? undefined}
+                      >
+                        <svg className="h-14 w-14 -rotate-90" aria-hidden="true">
                           <circle
                             cx="28"
                             cy="28"
@@ -227,13 +263,7 @@ export function BudgetSummary() {
                             fill="none"
                             strokeDasharray={`${2 * Math.PI * 24}`}
                             strokeDashoffset={`${2 * Math.PI * 24 * (1 - item.progress / 100)}`}
-                            className={
-                              item.progress > 100
-                                ? "text-red-500"
-                                : item.progress > 90
-                                  ? "text-orange-500"
-                                  : "text-green-500"
-                            }
+                            className={progressColorClass}
                             strokeLinecap="round"
                           />
                         </svg>

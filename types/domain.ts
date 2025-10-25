@@ -30,6 +30,7 @@ export interface Account {
   institution: string
   balance: number
   change: number
+  balanceHistory: number[]
   lastSync: string
   status: AccountStatus
   nextBillDue: string | null
@@ -177,6 +178,18 @@ export interface KPI {
   urgency?: "low" | "medium" | "high"
   personas?: DashboardPersona[]
   narrative?: string
+  quickActions?: KPIQuickAction[]
+}
+
+export type KPIQuickActionIntent = "navigate" | "plan-adjust"
+
+export interface KPIQuickAction {
+  label: string
+  href?: string
+  description?: string
+  intent?: KPIQuickActionIntent
+  disabled?: boolean
+  tooltip?: string
 }
 
 export type ActivityType = "transaction" | "sync" | "subscription" | (string & {})
@@ -340,6 +353,8 @@ export interface AccountabilityTask {
   surfaces: ("overview" | "documents" | "global")[]
   entityType: CollaborationEntityType
   entityId: string
+  snoozedUntil?: string | null
+  dismissedAt?: string | null
 }
 
 export type CollaborationEntityType = "document" | "transaction" | "goal" | "task"

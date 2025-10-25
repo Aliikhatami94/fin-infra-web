@@ -1,10 +1,13 @@
 "use client"
 
-import { Fragment } from "react"
+import { useMemo } from "react"
 import { InsightCard } from "@/components/insights/InsightCard"
 import { trackInsightAction } from "@/lib/analytics/events"
 import type { InsightAction, InsightDefinition } from "@/lib/insights/definitions"
-import { Lightbulb, ShieldAlert } from "lucide-react"
+import { Lightbulb, ShieldAlert, Inbox } from "lucide-react"
+import { useInsightDismissals } from "@/hooks/use-insight-dismissals"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 
 const insights: InsightDefinition[] = [
   {
@@ -42,17 +45,77 @@ const insights: InsightDefinition[] = [
 ]
 
 export function TransactionsInsights() {
+  const { dismiss, undismiss, reset, isDismissed, resolvedIds, hydrated } = useInsightDismissals({ surface: "transactions" })
   const handleAction = (payload: { insight: InsightDefinition; action: InsightAction }) => {
     trackInsightAction(payload)
   }
 
+  const visibleInsights = useMemo(() => insights.filter((insight) => !isDismissed(insight.id)), [isDismissed])
+  const hasDismissedInsights = resolvedIds.length > 0
+
+  if (!hydrated) {
+    return (
+      <div className="grid gap-4 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_value, index) => (
+          <div key={index} className="h-[240px] rounded-2xl bg-muted/60 animate-pulse" />
+        ))}
+      </div>
+    )
+  }
+
+  if (visibleInsights.length === 0) {
+    return (
+      <Card className="card-standard">
+        <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+          <Inbox className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+          <div className="space-y-1">
+            <h2 className="text-sm font-semibold text-foreground">All transaction insights resolved</h2>
+            <p className="text-sm text-muted-foreground">
+              You&apos;re caught up for now. Restore insights to review recommendations again.
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={reset}>
+            Show dismissed insights
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {insights.map((insight) => (
-        <Fragment key={insight.id}>
-          <InsightCard insight={insight} onAction={handleAction} />
-        </Fragment>
-      ))}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">High-impact suggestions based on recent transactions.</p>
+        {hasDismissedInsights ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={reset}
+            className="h-8 px-2 text-xs"
+            aria-label="Show dismissed insights"
+          >
+            Show dismissed ({resolvedIds.length})
+          </Button>
+        ) : null}
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {visibleInsights.map((insight, index) => (
+          <InsightCard
+            key={insight.id}
+            insight={insight}
+            index={index}
+            onAction={handleAction}
+            resolved={resolvedIds.includes(insight.id)}
+            onResolutionChange={({ resolved }) => {
+              if (resolved) {
+                dismiss(insight.id)
+              } else {
+                undismiss(insight.id)
+              }
+            }}
+          />
+        ))}
+      </div>
     </div>
   )
 }

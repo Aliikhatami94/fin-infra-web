@@ -214,7 +214,7 @@ export function AutomationCopilotDrawer({
         })}
       </div>
 
-      <Card className="border-primary/20 bg-primary/5">
+      <Card className="card-standard border-primary/20">
         <CardContent className="space-y-4 p-4">
           <div className="space-y-1">
             <p className="text-sm font-semibold text-foreground">{selectedSuggestion.title}</p>
@@ -223,7 +223,10 @@ export function AutomationCopilotDrawer({
 
           <div className="grid gap-3">
             {selectedSuggestion.metrics.map((metric) => (
-              <div key={metric.id} className="flex items-center justify-between gap-4 rounded-md border border-border/40 bg-background/60 px-3 py-2">
+              <div
+                key={metric.id}
+                className="flex items-center justify-between gap-4 rounded-md border border-border/40 bg-card px-3 py-2"
+              >
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">{metric.label}</p>
                   {metric.rationale && <p className="text-[11px] text-muted-foreground/80">{metric.rationale}</p>}
@@ -317,6 +320,7 @@ export function AutomationCopilotDrawer({
                         size="icon"
                         className="h-7 w-7"
                         onClick={() => handleUndo(entry, suggestion)}
+                        aria-label={`Undo ${entry.label}`}
                       >
                         <Undo2 className="h-3.5 w-3.5" />
                       </Button>

@@ -1,7 +1,17 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Eye, Download, MoreVertical, FileText, File, FileSpreadsheet, Users } from "lucide-react"
+import {
+  Eye,
+  Download,
+  MoreVertical,
+  FileText,
+  FileSpreadsheet,
+  Users,
+  FileBarChart,
+  FileCheck2,
+  ReceiptText,
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -28,16 +38,27 @@ interface DocumentCardProps {
 }
 
 const getDocumentIcon = (type: string) => {
-  if (type.toLowerCase().includes("tax")) return FileSpreadsheet
-  if (type.toLowerCase().includes("statement")) return File
+  const normalized = type.toLowerCase()
+  if (normalized.includes("tax") || normalized.includes("1099") || normalized.includes("form")) return FileSpreadsheet
+  if (normalized.includes("statement")) return FileText
+  if (normalized.includes("report")) return FileBarChart
+  if (normalized.includes("confirmation")) return FileCheck2
+  if (normalized.includes("receipt")) return ReceiptText
   return FileText
 }
 
 const getTypeColor = (type: string) => {
-  if (type.toLowerCase().includes("tax"))
+  const normalized = type.toLowerCase()
+  if (normalized.includes("tax") || normalized.includes("1099") || normalized.includes("form"))
     return "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
-  if (type.toLowerCase().includes("statement"))
+  if (normalized.includes("statement"))
     return "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30"
+  if (normalized.includes("report"))
+    return "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30"
+  if (normalized.includes("confirmation"))
+    return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+  if (normalized.includes("receipt"))
+    return "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30"
   return "bg-gray-500/15 text-gray-700 dark:text-gray-300 border-gray-500/30"
 }
 
@@ -96,6 +117,7 @@ export function DocumentCard({
               variant="ghost"
               size="icon"
               className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              aria-label={`More actions for ${name}`}
             >
               <MoreVertical className="h-4 w-4 text-muted-foreground" />
             </Button>

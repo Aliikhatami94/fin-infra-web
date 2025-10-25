@@ -1,6 +1,14 @@
 import { z } from "zod"
 
-import type { ActivityAction, ActivityType, DashboardPersona, KPI, RecentActivity } from "@/types/domain"
+import type {
+  ActivityAction,
+  ActivityType,
+  DashboardPersona,
+  KPI,
+  KPIQuickAction,
+  KPIQuickActionIntent,
+  RecentActivity,
+} from "@/types/domain"
 import { iconSchema } from "./accounts"
 
 const buttonVariantSchema = z.enum(["default", "destructive", "outline", "secondary", "ghost", "link"])
@@ -36,6 +44,20 @@ const personaSchema: z.ZodType<DashboardPersona> = z.enum([
   "stability_seeker",
 ])
 
+const kpiQuickActionIntentSchema: z.ZodType<KPIQuickActionIntent> = z.enum([
+  "navigate",
+  "plan-adjust",
+])
+
+export const kpiQuickActionSchema: z.ZodType<KPIQuickAction> = z.object({
+  label: z.string(),
+  href: z.string().optional(),
+  description: z.string().optional(),
+  intent: kpiQuickActionIntentSchema.optional(),
+  disabled: z.boolean().optional(),
+  tooltip: z.string().optional(),
+})
+
 export const kpiSchema: z.ZodType<KPI> = z.object({
   label: z.string(),
   value: z.string(),
@@ -50,6 +72,7 @@ export const kpiSchema: z.ZodType<KPI> = z.object({
   urgency: z.enum(["low", "medium", "high"]).optional(),
   personas: z.array(personaSchema).optional(),
   narrative: z.string().optional(),
+  quickActions: z.array(kpiQuickActionSchema).optional(),
 })
 
 export const dashboardKpisResponseSchema = z.array(kpiSchema)

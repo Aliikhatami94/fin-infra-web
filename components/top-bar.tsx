@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Search, Calendar, Eye, EyeOff, Menu, Building2 } from "lucide-react"
+import { Bell, Search, Calendar, Menu, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Moon, Sun, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-react"
-import { usePrivacy } from "@/components/privacy-provider"
+import { useMaskToggleDetails } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
 import { useDateRange } from "@/components/date-range-provider"
@@ -32,7 +32,7 @@ import { NotificationCenter } from "@/components/notification-center"
 
 export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { setTheme, theme } = useTheme()
-  const { masked, toggleMasked } = usePrivacy()
+  const { masked, toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
   const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
   const { progress: onboardingProgress, state: onboardingState, hydrated } = useOnboardingState()
@@ -58,12 +58,14 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   }
 
   return (
-    <header className="fixed top-0 z-[60] w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
+    <header className="fixed top-0 z-40 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3 md:gap-6">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick} aria-label="Open menu">
-            <Menu className="h-5 w-5" />
-          </Button>
+          <div className="lg:hidden">
+            <Button variant="ghost" size="icon" onClick={onMenuClick} aria-label="Open menu">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
 
           <h1 className="text-lg md:text-xl font-bold tracking-tight">{BRAND.name}</h1>
           <Badge variant="outline" className="font-mono text-xs hidden sm:inline-flex">
@@ -107,11 +109,11 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
             variant="ghost"
             size="icon"
             aria-pressed={!masked}
-            aria-label={masked ? "Show amounts" : "Hide amounts"}
+            aria-label={maskLabel}
             onClick={toggleMasked}
             className="hidden sm:flex"
           >
-            {masked ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+            <MaskIcon className="h-5 w-5" />
           </Button>
 
           <Select value={dateRange} onValueChange={handleDateRangeChange}>
@@ -147,7 +149,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
 
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" aria-label="Open account menu">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder.svg?height=32&width=32" />
                   <AvatarFallback>{activeMember.avatarFallback}</AvatarFallback>

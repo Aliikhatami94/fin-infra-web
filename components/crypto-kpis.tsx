@@ -1,12 +1,21 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, Info, Bitcoin, DollarSign, Coins, TrendingUpIcon } from "lucide-react"
+import {
+  TrendingUp,
+  TrendingDown,
+  Info,
+  Bitcoin,
+  DollarSign,
+  Coins,
+  TrendingUpIcon,
+} from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { KPIIcon } from "@/components/ui/kpi-icon"
 
 const kpis = [
   {
@@ -19,6 +28,7 @@ const kpis = [
     icon: DollarSign,
     lastSynced: "Just now",
     source: "Live",
+    sparkline: [19800, 20120, 20510, 21240, 22010, 23120, 24580],
   },
   {
     label: "BTC Dominance",
@@ -30,6 +40,7 @@ const kpis = [
     icon: Bitcoin,
     lastSynced: "Just now",
     source: "Live",
+    sparkline: [41.8, 42.6, 43.1, 43.8, 44.2, 45.1, 46.2],
   },
   {
     label: "24h Change",
@@ -41,6 +52,7 @@ const kpis = [
     icon: TrendingUpIcon,
     lastSynced: "Just now",
     source: "Live",
+    sparkline: [0, 240, 380, 760, 1020, 1540, 1842],
   },
   {
     label: "Top Asset Change",
@@ -53,23 +65,59 @@ const kpis = [
     icon: Coins,
     lastSynced: "Just now",
     source: "Live",
+    sparkline: [21500, 22150, 22420, 22880, 23210, 23640, 23890],
   },
 ]
+
+const Sparkline = ({ data, positive }: { data: number[]; positive: boolean }) => {
+  if (!data.length) return null
+
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+
+  const points = data
+    .map((value, index) => {
+      const x = (index / (data.length - 1)) * 100
+      const y = 100 - ((value - min) / range) * 100
+      return `${x},${y}`
+    })
+    .join(" ")
+
+  return (
+    <svg
+      className="h-12 w-24"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      role="img"
+      aria-hidden="true"
+    >
+      <polyline
+        points={points}
+        fill="none"
+        stroke={positive ? "var(--color-positive)" : "var(--color-negative)"}
+        strokeWidth={4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
 export function CryptoKPIs() {
   const router = useRouter()
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {kpis.map((kpi, index) => {
         const Icon = kpi.icon
         return (
-          <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
+          <motion.div key={index} {...createStaggeredCardVariants(index, 0)} className="h-full">
             <Card
-              className={`card-standard ${kpi.clickable ? "cursor-pointer card-lift" : ""}`}
+              className={`card-standard card-lift h-full ${kpi.clickable ? "cursor-pointer" : ""}`}
               onClick={() => kpi.clickable && router.push("/crypto/btc")}
             >
-              <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
+              <CardContent className="p-6 min-h-[140px] flex h-full flex-col justify-between">
                 <div className="mb-2">
                   <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                 </div>
@@ -88,9 +136,7 @@ export function CryptoKPIs() {
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
+                    <KPIIcon icon={Icon} tone="info" />
                   </div>
                   <p
                     className="text-2xl font-bold tabular-nums text-foreground"
@@ -98,31 +144,34 @@ export function CryptoKPIs() {
                   >
                     {kpi.value}
                   </p>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1 cursor-help">
-                          {kpi.positive ? (
-                            <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
-                          ) : (
-                            <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
-                          )}
-                          <span
-                            className={`text-xs font-medium tabular-nums ${
-                              kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
-                            }`}
-                          >
-                            {kpi.change}
-                          </span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">
-                          vs. yesterday: <span className="font-mono">{kpi.baselineValue}</span>
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <div className="flex items-center justify-between gap-3">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1 cursor-help">
+                            {kpi.positive ? (
+                              <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
+                            )}
+                            <span
+                              className={`text-xs font-medium tabular-nums ${
+                                kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
+                              }`}
+                            >
+                              {kpi.change}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-xs">
+                            vs. yesterday: <span className="font-mono">{kpi.baselineValue}</span>
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <Sparkline data={kpi.sparkline} positive={kpi.positive} />
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -35,7 +35,7 @@ export default function AccountDetailPage() {
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Return to accounts overview">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">

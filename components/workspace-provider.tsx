@@ -38,6 +38,8 @@ interface WorkspaceContextValue {
   markChannelAsRead: (channel: WorkspaceNotification["channel"], workspaceId?: string) => void
   tasks: AccountabilityTask[]
   updateTaskStatus: (taskId: string, status: AccountabilityTask["status"]) => void
+  snoozeTask: (taskId: string, snoozedUntil: string | null) => void
+  dismissTask: (taskId: string, dismissed: boolean) => void
   assignEntity: (entityType: CollaborationEntityType, entityId: string, memberId: string | null) => void
   getAssignee: (entityType: CollaborationEntityType, entityId: string) => WorkspaceMember | null
   threads: CollaborationThread[]
@@ -160,6 +162,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status } : task)))
   }, [])
 
+  const snoozeTask = useCallback((taskId: string, snoozedUntil: string | null) => {
+    setTasks((current) =>
+      current.map((task) => (task.id === taskId ? { ...task, snoozedUntil, status: snoozedUntil ? "pending" : task.status } : task)),
+    )
+  }, [])
+
+  const dismissTask = useCallback((taskId: string, dismissed: boolean) => {
+    setTasks((current) =>
+      current.map((task) => (task.id === taskId ? { ...task, dismissedAt: dismissed ? new Date().toISOString() : null } : task)),
+    )
+  }, [])
+
   const assignEntity = useCallback(
     (entityType: CollaborationEntityType, entityId: string, memberId: string | null) => {
       setAssignments((current) => ({ ...current, [getAssignmentKey(entityType, entityId)]: memberId }))
@@ -219,6 +233,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       markChannelAsRead,
       tasks,
       updateTaskStatus,
+      snoozeTask,
+      dismissTask,
       assignEntity,
       getAssignee,
       threads,
@@ -236,6 +252,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       markChannelAsRead,
       tasks,
       updateTaskStatus,
+      snoozeTask,
+      dismissTask,
       assignEntity,
       getAssignee,
       threads,

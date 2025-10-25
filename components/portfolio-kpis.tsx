@@ -9,6 +9,7 @@ import { LastSyncBadge } from "@/components/last-sync-badge"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { RiskMetricModal } from "@/components/risk-metric-modal"
+import { KPIIcon } from "@/components/ui/kpi-icon"
 
 type RiskMetricKey = "sharpe" | "beta" | "volatility"
 
@@ -104,7 +105,7 @@ export function PortfolioKPIs() {
 
   return (
     <TooltipProvider>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon
           const metricKey = riskMetricLabelToKey[kpi.label]
@@ -113,14 +114,14 @@ export function PortfolioKPIs() {
           return (
             <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
               <Card
-                className={`card-standard card-lift ${isRiskMetric ? "cursor-pointer" : ""}`}
+                className={`card-standard card-lift h-full ${isRiskMetric ? "cursor-pointer" : ""}`}
                 onClick={() => {
                   if (metricKey) {
                     setSelectedMetric(metricKey)
                   }
                 }}
               >
-                <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
+                <CardContent className="p-6 min-h-[140px] flex h-full flex-col justify-between">
                   <div className="mb-2">
                     <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                   </div>
@@ -137,9 +138,7 @@ export function PortfolioKPIs() {
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
+                      <KPIIcon icon={Icon} tone="info" />
                     </div>
                     <p className="text-2xl font-bold tabular-nums text-foreground">{kpi.value}</p>
                     <Tooltip>

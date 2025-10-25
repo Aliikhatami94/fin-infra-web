@@ -8,7 +8,9 @@ import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Progress } from "@/components/ui/progress"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { KPIIcon } from "@/components/ui/kpi-icon"
 
 const sparklineData = [
   { month: "Jan", value: 42000 },
@@ -80,54 +82,55 @@ export function GoalsSummaryKPIs() {
   const fundingHeadline = persona?.goalsFocus === "wealth_building" ? "Growth Funding" : "Funding Status"
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       <motion.div {...createStaggeredCardVariants(0, 0)}>
-        <Card className="card-standard card-lift">
-          <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
-            <div className="flex items-start justify-between">
+        <Card className="card-standard card-lift h-full">
+          <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
+            <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm text-muted-foreground">{primaryLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
                 </div>
-                <p className="text-2xl font-bold tabular-nums">
-                  ${(totalSaved / 1000).toFixed(0)}k
-                  <span className="text-base font-normal text-muted-foreground">
-                    {" "}
-                    / ${(totalTarget / 1000).toFixed(0)}k
-                  </span>
-                </p>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+                    <span>
+                      Saved <span className="font-medium text-foreground">${totalSaved.toLocaleString()}</span>
+                    </span>
+                    <span>Target ${totalTarget.toLocaleString()}</span>
+                  </div>
+                  <Progress value={percentComplete} aria-label={`${percentComplete}% of goal funded`} />
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold">{percentComplete}%</span>
+                    <span className="text-xs text-muted-foreground">complete</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
-                <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
+              <KPIIcon icon={Target} tone="info" shape="circle" className="shrink-0" />
             </div>
-            <div className="flex items-end justify-between">
-              <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <span className="text-sm font-medium text-[var(--color-positive)]">+{percentComplete}%</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Previous: $54,000</p>
-                      <p className="text-xs">Current: ${totalSaved.toLocaleString()}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <span className="text-xs text-muted-foreground">complete</span>
+            <div className="flex items-end justify-between gap-4">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-sm font-medium text-[var(--color-positive)]">Last 6 months</TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Previous balance: $54,000</p>
+                    <p className="text-xs">Current balance: ${totalSaved.toLocaleString()}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <div className="shrink-0">
+                <MiniSparkline data={sparklineData} color="hsl(217, 91%, 60%)" />
               </div>
-              <MiniSparkline data={sparklineData} color="hsl(217, 91%, 60%)" />
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
       <motion.div {...createStaggeredCardVariants(1, 0)}>
-        <Card className="card-standard card-lift">
-          <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
+        <Card className="card-standard card-lift h-full">
+          <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm text-muted-foreground">{monthlyLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
@@ -137,11 +140,9 @@ export function GoalsSummaryKPIs() {
                   <span className="text-base font-normal text-muted-foreground">/mo</span>
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
-                <DollarSign className="h-5 w-5 text-[var(--color-positive)]" />
-              </div>
+              <KPIIcon icon={DollarSign} tone="positive" shape="circle" className="shrink-0" />
             </div>
-            <div className="flex items-end justify-between">
+            <div className="flex items-end justify-between gap-4">
               <div className="flex items-center gap-2">
                 <TooltipProvider>
                   <Tooltip>
@@ -156,16 +157,18 @@ export function GoalsSummaryKPIs() {
                 </TooltipProvider>
                 <span className="text-xs text-muted-foreground">of target</span>
               </div>
-              <MiniSparkline data={contributionData} color="var(--color-positive)" />
+              <div className="shrink-0">
+                <MiniSparkline data={contributionData} color="var(--color-positive)" />
+              </div>
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
       <motion.div {...createStaggeredCardVariants(2, 0)}>
-        <Card className="card-standard card-lift">
-          <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
-            <div className="flex items-start justify-between">
+        <Card className="card-standard card-lift h-full">
+          <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
+            <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm text-muted-foreground">{fundingHeadline}</p>
@@ -173,9 +176,7 @@ export function GoalsSummaryKPIs() {
                 </div>
                 <p className="text-2xl font-bold">On Track</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
-                <TrendingUp className="h-5 w-5 text-[var(--color-positive)]" />
-              </div>
+              <KPIIcon icon={TrendingUp} tone="positive" shape="circle" className="shrink-0" />
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs">

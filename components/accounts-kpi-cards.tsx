@@ -4,9 +4,13 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Wallet, CreditCard, TrendingUp, TrendingDown } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { MicroSparkline } from "@/components/ui/micro-sparkline"
+import { KPIIcon } from "@/components/ui/kpi-icon"
+import type { SemanticTone } from "@/lib/color-utils"
 
 interface AccountsKPICardsProps {
   totalCash: number
@@ -14,53 +18,39 @@ interface AccountsKPICardsProps {
   totalInvestments: number
 }
 
-const generateSparklineData = (trend: number) => {
-  const points = 7
-  const data = []
-  for (let i = 0; i < points; i++) {
-    const value = 50 + Math.random() * 20 + (trend > 0 ? i * 2 : -i * 2)
-    data.push(value)
-  }
-  return data
-}
+const createSparklineSeries = (currentValue: number, baselineValue: number) => {
+  const totalPoints = 30
+  const delta = currentValue - baselineValue
+  const amplitude = Math.abs(delta) * 0.2
 
-const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
-  const max = Math.max(...data)
-  const min = Math.min(...data)
-  const range = max - min || 1
-
-  const points = data
-    .map((value, index) => {
-      const x = (index / (data.length - 1)) * 100
-      const y = 100 - ((value - min) / range) * 100
-      return `${x},${y}`
-    })
-    .join(" ")
-
-  return (
-    <svg className="w-20 h-10" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
+  return Array.from({ length: totalPoints }, (_, index) => {
+    const progress = index / (totalPoints - 1)
+    const base = baselineValue + delta * progress
+    const wave = Math.sin(progress * Math.PI * 2) * amplitude * 0.25
+    const value = base + wave
+    return Number(value.toFixed(2))
+  })
 }
 
 export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments }: AccountsKPICardsProps) {
-  const kpis = [
+  const kpis: Array<{
+    title: string
+    value: number
+    trend: number
+    baselineValue: number
+    icon: LucideIcon
+    tone: SemanticTone
+    sparklineColor: string
+    lastSynced: string
+    source: string
+  }> = [
     {
       title: "Total Cash",
       value: totalCash,
       trend: 2.3,
       baselineValue: totalCash / 1.023,
       icon: Wallet,
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-500/10",
+      tone: "info",
       sparklineColor: "rgb(37, 99, 235)",
       lastSynced: "3 min ago",
       source: "Plaid",
@@ -71,8 +61,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       trend: -1.2,
       baselineValue: totalCreditDebt / 0.988,
       icon: CreditCard,
-      color: "text-red-600 dark:text-red-400",
-      bgColor: "bg-red-500/10",
+      tone: "negative",
       sparklineColor: "rgb(220, 38, 38)",
       lastSynced: "3 min ago",
       source: "Plaid",
@@ -83,8 +72,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       trend: 5.1,
       baselineValue: totalInvestments / 1.051,
       icon: TrendingUp,
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-500/10",
+      tone: "positive",
       sparklineColor: "rgb(22, 163, 74)",
       lastSynced: "5 min ago",
       source: "Teller",
@@ -96,7 +84,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       <div className="grid gap-4 md:grid-cols-3">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon
-          const sparklineData = generateSparklineData(kpi.trend)
+          const sparklineData = createSparklineSeries(kpi.value, kpi.baselineValue)
 
           return (
             <motion.div key={kpi.title} {...createStaggeredCardVariants(index, 0)}>
@@ -115,9 +103,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                         />
                       </p>
                     </div>
-                    <div className={`h-10 w-10 rounded-lg ${kpi.bgColor} flex items-center justify-center shrink-0`}>
-                      <Icon className={`h-5 w-5 ${kpi.color}`} />
-                    </div>
+                    <KPIIcon icon={Icon} tone={kpi.tone} />
                   </div>
                   <div className="flex items-end justify-between">
                     <Tooltip>
@@ -145,7 +131,12 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                         </p>
                       </TooltipContent>
                     </Tooltip>
-                    <Sparkline data={sparklineData} color={kpi.sparklineColor} />
+                    <MicroSparkline
+                      data={sparklineData}
+                      color={kpi.sparklineColor}
+                      ariaLabel={`${kpi.title} 30-day trend sparkline`}
+                      className="h-9 w-24"
+                    />
                   </div>
                 </CardContent>
               </Card>

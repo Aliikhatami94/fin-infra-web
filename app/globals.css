@@ -45,6 +45,19 @@
   --color-warning: oklch(0.79 0.15 70);
   --color-info: oklch(0.63 0.12 240);
 
+  --semantic-positive-surface: color-mix(in oklab, var(--color-positive) 20%, var(--card) 80%);
+  --semantic-positive-border: color-mix(in oklab, var(--color-positive) 45%, transparent);
+  --semantic-positive-text: color-mix(in oklab, var(--color-positive) 55%, black 45%);
+  --semantic-negative-surface: color-mix(in oklab, var(--color-negative) 18%, var(--card) 82%);
+  --semantic-negative-border: color-mix(in oklab, var(--color-negative) 46%, transparent);
+  --semantic-negative-text: color-mix(in oklab, var(--color-negative) 60%, black 40%);
+  --semantic-warning-surface: color-mix(in oklab, var(--color-warning) 25%, var(--card) 75%);
+  --semantic-warning-border: color-mix(in oklab, var(--color-warning) 48%, transparent);
+  --semantic-warning-text: color-mix(in oklab, var(--color-warning) 40%, black 60%);
+  --semantic-info-surface: color-mix(in oklab, var(--color-info) 24%, var(--card) 76%);
+  --semantic-info-border: color-mix(in oklab, var(--color-info) 46%, transparent);
+  --semantic-info-text: color-mix(in oklab, var(--color-info) 55%, black 45%);
+
   --surface-wealth: linear-gradient(135deg, oklch(0.86 0.18 265) 0%, oklch(0.74 0.16 300) 100%);
   --surface-cashflow: linear-gradient(135deg, oklch(0.87 0.11 155) 0%, oklch(0.78 0.08 120) 100%);
   --surface-security: linear-gradient(135deg, oklch(0.88 0.05 230) 0%, oklch(0.78 0.12 260) 100%);
@@ -52,6 +65,18 @@
   --font-size-base: 1rem;
   --line-height-base: 1.6;
   --letter-spacing-tight: -0.01em;
+
+  --space-card-inline: clamp(1.25rem, 0.85rem + 1vw, 2.25rem);
+  --space-card-block: clamp(1rem, 0.8rem + 0.6vw, 1.9rem);
+  --space-card-gap: clamp(1rem, 0.85rem + 0.5vw, 1.75rem);
+  --card-radius: calc(var(--radius) + 0.35rem);
+  --table-cell-padding-y: 0.75rem;
+  --table-cell-padding-x: clamp(0.75rem, 0.65rem + 0.4vw, 1.35rem);
+  --table-surface-bg: color-mix(in oklab, var(--card) 92%, transparent);
+  --table-header-bg: color-mix(in oklab, var(--background) 75%, var(--card) 25%);
+  --table-divider: color-mix(in oklab, var(--border) 82%, transparent);
+  --focus-ring-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 55%, transparent);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
   --shadow-soft: 0 24px 60px -32px oklch(0.5 0.08 250 / 0.4);
   --shadow-bold: 0 32px 80px -40px oklch(0.42 0.12 250 / 0.6);
@@ -98,12 +123,29 @@
   --color-warning: oklch(0.75 0.16 70);
   --color-info: oklch(0.74 0.15 240);
 
+  --semantic-positive-surface: color-mix(in oklab, var(--color-positive) 32%, var(--card) 68%);
+  --semantic-positive-border: color-mix(in oklab, var(--color-positive) 65%, transparent);
+  --semantic-positive-text: color-mix(in oklab, var(--color-positive) 78%, white 22%);
+  --semantic-negative-surface: color-mix(in oklab, var(--color-negative) 34%, var(--card) 66%);
+  --semantic-negative-border: color-mix(in oklab, var(--color-negative) 68%, transparent);
+  --semantic-negative-text: color-mix(in oklab, var(--color-negative) 82%, white 18%);
+  --semantic-warning-surface: color-mix(in oklab, var(--color-warning) 36%, var(--card) 64%);
+  --semantic-warning-border: color-mix(in oklab, var(--color-warning) 64%, transparent);
+  --semantic-warning-text: color-mix(in oklab, var(--color-warning) 74%, white 26%);
+  --semantic-info-surface: color-mix(in oklab, var(--color-info) 34%, var(--card) 66%);
+  --semantic-info-border: color-mix(in oklab, var(--color-info) 64%, transparent);
+  --semantic-info-text: color-mix(in oklab, var(--color-info) 78%, white 22%);
+
   --surface-wealth: linear-gradient(135deg, oklch(0.36 0.08 280) 0%, oklch(0.32 0.06 300) 100%);
   --surface-cashflow: linear-gradient(135deg, oklch(0.34 0.05 150) 0%, oklch(0.32 0.04 120) 100%);
   --surface-security: linear-gradient(135deg, oklch(0.32 0.05 250) 0%, oklch(0.28 0.06 270) 100%);
 
   --shadow-soft: 0 24px 60px -32px oklch(0.22 0.05 250 / 0.65);
   --shadow-bold: 0 36px 90px -38px oklch(0.18 0.08 260 / 0.7);
+
+  --table-surface-bg: color-mix(in oklab, var(--card) 75%, transparent);
+  --table-header-bg: color-mix(in oklab, var(--background) 55%, var(--card) 45%);
+  --table-divider: color-mix(in oklab, var(--border) 70%, transparent);
 }
 
 [data-font-scale="compact"] {
@@ -167,6 +209,26 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  :where(button,
+      [role="button"],
+      a[href],
+      input,
+      select,
+      textarea,
+      summary):focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring-shadow);
+    outline-offset: 2px;
+  }
+
+  :where(button,
+      [role="button"],
+      a[href],
+      summary) {
+    touch-action: manipulation;
+    transition: box-shadow 180ms var(--ease-standard);
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -186,9 +248,35 @@
   /* Added unified design system utilities */
   /* Standard card styling - use this for all card components */
   .card-standard {
-    @apply rounded-xl border border-border/30 bg-card shadow-sm px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-7;
-    @apply transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)];
-    @apply hover:shadow-md hover:border-border/60;
+    border-radius: var(--card-radius);
+    background-color: var(--card);
+    border: 1px solid color-mix(in oklab, var(--border) 82%, transparent);
+    box-shadow: var(--shadow-soft);
+    padding-block: var(--space-card-block);
+    padding-inline: var(--space-card-inline);
+    transition:
+      border-color 200ms var(--ease-standard),
+      box-shadow 220ms var(--ease-standard),
+      transform 220ms var(--ease-standard);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-card-gap);
+  }
+
+  .card-standard:hover {
+    box-shadow: var(--shadow-bold);
+    border-color: color-mix(in oklab, var(--border) 94%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .card-standard:focus-within {
+    box-shadow: var(--shadow-bold);
+    border-color: color-mix(in oklab, var(--ring) 55%, var(--border) 45%);
+  }
+
+  .card-standard:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-bold), var(--focus-ring-shadow);
   }
 
   /* Page fade-in animation */
@@ -236,6 +324,65 @@
   .spacing-content {
     @apply space-y-4;
   }
+}
+
+@layer utilities {
+  .touch-target {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+  }
+
+  .touch-target-circle {
+    border-radius: 9999px;
+  }
+
+  .focus-ring-soft:focus-visible {
+    box-shadow: var(--focus-ring-shadow), 0 0 0 1px color-mix(in oklab, var(--ring) 35%, transparent);
+  }
+}
+
+.table-surface {
+  border-radius: var(--card-radius);
+  border: 1px solid var(--table-divider);
+  background: var(--table-surface-bg);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.table-surface table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-surface thead {
+  background: var(--table-header-bg);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--foreground) 55%, var(--muted-foreground) 45%);
+}
+
+.table-surface th,
+.table-surface td {
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+}
+
+.table-surface tbody tr {
+  border-bottom: 1px solid var(--table-divider);
+  transition: background-color 180ms var(--ease-standard);
+}
+
+.table-surface tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table-surface tbody tr:hover {
+  background: color-mix(in oklab, var(--card) 90%, transparent);
 }
 
 @keyframes fadeIn {

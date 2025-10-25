@@ -1,16 +1,34 @@
 "use client"
 
+import Link from "next/link"
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { motion, useInView } from "framer-motion"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Check, HelpCircle, Pin, PinOff, Shield } from "lucide-react"
+import {
+  ArrowDownUp,
+  Check,
+  Coins,
+  FileText,
+  HelpCircle,
+  Landmark,
+  LineChart,
+  PieChart,
+  Pin,
+  PinOff,
+  RotateCcw,
+  Shield,
+  Target,
+  Wallet,
+} from "lucide-react"
 
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { cn } from "@/lib/utils"
-import type { InsightAction, InsightDefinition, InsightAccent } from "@/lib/insights/definitions"
+import { getAnchorRel, getAnchorTarget, isInternalNavigation } from "@/lib/linking"
+import type { InsightAction, InsightDefinition, InsightAccent, InsightCategory } from "@/lib/insights/definitions"
 import {
   trackInsightAction,
   trackInsightPinChange,
@@ -27,6 +45,8 @@ type InsightCardProps = {
   onPinChange?: (payload: { insight: InsightDefinition; pinned: boolean }) => void
   unread?: boolean
   onMarkRead?: () => void
+  resolved?: boolean
+  onResolutionChange?: (payload: { insight: InsightDefinition; resolved: boolean }) => void
 }
 
 const accentStyles: Record<InsightAccent, { icon: string; badge: string; background: string; progress: string }> = {
@@ -80,6 +100,28 @@ const accentStyles: Record<InsightAccent, { icon: string; badge: string; backgro
   },
 }
 
+const categoryIconMap: Record<InsightCategory, typeof Wallet> = {
+  spending: Wallet,
+  investment: LineChart,
+  goals: Target,
+  documents: FileText,
+  "cash-flow": ArrowDownUp,
+  budget: PieChart,
+  tax: Landmark,
+  crypto: Coins,
+}
+
+const categoryLabelMap: Record<InsightCategory, string> = {
+  spending: "Spending",
+  investment: "Investment",
+  goals: "Goals",
+  documents: "Documents",
+  "cash-flow": "Cash Flow",
+  budget: "Budget",
+  tax: "Tax",
+  crypto: "Crypto",
+}
+
 export function InsightCard({
   insight,
   index = 0,
@@ -88,10 +130,12 @@ export function InsightCard({
   onPinChange,
   unread = false,
   onMarkRead,
+  resolved,
+  onResolutionChange,
 }: InsightCardProps) {
   const styles = accentStyles[insight.accent]
   const [isPinned, setIsPinned] = useState(Boolean(insight.pinned))
-  const [resolved, setResolved] = useState(false)
+  const [isResolved, setIsResolved] = useState(Boolean(resolved))
   const [showExplanation, setShowExplanation] = useState(false)
   const explanationId = useId()
   const headingId = useId()
@@ -108,6 +152,14 @@ export function InsightCard({
       explanationRef.current.focus()
     }
   }, [showExplanation])
+
+  useEffect(() => {
+    setIsResolved(Boolean(resolved))
+  }, [resolved])
+
+  useEffect(() => {
+    setIsPinned(Boolean(insight.pinned))
+  }, [insight.pinned])
 
   useEffect(() => {
     if (unread && !hasLoggedHighlight.current) {
@@ -130,10 +182,6 @@ export function InsightCard({
     }
   }, [inView, registerRead, unread])
 
-  if (resolved) {
-    return null
-  }
-
   const handlePinToggle = () => {
     const nextPinned = !isPinned
     setIsPinned(nextPinned)
@@ -142,10 +190,14 @@ export function InsightCard({
     onPinChange?.({ insight, pinned: nextPinned })
   }
 
-  const handleResolve = () => {
-    setResolved(true)
+  const handleResolveToggle = () => {
+    const nextResolved = !isResolved
+    setIsResolved(nextResolved)
     registerRead()
-    trackInsightResolution({ insight })
+    if (nextResolved) {
+      trackInsightResolution({ insight })
+    }
+    onResolutionChange?.({ insight, resolved: nextResolved })
   }
 
   const handleAction = (action: InsightAction) => {
@@ -157,6 +209,14 @@ export function InsightCard({
   const toggleExplanation = () => {
     setShowExplanation((prev) => !prev)
   }
+
+  const CategoryIcon = categoryIconMap[insight.category]
+  const categoryLabel = categoryLabelMap[insight.category]
+  const resolutionLabel = isResolved ? "Mark insight as active" : "Mark insight as resolved"
+  const primaryActionIndex = Math.max(
+    insight.actions.findIndex((action) => (action.variant ?? "default") === "default"),
+    0,
+  )
 
   return (
     <motion.div
@@ -174,10 +234,14 @@ export function InsightCard({
           "hover:shadow-lg",
           "focus-within:ring-2 focus-within:ring-primary/40",
           unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/50)] focus-within:ring-primary",
+          isResolved && "border-border/30 bg-muted/40 saturate-75",
         )}
+        data-state={isResolved ? "resolved" : "active"}
       >
-        <CardContent className="space-y-4 p-6">
-          {unread && (
+        <CardContent className={cn("space-y-4 p-6", isResolved && "opacity-80 transition-opacity")}
+          data-resolved={isResolved}
+        >
+          {unread && !isResolved && (
             <div className="absolute left-6 top-6">
               <Badge variant="default" className="text-xs uppercase tracking-wide">
                 New
@@ -212,13 +276,14 @@ export function InsightCard({
                     size="icon"
                     className="h-8 w-8"
                     type="button"
-                    aria-label="Mark insight as resolved"
-                    onClick={handleResolve}
+                    aria-pressed={isResolved}
+                    aria-label={resolutionLabel}
+                    onClick={handleResolveToggle}
                   >
-                    <Check className="h-4 w-4" />
+                    {isResolved ? <RotateCcw className="h-4 w-4" /> : <Check className="h-4 w-4" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Mark as resolved</TooltipContent>
+                <TooltipContent>{isResolved ? "Undo resolution" : "Mark as resolved"}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
@@ -232,12 +297,27 @@ export function InsightCard({
                 {insight.title}
               </h3>
               <div className="mt-2 flex flex-wrap gap-2">
+                <Badge
+                  variant="outline"
+                  className="flex items-center gap-1 text-xs border-border/40 bg-background/80 text-muted-foreground"
+                >
+                  <CategoryIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                  {categoryLabel}
+                </Badge>
                 <Badge variant="outline" className={cn("text-xs", styles.badge)}>
                   {insight.topic}
                 </Badge>
                 {isPinned && (
                   <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
                     Pinned
+                  </Badge>
+                )}
+                {isResolved && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs border-emerald-300 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                  >
+                    Resolved
                   </Badge>
                 )}
                 {insight.sensitive && (
@@ -345,38 +425,53 @@ export function InsightCard({
 
           {insight.actions.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-2">
-              {insight.actions.map((action) => {
-                const button = (
-                  <Button
-                    key={action.id}
-                    variant={action.variant ?? "outline"}
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => handleAction(action)}
-                    aria-label={action.ariaLabel ?? action.label}
-                  >
-                    {action.label}
-                  </Button>
-                )
+              {insight.actions.map((action, actionIndex) => {
+                const isPrimaryAction = actionIndex === primaryActionIndex
+                const effectiveVariant = action.variant ?? (isPrimaryAction ? "default" : "outline")
+                const intent = isPrimaryAction && effectiveVariant === "default" ? "primary" : "secondary"
+                const commonProps = {
+                  variant: effectiveVariant,
+                  size: "sm" as const,
+                  className: cn(
+                    "text-xs transition-all data-[intent=primary]:shadow-sm data-[intent=primary]:shadow-primary/20",
+                    "data-[intent=secondary]:border-border/50 data-[intent=secondary]:text-muted-foreground",
+                    "data-[intent=secondary]:hover:text-foreground",
+                    isResolved && "opacity-80",
+                  ),
+                  "data-intent": intent,
+                  onClick: () => handleAction(action),
+                  "aria-label": action.ariaLabel ?? action.label,
+                }
 
                 if (action.href) {
+                  const isInternalLink = isInternalNavigation(action.href)
+                  const anchorProps = {
+                    href: action.href,
+                    "aria-label": action.ariaLabel ?? action.label,
+                  } as const
+
                   return (
-                    <Button
-                      key={action.id}
-                      asChild
-                      variant={action.variant ?? "outline"}
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => handleAction(action)}
-                    >
-                      <a href={action.href} aria-label={action.ariaLabel ?? action.label}>
-                        {action.label}
-                      </a>
+                    <Button key={action.id} {...commonProps} asChild>
+                      {isInternalLink ? (
+                        <Link {...anchorProps}>{action.label}</Link>
+                      ) : (
+                        <a
+                          {...anchorProps}
+                          target={getAnchorTarget(action.href)}
+                          rel={getAnchorRel(action.href)}
+                        >
+                          {action.label}
+                        </a>
+                      )}
                     </Button>
                   )
                 }
 
-                return button
+                return (
+                  <Button key={action.id} {...commonProps}>
+                    {action.label}
+                  </Button>
+                )
               })}
             </div>
           )}

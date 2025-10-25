@@ -195,7 +195,12 @@ export function CryptoTable({ selectedExchange, showStablecoins, groupBy }: Cryp
                       <p className="text-xs text-muted-foreground">{asset.exchange}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => router.push(`/crypto/${asset.coin.toLowerCase()}`)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => router.push(`/crypto/${asset.coin.toLowerCase()}`)}
+                    aria-label={`Open ${asset.name} insights`}
+                  >
                     <Sparkles className="h-4 w-4" />
                   </Button>
                 </div>
@@ -224,24 +229,28 @@ export function CryptoTable({ selectedExchange, showStablecoins, groupBy }: Cryp
           })}
         </div>
 
-        <div className="hidden md:block -mx-6 px-6">
-          <div className="grid grid-cols-[1.5fr_0.7fr_0.8fr_0.8fr_0.8fr] gap-4 border-b py-3 text-xs uppercase tracking-wide text-muted-foreground">
-            <span>Asset</span>
-            <span className="text-right">Amount</span>
-            <span className="text-right">
-              <Button variant="ghost" size="sm" className="gap-1" onClick={() => handleSort("value")}>
-                Value
-                <ArrowUpDown className="h-3 w-3" />
-              </Button>
-            </span>
-            <span className="text-right">P/L</span>
-            <span className="text-right">Weight</span>
-          </div>
-          <div className="max-h-[520px]">
-            <Virtuoso<CryptoTableRow>
-              data={tableRows}
-              overscan={200}
-              itemContent={(_index, row) => {
+        <div className="hidden md:block">
+          <div className="table-surface">
+            <div
+              className="grid grid-cols-[1.5fr_0.7fr_0.8fr_0.8fr_0.8fr] gap-4 border-b px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-xs uppercase tracking-wide text-muted-foreground"
+              style={{ borderColor: "var(--table-divider)" }}
+            >
+              <span>Asset</span>
+              <span className="text-right">Amount</span>
+              <span className="text-right">
+                <Button variant="ghost" size="sm" className="gap-1" onClick={() => handleSort("value")} aria-label="Sort by value">
+                  Value
+                  <ArrowUpDown className="h-3 w-3" />
+                </Button>
+              </span>
+              <span className="text-right">P/L</span>
+              <span className="text-right">Weight</span>
+            </div>
+            <div className="max-h-[520px]">
+              <Virtuoso<CryptoTableRow>
+                data={tableRows}
+                overscan={200}
+                itemContent={(_index, row) => {
                 if (row.type === "group") {
                   return (
                     <div className="grid grid-cols-[1.5fr_0.7fr_0.8fr_0.8fr_0.8fr] items-center gap-4 py-3 font-semibold text-sm text-foreground">
@@ -263,6 +272,7 @@ export function CryptoTable({ selectedExchange, showStablecoins, groupBy }: Cryp
                     type="button"
                     onClick={() => router.push(`/crypto/${asset.coin.toLowerCase()}`)}
                     className="grid w-full grid-cols-[1.5fr_0.7fr_0.8fr_0.8fr_0.8fr] items-center gap-4 rounded-lg px-2 py-3 text-left transition-colors hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-label={`View ${asset.name} details`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
@@ -297,6 +307,7 @@ export function CryptoTable({ selectedExchange, showStablecoins, groupBy }: Cryp
                 )
               }}
             />
+            </div>
           </div>
         </div>
 

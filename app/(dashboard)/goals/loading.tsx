@@ -1,47 +1,52 @@
-import { cn } from "@/lib/utils"
-
-function Placeholder({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-muted/70", className)} />
-}
+import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function GoalsLoading() {
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-6" aria-busy>
       <div className="flex items-center justify-between">
-        <Placeholder className="h-6 w-48" />
-        <Placeholder className="h-10 w-32" />
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-9 w-32" rounded="full" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="card-standard space-y-3">
-            <Placeholder className="h-4 w-28" />
-            <Placeholder className="h-8 w-32" />
-            <Placeholder className="h-3 w-20" />
-            <Placeholder className="h-3 w-24" />
-          </div>
+          <Card key={index} className="card-standard">
+            <CardContent className="space-y-3 p-5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-24" />
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="card-standard space-y-4">
-        <Placeholder className="h-5 w-40" />
-        <Placeholder className="h-16 w-full" />
-        <Placeholder className="h-4 w-24" />
-      </div>
+      <Card className="card-standard">
+        <CardContent className="space-y-4 p-5">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-16 w-full rounded-md" />
+          <Skeleton className="h-4 w-24" />
+        </CardContent>
+      </Card>
 
-      <div className="card-standard space-y-4">
-        <Placeholder className="h-4 w-32" />
-        <Placeholder className="h-32 w-full" />
-      </div>
+      <Card className="card-standard">
+        <CardContent className="space-y-3 p-5">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-32 w-full rounded-lg" />
+        </CardContent>
+      </Card>
 
-      <div className="card-standard space-y-3">
-        <Placeholder className="h-4 w-28" />
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Placeholder key={index} className="h-32 w-full" />
-          ))}
-        </div>
-      </div>
+      <Card className="card-standard">
+        <CardContent className="space-y-4 p-5">
+          <Skeleton className="h-4 w-28" />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton key={index} className="h-32 w-full rounded-lg" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

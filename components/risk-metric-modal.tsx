@@ -98,7 +98,7 @@ export function RiskMetricModal({ open, onOpenChange, metric }: RiskMetricModalP
 
         <div className="space-y-6">
           {/* Description */}
-          <Card className="bg-muted/30">
+          <Card className="card-standard">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground leading-relaxed">{data.description}</p>
             </CardContent>
@@ -186,7 +186,10 @@ export function RiskMetricModal({ open, onOpenChange, metric }: RiskMetricModalP
             <h3 className="text-sm font-medium mb-3">Interpretation Guide</h3>
             <div className="space-y-2">
               {data.interpretation.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-3"
+                >
                   <span className="text-sm font-mono">{item.range}</span>
                   <span className={`text-sm font-medium ${item.color}`}>{item.meaning}</span>
                 </div>

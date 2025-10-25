@@ -4,8 +4,21 @@ import { DocumentsGrid } from "@/components/documents-grid"
 import { DocumentsAIInsights } from "@/components/documents-ai-insights"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Upload, Search, Filter, Download, Trash2, ArrowUpDown, X } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  Upload,
+  Search,
+  Filter,
+  Download,
+  Trash2,
+  ArrowUpDown,
+  X,
+  FileText,
+  FileSpreadsheet,
+  FileBarChart,
+  FileCheck2,
+  ReceiptText,
+} from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +38,18 @@ import { DocumentUploadZone } from "@/components/document-upload-zone"
 import { toast } from "@/components/ui/sonner"
 import { SuccessCelebrationDialog } from "@/components/success-celebration-dialog"
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
+
+const resolveDocumentTypeIcon = (type: string) => {
+  const normalized = type.toLowerCase()
+  if (normalized.includes("tax") || normalized.includes("1099") || normalized.includes("form")) return FileSpreadsheet
+  if (normalized.includes("statement")) return FileText
+  if (normalized.includes("report")) return FileBarChart
+  if (normalized.includes("confirmation")) return FileCheck2
+  if (normalized.includes("receipt")) return ReceiptText
+  return FileText
+}
 
 export default function DocumentsPage() {
   const [scrolled, setScrolled] = useState(false)
@@ -48,6 +73,7 @@ export default function DocumentsPage() {
     toggleYear,
     clearAll,
   } = useDocumentFilters()
+  const chipListLabelId = useId()
 
   const isSortOption = (value: string): value is typeof sortBy => {
     return value === "date" || value === "name" || value === "size"
@@ -344,43 +370,104 @@ export default function DocumentsPage() {
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2" aria-label="Document filter chips">
-              {fileTypes.map((type) => (
-                <Button
-                  key={type}
-                  variant={selectedTypes.includes(type) ? "secondary" : "outline"}
-                  size="sm"
-                  className="h-8 rounded-full"
-                  onClick={() => toggleType(type)}
-                  aria-pressed={selectedTypes.includes(type)}
-                >
-                  {type}
-                </Button>
-              ))}
-              {accounts.map((account) => (
-                <Button
-                  key={account}
-                  variant={selectedAccounts.includes(account) ? "secondary" : "outline"}
-                  size="sm"
-                  className="h-8 rounded-full"
-                  onClick={() => toggleAccount(account)}
-                  aria-pressed={selectedAccounts.includes(account)}
-                >
-                  {account}
-                </Button>
-              ))}
-              {years.map((year) => (
-                <Button
-                  key={year}
-                  variant={selectedYears.includes(year) ? "secondary" : "outline"}
-                  size="sm"
-                  className="h-8 rounded-full"
-                  onClick={() => toggleYear(year)}
-                  aria-pressed={selectedYears.includes(year)}
-                >
-                  {year}
-                </Button>
-              ))}
+            <div className="relative -mx-2">
+              <span id={chipListLabelId} className="sr-only">
+                Filter documents by type, account, or year
+              </span>
+              <div
+                className="flex items-center gap-2 overflow-x-auto px-2 pb-2 text-xs sm:text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                style={{ msOverflowStyle: "none" }}
+                role="listbox"
+                aria-labelledby={chipListLabelId}
+                aria-multiselectable="true"
+              >
+                {fileTypes.map((type) => {
+                  const selected = selectedTypes.includes(type)
+                  const TypeIcon = resolveDocumentTypeIcon(type)
+                  return (
+                    <Button
+                      key={type}
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      data-selected={selected}
+                      className={cn(
+                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        selected
+                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
+                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                      )}
+                      onClick={() => toggleType(type)}
+                    >
+                      <TypeIcon
+                        className={cn(
+                          "mr-2 h-3.5 w-3.5",
+                          selected ? "text-primary" : "text-muted-foreground",
+                        )}
+                        aria-hidden
+                      />
+                      {type}
+                    </Button>
+                  )
+                })}
+                {accounts.map((account) => {
+                  const selected = selectedAccounts.includes(account)
+                  return (
+                    <Button
+                      key={account}
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      data-selected={selected}
+                      className={cn(
+                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        selected
+                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
+                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                      )}
+                      onClick={() => toggleAccount(account)}
+                    >
+                      {account}
+                    </Button>
+                  )
+                })}
+                {years.map((year) => {
+                  const selected = selectedYears.includes(year)
+                  return (
+                    <Button
+                      key={year}
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      data-selected={selected}
+                      className={cn(
+                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        selected
+                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
+                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                      )}
+                      onClick={() => toggleYear(year)}
+                    >
+                      {year}
+                    </Button>
+                  )
+                })}
+              </div>
+              <span className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background via-background to-transparent" aria-hidden />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>Filters follow your workspace—shared collaborators see the same context.</span>
+              <Button asChild variant="link" size="sm" className="h-auto px-0 text-xs font-semibold">
+                <Link href="/taxes" className="flex items-center gap-1">
+                  Review missing tax docs
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

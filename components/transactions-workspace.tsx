@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { differenceInCalendarDays, parseISO } from "date-fns"
+import { differenceInCalendarDays, format, parseISO, startOfYear, subDays } from "date-fns"
 import { Virtuoso } from "react-virtuoso"
 import {
   Card,
@@ -15,15 +15,19 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { getTransactions } from "@/lib/services/transactions"
 import type { Transaction } from "@/types/domain"
 import { trackTransactionBulkAction, trackTransactionFilter } from "@/lib/analytics/events"
 import { toast } from "@/components/ui/sonner"
-import { Download, Tag, FolderGit2, Filter, Keyboard } from "lucide-react"
+import { Download, Tag, FolderGit2, Filter, Keyboard, CalendarDays } from "lucide-react"
 import { AssignmentMenu } from "@/components/assignment-menu"
 import { CollaborationDrawer } from "@/components/collaboration-drawer"
 import { MaskableValue } from "@/components/privacy-provider"
+import type { DateRange } from "react-day-picker"
 
 interface TransactionQuickFilter {
   id: string
@@ -72,6 +76,61 @@ const quickFilters: TransactionQuickFilter[] = [
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value)
 
+type DateRangePresetId = "30d" | "90d" | "ytd" | "all"
+
+type SelectedRangeKind = DateRangePresetId | "custom"
+
+const presetLabels: Record<DateRangePresetId, string> = {
+  "30d": "Last 30 days",
+  "90d": "Last 90 days",
+  ytd: "Year to date",
+  all: "All dates",
+}
+
+const presetOrder: DateRangePresetId[] = ["30d", "90d", "ytd", "all"]
+
+function createPresetRange(preset: DateRangePresetId): DateRange {
+  const now = new Date()
+
+  switch (preset) {
+    case "30d":
+      return { from: subDays(now, 29), to: now }
+    case "90d":
+      return { from: subDays(now, 89), to: now }
+    case "ytd":
+      return { from: startOfYear(now), to: now }
+    case "all":
+    default:
+      return { from: undefined, to: undefined }
+  }
+}
+
+function formatDateRangeLabel(range: DateRange, presetId: SelectedRangeKind) {
+  if (presetId !== "custom") {
+    return presetLabels[presetId] ?? "Custom range"
+  }
+
+  const { from, to } = range
+
+  if (from && to) {
+    const sameYear = from.getFullYear() === to.getFullYear()
+    const sameMonth = sameYear && from.getMonth() === to.getMonth()
+    const startFormat = sameYear ? "MMM d" : "MMM d, yyyy"
+    const endFormat = sameYear && sameMonth ? "d, yyyy" : "MMM d, yyyy"
+    return `${format(from, startFormat)} – ${format(to, endFormat)}`
+  }
+
+  if (from) {
+    return `From ${format(from, "MMM d, yyyy")}`
+  }
+
+  if (to) {
+    return `Through ${format(to, "MMM d, yyyy")}`
+  }
+
+  return "All dates"
+}
+
 export function TransactionsWorkspace() {
   const [transactions] = useState(() => getTransactions())
   const [searchQuery, setSearchQuery] = useState("")
@@ -79,8 +138,49 @@ export function TransactionsWorkspace() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([])
   const [liveMessage, setLiveMessage] = useState("Loading transactions")
+  const [dateRangeState, setDateRangeState] = useState<{ presetId: SelectedRangeKind; range: DateRange }>(() => ({
+    presetId: "30d",
+    range: createPresetRange("30d"),
+  }))
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
 
   const accounts = useMemo(() => ["All accounts", ...new Set(transactions.map((tx) => tx.account))], [transactions])
+
+  const { range: selectedRange, presetId: selectedPresetId } = dateRangeState
+  const dateRangeLabel = formatDateRangeLabel(selectedRange, selectedPresetId)
+
+  const applyPreset = useCallback(
+    (presetId: DateRangePresetId) => {
+      setDateRangeState({ presetId, range: createPresetRange(presetId) })
+      setDatePickerOpen(false)
+    },
+    [setDatePickerOpen],
+  )
+
+  const handleRangeSelect = useCallback(
+    (next: DateRange | undefined) => {
+      if (!next || (!next.from && !next.to)) {
+        applyPreset("all")
+        return
+      }
+
+      const normalized: DateRange = {
+        from: next.from,
+        to: next.to,
+      }
+
+      setDateRangeState({ presetId: "custom", range: normalized })
+
+      if (normalized.from && normalized.to) {
+        setDatePickerOpen(false)
+      }
+    },
+    [applyPreset, setDatePickerOpen],
+  )
+
+  const clearDateRange = useCallback(() => {
+    applyPreset("all")
+  }, [applyPreset])
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
@@ -96,9 +196,24 @@ export function TransactionsWorkspace() {
           quickFilters.find((filter) => filter.id === filterId)?.predicate(transaction) ?? false,
         )
 
-      return matchesAccount && matchesSearch && matchesFilters
+      const matchesDate = (() => {
+        const { from, to } = selectedRange
+        const transactionDate = parseISO(transaction.date)
+
+        if (from && transactionDate < from) {
+          return false
+        }
+
+        if (to && transactionDate > to) {
+          return false
+        }
+
+        return true
+      })()
+
+      return matchesAccount && matchesSearch && matchesFilters && matchesDate
     })
-  }, [transactions, selectedAccount, searchQuery, selectedFilters])
+  }, [transactions, selectedAccount, searchQuery, selectedFilters, selectedRange])
 
   const toggleTransaction = useCallback((id: number) => {
     setSelectedTransactionIds((previous) =>
@@ -151,8 +266,9 @@ export function TransactionsWorkspace() {
     if (searchQuery) {
       parts.push(`matching "${searchQuery}"`)
     }
+    parts.push(`date range ${dateRangeLabel}`)
     setLiveMessage(parts.join(" · "))
-  }, [filteredTransactions.length, searchQuery, selectedAccount, selectedFilters])
+  }, [dateRangeLabel, filteredTransactions.length, searchQuery, selectedAccount, selectedFilters])
 
   const handleBulkAction = useCallback(
     (action: "categorize" | "tag" | "export") => {
@@ -208,6 +324,7 @@ export function TransactionsWorkspace() {
               variant={selectedAccount === "All accounts" ? "secondary" : "outline"}
               size="sm"
               className="rounded-full"
+              aria-pressed={selectedAccount === "All accounts"}
               onClick={() => setSelectedAccount("All accounts")}
             >
               All accounts
@@ -216,52 +333,119 @@ export function TransactionsWorkspace() {
               <div className="flex items-center gap-2 pr-4">
                 {accounts
                   .filter((account) => account !== "All accounts")
-                  .map((account) => (
-                    <Button
-                      key={account}
-                      variant={selectedAccount === account ? "secondary" : "outline"}
-                      size="sm"
-                      className="rounded-full"
-                      onClick={() => setSelectedAccount(account)}
-                    >
-                      {account}
-                    </Button>
-                  ))}
+                  .map((account) => {
+                    const active = selectedAccount === account
+                    return (
+                      <Button
+                        key={account}
+                        variant={active ? "secondary" : "outline"}
+                        size="sm"
+                        className="rounded-full"
+                        aria-pressed={active}
+                        onClick={() => setSelectedAccount(account)}
+                      >
+                        {account}
+                      </Button>
+                    )
+                  })}
               </div>
             </ScrollArea>
           </div>
-          <div className="relative">
-            <Input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search merchants or categories"
-              className="w-full lg:w-72"
-              aria-label="Search transactions"
-            />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <div className="relative w-full sm:w-64">
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search merchants or categories"
+                className="w-full"
+                aria-label="Search transactions"
+              />
+            </div>
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-2 rounded-full sm:w-auto sm:min-w-[200px]"
+                  aria-label={`Select transaction date range, currently ${dateRangeLabel}`}
+                >
+                  <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                  <span className="truncate">{dateRangeLabel}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[320px] space-y-3 p-3" align="end">
+                <div className="flex flex-wrap items-center gap-2">
+                  {presetOrder.map((presetId) => {
+                    const active = selectedPresetId === presetId
+                    return (
+                      <Button
+                        key={presetId}
+                        size="sm"
+                        variant={active ? "secondary" : "outline"}
+                        className="rounded-full"
+                        onClick={() => applyPreset(presetId)}
+                        aria-pressed={active}
+                      >
+                        {presetLabels[presetId]}
+                      </Button>
+                    )
+                  })}
+                </div>
+                <Calendar
+                  mode="range"
+                  numberOfMonths={2}
+                  selected={selectedRange}
+                  onSelect={handleRangeSelect}
+                  initialFocus
+                />
+                <div className="flex items-center justify-between gap-2">
+                  <Button variant="ghost" size="sm" onClick={clearDateRange}>
+                    Clear
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => setDatePickerOpen(false)}
+                    disabled={!selectedRange.from || !selectedRange.to}
+                  >
+                    Apply
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="gap-1" aria-hidden="true">
-            <Filter className="h-3.5 w-3.5" />
-            Quick filters
-          </Badge>
-          {quickFilters.map((filter) => {
-            const active = selectedFilters.includes(filter.id)
-            return (
-              <Button
-                key={filter.id}
-                variant={active ? "secondary" : "outline"}
-                size="sm"
-                className="rounded-full"
-                onClick={() => toggleFilter(filter.id)}
-                aria-pressed={active}
-              >
-                {filter.label}
-              </Button>
-            )
-          })}
-        </div>
+        <TooltipProvider delayDuration={100}>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="gap-1" aria-hidden="true">
+              <Filter className="h-3.5 w-3.5" />
+              Quick filters
+            </Badge>
+            {quickFilters.map((filter) => {
+              const active = selectedFilters.includes(filter.id)
+              return (
+                <Tooltip key={filter.id}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={active ? "secondary" : "outline"}
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => toggleFilter(filter.id)}
+                      aria-pressed={active}
+                      aria-label={`${filter.label} – ${filter.description}`}
+                    >
+                      {filter.label}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs text-xs leading-relaxed">
+                    {filter.description}
+                  </TooltipContent>
+                </Tooltip>
+              )
+            })}
+          </div>
+        </TooltipProvider>
       </CardHeader>
       <CardContent className="p-0">
         <div className="sr-only" aria-live="polite">
