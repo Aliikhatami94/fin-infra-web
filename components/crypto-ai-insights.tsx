@@ -9,6 +9,7 @@ import { InsightCard } from "@/components/insights/InsightCard"
 import { getInsights } from "@/lib/insights/service"
 import type { InsightAction } from "@/lib/insights/definitions"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { AutomationCopilotDrawer } from "@/components/automation-copilot-drawer"
 
 export function CryptoAIInsights() {
@@ -99,10 +100,7 @@ export function CryptoAIInsights() {
 
           <div className="grid gap-3 md:grid-cols-2">
             {diversificationSuggestions.map((suggestion) => (
-              <div
-                key={suggestion.id}
-                className="flex flex-col justify-between gap-4 rounded-xl border border-border/60 bg-card/70 p-4 shadow-sm"
-              >
+              <Card key={suggestion.id} className="card-standard card-lift gap-4">
                 <div className="flex items-start gap-4">
                   <div
                     className="h-16 w-16 shrink-0 rounded-full border border-border/60"
@@ -140,7 +138,7 @@ export function CryptoAIInsights() {
                     <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </section>

@@ -34,24 +34,28 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="flex min-h-screen w-full flex-1 flex-col">
           <div
             className={cn(
-              "flex flex-1 flex-col transition-[padding] duration-300",
+              "flex min-h-0 flex-1 flex-col transition-[padding] duration-300",
               isSidebarCollapsed ? "lg:pl-16" : "lg:pl-64",
             )}
           >
             <OfflineBanner />
 
-            <main
-              id="main-content"
-              className="flex-1 overflow-x-hidden bg-background pb-24 pt-4 md:pb-10 md:pt-6 rounded-xl md:rounded-2xl"
-            >
-              <div className="mx-auto min-h-full w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
-                {/* Embedded top navigation inside content container */}
-                <div className="mb-4 md:mb-6">
+            <div className="flex min-h-0 flex-1 flex-col rounded-xl bg-background md:rounded-2xl">
+              <header className="sticky top-0 z-40 rounded-t-xl bg-background/95 py-3 supports-[backdrop-filter]:bg-background/80 backdrop-blur md:rounded-t-2xl md:py-4">
+                <div className="mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
                   <TopBar onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
                 </div>
-                {children}
-              </div>
-            </main>
+              </header>
+
+              <main
+                id="main-content"
+                className="flex-1 overflow-x-hidden pb-24 pt-4 md:pb-10 md:pt-6"
+              >
+                <div className="mx-auto min-h-full w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
+                  {children}
+                </div>
+              </main>
+            </div>
 
             {/* Global AI chat trigger and sidebar */}
             <Button

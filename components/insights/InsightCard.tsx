@@ -230,11 +230,10 @@ export function InsightCard({
         aria-labelledby={headingId}
         aria-describedby={descriptionId}
         className={cn(
-          "relative h-full border border-border/40 bg-card/95 backdrop-blur-sm transition-shadow",
-          "hover:shadow-lg",
+          "card-standard card-lift relative h-full transition-shadow",
           "focus-within:ring-2 focus-within:ring-primary/40",
-          unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/50)] focus-within:ring-primary",
-          isResolved && "border-border/30 bg-muted/40 saturate-75",
+          unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/45)] focus-within:ring-primary",
+          isResolved && "border-border/40 bg-muted/40 saturate-75",
         )}
         data-state={isResolved ? "resolved" : "active"}
       >
