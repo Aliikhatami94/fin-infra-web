@@ -23,7 +23,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ConnectivityProvider>
-      <div className="flex min-h-screen flex-col md:flex-row">
+  <div className="fixed inset-0 flex overflow-hidden flex-col md:flex-row">
         <Sidebar
           mobileOpen={mobileMenuOpen}
           onMobileClose={() => setMobileMenuOpen(false)}
@@ -31,16 +31,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           onCollapsedChange={setIsSidebarCollapsed}
         />
 
-        <div className="flex max-h-screen w-full flex-1 flex-col">
+  <div className="flex h-full w-full flex-1 flex-col overflow-hidden">
           <div
             className={cn(
-              "flex min-h-0 flex-1 flex-col transition-[padding] duration-300",
+              "flex min-h-0 flex-1 flex-col overflow-hidden transition-[padding] duration-300",
               isSidebarCollapsed ? "lg:pl-16" : "lg:pl-64",
             )}
           >
             <OfflineBanner />
 
-            <div className="flex min-h-0 flex-1 flex-col md:rounded-2xl bg-card">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:rounded-2xl bg-card">
               <header className="sticky inset-x-0 top-0 z-40 h-12 md:h-14">
                 <TopBar
                   onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -50,7 +50,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
               <main
                 id="main-content"
-                className="flex-1 overflow-x-hidden pb-24 pt-4 md:pb-10 md:pt-6 rounded-xl mr-2 mb-2 rounded-xl bg-background border"
+                className="flex-1 overflow-x-hidden overflow-y-auto pb-24 pt-4 md:pb-10 md:pt-6 rounded-xl bg-background border mr-2 mb-2"
               >
                 <div className="mx-auto min-h-full w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
                   {children}
