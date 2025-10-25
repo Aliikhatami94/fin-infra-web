@@ -112,9 +112,9 @@ export default function CryptoPage() {
                 className={cn(
                   "flex items-center gap-2 rounded-full border px-4 py-2 text-left shadow-xs transition",
                   "hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                  isActive
+                isActive
                     ? "border-primary/80 bg-primary/10 text-foreground"
-                    : "border-border/80 bg-background/80 text-muted-foreground",
+                    : "border-border/80 bg-card/80 text-muted-foreground",
                 )}
                 aria-pressed={isActive}
               >
@@ -139,7 +139,7 @@ export default function CryptoPage() {
               "hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               showStablecoins
                 ? "border-primary/80 bg-primary/10 text-foreground"
-                : "border-border/80 bg-background/80 text-muted-foreground",
+                : "border-border/80 bg-card/80 text-muted-foreground",
             )}
             onMouseEnter={handleStablecoinHover}
             onClick={() => setShowStablecoins((prev) => !prev)}

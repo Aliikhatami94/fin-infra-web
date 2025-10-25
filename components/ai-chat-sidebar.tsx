@@ -111,7 +111,7 @@ export function AIChatSidebar({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-background border-l shadow-lg z-[70] flex flex-col">
+    <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-card border-l shadow-lg z-[70] flex flex-col">
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <Icon className="h-5 w-5 text-primary" />

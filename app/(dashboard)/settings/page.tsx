@@ -451,7 +451,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6">
-      <div className="sticky top-16 z-20 bg-background/90 backdrop-blur-md border-b border-border/20 -mx-6 px-6 py-4 mb-8">
+      <div className="sticky top-16 z-20 bg-card/90 backdrop-blur-md border-b border-border/20 -mx-6 px-6 py-4 mb-8">
         <div className="mx-auto max-w-3xl flex justify-between items-center">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
@@ -534,7 +534,7 @@ export default function SettingsPage() {
                     key={option.value}
                     type="button"
                     variant={fontScale === option.value ? "default" : "outline"}
-                    className="h-full justify-between gap-1 rounded-xl border border-border/40 bg-background/90 px-4 py-3 text-left"
+                    className="h-full justify-between gap-1 rounded-xl border border-border/40 bg-card/90 px-4 py-3 text-left"
                     onClick={() => {
                       setFontScale(option.value)
                       trackPreferenceToggle({
@@ -616,7 +616,7 @@ export default function SettingsPage() {
 
             <div
               aria-live="polite"
-              className={`rounded-xl border border-dashed border-border/50 bg-background/70 p-4 transition-colors ${highContrastMode ? "ring-2 ring-primary/40" : ""}`}
+              className={`rounded-xl border border-dashed border-border/50 bg-card/70 p-4 transition-colors ${highContrastMode ? "ring-2 ring-primary/40" : ""}`}
             >
               <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{previewCopy.heading}</p>
               <p className={`mt-2 font-medium leading-relaxed ${previewTypography}`}>{previewCopy.body}</p>
@@ -809,7 +809,7 @@ export default function SettingsPage() {
           initial={false}
           animate={{ y: hasChanges ? 0 : 40, opacity: hasChanges ? 1 : 0.85 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between border-t border-border/20 bg-background/95 px-6 py-4 shadow-lg backdrop-blur-md lg:left-64"
+          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between border-t border-border/20 bg-card/95 px-6 py-4 shadow-lg backdrop-blur-md lg:left-64"
         >
           <Button variant="ghost" size="lg" onClick={() => setResetDialogOpen(true)}>
             Reset to Defaults

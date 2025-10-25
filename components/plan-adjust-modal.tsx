@@ -144,7 +144,7 @@ export function PlanAdjustModal({ open, onOpenChange }: PlanAdjustModalProps) {
             </div>
           </div>
 
-          <div className="rounded-md border border-border/50 bg-background/50 p-4">
+          <div className="rounded-md border border-border/50 bg-card/50 p-4">
             <p className="text-sm font-medium text-foreground">What happens next</p>
             <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
               <li>• Automation updates will appear in Cash Flow under “Planned transfers”.</li>

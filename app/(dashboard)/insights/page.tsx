@@ -28,7 +28,7 @@ export default function InsightsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1600px]">
-      <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 bg-background/90 backdrop-blur-md border-b border-border/20 mb-6">
+      <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 bg-card/90 backdrop-blur-md border-b border-border/20 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Insights</h1>
@@ -43,13 +43,13 @@ export default function InsightsPage() {
                 placeholder="Search insights..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 bg-background border-border/40"
+                className="pl-9 h-9 bg-card border-border/40"
               />
             </div>
 
             {/* Time Range Filter */}
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-32 h-9 bg-background border-border/40">
+              <SelectTrigger className="w-32 h-9 bg-card border-border/40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -100,7 +100,7 @@ export default function InsightsPage() {
                   {isActive ? (
                     <motion.span
                       layoutId="insights-tab-highlight"
-                      className="absolute inset-0 rounded-full bg-background shadow-sm"
+                      className="absolute inset-0 rounded-full bg-card shadow-sm"
                       transition={{ type: "spring", stiffness: 360, damping: 28 }}
                     />
                   ) : null}

@@ -116,7 +116,7 @@ export default function TaxesPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1600px]">
-      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 mb-6 bg-background/90 backdrop-blur-sm border-b border-border/20 px-4 sm:px-6 lg:px-8 py-4">
+      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 mb-6 bg-card/90 backdrop-blur-sm border-b border-border/20 px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl md:text-2xl font-semibold text-foreground">Tax Planning & Estimates</h1>

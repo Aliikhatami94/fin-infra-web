@@ -193,7 +193,7 @@ export function CapitalGainsTable({ initialFilter }: CapitalGainsTableProps) {
         <div className="hidden md:block overflow-x-auto max-h-[520px] overflow-y-auto" onScroll={handleScroll}>
           <table className="w-full">
             <thead
-              className={`sticky top-0 bg-background z-10 border-b transition-smooth ${
+              className={`sticky top-0 bg-card z-10 border-b transition-smooth ${
                 isScrolled ? "shadow-md" : "shadow-sm"
               }`}
             >

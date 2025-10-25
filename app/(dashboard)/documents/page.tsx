@@ -231,7 +231,7 @@ export default function DocumentsPage() {
   return (
     <>
       <div
-        className={`sticky top-16 z-20 bg-background/90 backdrop-blur-md border-b border-border/20 transition-shadow duration-300 ${
+        className={`sticky top-16 z-20 bg-card/90 backdrop-blur-md border-b border-border/20 transition-shadow duration-300 ${
           scrolled ? "shadow-lg" : "shadow-sm"
         }`}
       >
@@ -394,7 +394,7 @@ export default function DocumentsPage() {
                       aria-selected={selected}
                       data-selected={selected}
                       className={cn(
-                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                         selected
                           ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
                           : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
@@ -424,7 +424,7 @@ export default function DocumentsPage() {
                       aria-selected={selected}
                       data-selected={selected}
                       className={cn(
-                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                         selected
                           ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
                           : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
@@ -447,7 +447,7 @@ export default function DocumentsPage() {
                       aria-selected={selected}
                       data-selected={selected}
                       className={cn(
-                        "h-8 rounded-full border border-border/60 bg-background px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                         selected
                           ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
                           : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
