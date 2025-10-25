@@ -56,8 +56,8 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   }
 
   return (
-  <div className="sticky top-0 z-40 w-full border bg-card backdrop-blur supports-[backdrop-filter]:bg-card/60 rounded-xl md:rounded-2xl shadow-xs">
-      <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
+  <div className="fixed inset-x-0 mx-0 top-0 z-40 w-full bg-card">
+      <div className="flex items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3 md:gap-6">
           <div className="lg:hidden">
             <Button variant="ghost" size="icon" onClick={onMenuClick} aria-label="Open menu">

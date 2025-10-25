@@ -23,7 +23,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ConnectivityProvider>
-      <div className="flex min-h-screen flex-col bg-card md:flex-row">
+      <div className="flex min-h-screen flex-col md:flex-row">
         <Sidebar
           mobileOpen={mobileMenuOpen}
           onMobileClose={() => setMobileMenuOpen(false)}
@@ -31,7 +31,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           onCollapsedChange={setIsSidebarCollapsed}
         />
 
-        <div className="flex min-h-screen w-full flex-1 flex-col">
+        <div className="flex max-h-screen w-full flex-1 flex-col">
           <div
             className={cn(
               "flex min-h-0 flex-1 flex-col transition-[padding] duration-300",
@@ -40,16 +40,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           >
             <OfflineBanner />
 
-            <div className="flex min-h-0 flex-1 flex-col rounded-xl bg-background md:rounded-2xl">
-              <header className="sticky top-0 z-40 rounded-t-xl bg-background/95 py-3 supports-[backdrop-filter]:bg-background/80 backdrop-blur md:rounded-t-2xl md:py-4">
-                <div className="mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
-                  <TopBar onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
-                </div>
+            <div className="flex min-h-0 flex-1 flex-col md:rounded-2xl bg-card">
+              <header className="sticky w-full inset-x-0 top-0 z-40 h-12 md:h-14">
+                <TopBar onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
               </header>
 
               <main
                 id="main-content"
-                className="flex-1 overflow-x-hidden pb-24 pt-4 md:pb-10 md:pt-6"
+                className="flex-1 overflow-x-hidden pb-24 pt-4 md:pb-10 md:pt-6 rounded-xl mr-2 mb-2 rounded-xl bg-background border"
               >
                 <div className="mx-auto min-h-full w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
                   {children}

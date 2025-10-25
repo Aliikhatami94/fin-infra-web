@@ -82,7 +82,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen border-r bg-card transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 z-50 h-screen bg-card transition-all duration-300 ease-in-out",
           // Desktop: always visible with proper width
           "lg:translate-x-0",
           // Mobile: slide in/out, full width when open
@@ -94,7 +94,7 @@ export function Sidebar({
       >
         <div className="flex h-full flex-col">
           {/* Brand header */}
-          <div className="flex items-center justify-between border-b p-4">
+          <div className="flex items-center justify-between p-4">
             {!collapsed ? (
               <div className="flex items-center gap-2">
                 <span className="text-base font-semibold tracking-tight">ClarityLedger</span>
