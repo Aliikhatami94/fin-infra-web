@@ -159,15 +159,15 @@ export function AccountsTableDesktop({
       ref,
     ) {
       return (
-        <table {...props} ref={ref} className={cn("w-full text-sm table-fixed", className)}>
+        <table {...props} ref={ref} className={cn("w-full text-sm table-auto", className)}>
           <colgroup>
-            <col className="w-[36%]" />
+            <col className="w-[30%]" />
             <col className="w-[12%]" />
             <col className="w-[16%]" />
             <col className="w-[14%]" />
             <col className="w-[12%]" />
-            <col className="w-[10%]" />
-            <col className="w-[0%] sm:w-[4%]" />
+            <col className="w-[12%]" />
+            <col className="w-[4%]" />
           </colgroup>
           {children}
         </table>
