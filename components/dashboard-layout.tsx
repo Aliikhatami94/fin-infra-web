@@ -23,7 +23,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ConnectivityProvider>
-      <div className="flex min-h-screen flex-col bg-background md:flex-row">
+      <div className="flex min-h-screen flex-col bg-card md:flex-row">
         <Sidebar
           mobileOpen={mobileMenuOpen}
           onMobileClose={() => setMobileMenuOpen(false)}
@@ -42,7 +42,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
             <main
               id="main-content"
-              className="flex-1 overflow-x-hidden overflow-y-auto bg-background pb-24 pt-4 md:pb-10 md:pt-6"
+              className="flex-1 overflow-x-hidden bg-background pb-24 pt-4 md:pb-10 md:pt-6 rounded-xl md:rounded-2xl"
             >
               <div className="mx-auto min-h-full w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
                 {/* Embedded top navigation inside content container */}

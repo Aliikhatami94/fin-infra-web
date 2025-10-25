@@ -56,7 +56,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   }
 
   return (
-  <div className="sticky top-0 z-40 w-full border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 rounded-xl md:rounded-2xl">
+  <div className="sticky top-0 z-40 w-full border bg-card backdrop-blur supports-[backdrop-filter]:bg-card/60 rounded-xl md:rounded-2xl shadow-xs">
       <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3 md:gap-6">
           <div className="lg:hidden">
