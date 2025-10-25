@@ -41,8 +41,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <OfflineBanner />
 
             <div className="flex min-h-0 flex-1 flex-col md:rounded-2xl bg-card">
-              <header className="sticky w-full inset-x-0 top-0 z-40 h-12 md:h-14">
-                <TopBar onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
+              <header className="sticky inset-x-0 top-0 z-40 h-12 md:h-14">
+                <TopBar
+                  onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  sidebarCollapsed={isSidebarCollapsed}
+                />
               </header>
 
               <main

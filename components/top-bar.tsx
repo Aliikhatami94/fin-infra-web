@@ -29,7 +29,9 @@ import { useDateRange } from "@/components/date-range-provider"
 import { useWorkspace } from "@/components/workspace-provider"
 import { NotificationCenter } from "@/components/notification-center"
 
-export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
+import { cn } from "@/lib/utils"
+
+export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => void; sidebarCollapsed?: boolean }) {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
   const { dateRange, setDateRange } = useDateRange()
@@ -56,8 +58,18 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   }
 
   return (
-  <div className="fixed inset-x-0 mx-0 top-0 z-40 w-full bg-card">
-      <div className="flex items-center justify-between px-4 md:px-6">
+    <div
+      className={cn(
+        // Fixed top bar that adapts to sidebar width on large screens
+        "fixed top-0 right-0 z-40 bg-card transition-[left,width] duration-300",
+        // Mobile/tablet: full width
+        "left-0 w-auto",
+        // Desktop: shift right based on sidebar state so it's visually centered with content
+        sidebarCollapsed ? "lg:left-16" : "lg:left-64",
+      )}
+    >
+      {/* Inner container: constrain width and center horizontally; match bar height */}
+      <div className="mx-auto flex h-12 w-full max-w-[1680px] items-center justify-between px-4 md:h-14 md:px-6">
         <div className="flex items-center gap-3 md:gap-6">
           <div className="lg:hidden">
             <Button variant="ghost" size="icon" onClick={onMenuClick} aria-label="Open menu">
