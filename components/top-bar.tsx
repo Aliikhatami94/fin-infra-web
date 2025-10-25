@@ -61,7 +61,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
     <div
       className={cn(
         // Fixed top bar that adapts to sidebar width on large screens
-        "fixed top-0 right-0 z-40 bg-card transition-[left,width] duration-300",
+        "fixed top-0 right-0 z-40 bg-background transition-[left,width] duration-300",
         // Mobile/tablet: full width
         "left-0 w-auto",
         // Desktop: shift right based on sidebar state so it's visually centered with content

@@ -99,7 +99,7 @@ TooltipTrigger.displayName = TooltipPrimitive.Trigger.displayName
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, side, sideOffset = 0, children, ...props }, ref) => {
+>(({ className, side, sideOffset = 8, children, collisionPadding, ...props }, ref) => {
   const context = React.useContext(TooltipContext)
   const [autoSide, setAutoSide] = React.useState<TooltipSide>('top')
 
@@ -132,6 +132,7 @@ const TooltipContent = React.forwardRef<
         data-slot="tooltip-content"
         side={resolvedSide}
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding ?? 8}
         className={cn(
           'bg-foreground text-background animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-center text-xs text-balance',
           className,

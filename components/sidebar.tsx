@@ -74,7 +74,7 @@ export function Sidebar({
       <>
         {mobileOpen && (
           <div
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-40 bg-background backdrop-blur-sm lg:hidden"
             onClick={onMobileClose}
             aria-hidden="true"
           />
@@ -82,7 +82,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen bg-card transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 z-50 h-screen bg-background transition-all duration-300 ease-in-out",
           // Desktop: always visible with proper width
           "lg:translate-x-0",
           // Mobile: slide in/out, full width when open

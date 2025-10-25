@@ -96,7 +96,7 @@ export function useFeatureFlag(flag: FeatureFlagKey, options?: { defaultEnabled?
       variant: getExperimentVariant(flag),
       cohort: getExperimentCohort(),
     }),
-    [flag, options?.defaultEnabled],
+    [flag, options],
   )
 }
 
