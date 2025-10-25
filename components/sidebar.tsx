@@ -82,7 +82,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 z-50 h-screen border-r bg-card transition-all duration-300 ease-in-out",
           // Desktop: always visible with proper width
           "lg:translate-x-0",
           // Mobile: slide in/out, full width when open
@@ -93,11 +93,24 @@ export function Sidebar({
         )}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b p-4 lg:hidden">
-            <h2 className="text-lg font-semibold">Menu</h2>
-            <Button variant="ghost" size="icon" onClick={onMobileClose} aria-label="Close navigation">
-              <X className="h-5 w-5" />
-            </Button>
+          {/* Brand header */}
+          <div className="flex items-center justify-between border-b p-4">
+            {!collapsed ? (
+              <div className="flex items-center gap-2">
+                <span className="text-base font-semibold tracking-tight">ClarityLedger</span>
+                <Badge variant="outline" className="font-mono text-[10px] leading-none">Live</Badge>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">CL</span>
+              </div>
+            )}
+            {/* Close button on mobile */}
+            <div className="lg:hidden">
+              <Button variant="ghost" size="icon" onClick={onMobileClose} aria-label="Close navigation">
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto py-4">

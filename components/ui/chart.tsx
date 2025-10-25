@@ -104,6 +104,21 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+// Minimal, library-agnostic tooltip types to avoid tight coupling to Recharts generics
+type TooltipItem = {
+  name?: string
+  value?: number | string
+  color?: string
+  dataKey?: string
+  payload: Record<string, unknown> & { fill?: string }
+}
+
+type BasicTooltipProps = {
+  active?: boolean
+  payload?: TooltipItem[]
+  label?: unknown
+}
+
 function ChartTooltipContent({
   active,
   payload,
@@ -118,11 +133,21 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+}: BasicTooltipProps &
   React.ComponentProps<'div'> & {
     hideLabel?: boolean
     hideIndicator?: boolean
     indicator?: 'line' | 'dot' | 'dashed'
+    labelFormatter?: (value: unknown, payload?: unknown) => React.ReactNode
+    labelClassName?: string
+    formatter?: (
+      value: number | string,
+      name: string,
+      item: TooltipItem,
+      index: number,
+      payload?: unknown,
+    ) => React.ReactNode
+    color?: string
     nameKey?: string
     labelKey?: string
   }) {
@@ -179,7 +204,7 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload.map((item, index) => {
+        {payload.map((item: TooltipItem, index: number) => {
           const key = `${nameKey || item.name || item.dataKey || 'value'}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
           const indicatorColor = color || item.payload.fill || item.color
@@ -257,7 +282,9 @@ function ChartLegendContent({
   verticalAlign = 'bottom',
   nameKey,
 }: React.ComponentProps<'div'> &
-  Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
+  {
+    payload?: Array<{ dataKey?: string; color?: string; value?: string }>
+    verticalAlign?: 'top' | 'bottom' | 'middle'
     hideIcon?: boolean
     nameKey?: string
   }) {

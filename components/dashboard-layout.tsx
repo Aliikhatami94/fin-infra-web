@@ -32,10 +32,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         />
 
         <div className="flex min-h-screen w-full flex-1 flex-col">
-          <TopBar onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
           <div
             className={cn(
-              "flex flex-1 flex-col pt-16 transition-[padding] duration-300",
+              "flex flex-1 flex-col transition-[padding] duration-300",
               isSidebarCollapsed ? "lg:pl-16" : "lg:pl-64",
             )}
           >
@@ -43,9 +42,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
             <main
               id="main-content"
-              className="flex-1 overflow-x-hidden bg-background pb-24 pt-4 md:pb-10 md:pt-6"
+              className="flex-1 overflow-x-hidden overflow-y-auto bg-background pb-24 pt-4 md:pb-10 md:pt-6"
             >
-              <div className="mx-auto min-h-full w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">{children}</div>
+              <div className="mx-auto min-h-full w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
+                {/* Embedded top navigation inside content container */}
+                <div className="mb-4 md:mb-6">
+                  <TopBar onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
+                </div>
+                {children}
+              </div>
             </main>
 
             {/* Global AI chat trigger and sidebar */}
