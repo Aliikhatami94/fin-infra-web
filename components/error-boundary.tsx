@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <Card role="alert" className="border-dashed border-border/50 bg-muted/20">
+        <Card role="alert" className="card-standard border-dashed border-border/50">
           <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="mt-1 rounded-full bg-destructive/10 p-2 text-destructive">

@@ -95,7 +95,7 @@ export default function DemoPage() {
             </div>
           </div>
 
-          <Card className="border-border/30 bg-card/80 shadow-[var(--shadow-soft)]">
+          <Card className="card-standard border-border/30">
             <CardHeader>
               <CardTitle className="text-xl font-semibold">What you&apos;ll learn</CardTitle>
             </CardHeader>
