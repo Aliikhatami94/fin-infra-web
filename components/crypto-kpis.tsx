@@ -108,16 +108,16 @@ export function CryptoKPIs() {
   const router = useRouter()
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {kpis.map((kpi, index) => {
         const Icon = kpi.icon
         return (
-          <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
+          <motion.div key={index} {...createStaggeredCardVariants(index, 0)} className="h-full">
             <Card
-              className={`card-standard ${kpi.clickable ? "cursor-pointer card-lift" : ""}`}
+              className={`card-standard card-lift h-full ${kpi.clickable ? "cursor-pointer" : ""}`}
               onClick={() => kpi.clickable && router.push("/crypto/btc")}
             >
-              <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
+              <CardContent className="p-6 min-h-[140px] flex h-full flex-col justify-between">
                 <div className="mb-2">
                   <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                 </div>

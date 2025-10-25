@@ -17,7 +17,10 @@ export function TaxDeadlineTimeline() {
   const deadlines = getTaxDeadlines()
 
   return (
-    <Card className="border-border/40 bg-background/95" aria-labelledby="tax-deadline-heading">
+    <Card
+      className="card-standard border-border/40"
+      aria-labelledby="tax-deadline-heading"
+    >
       <CardHeader>
         <CardTitle id="tax-deadline-heading" className="text-base font-semibold">
           Key tax deadlines

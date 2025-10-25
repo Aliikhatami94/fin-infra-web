@@ -4,7 +4,7 @@ import { forwardRef, useMemo, useState } from "react"
 import type { HTMLAttributes } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, Building2, MoreVertical, Eye, EyeOff, TrendingUpIcon } from "lucide-react"
+import { Building2, MoreVertical, Eye, EyeOff, TrendingUpIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { ResponsiveContainer, LineChart, Line, AreaChart, Area, XAxis, YAxis } from "recharts"
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis } from "recharts"
 import { TableVirtuoso, type TableComponents } from "react-virtuoso"
 
 const holdings = [
@@ -409,46 +409,14 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     key={`${item.id}-pl`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
-                    <div className="flex flex-col items-end gap-0.5">
-                      <p
-                        className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                      >
-                        <MaskableValue
-                          value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString()}`}
-                          srLabel={`${holding.ticker} profit and loss`}
-                        />
-                      </p>
-                      <div className="flex items-center gap-1">
-                        {holding.plPercent > 0 ? (
-                          <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
-                        )}
-                        <span
-                          className={`text-xs tabular-nums ${
-                            holding.plPercent > 0
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                          } whitespace-nowrap`}
-                        >
-                          {holding.plPercent > 0 ? "+" : ""}
-                          {holding.plPercent}%
-                        </span>
-                        <div className="ml-2 w-12 h-6">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={holding.sparkline.map((val) => ({ value: val }))}>
-                              <Line
-                                type="monotone"
-                                dataKey="value"
-                                stroke={holding.plPercent > 0 ? "hsl(142, 76%, 45%)" : "hsl(0, 84%, 60%)"}
-                                strokeWidth={1.5}
-                                dot={false}
-                              />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    </div>
+                    <p
+                      className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                    >
+                      <MaskableValue
+                        value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString()}`}
+                        srLabel={`${holding.ticker} profit and loss`}
+                      />
+                    </p>
                   </td>,
                   <td
                     key={`${item.id}-weight`}
@@ -549,37 +517,8 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                           />
                         </p>
                       </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-border/30">
-                      <div className="flex items-center gap-1">
-                        {holding.plPercent > 0 ? (
-                          <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
-                        )}
-                        <span
-                          className={`text-sm tabular-nums ${holding.plPercent > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                        >
-                          {holding.plPercent > 0 ? "+" : ""}
-                          {holding.plPercent}%
-                        </span>
-                        <div className="ml-2 w-12 h-6">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={holding.sparkline.map((val) => ({ value: val }))}>
-                              <Line
-                                type="monotone"
-                                dataKey="value"
-                                stroke={holding.plPercent > 0 ? "hsl(142, 76%, 45%)" : "hsl(0, 84%, 60%)"}
-                                strokeWidth={1.5}
-                                dot={false}
-                              />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Weight</p>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Weight</p>
                         <p className="text-sm font-medium tabular-nums">{holding.weight}%</p>
                       </div>
                     </div>

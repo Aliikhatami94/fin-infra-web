@@ -126,7 +126,7 @@ export function PortfolioAIInsights() {
             ))}
           </div>
         ) : activeInsights.length === 0 ? (
-          <Card className="border-dashed border-border/70 bg-muted/30">
+          <Card className="card-standard border-dashed border-border/70">
             <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
               <Inbox className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
               <div className="space-y-1">

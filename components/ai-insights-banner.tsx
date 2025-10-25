@@ -23,7 +23,7 @@ export function AIInsightsBanner() {
 
   return (
     <motion.div {...createStaggeredCardVariants(0, 0.3)}>
-      <Card className="border-border/30 bg-gradient-to-r from-purple-500/5 to-blue-500/5">
+      <Card className="card-standard border-border/30">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">

@@ -107,7 +107,7 @@ export function CashFlowAIInsights() {
           </div>
         ))}
       </div>
-      <Card className="border-dashed border-border/70 bg-muted/30">
+      <Card className="card-standard border-dashed border-border/70">
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
@@ -125,7 +125,7 @@ export function CashFlowAIInsights() {
           {overspendingSuggestions.map((suggestion) => (
             <div
               key={suggestion.id}
-              className="rounded-lg border border-border/60 bg-background/80 p-4 shadow-sm transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-primary/40"
+              className="rounded-lg border border-border/60 bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-primary/40"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">

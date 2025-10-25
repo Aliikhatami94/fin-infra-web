@@ -114,6 +114,29 @@ const statusRank: Record<SessionStatus, number> = {
 
 const AUDIT_LOG_ESTIMATE_MB = 42
 
+type HeroLevel = "strong" | "caution" | "critical"
+
+const HERO_BACKGROUNDS: Record<HeroLevel, { base: string; overlay: string }> = {
+  strong: {
+    base:
+      "linear-gradient(140deg, rgba(37, 99, 235, 0.45), rgba(76, 29, 149, 0.65)), var(--surface-security)",
+    overlay:
+      "radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 55%), radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.35), transparent 60%)",
+  },
+  caution: {
+    base: "linear-gradient(140deg, rgba(217, 119, 6, 0.82), rgba(245, 158, 11, 0.78))",
+    overlay:
+      "radial-gradient(circle at top right, rgba(255, 247, 237, 0.52), transparent 55%), radial-gradient(circle at 15% 85%, rgba(250, 204, 21, 0.32), transparent 60%)",
+  },
+  critical: {
+    base: "linear-gradient(140deg, rgba(220, 38, 38, 0.88), rgba(127, 29, 29, 0.9))",
+    overlay:
+      "radial-gradient(circle at top right, rgba(255, 255, 255, 0.32), transparent 55%), radial-gradient(circle at 18% 82%, rgba(248, 113, 113, 0.4), transparent 65%)",
+  },
+}
+
+type HighlightIntent = "neutral" | "positive" | "attention"
+
 export default function SecurityCenterPage() {
   const [loginAlerts, setLoginAlerts] = useState(true)
   const [maskSensitive, setMaskSensitive] = useState(true)
@@ -158,6 +181,76 @@ export default function SecurityCenterPage() {
   const hasOtherActiveSessions = useMemo(() => {
     return sessions.some((session) => session.status === "Active" && session.id !== currentSessionId)
   }, [currentSessionId, sessions])
+
+  const activeSessions = sessions.filter((session) => session.status === "Active").length
+  const signedOutSessions = sessions.length - activeSessions
+
+  const heroInsight = useMemo(() => {
+    if (!loginAlerts) {
+      return {
+        level: "critical" as const,
+        badge: "Action required",
+        headline: "Turn login alerts back on",
+        description:
+          "Alerts are paused, so suspicious sign-ins may go unnoticed. Enable them to regain real-time coverage.",
+      }
+    }
+
+    if (!maskSensitive) {
+      return {
+        level: "caution" as const,
+        badge: "Security watch",
+        headline: "Mask sensitive identifiers to reduce exposure",
+        description:
+          "Masked identifiers hide PII in exports and notifications. Toggle the control below to automatically redact data.",
+      }
+    }
+
+    if (hasOtherActiveSessions) {
+      return {
+        level: "caution" as const,
+        badge: "Review activity",
+        headline: "End sessions you don’t recognize",
+        description:
+          "You have activity on other devices. Revoke access or download the audit log for more detail in seconds.",
+      }
+    }
+
+    return {
+      level: "strong" as const,
+      badge: "Security Center",
+      headline: "Account defenses look strong",
+      description:
+        "Alerts are active and identifiers are masked. Continue monitoring sessions and exports right from this hub.",
+    }
+  }, [hasOtherActiveSessions, loginAlerts, maskSensitive])
+
+  const heroHighlights = useMemo(
+    () =>
+      [
+        {
+          label: `${activeSessions} active session${activeSessions === 1 ? "" : "s"}`,
+          intent: hasOtherActiveSessions ? (activeSessions > 1 ? "attention" : "neutral") : "neutral",
+        },
+        signedOutSessions > 0
+          ? {
+              label: `${signedOutSessions} signed out recently`,
+              intent: "neutral" as HighlightIntent,
+            }
+          : null,
+        {
+          label: loginAlerts ? "Login alerts enabled" : "Login alerts paused",
+          intent: loginAlerts ? "positive" : "attention",
+        },
+        {
+          label: maskSensitive ? "Masking on exports" : "Masking disabled",
+          intent: maskSensitive ? "positive" : "attention",
+        },
+      ].filter(Boolean) as Array<{ label: string; intent: HighlightIntent }>,
+    [activeSessions, hasOtherActiveSessions, loginAlerts, maskSensitive, signedOutSessions],
+  )
+
+  const heroBackground = HERO_BACKGROUNDS[heroInsight.level]
 
   const handleAlertingSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -227,23 +320,41 @@ export default function SecurityCenterPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-8">
-      <section className="overflow-hidden rounded-3xl bg-[var(--surface-security)] text-white shadow-[var(--shadow-bold)]">
+      <section
+        className="relative overflow-hidden rounded-3xl text-white shadow-[var(--shadow-bold)]"
+        style={{ backgroundImage: heroBackground.base }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-90"
+          style={{ backgroundImage: heroBackground.overlay }}
+          aria-hidden
+        />
         <div className="relative px-8 py-10 sm:px-12">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)] opacity-80" aria-hidden />
           <div className="relative z-10 space-y-6">
-            <Badge variant="secondary" className="bg-white/15 text-white">
-              Security Center
+            <Badge variant="secondary" className="border-0 bg-white/20 text-xs font-semibold uppercase tracking-wide text-white">
+              {heroInsight.badge}
             </Badge>
-            <div className="space-y-3 max-w-2xl">
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Stay in control of your account safety</h1>
-              <p className="text-sm sm:text-base text-white/80">
-                Review recent sessions, configure alerting, and download audit logs. Every action here is recorded for your records.
-              </p>
+            <div className="max-w-2xl space-y-3">
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{heroInsight.headline}</h1>
+              <p className="text-sm text-white/80 sm:text-base">{heroInsight.description}</p>
             </div>
-            <div className="flex flex-wrap gap-3 text-xs font-medium text-white/90">
-              <span className="rounded-full bg-white/20 px-3 py-1">End-to-end encryption</span>
-              <span className="rounded-full bg-white/20 px-3 py-1">SOC 2 Type II controls</span>
-              <span className="rounded-full bg-white/20 px-3 py-1">Masked identifiers</span>
+            <div className="flex flex-wrap gap-3 text-xs font-medium">
+              {heroHighlights.map((highlight) => {
+                const toneClass =
+                  highlight.intent === "positive"
+                    ? "bg-emerald-300/25 text-white"
+                    : highlight.intent === "attention"
+                      ? heroInsight.level === "critical"
+                        ? "bg-red-300/30 text-white"
+                        : "bg-amber-200/30 text-amber-900"
+                      : "bg-white/15 text-white/90"
+
+                return (
+                  <span key={highlight.label} className={`rounded-full px-3 py-1 ${toneClass}`}>
+                    {highlight.label}
+                  </span>
+                )
+              })}
             </div>
             <div className="flex flex-wrap gap-3">
               <Dialog open={isAuditDialogOpen} onOpenChange={setIsAuditDialogOpen}>

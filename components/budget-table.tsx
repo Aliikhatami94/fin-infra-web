@@ -249,7 +249,7 @@ export function BudgetTable() {
         <CardHeader className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <CardTitle className="text-lg font-semibold">Budget by Category</CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-end">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -283,7 +283,9 @@ export function BudgetTable() {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-4 text-xs font-medium text-muted-foreground">
+          <div
+            className="grid grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))] lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))] gap-3 px-4 text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
+          >
             <button
               onClick={() => handleSort("category")}
               className="flex items-center text-left hover:text-foreground"
@@ -296,7 +298,7 @@ export function BudgetTable() {
               <SortIcon field="budget" />
             </button>
             {showSuggested && (
-              <button className="flex items-center hover:text-foreground">
+              <button className="hidden items-center hover:text-foreground lg:flex">
                 SUGGESTED
                 <Lightbulb className="ml-1 h-3 w-3" />
               </button>
@@ -328,7 +330,9 @@ export function BudgetTable() {
 
                   return (
                     <div className="mb-4 last:mb-0 group space-y-3 rounded-lg border border-transparent p-4 transition-all hover:border-border hover:bg-muted/30">
-                      <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 items-center">
+                      <div
+                        className="grid grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))] lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))] items-center gap-3"
+                      >
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-foreground">{budget.category}</span>
                           {budget.rolloverEnabled && (
@@ -357,29 +361,35 @@ export function BudgetTable() {
                             </Button>
                           </div>
                         </div>
-                        <div className="text-right min-w-[100px]">
+                        <div className="min-w-0 text-right">
                           <div className="text-sm font-medium tabular-nums text-foreground">
                             ${budget.budget.toLocaleString()}
                           </div>
+                          {showSuggested && (
+                            <div className="mt-1 text-xs text-muted-foreground lg:hidden">
+                              <span className="font-medium">Suggested:</span> ${budget.suggestedBudget.toLocaleString()}
+                            </div>
+                          )}
                         </div>
                         {showSuggested && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="text-right min-w-[100px] cursor-help">
-                                  <div className="text-sm font-medium tabular-nums text-muted-foreground flex items-center justify-end gap-1">
-                                    <Lightbulb className="h-3 w-3 text-yellow-500" />${budget.suggestedBudget.toLocaleString()}
+                          <div className="hidden min-w-0 justify-end lg:flex">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex cursor-help items-center justify-end gap-1 text-sm font-medium tabular-nums text-muted-foreground">
+                                    <Lightbulb className="h-3 w-3 text-yellow-500" />
+                                    ${budget.suggestedBudget.toLocaleString()}
                                   </div>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-xs font-semibold mb-1">Based on 6-month average</p>
-                                <p className="text-xs text-muted-foreground">Historical spending pattern</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs font-semibold mb-1">Based on 6-month average</p>
+                                  <p className="text-xs text-muted-foreground">Historical spending pattern</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                         )}
-                        <div className="text-right min-w-[100px]">
+                        <div className="min-w-0 text-right">
                           <div className="text-sm font-medium tabular-nums text-foreground">
                             ${budget.actual.toLocaleString()}
                           </div>
@@ -412,21 +422,23 @@ export function BudgetTable() {
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <div className="text-right min-w-[80px] flex items-center justify-end gap-1">
-                          {budget.variance >= 0 ? (
-                            <ArrowUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                          ) : (
-                            <ArrowDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
-                          )}
-                          <span
-                            className={`text-sm font-semibold tabular-nums ${
-                              budget.variance >= 0
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                            }`}
-                          >
-                            ${Math.abs(budget.variance)}
-                          </span>
+                        <div className="min-w-0 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {budget.variance >= 0 ? (
+                              <ArrowUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                            ) : (
+                              <ArrowDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                            )}
+                            <span
+                              className={`text-sm font-semibold tabular-nums ${
+                                budget.variance >= 0
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-red-600 dark:text-red-400"
+                              }`}
+                            >
+                              ${Math.abs(budget.variance)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="space-y-1.5">

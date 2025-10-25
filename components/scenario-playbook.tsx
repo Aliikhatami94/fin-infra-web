@@ -25,7 +25,10 @@ export function ScenarioPlaybook({ surface }: ScenarioPlaybookProps) {
   }
 
   return (
-    <Card id={`playbook-${playbook.id}`} className="border-border/50 bg-background/95 backdrop-blur">
+    <Card
+      id={`playbook-${playbook.id}`}
+      className="card-standard border-border/50 backdrop-blur"
+    >
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -49,7 +52,7 @@ export function ScenarioPlaybook({ surface }: ScenarioPlaybookProps) {
           {playbook.cases.map((scenarioCase) => (
             <div
               key={scenarioCase.id}
-              className="rounded-xl border border-border/40 bg-muted/30 p-4 shadow-sm transition-shadow hover:shadow-md"
+              className="rounded-xl border border-border/40 bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
