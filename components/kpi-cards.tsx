@@ -58,7 +58,7 @@ export function KPICards() {
   }
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 items-stretch">
       {kpis.map((kpi, index) => {
         const trendValue = kpi.trend === "up" ? 1 : kpi.trend === "down" ? -1 : 0
         const trendStyles = getTrendSemantic(trendValue)
@@ -69,7 +69,7 @@ export function KPICards() {
             <Link href={kpi.href}>
               <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants}>
                 <Card className="cursor-pointer card-standard card-lift h-full">
-                  <CardContent className="flex h-full flex-col gap-4 p-6">
+                  <CardContent className="grid h-full grid-rows-[auto_auto_1fr_auto] gap-4 p-6">
                     <div className="flex items-center justify-between">
                       <div className="sr-only" aria-live="polite">{`View more insight about ${kpi.label}.`}</div>
                       <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
@@ -112,9 +112,15 @@ export function KPICards() {
                       </Tooltip>
                       <Sparkline data={kpi.sparkline} color={trendStyles.strokeColor} />
                     </div>
-                    {hasQuickActions && (
-                      <div className="flex flex-wrap items-center gap-2 border-t border-border/40 pt-3">
-                        {kpi.quickActions?.map((action) => {
+                    <div
+                      className={cn(
+                        "border-t border-border/40 pt-3",
+                        hasQuickActions
+                          ? "flex max-w-full items-center gap-x-2 gap-y-1 flex-wrap sm:flex-nowrap overflow-hidden"
+                          : "min-h-[28px]",
+                      )}
+                    >
+                      {hasQuickActions && kpi.quickActions?.map((action) => {
                           const isDisabled = action.disabled
                           const actionLabel = action.description ?? `${action.label} for ${kpi.label}`
                           const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
@@ -143,7 +149,7 @@ export function KPICards() {
                               variant="ghost"
                               size="sm"
                               type="button"
-                              className="h-7 px-2 text-xs font-medium"
+                              className="h-7 px-2 text-xs font-medium whitespace-nowrap shrink-0"
                               aria-label={actionLabel}
                               onClick={handleClick}
                               disabled={isDisabled}
@@ -168,8 +174,7 @@ export function KPICards() {
                             </Tooltip>
                           )
                         })}
-                      </div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>

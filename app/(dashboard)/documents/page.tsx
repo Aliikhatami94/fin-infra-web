@@ -52,7 +52,6 @@ const resolveDocumentTypeIcon = (type: string) => {
 }
 
 export default function DocumentsPage() {
-  const [scrolled, setScrolled] = useState(false)
   const [sortBy, setSortBy] = useState<"date" | "name" | "size">("date")
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([])
   const [documents, setDocuments] = useState<Document[]>([])
@@ -79,18 +78,7 @@ export default function DocumentsPage() {
     return value === "date" || value === "name" || value === "size"
   }
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const mainContent = document.getElementById("main-content")
-      if (mainContent) {
-        setScrolled(mainContent.scrollTop > 10)
-      }
-    }
-
-    const mainContent = document.getElementById("main-content")
-    mainContent?.addEventListener("scroll", handleScroll)
-    return () => mainContent?.removeEventListener("scroll", handleScroll)
-  }, [])
+  
 
   const isLoading = status === "loading" || isUpdating
 
