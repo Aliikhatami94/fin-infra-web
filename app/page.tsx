@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { VantaBackground } from "@/components/vanta-background"
+import { LandingHeader } from "@/components/landing-header"
 import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock, ExternalLink, ArrowDownRight } from "lucide-react"
 import { BRAND } from "@/lib/brand"
 import { cn } from "@/lib/utils"
@@ -12,70 +13,39 @@ export default function LandingPage() {
       <VantaBackground />
 
       <div className="relative min-h-screen">
-        <header>
-          <nav
-            aria-label="Primary"
-            className="fixed top-0 left-0 right-0 z-50 border-b border-border/20 bg-background/75 backdrop-blur-xl"
-          >
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <div className="flex h-16 items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" aria-hidden />
-                  <span className="text-lg font-semibold tracking-tight">{BRAND.name}</span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="sm"
-                    className="text-sm font-medium text-foreground/80 underline-offset-4 hover:text-foreground focus-visible:ring-offset-2"
-                  >
-                    <Link href="/sign-in" aria-label={`Sign in to your ${BRAND.name} account`}>
-                      Sign In
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    size="sm"
-                    className="rounded-full text-sm font-semibold focus-visible:ring-offset-2"
-                  >
-                    <Link href="/sign-up" aria-label={`Create your ${BRAND.name} account`}>
-                      Get Started
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </nav>
-        </header>
+        <LandingHeader />
 
         <main id="main-content">
-          <section className="relative px-6 pt-40 pb-32 lg:px-8 lg:pt-48">
+          <section className="relative px-6 pt-32 pb-24 lg:px-8 lg:pt-40">
             <div
-              className="absolute inset-0 -z-10 block bg-gradient-to-b from-background/85 via-background/75 to-background/90 sm:hidden"
+              className="absolute inset-0 -z-10 block bg-gradient-to-b from-background/90 via-background/80 to-background/95 sm:hidden"
               aria-hidden="true"
             />
             <div className="mx-auto max-w-5xl">
               <div className="text-center">
-                <h1 className="mb-7 text-foreground text-[clamp(2.75rem,6vw,4.75rem)] font-semibold tracking-tight leading-tight">
-                  Financial clarity for every
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                  <span>AI-powered financial intelligence</span>
+                </div>
+                
+                <h1 className="mb-6 text-foreground text-[clamp(2.5rem,5.5vw,4.5rem)] font-bold tracking-tight leading-[1.1]">
+                  Financial clarity for
                   <br />
-                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    decision you make
+                  <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+                    every decision
                   </span>
                 </h1>
 
-                <p className="mx-auto mb-12 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:text-xl">
+                <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                   Orchestrate portfolios, cash flow, and planning in one secure platform built to surface actionable insights
                   the moment your finance team needs them.
                 </p>
 
-                <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Button
                     asChild
                     size="lg"
-                    className="h-12 rounded-full px-8 text-base font-medium shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-offset-2"
+                    className="h-11 rounded-full px-8 text-base font-medium bg-gradient-to-r from-primary to-primary/90 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
                   >
                     <Link href="/sign-up" aria-label={`Launch your ${BRAND.name} workspace by creating an account`}>
                       Launch Your Workspace
@@ -84,20 +54,20 @@ export default function LandingPage() {
                   <Button
                     asChild
                     size="lg"
-                    variant="ghost"
-                    className="h-12 rounded-full px-8 text-base font-medium text-foreground hover:bg-foreground/5 focus-visible:ring-offset-2"
+                    variant="outline"
+                    className="h-11 rounded-full px-8 text-base font-medium border-border/50 hover:border-border hover:bg-accent/5"
                   >
                     <Link href="/demo" aria-label={`Watch a guided tour of the ${BRAND.name} financial platform`}>
                       Watch Platform Tour
                     </Link>
                   </Button>
                 </div>
-                <div className="mt-12 flex flex-col items-center justify-center gap-6 text-sm text-muted-foreground sm:flex-row">
-                  <div className="flex flex-wrap items-center justify-center gap-3 rounded-full border border-border/40 bg-card/80 px-5 py-2.5 shadow-sm">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Trusted by finance teams at</span>
-                    <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Fortress Bank</span>
-                    <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Radial Ventures</span>
-                    <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Northern Equity</span>
+                <div className="mt-10 flex flex-col items-center justify-center gap-6 text-sm text-muted-foreground sm:flex-row">
+                  <div className="flex flex-wrap items-center justify-center gap-3 rounded-full border border-border/30 bg-muted/30 px-5 py-2 backdrop-blur-sm">
+                    <span className="text-xs font-medium text-muted-foreground">Trusted by</span>
+                    <span className="text-xs font-semibold text-foreground">Fortress Bank</span>
+                    <span className="text-xs font-semibold text-foreground">Radial Ventures</span>
+                    <span className="text-xs font-semibold text-foreground">Northern Equity</span>
                   </div>
                   <div className="max-w-xs text-center text-xs italic text-muted-foreground">
                     {`“Our auditors praised the visibility ${BRAND.name} provides across every quarterly review.”`}
