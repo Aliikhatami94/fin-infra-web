@@ -452,7 +452,7 @@ export default function SettingsPage() {
 
   return (
     <div className="">
-      <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md border-b">
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
         <div className="mx-auto p-4 flex justify-between items-center max-w-[1200px] px-4 sm:px-6 lg:px-10 z-[99]">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Settings</h1>

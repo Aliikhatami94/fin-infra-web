@@ -16,6 +16,7 @@ import { getGoals } from "@/lib/services/goals"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
 import { Card, CardContent } from "@/components/ui/card"
+import { motion } from "framer-motion"
 
 export default function GoalsPage() {
   const [showAddGoal, setShowAddGoal] = useState(false)
@@ -40,8 +41,8 @@ export default function GoalsPage() {
   return (
     <>
       {/* Header */}
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto p-4 max-w-[1200px] px-4 sm:px-6 lg:px-10">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-foreground">Financial Goals</h1>
             <Button onClick={() => setShowAddGoal(true)} className="hidden md:flex">
@@ -53,7 +54,12 @@ export default function GoalsPage() {
       </div>
 
       {/* Body */}
-  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <GoalsSummaryKPIs />
 
         <Card className="card-standard">
@@ -147,14 +153,15 @@ export default function GoalsPage() {
                 <Button className="flex-1" onClick={() => setShowAddGoal(false)}>
                   Create Goal
                 </Button>
-                <Button variant="outline" onClick={() => setShowAddGoal(false)}>
+                <Button variant="outline" className="bg-transparent" onClick={() => setShowAddGoal(false)}>
                   Cancel
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
-  </div>
+        </div>
+      </motion.div>
 
       <Button
         size="lg"
