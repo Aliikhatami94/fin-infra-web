@@ -63,53 +63,67 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6 page-fade-in">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-4">
-          <div>
-            <h1 className="text-display font-semibold text-foreground">Accounts</h1>
-            <p className="text-body text-muted-foreground mt-1">Manage your linked bank accounts and credit cards</p>
-          </div>
-          {isLinking && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              <span>
-                Linking {linkingInstitution ? `${linkingInstitution}` : "account"}
-                &hellip;
-              </span>
+    <>
+      {/* Header */}
+      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 py-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-4">
+              <div>
+                <h1 className="text-2xl font-semibold text-foreground">Accounts</h1>
+                <p className="text-body text-muted-foreground mt-1">Manage your linked bank accounts and credit cards</p>
+              </div>
+              {isLinking && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  <span>
+                    Linking {linkingInstitution ? `${linkingInstitution}` : "account"}
+                    &hellip;
+                  </span>
+                </div>
+              )}
             </div>
-          )}
+            <Button
+              variant="cta"
+              size="lg"
+              className="w-full sm:w-auto"
+              onClick={handleRequestLink}
+              disabled={isLinking}
+            >
+              {isLinking ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+                  Linking…
+                </>
+              ) : (
+                <>
+                  <Plus className="h-5 w-5" aria-hidden="true" />
+                  Link accounts
+                </>
+              )}
+            </Button>
+          </div>
         </div>
-        <Button variant="cta" size="lg" className="w-full sm:w-auto" onClick={handleRequestLink} disabled={isLinking}>
-          {isLinking ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-              Linking…
-            </>
-          ) : (
-            <>
-              <Plus className="h-5 w-5" aria-hidden="true" />
-              Link accounts
-            </>
-          )}
-        </Button>
       </div>
 
-      <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
+      {/* Body */}
+      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10 space-y-6 page-fade-in">
+        <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
 
-      <AccountsCallouts />
+        <AccountsCallouts />
 
-      <AIInsightsBanner />
+        <AIInsightsBanner />
 
-      <AccountsTable onRequestLink={handleRequestLink} isLinking={isLinking} linkingInstitution={linkingInstitution} />
+        <AccountsTable onRequestLink={handleRequestLink} isLinking={isLinking} linkingInstitution={linkingInstitution} />
 
-      <PlaidLinkDialog
-        open={isPlaidOpen}
-        onOpenChange={handlePlaidOpenChange}
-        onLinkStart={handleLinkStart}
-        onLinkSuccess={handleLinkSuccess}
-      />
-    </div>
+        <PlaidLinkDialog
+          open={isPlaidOpen}
+          onOpenChange={handlePlaidOpenChange}
+          onLinkStart={handleLinkStart}
+          onLinkSuccess={handleLinkSuccess}
+        />
+      </div>
+    </>
   )
 }
 

@@ -231,9 +231,7 @@ export default function DocumentsPage() {
   return (
     <>
       <div
-        className={`sticky top-16 z-20 bg-card/90 backdrop-blur-md border-b border-border/20 transition-shadow duration-300 ${
-          scrolled ? "shadow-lg" : "shadow-sm"
-        }`}
+        className="bg-card/90 backdrop-blur-md border-b"
       >
         <div className="mx-auto max-w-[1600px] px-4 md:px-8 py-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

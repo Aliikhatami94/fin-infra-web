@@ -450,9 +450,9 @@ export default function SettingsPage() {
         : "outline"
 
   return (
-    <div className="p-6">
-      <div className="sticky top-16 z-20 bg-card/90 backdrop-blur-md border-b border-border/20 -mx-6 px-6 py-4 mb-8">
-        <div className="mx-auto max-w-3xl flex justify-between items-center">
+    <div className="">
+      <div className="bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto p-4 flex justify-between items-center max-w-[1600px] px-4 sm:px-6 lg:px-10 z-[99]">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Manage your account preferences</p>
@@ -467,24 +467,261 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="mx-auto max-w-3xl space-y-8 pb-24"
       >
-        <SettingsGroup
-          title="Notifications"
-          description="Configure how you receive updates"
-          icon={<Bell className="h-5 w-5" />}
-        >
-          <p id={notificationHelperId} className="text-xs text-muted-foreground">
-            Choose how TradeHub keeps you in the loop. Each option announces its state to screen readers.
-          </p>
-          <fieldset className="mt-4 space-y-4" aria-describedby={notificationHelperId}>
-            {notificationPreferences.map((preference) => {
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 py-6 space-y-6" >
+          <SettingsGroup
+            title="Notifications"
+            description="Configure how you receive updates"
+            icon={<Bell className="h-5 w-5" />}
+          >
+            <p id={notificationHelperId} className="text-xs text-muted-foreground">
+              Choose how TradeHub keeps you in the loop. Each option announces its state to screen readers.
+            </p>
+            <fieldset className="mt-4 space-y-4" aria-describedby={notificationHelperId}>
+              {notificationPreferences.map((preference) => {
+                const labelId = `${preference.id}-label`
+                const descriptionId = `${preference.id}-description`
+                return (
+                  <div key={preference.id} className="flex items-start justify-between gap-6 rounded-xl border border-border/30 bg-muted/5 px-4 py-4">
+                    <div className="space-y-1">
+                      <Label id={labelId} htmlFor={preference.id} className="font-medium">
+                        {preference.label}
+                      </Label>
+                      <p id={descriptionId} className="text-xs text-muted-foreground max-w-sm">
+                        {preference.description}
+                      </p>
+                    </div>
+                    <AnimatedSwitch
+                      id={preference.id}
+                      aria-labelledby={labelId}
+                      aria-describedby={descriptionId}
+                      checked={preference.value}
+                      onCheckedChange={handleToggleChange(
+                        preference.id,
+                        preference.label,
+                        "notifications",
+                        preference.setter,
+                        preference.snapshotKey,
+                      )}
+                    />
+                  </div>
+                )
+              })}
+            </fieldset>
+          </SettingsGroup>
+
+          <SettingsGroup
+            title="Appearance"
+            description="Customize the look and feel of your dashboard"
+            icon={<Palette className="h-5 w-5" />}
+          >
+            <div className="space-y-6 py-4">
+              <div className="space-y-2">
+                <Label className="font-medium">Theme</Label>
+                <ThemeSelector />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-medium flex items-center gap-2">
+                  Font scale
+                  <Badge variant="outline" className="text-[0.65rem]">
+                    Applies instantly
+                  </Badge>
+                </Label>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {fontScaleOptions.map((option) => (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant={fontScale === option.value ? "default" : "outline"}
+                      className="h-full justify-between gap-1 rounded-xl border border-border/40 bg-card/90 px-4 py-3 text-left"
+                      onClick={() => {
+                        setFontScale(option.value)
+                        trackPreferenceToggle({
+                          preferenceId: `font-scale-${option.value}`,
+                          label: `Font scale ${option.label}`,
+                          section: "appearance",
+                          value: option.value !== appearanceDefaults.fontScale,
+                        })
+                      }}
+                      aria-pressed={fontScale === option.value}
+                    >
+                      <span className="text-sm font-semibold">{option.label}</span>
+                      <span className="text-[0.7rem] text-muted-foreground">{option.helper}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex h-full flex-col justify-between gap-6 rounded-xl border border-border/40 bg-muted/10 px-4 py-4">
+                  <div className="space-y-1">
+                    <Label
+                      id="dyslexia-mode-label"
+                      htmlFor="dyslexia-mode"
+                      className="flex items-center gap-2 font-medium"
+                    >
+                      Dyslexia-friendly mode <Type className="h-3.5 w-3.5" />
+                    </Label>
+                    <p id="dyslexia-mode-description" className="text-xs text-muted-foreground max-w-sm">
+                      Switches to Atkinson Hyperlegible and slightly increases letter spacing for easier scanning.
+                    </p>
+                  </div>
+                  <AnimatedSwitch
+                    id="dyslexia-mode"
+                    aria-labelledby="dyslexia-mode-label"
+                    aria-describedby="dyslexia-mode-description"
+                    checked={dyslexiaMode}
+                    onCheckedChange={(value) => {
+                      setDyslexiaMode(value)
+                      trackPreferenceToggle({
+                        preferenceId: "dyslexia-mode",
+                        label: "Dyslexia-friendly mode",
+                        section: "appearance",
+                        value,
+                      })
+                      const nextSnapshot = computeSnapshot({ dyslexiaMode: value })
+                      handlePreferenceAutosave("dyslexia-mode", "Dyslexia-friendly mode", nextSnapshot)
+                    }}
+                  />
+                </div>
+                <div className="flex h-full flex-col justify-between gap-6 rounded-xl border border-border/40 bg-muted/10 px-4 py-4">
+                  <div className="space-y-1">
+                    <Label id="high-contrast-mode-label" htmlFor="high-contrast-mode" className="font-medium">
+                      High contrast preview
+                    </Label>
+                    <p id="high-contrast-mode-description" className="text-xs text-muted-foreground max-w-sm">
+                      Adds stronger borders and color separation for low-vision scenarios.
+                    </p>
+                  </div>
+                  <AnimatedSwitch
+                    id="high-contrast-mode"
+                    aria-labelledby="high-contrast-mode-label"
+                    aria-describedby="high-contrast-mode-description"
+                    checked={highContrastMode}
+                    onCheckedChange={(value) => {
+                      setHighContrastMode(value)
+                      trackPreferenceToggle({
+                        preferenceId: "high-contrast-mode",
+                        label: "High contrast preview",
+                        section: "appearance",
+                        value,
+                      })
+                      const nextSnapshot = computeSnapshot({ highContrastMode: value })
+                      handlePreferenceAutosave("high-contrast-mode", "High contrast preview", nextSnapshot)
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div
+                aria-live="polite"
+                className={`rounded-xl border border-dashed border-border/50 bg-card/70 p-4 transition-colors ${highContrastMode ? "ring-2 ring-primary/40" : ""}`}
+              >
+                <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{previewCopy.heading}</p>
+                <p className={`mt-2 font-medium leading-relaxed ${previewTypography}`}>{previewCopy.body}</p>
+              </div>
+            </div>
+          </SettingsGroup>
+
+          <SettingsGroup title="Security" description="Manage your security settings" icon={<Lock className="h-5 w-5" />}> 
+            <div className="flex items-center justify-between py-4">
+              <div className="space-y-0.5">
+                <Label id="two-factor-label" htmlFor="two-factor" className="font-medium">
+                  Two-Factor Authentication
+                </Label>
+                <p id="two-factor-description" className="text-sm text-muted-foreground">
+                  Add an extra layer of security before approving logins.
+                </p>
+              </div>
+              <AnimatedSwitch
+                id="two-factor"
+                aria-labelledby="two-factor-label"
+                aria-describedby="two-factor-description"
+                checked={twoFactor}
+                onCheckedChange={handleToggleChange(
+                  "two-factor",
+                  "Two-Factor Authentication",
+                  "security",
+                  setTwoFactor,
+                  "twoFactor",
+                )}
+              />
+            </div>
+
+            <div className="space-y-3 py-4">
+              <Button asChild variant="outline" className="w-full justify-start gap-2 bg-transparent">
+                <Link href="/settings/security" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Visit Security Center
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+                <Smartphone className="h-4 w-4" />
+                Manage Devices
+              </Button>
+              <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+                <Lock className="h-4 w-4" />
+                Change Password
+              </Button>
+            </div>
+          </SettingsGroup>
+
+          <SettingsGroup
+            title="Regional Settings"
+            description="Set your language and timezone preferences"
+            icon={<Globe className="h-5 w-5" />}
+          >
+            <div className="space-y-6 py-4">
+              <div className="space-y-3">
+                <Label htmlFor="language" className="font-medium">
+                  Language
+                </Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger id="language">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Spanish</SelectItem>
+                    <SelectItem value="fr">French</SelectItem>
+                    <SelectItem value="de">German</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="timezone" className="font-medium">
+                  Timezone
+                </Label>
+                <Select value={timezone} onValueChange={setTimezone}>
+                  <SelectTrigger id="timezone">
+                    <SelectValue placeholder="Select timezone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="est">Eastern Time (ET)</SelectItem>
+                    <SelectItem value="cst">Central Time (CT)</SelectItem>
+                    <SelectItem value="mst">Mountain Time (MT)</SelectItem>
+                    <SelectItem value="pst">Pacific Time (PT)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </SettingsGroup>
+
+          {/* Accessibility & Privacy section */}
+          <SettingsGroup
+            title="Accessibility & Privacy"
+            description="Manage your data sharing preferences and privacy settings"
+            icon={<Eye className="h-5 w-5" />}
+          >
+            {privacyPreferences.map((preference) => {
               const labelId = `${preference.id}-label`
               const descriptionId = `${preference.id}-description`
               return (
                 <div key={preference.id} className="flex items-start justify-between gap-6 rounded-xl border border-border/30 bg-muted/5 px-4 py-4">
                   <div className="space-y-1">
-                    <Label id={labelId} htmlFor={preference.id} className="font-medium">
+                    <Label id={labelId} htmlFor={preference.id} className="font-medium capitalize">
                       {preference.label}
                     </Label>
                     <p id={descriptionId} className="text-xs text-muted-foreground max-w-sm">
@@ -499,7 +736,7 @@ export default function SettingsPage() {
                     onCheckedChange={handleToggleChange(
                       preference.id,
                       preference.label,
-                      "notifications",
+                      "privacy",
                       preference.setter,
                       preference.snapshotKey,
                     )}
@@ -507,309 +744,71 @@ export default function SettingsPage() {
                 </div>
               )
             })}
-          </fieldset>
-        </SettingsGroup>
 
-        <SettingsGroup
-          title="Appearance"
-          description="Customize the look and feel of your dashboard"
-          icon={<Palette className="h-5 w-5" />}
-        >
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label className="font-medium">Theme</Label>
-              <ThemeSelector />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="font-medium flex items-center gap-2">
-                Font scale
-                <Badge variant="outline" className="text-[0.65rem]">
-                  Applies instantly
-                </Badge>
-              </Label>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {fontScaleOptions.map((option) => (
-                  <Button
-                    key={option.value}
-                    type="button"
-                    variant={fontScale === option.value ? "default" : "outline"}
-                    className="h-full justify-between gap-1 rounded-xl border border-border/40 bg-card/90 px-4 py-3 text-left"
-                    onClick={() => {
-                      setFontScale(option.value)
-                      trackPreferenceToggle({
-                        preferenceId: `font-scale-${option.value}`,
-                        label: `Font scale ${option.label}`,
-                        section: "appearance",
-                        value: option.value !== appearanceDefaults.fontScale,
-                      })
-                    }}
-                    aria-pressed={fontScale === option.value}
-                  >
-                    <span className="text-sm font-semibold">{option.label}</span>
-                    <span className="text-[0.7rem] text-muted-foreground">{option.helper}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex h-full flex-col justify-between gap-6 rounded-xl border border-border/40 bg-muted/10 px-4 py-4">
-                <div className="space-y-1">
-                  <Label
-                    id="dyslexia-mode-label"
-                    htmlFor="dyslexia-mode"
-                    className="flex items-center gap-2 font-medium"
-                  >
-                    Dyslexia-friendly mode <Type className="h-3.5 w-3.5" />
-                  </Label>
-                  <p id="dyslexia-mode-description" className="text-xs text-muted-foreground max-w-sm">
-                    Switches to Atkinson Hyperlegible and slightly increases letter spacing for easier scanning.
-                  </p>
-                </div>
-                <AnimatedSwitch
-                  id="dyslexia-mode"
-                  aria-labelledby="dyslexia-mode-label"
-                  aria-describedby="dyslexia-mode-description"
-                  checked={dyslexiaMode}
-                  onCheckedChange={(value) => {
-                    setDyslexiaMode(value)
-                    trackPreferenceToggle({
-                      preferenceId: "dyslexia-mode",
-                      label: "Dyslexia-friendly mode",
-                      section: "appearance",
-                      value,
-                    })
-                    const nextSnapshot = computeSnapshot({ dyslexiaMode: value })
-                    handlePreferenceAutosave("dyslexia-mode", "Dyslexia-friendly mode", nextSnapshot)
-                  }}
-                />
-              </div>
-              <div className="flex h-full flex-col justify-between gap-6 rounded-xl border border-border/40 bg-muted/10 px-4 py-4">
-                <div className="space-y-1">
-                  <Label id="high-contrast-mode-label" htmlFor="high-contrast-mode" className="font-medium">
-                    High contrast preview
-                  </Label>
-                  <p id="high-contrast-mode-description" className="text-xs text-muted-foreground max-w-sm">
-                    Adds stronger borders and color separation for low-vision scenarios.
-                  </p>
-                </div>
-                <AnimatedSwitch
-                  id="high-contrast-mode"
-                  aria-labelledby="high-contrast-mode-label"
-                  aria-describedby="high-contrast-mode-description"
-                  checked={highContrastMode}
-                  onCheckedChange={(value) => {
-                    setHighContrastMode(value)
-                    trackPreferenceToggle({
-                      preferenceId: "high-contrast-mode",
-                      label: "High contrast preview",
-                      section: "appearance",
-                      value,
-                    })
-                    const nextSnapshot = computeSnapshot({ highContrastMode: value })
-                    handlePreferenceAutosave("high-contrast-mode", "High contrast preview", nextSnapshot)
-                  }}
-                />
-              </div>
-            </div>
-
-            <div
-              aria-live="polite"
-              className={`rounded-xl border border-dashed border-border/50 bg-card/70 p-4 transition-colors ${highContrastMode ? "ring-2 ring-primary/40" : ""}`}
-            >
-              <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{previewCopy.heading}</p>
-              <p className={`mt-2 font-medium leading-relaxed ${previewTypography}`}>{previewCopy.body}</p>
-            </div>
-          </div>
-        </SettingsGroup>
-
-        <SettingsGroup title="Security" description="Manage your security settings" icon={<Lock className="h-5 w-5" />}> 
-          <div className="flex items-center justify-between py-4">
-            <div className="space-y-0.5">
-              <Label id="two-factor-label" htmlFor="two-factor" className="font-medium">
-                Two-Factor Authentication
-              </Label>
-              <p id="two-factor-description" className="text-sm text-muted-foreground">
-                Add an extra layer of security before approving logins.
-              </p>
-            </div>
-            <AnimatedSwitch
-              id="two-factor"
-              aria-labelledby="two-factor-label"
-              aria-describedby="two-factor-description"
-              checked={twoFactor}
-              onCheckedChange={handleToggleChange(
-                "two-factor",
-                "Two-Factor Authentication",
-                "security",
-                setTwoFactor,
-                "twoFactor",
-              )}
-            />
-          </div>
-
-          <div className="space-y-3 py-4">
-            <Button asChild variant="outline" className="w-full justify-start gap-2 bg-transparent">
-              <Link href="/settings/security" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Visit Security Center
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
-              <Smartphone className="h-4 w-4" />
-              Manage Devices
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
-              <Lock className="h-4 w-4" />
-              Change Password
-            </Button>
-          </div>
-        </SettingsGroup>
-
-        <SettingsGroup
-          title="Regional Settings"
-          description="Set your language and timezone preferences"
-          icon={<Globe className="h-5 w-5" />}
-        >
-          <div className="space-y-6 py-4">
-            <div className="space-y-3">
-              <Label htmlFor="language" className="font-medium">
-                Language
-              </Label>
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger id="language">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="es">Spanish</SelectItem>
-                  <SelectItem value="fr">French</SelectItem>
-                  <SelectItem value="de">German</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="timezone" className="font-medium">
-                Timezone
-              </Label>
-              <Select value={timezone} onValueChange={setTimezone}>
-                <SelectTrigger id="timezone">
-                  <SelectValue placeholder="Select timezone" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="est">Eastern Time (ET)</SelectItem>
-                  <SelectItem value="cst">Central Time (CT)</SelectItem>
-                  <SelectItem value="mst">Mountain Time (MT)</SelectItem>
-                  <SelectItem value="pst">Pacific Time (PT)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </SettingsGroup>
-
-        {/* Accessibility & Privacy section */}
-        <SettingsGroup
-          title="Accessibility & Privacy"
-          description="Manage your data sharing preferences and privacy settings"
-          icon={<Eye className="h-5 w-5" />}
-        >
-          {privacyPreferences.map((preference) => {
-            const labelId = `${preference.id}-label`
-            const descriptionId = `${preference.id}-description`
-            return (
-              <div key={preference.id} className="flex items-start justify-between gap-6 rounded-xl border border-border/30 bg-muted/5 px-4 py-4">
-                <div className="space-y-1">
-                  <Label id={labelId} htmlFor={preference.id} className="font-medium capitalize">
-                    {preference.label}
-                  </Label>
-                  <p id={descriptionId} className="text-xs text-muted-foreground max-w-sm">
-                    {preference.description}
-                  </p>
-                </div>
-                <AnimatedSwitch
-                  id={preference.id}
-                  aria-labelledby={labelId}
-                  aria-describedby={descriptionId}
-                  checked={preference.value}
-                  onCheckedChange={handleToggleChange(
-                    preference.id,
-                    preference.label,
-                    "privacy",
-                    preference.setter,
-                    preference.snapshotKey,
-                  )}
-                />
-              </div>
-            )
-          })}
-
-          <div className="space-y-3 py-4">
-            <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
-              <Database className="h-4 w-4" />
-              Download My Data
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-2 bg-transparent text-red-600 hover:text-red-700"
-            >
-              <UserX className="h-4 w-4" />
-              Delete My Account
-            </Button>
-          </div>
-        </SettingsGroup>
-
-        <SettingsGroup
-          title="Connected Accounts"
-          description="Manage your linked brokers and financial institutions"
-          icon={<Link2 className="h-5 w-5" />}
-        >
-          <div className="space-y-4 py-4">
-            {connectedAccounts.map((account) => (
-              <div
-                key={account.name}
-                className="flex items-center justify-between p-4 rounded-lg border border-border/30 bg-muted/20"
+            <div className="space-y-3 py-4">
+              <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+                <Database className="h-4 w-4" />
+                Download My Data
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 bg-transparent text-red-600 hover:text-red-700"
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`h-2 w-2 rounded-full ${account.status === "connected" ? "bg-emerald-500" : "bg-red-500"}`}
-                  />
-                  <div>
-                    <p className="font-medium text-sm">{account.name}</p>
-                    <p className="text-xs text-muted-foreground">Last synced: {account.lastSync}</p>
+                <UserX className="h-4 w-4" />
+                Delete My Account
+              </Button>
+            </div>
+          </SettingsGroup>
+
+          <SettingsGroup
+            title="Connected Accounts"
+            description="Manage your linked brokers and financial institutions"
+            icon={<Link2 className="h-5 w-5" />}
+          >
+            <div className="space-y-4 py-4">
+              {connectedAccounts.map((account) => (
+                <div
+                  key={account.name}
+                  className="flex items-center justify-between p-4 rounded-lg border border-border/30 bg-muted/20"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`h-2 w-2 rounded-full ${account.status === "connected" ? "bg-emerald-500" : "bg-red-500"}`}
+                    />
+                    <div>
+                      <p className="font-medium text-sm">{account.name}</p>
+                      <p className="text-xs text-muted-foreground">Last synced: {account.lastSync}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {account.status === "connected" ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                      <RefreshCw className="h-3 w-3" />
+                      Refresh
+                    </Button>
+                    {/* Disconnect button */}
+                    <Button variant="ghost" size="sm" className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+                      <Trash2 className="h-3 w-3" />
+                      Disconnect
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {account.status === "connected" ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-red-500" />
-                  )}
-                  <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                    <RefreshCw className="h-3 w-3" />
-                    Refresh
-                  </Button>
-                  {/* Disconnect button */}
-                  <Button variant="ghost" size="sm" className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
-                    <Trash2 className="h-3 w-3" />
-                    Disconnect
-                  </Button>
-                </div>
-              </div>
-            ))}
-            <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
-              <Link2 className="h-4 w-4" />
-              Connect New Account
-            </Button>
-          </div>
-        </SettingsGroup>
+              ))}
+              <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+                <Link2 className="h-4 w-4" />
+                Connect New Account
+              </Button>
+            </div>
+          </SettingsGroup>
+        </div>
+      
 
-        <motion.div
-          initial={false}
-          animate={{ y: hasChanges ? 0 : 40, opacity: hasChanges ? 1 : 0.85 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between border-t border-border/20 bg-card/95 px-6 py-4 shadow-lg backdrop-blur-md lg:left-64"
+        <div
+          className="sticky bottom-0 flex items-center justify-between border-t bg-card py-4 lg:left-64 px-4 sm:px-6 lg:px-10"
         >
           <Button variant="ghost" size="lg" onClick={() => setResetDialogOpen(true)}>
             Reset to Defaults
@@ -827,7 +826,7 @@ export default function SettingsPage() {
               Save All Settings
             </Button>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
 
       <ConfirmDialog

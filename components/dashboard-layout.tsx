@@ -50,9 +50,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
               <main
                 id="main-content"
-                className="flex-1 overflow-x-hidden overflow-y-auto pb-24 pt-4 md:pb-10 md:pt-6 rounded-xl bg-card border mr-2 mb-2"
+                className="flex-1 overflow-x-hidden overflow-y-auto rounded-xl bg-card border mr-2 mb-2"
               >
-                <div className="mx-auto min-h-full w-full max-w-[1680px] px-4 sm:px-6 lg:px-10">
+                <div className="mx-auto min-h-full w-full">
                   {children}
                 </div>
               </main>
