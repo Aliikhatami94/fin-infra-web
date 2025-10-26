@@ -57,7 +57,7 @@ export function AIInsights() {
       {pinnedInsights.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground">Pinned insights</h3>
-          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 scrollbar-thin">
+          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto py-4 scrollbar-thin">
             {pinnedInsights.map((insight, index) => (
               <InsightCard
                 key={insight.id}
@@ -75,7 +75,7 @@ export function AIInsights() {
         <h3 className="text-sm font-semibold text-foreground">
           {pinnedInsights.length > 0 ? "Latest insights" : "Recommended insights"}
         </h3>
-        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 scrollbar-thin">
+        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto py-4 scrollbar-thin">
           {insightsToRender.map((insight, index) => (
             <InsightCard
               key={insight.id}
