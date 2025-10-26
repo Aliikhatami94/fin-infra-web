@@ -4,6 +4,7 @@ import type React from "react"
 
 import Script from "next/script"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTheme } from "next-themes"
 
 type VantaFogInstance = { destroy: () => void }
 
@@ -27,6 +28,7 @@ interface VantaBackgroundProps {
 
 export function VantaBackground({ children }: VantaBackgroundProps) {
   const isVantaEnabled = process.env.NEXT_PUBLIC_ENABLE_VANTA === "true"
+  const { resolvedTheme } = useTheme()
   const vantaRef = useRef<HTMLDivElement>(null)
   const vantaEffect = useRef<VantaFogInstance | null>(null)
   const [isVisible, setIsVisible] = useState(false)
@@ -76,10 +78,18 @@ export function VantaBackground({ children }: VantaBackgroundProps) {
       return
     }
 
-    if (vantaEffect.current || !window.VANTA?.FOG) {
+    if (!window.VANTA?.FOG) {
       return
     }
 
+    // Destroy existing effect if theme changed
+    if (vantaEffect.current) {
+      vantaEffect.current.destroy()
+      vantaEffect.current = null
+    }
+
+    // Theme-aware colors
+    const isDark = resolvedTheme === "dark"
     const options: VantaFogOptions = {
       el: element,
       mouseControls: true,
@@ -87,10 +97,12 @@ export function VantaBackground({ children }: VantaBackgroundProps) {
       gyroControls: false,
       minHeight: 200.0,
       minWidth: 200.0,
-      highlightColor: 0xe0e5f0,
-      midtoneColor: 0xd0d5e0,
-      lowlightColor: 0xc0c5d0,
-      baseColor: 0xf5f5f7,
+      // Dark mode: lighter purples/blues with more visibility
+      // Light mode: soft light grays
+      highlightColor: isDark ? 0x6b5b95 : 0xe0e5f0,
+      midtoneColor: isDark ? 0x4a4560 : 0xd0d5e0,
+      lowlightColor: isDark ? 0x363545 : 0xc0c5d0,
+      baseColor: isDark ? 0x2a2835 : 0xf5f5f7,
       speed: 0.5,
     }
 
@@ -100,7 +112,7 @@ export function VantaBackground({ children }: VantaBackgroundProps) {
       vantaEffect.current?.destroy()
       vantaEffect.current = null
     }
-  }, [isVantaEnabled, isVantaReady, isVisible])
+  }, [isVantaEnabled, isVantaReady, isVisible, resolvedTheme])
 
   return (
     <>
