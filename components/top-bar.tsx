@@ -17,10 +17,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Switch } from "@/components/ui/switch"
 import Link from "next/link"
 import { useTheme } from "next-themes"
-import { Moon, Sun, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-react"
+import { Moon, Sun, Monitor, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-react"
 import { useMaskToggleDetails } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
@@ -52,10 +51,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
 
   return (
     <div
@@ -162,6 +157,52 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
                   <p className="text-xs text-muted-foreground">{activeMember.email}</p>
                 </div>
               </DropdownMenuLabel>
+              <div className="px-2 pb-2">
+                <div className="inline-flex rounded-md bg-muted p-0.5" role="group" aria-label="Theme selection">
+                  <button
+                    type="button"
+                    onClick={() => setTheme("light")}
+                    className={cn(
+                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      mounted && theme === "light"
+                        ? "bg-background text-foreground shadow-sm scale-105"
+                        : "text-muted-foreground hover:text-foreground hover:scale-105"
+                    )}
+                    aria-pressed={mounted && theme === "light"}
+                    aria-label="Light theme"
+                  >
+                    <Sun className="h-3.5 w-3.5 transition-transform duration-200" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("dark")}
+                    className={cn(
+                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      mounted && theme === "dark"
+                        ? "bg-background text-foreground shadow-sm scale-105"
+                        : "text-muted-foreground hover:text-foreground hover:scale-105"
+                    )}
+                    aria-pressed={mounted && theme === "dark"}
+                    aria-label="Dark theme"
+                  >
+                    <Moon className="h-3.5 w-3.5 transition-transform duration-200" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("system")}
+                    className={cn(
+                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      mounted && theme === "system"
+                        ? "bg-background text-foreground shadow-sm scale-105"
+                        : "text-muted-foreground hover:text-foreground hover:scale-105"
+                    )}
+                    aria-pressed={mounted && theme === "system"}
+                    aria-label="System theme"
+                  >
+                    <Monitor className="h-3.5 w-3.5 transition-transform duration-200" />
+                  </button>
+                </div>
+              </div>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Workspace</DropdownMenuLabel>
               <DropdownMenuGroup>
@@ -195,21 +236,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
                   Billing
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <div className="flex items-center justify-between px-2 py-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Sun className="h-4 w-4" />
-                  <span>Theme</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={mounted && theme === "dark"}
-                    onCheckedChange={toggleTheme}
-                    aria-label="Toggle theme"
-                  />
-                  <Moon className="h-4 w-4" />
-                </div>
-              </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
