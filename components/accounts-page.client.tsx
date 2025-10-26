@@ -66,7 +66,7 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
     <>
       {/* Header */}
       <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 py-4">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-4">
               <div>
@@ -107,7 +107,7 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
       </div>
 
       {/* Body */}
-      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10 space-y-6 page-fade-in">
+  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-6 page-fade-in">
         <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
 
         <AccountsCallouts />

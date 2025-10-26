@@ -69,7 +69,7 @@ export default function CryptoPage() {
     <>
       {/* Header */}
       <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 py-4">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h1 className="text-2xl font-semibold text-foreground">Crypto</h1>
 
@@ -101,7 +101,7 @@ export default function CryptoPage() {
       </div>
 
       {/* Body */}
-      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <div
           className="flex flex-wrap items-center gap-2"
           role="toolbar"

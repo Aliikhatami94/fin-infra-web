@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AccountsLoading() {
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6" aria-busy>
+  <div className="mx-auto w-full max-w-[1200px] space-y-6" aria-busy>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-3">
           <div className="space-y-2">

@@ -233,7 +233,7 @@ export default function DocumentsPage() {
       <div
         className="bg-card/90 backdrop-blur-md border-b"
       >
-        <div className="mx-auto max-w-[1600px] px-4 md:px-8 py-4">
+        <div className="mx-auto max-w-[1200px] px-4 md:px-8 py-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-lg md:text-xl font-semibold text-foreground">Documents</h1>
@@ -471,7 +471,7 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1600px] p-4 md:p-8 space-y-6">
+  <div className="mx-auto max-w-[1200px] p-4 md:p-8 space-y-6">
         <AccountabilityChecklist surface="documents" />
         <DocumentUploadZone id="document-upload" onUploadComplete={handleUploadComplete} />
         <ErrorBoundary feature="Document insights">

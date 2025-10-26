@@ -64,7 +64,7 @@ export default function BudgetPage() {
     <>
       {/* Header */}
       <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 py-4">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
@@ -207,7 +207,7 @@ export default function BudgetPage() {
       </div>
 
       {/* Body */}
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 py-6 space-y-6 md:space-y-8">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6 md:space-y-8">
         <BudgetSummary />
 
         <ErrorBoundary feature="Budget insights">

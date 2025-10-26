@@ -117,7 +117,7 @@ export default function TaxesPage() {
   return (
     <>
       <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 py-4">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl md:text-2xl font-semibold text-foreground">Tax Planning & Estimates</h1>
@@ -149,7 +149,7 @@ export default function TaxesPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 space-y-8">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-8">
         <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
           <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
           <AlertDescription className="space-y-4">
@@ -257,7 +257,7 @@ export default function TaxesPage() {
         <TaxDocuments />
       </div>
 
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 mt-8 flex justify-end">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 mt-8 flex justify-end">
         <Button variant="link" size="sm" className="px-0" onClick={() => setExplanationKey("liability")}>
           Why is my projected liability this high?
         </Button>

@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function InsightsLoading() {
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6" aria-busy>
+  <div className="mx-auto w-full max-w-[1200px] space-y-6" aria-busy>
       <div className="sticky top-0 -mx-4 mb-6 border-b border-border/20 bg-card/90 px-4 py-4 backdrop-blur-md sm:-mx-6 lg:-mx-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">

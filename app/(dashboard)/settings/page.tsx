@@ -452,7 +452,7 @@ export default function SettingsPage() {
   return (
     <div className="">
       <div className="bg-card/90 backdrop-blur-md border-b">
-        <div className="mx-auto p-4 flex justify-between items-center max-w-[1600px] px-4 sm:px-6 lg:px-10 z-[99]">
+  <div className="mx-auto p-4 flex justify-between items-center max-w-[1200px] px-4 sm:px-6 lg:px-10 z-[99]">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Manage your account preferences</p>
@@ -468,7 +468,7 @@ export default function SettingsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10 py-6 space-y-6" >
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6" >
           <SettingsGroup
             title="Notifications"
             description="Configure how you receive updates"
