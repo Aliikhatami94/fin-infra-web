@@ -8,15 +8,29 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Camera, Mail, Phone, MapPin, Calendar } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { motion } from "framer-motion"
 
 export default function ProfilePage() {
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-          <p className="text-muted-foreground mt-2">Manage your account information and preferences</p>
+      {/* Header: align with Settings page style */}
+      <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto p-4 flex justify-between items-center max-w-[1200px] px-4 sm:px-6 lg:px-10 z-[99]">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Profile</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Manage your account information and preferences</p>
+          </div>
+          <Badge variant="outline" className="text-xs px-3">Account</Badge>
         </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
 
         <Card className="card-standard">
           <CardHeader>
@@ -76,7 +90,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex justify-end gap-3">
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" className="bg-transparent">Cancel</Button>
               <Button>Save Changes</Button>
             </div>
           </CardContent>
@@ -111,13 +125,14 @@ export default function ProfilePage() {
                 <p className="text-sm font-medium">Account Type</p>
                 <p className="text-sm text-muted-foreground">Premium Trader</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="bg-transparent">
                 Upgrade
               </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </motion.div>
     </DashboardLayout>
   )
 }

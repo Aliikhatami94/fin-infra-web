@@ -1,15 +1,31 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CreditCard, Download, Check } from "lucide-react"
+import { motion } from "framer-motion"
 
 export default function BillingPage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
-        <p className="text-muted-foreground mt-2">Manage your subscription and billing information</p>
+    <div className="">
+      {/* Header: match Settings page style */}
+      <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto p-4 flex justify-between items-center max-w-[1200px] px-4 sm:px-6 lg:px-10 z-[99]">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Billing</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Manage your subscription and billing</p>
+          </div>
+          <Badge variant="outline" className="text-xs px-3">Subscriptions</Badge>
+        </div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
 
       <Card className="card-standard">
         <CardHeader>
@@ -28,7 +44,7 @@ export default function BillingPage() {
               </p>
               <p className="mt-2 text-sm text-muted-foreground">Next billing date: February 15, 2024</p>
             </div>
-            <Button variant="outline">Change Plan</Button>
+            <Button variant="outline" className="bg-transparent">Change Plan</Button>
           </div>
 
           <div className="mt-6 space-y-3">
@@ -68,7 +84,7 @@ export default function BillingPage() {
                 <p className="text-sm text-muted-foreground">Expires 12/2025</p>
               </div>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="bg-transparent">
               Edit
             </Button>
           </div>
@@ -107,6 +123,8 @@ export default function BillingPage() {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </motion.div>
     </div>
   )
 }

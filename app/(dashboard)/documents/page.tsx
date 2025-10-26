@@ -459,7 +459,7 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-  <div className="mx-auto max-w-[1200px] p-4 md:p-8 space-y-6">
+      <div className="mx-auto max-w-[1200px] p-4 md:p-8 space-y-6">
         <AccountabilityChecklist surface="documents" />
         <DocumentUploadZone id="document-upload" onUploadComplete={handleUploadComplete} />
         <ErrorBoundary feature="Document insights">
