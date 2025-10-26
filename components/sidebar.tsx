@@ -119,6 +119,33 @@ export function Sidebar({
                 const active = isActiveRoute(pathname, item.href, { exact: item.exact })
                 const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
                 const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
+                const linkClasses = cn(
+                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )
+
+                if (collapsed) {
+                  return (
+                    <Tooltip key={item.name}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          href={item.href}
+                          onClick={onMobileClose}
+                          onMouseEnter={() => handlePrefetch(item.href)}
+                          onFocus={() => handlePrefetch(item.href)}
+                          className={linkClasses}
+                          aria-current={active ? "page" : undefined}
+                        >
+                          <item.icon className="h-5 w-5 shrink-0" />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>{item.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                }
+
                 return (
                   <Link
                     key={item.name}
@@ -126,36 +153,29 @@ export function Sidebar({
                     onClick={onMobileClose}
                     onMouseEnter={() => handlePrefetch(item.href)}
                     onFocus={() => handlePrefetch(item.href)}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
+                    className={linkClasses}
                     aria-current={active ? "page" : undefined}
                   >
                     <item.icon className="h-5 w-5 shrink-0" />
-                    {!collapsed && (
-                      <>
-                        <span className="flex-1">{item.name}</span>
-                        {item.badge && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="destructive"
-                                className="h-5 min-w-5 px-1 text-xs"
-                                aria-label={fallbackTooltip}
-                              >
-                                {item.badge}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">
-                              <p>{fallbackTooltip}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </>
-                    )}
+                    <>
+                      <span className="flex-1">{item.name}</span>
+                      {item.badge && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="destructive"
+                              className="h-5 min-w-5 px-1 text-xs"
+                              aria-label={fallbackTooltip}
+                            >
+                              {item.badge}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{fallbackTooltip}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </>
                   </Link>
                 )
               })}

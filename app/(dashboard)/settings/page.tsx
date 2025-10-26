@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import { SettingsGroup } from "@/components/settings-group"
 import { AnimatedSwitch } from "@/components/animated-switch"
 import { ConfirmDialog } from "@/components/confirm-dialog"
@@ -451,8 +452,8 @@ export default function SettingsPage() {
 
   return (
     <div className="">
-      <div className="bg-card/90 backdrop-blur-md border-b">
-  <div className="mx-auto p-4 flex justify-between items-center max-w-[1200px] px-4 sm:px-6 lg:px-10 z-[99]">
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto p-4 flex justify-between items-center max-w-[1200px] px-4 sm:px-6 lg:px-10 z-[99]">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Manage your account preferences</p>
@@ -533,8 +534,13 @@ export default function SettingsPage() {
                     <Button
                       key={option.value}
                       type="button"
-                      variant={fontScale === option.value ? "default" : "outline"}
-                      className="h-full justify-between gap-1 rounded-xl border border-border/40 bg-card/90 px-4 py-3 text-left"
+                      variant="outline"
+                      className={cn(
+                        "h-full justify-between gap-1 rounded-xl border border-border/40 bg-card/90 px-4 py-3 text-left",
+                        fontScale === option.value &&
+                          // Keep selected (brand) styles stable on hover/focus/active
+                          "border-primary/60 bg-primary/5 text-foreground hover:border-primary/60 hover:bg-primary/5 hover:text-foreground focus-visible:ring-primary/30 active:bg-primary/5",
+                      )}
                       onClick={() => {
                         setFontScale(option.value)
                         trackPreferenceToggle({

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { TopBar } from "@/components/top-bar"
 import { OfflineBanner } from "@/components/offline-banner"
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Bot } from "lucide-react"
 import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
+import { usePathname, useRouter } from "next/navigation"
+import { useOnboardingState } from "@/hooks/use-onboarding-state"
 
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar").then((m) => m.AIChatSidebar), {
   ssr: false,
@@ -20,6 +22,49 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+  const { state, hydrated } = useOnboardingState()
+  const SIDEBAR_STORAGE_KEY = "ui::sidebar-collapsed"
+
+  // Load persisted sidebar state
+  useEffect(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem(SIDEBAR_STORAGE_KEY) : null
+      if (raw != null) {
+        const parsed = JSON.parse(raw)
+        if (typeof parsed === "boolean") {
+          setIsSidebarCollapsed(parsed)
+        }
+      }
+    } catch {
+      // ignore storage parsing errors
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Persist sidebar collapse state
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(isSidebarCollapsed))
+      }
+    } catch {
+      // ignore storage write errors
+    }
+  }, [isSidebarCollapsed])
+
+  // Route gate: if no connected institutions, send users to the welcome screen before dashboard
+  useEffect(() => {
+    if (!hydrated) return
+    const hasConnected = state.linkedInstitutions.some((i) => i.status === "connected")
+    // Allow onboarding and the welcome page itself; everything else under the dashboard is gated
+  const allowPrefixes = ["/onboarding", "/welcome", "/auth", "/demo"]
+    const allowed = allowPrefixes.some((p) => pathname?.startsWith(p))
+    if (!hasConnected && !allowed) {
+      router.replace("/welcome")
+    }
+  }, [hydrated, pathname, router, state.linkedInstitutions])
   
   return (
     <ConnectivityProvider>
@@ -50,7 +95,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
               <main
                 id="main-content"
-                className="flex-1 overflow-x-hidden overflow-y-auto rounded-xl bg-card border mr-2 mb-2"
+                className="flex-1 overflow-x-hidden overflow-y-auto lg:rounded-xl bg-card border border-border lg:mr-2 lg:mb-2"
               >
                 <div className="mx-auto min-h-full w-full">
                   {children}

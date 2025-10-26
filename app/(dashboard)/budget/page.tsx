@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { motion } from "framer-motion"
 import { BudgetSummary } from "@/components/budget-summary"
 import { BudgetTable } from "@/components/budget-table"
 import { BudgetChart } from "@/components/budget-chart"
@@ -32,10 +33,10 @@ export default function BudgetPage() {
   const [monthPickerOpen, setMonthPickerOpen] = useState(false)
   const { enabled: shareExportsEnabled } = useFeatureFlag("shareExports", { defaultEnabled: true })
 
-  const handleExport = (format: "csv" | "pdf") => {
-    trackShareExport({ surface: "budget", format, channel: "member", items: 12 })
-    toast.success(`Budget ${format.toUpperCase()} export ready`, {
-      description: "Attribution recorded so you can follow up when it\'s shared.",
+  const handleExport = (formatType: "csv" | "pdf") => {
+    trackShareExport({ surface: "budget", format: formatType, channel: "member", items: 12 })
+    toast.success(`Budget ${formatType.toUpperCase()} export ready`, {
+      description: "Attribution recorded so you can follow up when it's shared.",
     })
   }
 
@@ -62,17 +63,23 @@ export default function BudgetPage() {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
-                {format(date, "MMMM yyyy")} Budget Snapshot
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">Track and manage your monthly spending plan</p>
+              <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">Budget</h1>
+              <p className="text-xs text-muted-foreground">Budget for {formattedDate}</p>
             </div>
-            <div className="flex items-center gap-2 md:gap-3">
+          </div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6 md:space-y-8">
+          {/* Controls moved below header to reduce header height */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Select budget month">
               <Button
                 type="button"
@@ -201,26 +208,22 @@ export default function BudgetPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            </div>
+          </div>
+
+          <BudgetSummary />
+
+          <ErrorBoundary feature="Budget insights">
+            <BudgetAIInsights />
+          </ErrorBoundary>
+
+          <ScenarioPlaybook surface="budget" />
+
+          <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
+            <BudgetTable />
+            <BudgetChart />
           </div>
         </div>
-      </div>
-
-      {/* Body */}
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6 md:space-y-8">
-        <BudgetSummary />
-
-        <ErrorBoundary feature="Budget insights">
-          <BudgetAIInsights />
-        </ErrorBoundary>
-
-        <ScenarioPlaybook surface="budget" />
-
-        <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
-          <BudgetTable />
-          <BudgetChart />
-        </div>
-      </div>
+      </motion.div>
 
       <Button
         size="lg"

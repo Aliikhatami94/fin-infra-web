@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, useId, useMemo, useState } from "react"
+import { motion } from "framer-motion"
 import Link from "next/link"
 import {
   ShieldCheck,
@@ -319,7 +320,24 @@ export default function SecurityCenterPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] space-y-8 py-6">
+    <>
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl md:text-2xl font-semibold text-foreground">Security Center</h1>
+              <p className="text-sm text-muted-foreground">{heroInsight.headline}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
+        className="mx-auto w-full max-w-[1200px] space-y-8 px-4 sm:px-6 lg:px-10 py-6"
+      >
       <section
         className="relative overflow-hidden rounded-3xl text-white shadow-[var(--shadow-bold)]"
         style={{ backgroundImage: heroBackground.base }}
@@ -402,7 +420,7 @@ export default function SecurityCenterPage() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+  <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card className="border-border/40">
           <CardHeader className="border-b border-border/30">
             <CardTitle className="flex flex-wrap items-center gap-2 text-base font-semibold">
@@ -787,6 +805,7 @@ export default function SecurityCenterPage() {
           </Card>
         </div>
       </div>
-    </div>
+      </motion.div>
+    </>
   )
 }

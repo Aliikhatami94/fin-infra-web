@@ -40,6 +40,7 @@ import { SuccessCelebrationDialog } from "@/components/success-celebration-dialo
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 const resolveDocumentTypeIcon = (type: string) => {
   const normalized = type.toLowerCase()
@@ -52,7 +53,6 @@ const resolveDocumentTypeIcon = (type: string) => {
 }
 
 export default function DocumentsPage() {
-  const [scrolled, setScrolled] = useState(false)
   const [sortBy, setSortBy] = useState<"date" | "name" | "size">("date")
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([])
   const [documents, setDocuments] = useState<Document[]>([])
@@ -79,35 +79,17 @@ export default function DocumentsPage() {
     return value === "date" || value === "name" || value === "size"
   }
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const mainContent = document.getElementById("main-content")
-      if (mainContent) {
-        setScrolled(mainContent.scrollTop > 10)
-      }
-    }
-
-    const mainContent = document.getElementById("main-content")
-    mainContent?.addEventListener("scroll", handleScroll)
-    return () => mainContent?.removeEventListener("scroll", handleScroll)
-  }, [])
-
   const isLoading = status === "loading" || isUpdating
 
   const loadDocuments = useCallback(() => {
-    if (fetchTimer.current) {
-      clearTimeout(fetchTimer.current)
-    }
-
+    if (fetchTimer.current) clearTimeout(fetchTimer.current)
     setStatus("loading")
     setError(null)
-
-    fetchTimer.current = setTimeout(() => {
+    fetchTimer.current = setTimeout(async () => {
       try {
-        const payload = getDocuments()
-        setDocuments(payload)
+        const data = await getDocuments()
+        setDocuments(data)
         setStatus("success")
-        setError(null)
       } catch (err) {
         setError("Please refresh to try fetching your documents again.")
         setStatus("error")
@@ -120,9 +102,7 @@ export default function DocumentsPage() {
   useEffect(() => {
     loadDocuments()
     return () => {
-      if (fetchTimer.current) {
-        clearTimeout(fetchTimer.current)
-      }
+      if (fetchTimer.current) clearTimeout(fetchTimer.current)
     }
   }, [loadDocuments])
 
@@ -159,19 +139,14 @@ export default function DocumentsPage() {
   }, [searchQuery, selectedAccounts, selectedTypes, selectedYears])
 
   const formatFileSize = useCallback((size: number) => {
-    if (size >= 1024 * 1024) {
-      return `${(size / 1024 / 1024).toFixed(1)} MB`
-    }
-    if (size >= 1024) {
-      return `${(size / 1024).toFixed(1)} KB`
-    }
+    if (size >= 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`
+    if (size >= 1024) return `${(size / 1024).toFixed(1)} KB`
     return `${size} B`
   }, [])
 
   const handleUploadComplete = useCallback(
     (files: File[]) => {
       if (!files.length) return
-
       const now = new Date()
       const uploadedDocs = files.map((file) => {
         const extension = file.name.split(".").pop()?.toLowerCase() ?? "pdf"
@@ -183,7 +158,6 @@ export default function DocumentsPage() {
               : extension === "pdf"
                 ? "Statement"
                 : "Document"
-
         return {
           id: Number(`${Date.now()}${Math.floor(Math.random() * 1000)}`),
           name: file.name,
@@ -197,49 +171,45 @@ export default function DocumentsPage() {
           year: now.getFullYear(),
         } satisfies Document
       })
-
       setDocuments((prev) => [...uploadedDocs, ...prev])
-      setCelebration({ count: files.length, firstName: files[0]?.name ?? "document" })
+      const first = uploadedDocs[0]?.name ?? "document"
+      setCelebration({ count: uploadedDocs.length, firstName: first })
       setCelebrationOpen(true)
-      if (files.length > 1) {
-        toast.success(`${files.length} documents staged for review`, {
-          description: "New files appear at the top of your library.",
-        })
-      }
+      toast.success(
+        uploadedDocs.length === 1
+          ? `Uploaded ${first}`
+          : `Uploaded ${uploadedDocs.length} documents`,
+      )
     },
     [formatFileSize, selectedAccounts],
   )
 
   const handleUploadButtonClick = useCallback(() => {
-    const zone = document.getElementById("document-upload")
-    zone?.scrollIntoView({ behavior: "smooth", block: "start" })
-    zone?.focus?.()
+    const el = document.getElementById("document-upload")
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
-  const handleBulkDownload = () => {
-    console.log("[v0] Bulk downloading documents:", selectedDocuments)
-    // Implement bulk download logic
-    setSelectedDocuments([])
-  }
+  const handleBulkDownload = useCallback(() => {
+    if (!selectedDocuments.length) return
+    toast.info(`Preparing ${selectedDocuments.length} documents for download...`)
+  }, [selectedDocuments])
 
-  const handleBulkDelete = () => {
-    console.log("[v0] Bulk deleting documents:", selectedDocuments)
-    // Implement bulk delete logic
+  const handleBulkDelete = useCallback(() => {
+    if (!selectedDocuments.length) return
+    setDocuments((prev) => prev.filter((d) => !selectedDocuments.includes(d.id)))
     setSelectedDocuments([])
-  }
+    toast.success("Selected documents deleted")
+  }, [selectedDocuments])
 
   return (
     <>
-      <div
-        className="bg-card/90 backdrop-blur-md border-b"
-      >
-        <div className="mx-auto max-w-[1200px] px-4 md:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Sticky, compact header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <h1 className="text-lg md:text-xl font-semibold text-foreground">Documents</h1>
-              <p className="text-xs text-muted-foreground" aria-live="polite">
-                {describeActiveFilters}
-              </p>
+              <p className="text-xs text-muted-foreground" aria-live="polite">{describeActiveFilters}</p>
             </div>
             <div className="flex gap-2 items-center w-full sm:w-auto">
               {selectedDocuments.length > 0 && (
@@ -266,7 +236,7 @@ export default function DocumentsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search documents..."
-                  className="w-full sm:w-64 pl-9"
+                  className="w-full sm:w-64 pl-9 h-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -284,9 +254,7 @@ export default function DocumentsPage() {
                   <DropdownMenuRadioGroup
                     value={sortBy}
                     onValueChange={(value) => {
-                      if (isSortOption(value)) {
-                        setSortBy(value)
-                      }
+                      if (isSortOption(value)) setSortBy(value)
                     }}
                   >
                     <DropdownMenuRadioItem value="date">Date</DropdownMenuRadioItem>
@@ -301,9 +269,7 @@ export default function DocumentsPage() {
                     <Filter className="h-4 w-4" />
                     <span className="hidden sm:inline">Filter</span>
                     {selectedTypes.length > 0 && (
-                      <span className="ml-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs">
-                        {selectedTypes.length}
-                      </span>
+                      <span className="ml-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs">{selectedTypes.length}</span>
                     )}
                   </Button>
                 </DropdownMenuTrigger>
@@ -327,7 +293,13 @@ export default function DocumentsPage() {
               </Button>
             </div>
           </div>
-          <div className="flex flex-col gap-3 mt-3">
+        </div>
+      </div>
+
+      {/* Body with filters moved out of header for a shorter header */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+          <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
               {searchQuery && (
                 <Badge variant="secondary" className="gap-1">
@@ -399,13 +371,7 @@ export default function DocumentsPage() {
                       )}
                       onClick={() => toggleType(type)}
                     >
-                      <TypeIcon
-                        className={cn(
-                          "mr-2 h-3.5 w-3.5",
-                          selected ? "text-primary" : "text-muted-foreground",
-                        )}
-                        aria-hidden
-                      />
+                      <TypeIcon className={cn("mr-2 h-3.5 w-3.5", selected ? "text-primary" : "text-muted-foreground")} aria-hidden />
                       {type}
                     </Button>
                   )
@@ -468,36 +434,39 @@ export default function DocumentsPage() {
               </Button>
             </div>
           </div>
-        </div>
-      </div>
 
-  <div className="mx-auto max-w-[1200px] p-4 md:p-8 space-y-6">
-        <AccountabilityChecklist surface="documents" />
-        <DocumentUploadZone id="document-upload" onUploadComplete={handleUploadComplete} />
-        <ErrorBoundary feature="Document insights">
-          <DocumentsAIInsights />
-        </ErrorBoundary>
-        <DocumentsGrid
-          documents={documents}
-          searchQuery={searchQuery}
-          selectedTypes={selectedTypes}
-          selectedAccounts={selectedAccounts}
-          selectedYears={selectedYears}
-          sortBy={sortBy}
-          selectedDocuments={selectedDocuments}
-          onSelectionChange={setSelectedDocuments}
-          isLoading={isLoading}
-          error={error}
-          onRetry={loadDocuments}
-          onClearFilters={clearFilters}
-          onStartUpload={handleUploadButtonClick}
-        />
-      </div>
+          <AccountabilityChecklist surface="documents" />
+          <DocumentUploadZone id="document-upload" onUploadComplete={handleUploadComplete} />
+          <ErrorBoundary feature="Document insights">
+            <DocumentsAIInsights />
+          </ErrorBoundary>
+          <DocumentsGrid
+            documents={documents}
+            searchQuery={searchQuery}
+            selectedTypes={selectedTypes}
+            selectedAccounts={selectedAccounts}
+            selectedYears={selectedYears}
+            sortBy={sortBy}
+            selectedDocuments={selectedDocuments}
+            onSelectionChange={setSelectedDocuments}
+            isLoading={isLoading}
+            error={error}
+            onRetry={loadDocuments}
+            onClearFilters={clearFilters}
+            onStartUpload={handleUploadButtonClick}
+          />
+        </div>
+      </motion.div>
+
       <SuccessCelebrationDialog
         open={celebrationOpen && Boolean(celebration)}
         onOpenChange={setCelebrationOpen}
         title="Vault updated"
-        description={celebration?.count === 1 ? "Your latest document is encrypted and ready to tag." : `${celebration?.count ?? 0} new documents are secured and waiting in your vault.`}
+        description={
+          celebration?.count === 1
+            ? "Your latest document is encrypted and ready to tag."
+            : `${celebration?.count ?? 0} new documents are secured and waiting in your vault.`
+        }
         detail={celebration ? `Latest upload: ${celebration.firstName}` : undefined}
         actionLabel="Review uploads"
         onAction={handleUploadButtonClick}

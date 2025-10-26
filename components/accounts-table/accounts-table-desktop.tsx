@@ -183,7 +183,7 @@ export function AccountsTableDesktop({
           {...props}
           ref={ref}
           className={cn(
-            "sticky top-0 z-10 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80",
+            "sticky top-0 z-20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80",
             className,
           )}
         />

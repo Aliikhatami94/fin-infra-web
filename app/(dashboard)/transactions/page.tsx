@@ -1,6 +1,7 @@
 "use client"
 
 import { Suspense } from "react"
+import { motion } from "framer-motion"
 import { TransactionsInsights } from "@/components/transactions-insights"
 import { TransactionsWorkspace } from "@/components/transactions-workspace"
 
@@ -11,20 +12,22 @@ function InsightsSkeleton() {
 export default function TransactionsPage() {
   return (
     <>
-      {/* Header */}
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
-          <h1 className="text-2xl font-semibold text-foreground">Transactions</h1>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground">Transactions</h1>
         </div>
       </div>
 
       {/* Body */}
-  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-        <Suspense fallback={<InsightsSkeleton />}>
-          <TransactionsInsights />
-        </Suspense>
-        <TransactionsWorkspace />
-      </div>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+          <Suspense fallback={<InsightsSkeleton />}>
+            <TransactionsInsights />
+          </Suspense>
+          <TransactionsWorkspace />
+        </div>
+      </motion.div>
     </>
   )
 }

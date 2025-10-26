@@ -21,6 +21,7 @@ import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { CryptoChartProps } from "@/components/crypto-chart"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 const CryptoChart = dynamic<CryptoChartProps>(
   () => import("@/components/crypto-chart").then((mod) => mod.CryptoChart),
@@ -67,41 +68,40 @@ export default function CryptoPage() {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h1 className="text-2xl font-semibold text-foreground">Crypto</h1>
-
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Exchange filter chips */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Exchange:</span>
-                {(["All", "Coinbase", "Binance"] as const).map((exchange) => (
-                  <Button
-                    key={exchange}
-                    variant={selectedExchange === exchange ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedExchange(exchange)}
-                    className="h-8"
-                  >
-                    {exchange}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Network fees indicator */}
-              <Badge variant="outline" className="gap-1.5 px-3 py-1.5">
-                <Fuel className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                <span className="text-xs">Gas: 25 gwei</span>
-              </Badge>
-            </div>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-xl md:text-2xl font-semibold text-foreground">Crypto</h1>
           </div>
         </div>
       </div>
 
       {/* Body */}
-  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+          {/* Exchange filter chips and gas indicator moved below header to reduce header height */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Exchange:</span>
+              {(["All", "Coinbase", "Binance"] as const).map((exchange) => (
+                <Button
+                  key={exchange}
+                  variant={selectedExchange === exchange ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedExchange(exchange)}
+                  className="h-8"
+                >
+                  {exchange}
+                </Button>
+              ))}
+            </div>
+            <Badge variant="outline" className="gap-1.5 px-3 py-1.5">
+              <Fuel className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+              <span className="text-xs">Gas: 25 gwei</span>
+            </Badge>
+          </div>
+
         <div
           className="flex flex-wrap items-center gap-2"
           role="toolbar"
@@ -156,19 +156,20 @@ export default function CryptoPage() {
           </button>
         </div>
 
-        <CryptoKPIs />
-        <ErrorBoundary feature="Crypto insights">
-          <CryptoAIInsights />
-        </ErrorBoundary>
-        <CryptoChart showStablecoins={showStablecoins} onToggleStablecoins={setShowStablecoins} />
-        <ExchangeAnalytics selectedExchange={selectedExchange} />
-        <CryptoTable
-          selectedExchange={selectedExchange}
-          showStablecoins={showStablecoins}
-          groupBy={groupBy}
-        />
-        <CryptoRiskSection />
-      </div>
+          <CryptoKPIs />
+          <ErrorBoundary feature="Crypto insights">
+            <CryptoAIInsights />
+          </ErrorBoundary>
+          <CryptoChart showStablecoins={showStablecoins} onToggleStablecoins={setShowStablecoins} />
+          <ExchangeAnalytics selectedExchange={selectedExchange} />
+          <CryptoTable
+            selectedExchange={selectedExchange}
+            showStablecoins={showStablecoins}
+            groupBy={groupBy}
+          />
+          <CryptoRiskSection />
+        </div>
+      </motion.div>
 
       <Button
         size="lg"

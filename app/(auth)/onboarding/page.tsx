@@ -560,7 +560,7 @@ export default function OnboardingPage() {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
-        <header className="border-b border-border/60 bg-background/95 backdrop-blur">
+        <header className="sticky top-0 z-40 border-b border-border/20 bg-card/90 backdrop-blur-md">
           <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" onClick={() => router.push("/overview")} aria-label="Exit onboarding">

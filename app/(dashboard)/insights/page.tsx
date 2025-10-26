@@ -28,8 +28,8 @@ export default function InsightsPage() {
 
   return (
     <>
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
+      <div className="sticky top-0 z-20 bg-card border-b">
+        <div className="mx-auto p-4 max-w-[1200px] px-4 sm:px-6 lg:px-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Insights</h1>
@@ -72,7 +72,12 @@ export default function InsightsPage() {
           </div>
         </div>
       </div>
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <div className="relative">
           <div
             className="flex items-center gap-2 overflow-x-auto rounded-full bg-muted/30 p-1"
@@ -132,7 +137,8 @@ export default function InsightsPage() {
             </ErrorBoundary>
           </motion.div>
         </AnimatePresence>
-      </div>
+        </div>
+      </motion.div>
     </>
   )
 }

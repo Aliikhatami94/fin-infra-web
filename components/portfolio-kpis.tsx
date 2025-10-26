@@ -129,41 +129,45 @@ export function PortfolioKPIs() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <p className="text-xs text-muted-foreground">{kpi.label}</p>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs max-w-xs">{kpi.tooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs max-w-xs">{kpi.tooltip}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <KPIIcon icon={Icon} tone="info" />
                     </div>
                     <p className="text-2xl font-bold tabular-nums text-foreground">{kpi.value}</p>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1 cursor-help">
-                          {kpi.positive ? (
-                            <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
-                          ) : (
-                            <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
-                          )}
-                          <span
-                            className={`text-xs font-medium tabular-nums ${
-                              kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
-                            }`}
-                          >
-                            {kpi.change}
-                          </span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">
-                          vs. last month: <span className="font-mono">{kpi.baselineValue}</span>
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1 cursor-help">
+                            {kpi.positive ? (
+                              <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
+                            )}
+                            <span
+                              className={`text-xs font-medium tabular-nums ${
+                                kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
+                              }`}
+                            >
+                              {kpi.change}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-xs">
+                            vs. last month: <span className="font-mono">{kpi.baselineValue}</span>
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </CardContent>
               </Card>

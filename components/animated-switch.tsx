@@ -48,7 +48,7 @@ export function AnimatedSwitch({
       }}
       onKeyDown={handleKeyDown}
       className={cn(
-        "relative inline-flex h-6 w-11 rounded-full transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "relative inline-flex h-6 w-11 shrink-0 overflow-hidden rounded-full transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         checked ? "bg-primary" : "bg-muted",
         className,
       )}

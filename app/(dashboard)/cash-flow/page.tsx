@@ -11,6 +11,7 @@ import { UpcomingCharges } from "@/components/upcoming-charges"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { CashFlowChartProps } from "@/components/cash-flow-chart"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { motion } from "framer-motion"
 
 const CashFlowChart = dynamic<CashFlowChartProps>(
   () => import("@/components/cash-flow-chart").then((mod) => mod.CashFlowChart),
@@ -26,15 +27,16 @@ export default function CashFlowPage() {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
-          <h1 className="text-2xl font-semibold text-foreground">Cash Flow</h1>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground">Cash Flow</h1>
         </div>
       </div>
 
       {/* Body */}
-  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <div className="space-y-6">
           <CashFlowKPIs />
 
@@ -53,7 +55,8 @@ export default function CashFlowPage() {
           <RecurringExpenses selectedCategory={selectedCategory} />
           <RecentTransactions selectedCategory={selectedCategory} selectedMonth={selectedMonth} />
         </div>
-      </div>
+        </div>
+      </motion.div>
     </>
   )
 }

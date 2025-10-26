@@ -83,69 +83,69 @@
 }
 
 .dark {
-  --background: oklch(0.12 0.02 250);
-  --foreground: oklch(0.93 0.02 255);
-  --card: oklch(0.16 0.03 255);
+  --background: oklch(0.14 0.01 255);
+  --foreground: oklch(0.95 0.01 255);
+  --card: oklch(0.18 0.015 255);
   --card-foreground: var(--foreground);
-  --popover: oklch(0.14 0.03 255);
+  --popover: oklch(0.16 0.015 255);
   --popover-foreground: var(--foreground);
-  --primary: oklch(0.7 0.22 275);
-  --primary-foreground: oklch(0.15 0.02 255);
-  --secondary: oklch(0.26 0.03 250);
-  --secondary-foreground: oklch(0.92 0.02 255);
-  --muted: oklch(0.24 0.02 250);
-  --muted-foreground: oklch(0.7 0.03 255);
-  --accent: oklch(0.3 0.05 150);
-  --accent-foreground: oklch(0.92 0.02 255);
-  --destructive: oklch(0.5 0.24 25);
-  --destructive-foreground: oklch(0.97 0.02 255);
-  --success: oklch(0.72 0.21 150);
-  --success-foreground: oklch(0.18 0.03 150);
-  --border: oklch(0.28 0.03 255);
-  --input: var(--border);
+  --primary: oklch(0.72 0.24 280);
+  --primary-foreground: oklch(0.98 0.005 255);
+  --secondary: oklch(0.24 0.02 255);
+  --secondary-foreground: oklch(0.94 0.01 255);
+  --muted: oklch(0.22 0.015 255);
+  --muted-foreground: oklch(0.68 0.02 255);
+  --accent: oklch(0.32 0.06 170);
+  --accent-foreground: oklch(0.96 0.01 255);
+  --destructive: oklch(0.58 0.24 25);
+  --destructive-foreground: oklch(0.98 0.005 255);
+  --success: oklch(0.7 0.2 155);
+  --success-foreground: oklch(0.98 0.005 255);
+  --border: oklch(0.26 0.02 255);
+  --input: oklch(0.28 0.02 255);
   --ring: var(--primary);
-  --chart-1: oklch(0.73 0.22 275);
-  --chart-2: oklch(0.72 0.19 150);
-  --chart-3: oklch(0.68 0.21 35);
-  --chart-4: oklch(0.58 0.08 220);
-  --chart-5: oklch(0.76 0.1 110);
-  --sidebar: oklch(0.18 0.03 255);
-  --sidebar-foreground: oklch(0.93 0.02 255);
-  --sidebar-primary: oklch(0.62 0.21 280);
-  --sidebar-primary-foreground: oklch(0.14 0.03 255);
-  --sidebar-accent: oklch(0.32 0.04 250);
-  --sidebar-accent-foreground: oklch(0.92 0.02 255);
-  --sidebar-border: oklch(0.26 0.02 255);
-  --sidebar-ring: oklch(0.52 0.12 270);
+  --chart-1: oklch(0.75 0.24 280);
+  --chart-2: oklch(0.72 0.2 160);
+  --chart-3: oklch(0.7 0.22 40);
+  --chart-4: oklch(0.65 0.15 240);
+  --chart-5: oklch(0.78 0.12 120);
+  --sidebar: oklch(0.16 0.015 255);
+  --sidebar-foreground: oklch(0.94 0.01 255);
+  --sidebar-primary: oklch(0.7 0.23 280);
+  --sidebar-primary-foreground: oklch(0.98 0.005 255);
+  --sidebar-accent: oklch(0.28 0.025 255);
+  --sidebar-accent-foreground: oklch(0.94 0.01 255);
+  --sidebar-border: oklch(0.24 0.015 255);
+  --sidebar-ring: oklch(0.68 0.22 280);
 
-  --color-positive: oklch(0.72 0.21 150);
-  --color-negative: oklch(0.55 0.25 25);
-  --color-warning: oklch(0.75 0.16 70);
-  --color-info: oklch(0.74 0.15 240);
+  --color-positive: oklch(0.7 0.2 155);
+  --color-negative: oklch(0.62 0.24 25);
+  --color-warning: oklch(0.76 0.18 75);
+  --color-info: oklch(0.72 0.18 245);
 
-  --semantic-positive-surface: color-mix(in oklab, var(--color-positive) 32%, var(--card) 68%);
-  --semantic-positive-border: color-mix(in oklab, var(--color-positive) 65%, transparent);
-  --semantic-positive-text: color-mix(in oklab, var(--color-positive) 78%, white 22%);
-  --semantic-negative-surface: color-mix(in oklab, var(--color-negative) 34%, var(--card) 66%);
-  --semantic-negative-border: color-mix(in oklab, var(--color-negative) 68%, transparent);
-  --semantic-negative-text: color-mix(in oklab, var(--color-negative) 82%, white 18%);
-  --semantic-warning-surface: color-mix(in oklab, var(--color-warning) 36%, var(--card) 64%);
-  --semantic-warning-border: color-mix(in oklab, var(--color-warning) 64%, transparent);
-  --semantic-warning-text: color-mix(in oklab, var(--color-warning) 74%, white 26%);
-  --semantic-info-surface: color-mix(in oklab, var(--color-info) 34%, var(--card) 66%);
-  --semantic-info-border: color-mix(in oklab, var(--color-info) 64%, transparent);
-  --semantic-info-text: color-mix(in oklab, var(--color-info) 78%, white 22%);
+  --semantic-positive-surface: color-mix(in oklab, var(--color-positive) 18%, var(--card) 82%);
+  --semantic-positive-border: color-mix(in oklab, var(--color-positive) 45%, transparent);
+  --semantic-positive-text: color-mix(in oklab, var(--color-positive) 85%, white 15%);
+  --semantic-negative-surface: color-mix(in oklab, var(--color-negative) 18%, var(--card) 82%);
+  --semantic-negative-border: color-mix(in oklab, var(--color-negative) 45%, transparent);
+  --semantic-negative-text: color-mix(in oklab, var(--color-negative) 85%, white 15%);
+  --semantic-warning-surface: color-mix(in oklab, var(--color-warning) 18%, var(--card) 82%);
+  --semantic-warning-border: color-mix(in oklab, var(--color-warning) 45%, transparent);
+  --semantic-warning-text: color-mix(in oklab, var(--color-warning) 80%, white 20%);
+  --semantic-info-surface: color-mix(in oklab, var(--color-info) 18%, var(--card) 82%);
+  --semantic-info-border: color-mix(in oklab, var(--color-info) 45%, transparent);
+  --semantic-info-text: color-mix(in oklab, var(--color-info) 85%, white 15%);
 
-  --surface-wealth: linear-gradient(135deg, oklch(0.36 0.08 280) 0%, oklch(0.32 0.06 300) 100%);
-  --surface-cashflow: linear-gradient(135deg, oklch(0.34 0.05 150) 0%, oklch(0.32 0.04 120) 100%);
-  --surface-security: linear-gradient(135deg, oklch(0.32 0.05 250) 0%, oklch(0.28 0.06 270) 100%);
+  --surface-wealth: linear-gradient(135deg, oklch(0.38 0.12 285) 0%, oklch(0.32 0.08 305) 100%);
+  --surface-cashflow: linear-gradient(135deg, oklch(0.36 0.08 160) 0%, oklch(0.32 0.06 140) 100%);
+  --surface-security: linear-gradient(135deg, oklch(0.34 0.08 250) 0%, oklch(0.3 0.08 270) 100%);
 
-  --shadow-soft: 0 24px 60px -32px oklch(0.22 0.05 250 / 0.65);
-  --shadow-bold: 0 36px 90px -38px oklch(0.18 0.08 260 / 0.7);
+  --shadow-soft: 0 24px 60px -32px oklch(0.08 0.02 255 / 0.75);
+  --shadow-bold: 0 36px 90px -38px oklch(0.06 0.02 260 / 0.85);
 
-  --table-surface-bg: color-mix(in oklab, var(--card) 75%, transparent);
-  --table-header-bg: color-mix(in oklab, var(--background) 55%, var(--card) 45%);
-  --table-divider: color-mix(in oklab, var(--border) 70%, transparent);
+  --table-surface-bg: color-mix(in oklab, var(--card) 85%, transparent);
+  --table-header-bg: color-mix(in oklab, var(--background) 40%, var(--card) 60%);
+  --table-divider: color-mix(in oklab, var(--border) 65%, transparent);
 }
 
 [data-font-scale="compact"] {
