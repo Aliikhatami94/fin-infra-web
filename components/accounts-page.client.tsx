@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import { Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -65,49 +66,54 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
   return (
     <>
       {/* Header */}
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-4">
-              <div>
-                <h1 className="text-2xl font-semibold text-foreground">Accounts</h1>
-                <p className="text-body text-muted-foreground mt-1">Manage your linked bank accounts and credit cards</p>
-              </div>
-              {isLinking && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  <span>
-                    Linking {linkingInstitution ? `${linkingInstitution}` : "account"}
-                    &hellip;
-                  </span>
-                </div>
-              )}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl md:text-2xl font-semibold text-foreground">Accounts</h1>
+              <p className="text-sm text-muted-foreground">Manage your linked bank accounts and credit cards</p>
             </div>
-            <Button
-              variant="cta"
-              size="lg"
-              className="w-full sm:w-auto"
-              onClick={handleRequestLink}
-              disabled={isLinking}
-            >
-              {isLinking ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-                  Linking…
-                </>
-              ) : (
-                <>
-                  <Plus className="h-5 w-5" aria-hidden="true" />
-                  Link accounts
-                </>
-              )}
-            </Button>
+            <div className="flex items-center">
+              <Button
+                variant="cta"
+                size="sm"
+                className="gap-2"
+                onClick={handleRequestLink}
+                disabled={isLinking}
+              >
+                {isLinking ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    Linking…
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    Link accounts
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Body */}
-  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-6 page-fade-in">
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
+        className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-6 py-6"
+      >
+        {isLinking && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <span>
+              Linking {linkingInstitution ? `${linkingInstitution}` : "account"}
+              &hellip;
+            </span>
+          </div>
+        )}
         <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
 
         <AccountsCallouts />
@@ -122,7 +128,7 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
           onLinkStart={handleLinkStart}
           onLinkSuccess={handleLinkSuccess}
         />
-      </div>
+      </motion.div>
     </>
   )
 }

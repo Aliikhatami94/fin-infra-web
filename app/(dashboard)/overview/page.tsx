@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 // Heavy widgets are dynamically loaded client-side with skeletons
 import { Button } from "@/components/ui/button"
@@ -122,14 +123,19 @@ export default function OverviewPage() {
   return (
     <>
       {/* Header */}
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
-          <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground">Overview</h1>
         </div>
       </div>
 
       {/* Body */}
-  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
+        className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6"
+      >
         <section>
           <KPICards />
         </section>
@@ -172,7 +178,7 @@ export default function OverviewPage() {
           <AIInsights />
         </ErrorBoundary>
       </section>
-      </div>
+      </motion.div>
     </>
   )
 }

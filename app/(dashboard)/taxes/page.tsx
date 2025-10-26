@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { motion } from "framer-motion"
 import { TaxesAIInsights } from "@/components/taxes-ai-insights"
 import { TaxSummary } from "@/components/tax-summary"
 import { CapitalGainsTable } from "@/components/capital-gains-table"
@@ -12,7 +13,7 @@ import { TaxDeadlineTimeline } from "@/components/tax-deadline-timeline"
 import { AutomationCopilotDrawer } from "@/components/automation-copilot-drawer"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TrendingDown, AlertCircle, Clock, CalendarDays } from "lucide-react"
+import { TrendingDown, AlertCircle, CalendarDays, Info } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ErrorBoundary } from "@/components/error-boundary"
 import {
@@ -113,129 +114,134 @@ export default function TaxesPage() {
   }, [filingYear, setCopilotOpen, setExplanationKey])
 
   const primaryDeadline = deadlineItems[0]
+  const subtitle = isComparisonMode
+    ? `Compare: ${filingYear} vs ${filingYear - 1}`
+    : `Tax year ${filingYear}`
 
   return (
     <>
-      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl md:text-2xl font-semibold text-foreground">Tax Planning & Estimates</h1>
-            <Select value={taxYear} onValueChange={setTaxYear}>
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Select tax year" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2025">2025 Tax Year</SelectItem>
-                <SelectItem value="2024-compare">
-                  <div className="flex items-center gap-2">
-                    <span>Compare: 2025 vs 2024</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="2024">2024 Tax Year</SelectItem>
-                <SelectItem value="2023">2023 Tax Year</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            variant="destructive"
-            className="gap-2 bg-orange-600 hover:bg-orange-700"
-            onClick={() => setCopilotOpen(true)}
-          >
-            <TrendingDown className="h-4 w-4" />
-            Plan Tax Loss Harvesting
-          </Button>
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl md:text-2xl font-semibold text-foreground">Taxes</h1>
+              <p className="text-sm text-muted-foreground">{subtitle}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Select value={taxYear} onValueChange={setTaxYear}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Select tax year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2025">2025 Tax Year</SelectItem>
+                  <SelectItem value="2024-compare">
+                    <div className="flex items-center gap-2">
+                      <span>Compare: {filingYear} vs {filingYear - 1}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="2024">2024 Tax Year</SelectItem>
+                  <SelectItem value="2023">2023 Tax Year</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="destructive"
+                className="gap-2 bg-orange-600 hover:bg-orange-700"
+                onClick={() => setCopilotOpen(true)}
+              >
+                <TrendingDown className="h-4 w-4" />
+                Plan Tax Loss Harvesting
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
+        className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-8 py-6"
+      >
+        
         <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
           <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-          <AlertDescription className="space-y-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex-1 space-y-2">
-                <p className="font-semibold text-orange-900 dark:text-orange-100">Tax planning countdown</p>
-                <p className="text-sm text-orange-800 dark:text-orange-200">
-                  Stay ahead of the year-end rush—tackle the urgent items below to keep penalties and paperwork surprises off
-                  your plate.
-                </p>
-              </div>
-              {primaryDeadline && (
-                <div className="flex items-center gap-3 rounded-lg border border-orange-200 bg-white/80 px-4 py-3 text-orange-900 shadow-sm dark:border-orange-900/60 dark:bg-orange-950/40 dark:text-orange-100">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
-                    <CalendarDays className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide">Next deadline</p>
-                    <p className="text-sm font-semibold leading-tight">{primaryDeadline.label}</p>
-                    <p className="text-xs text-orange-700 dark:text-orange-300">
-                      {primaryDeadline.daysRemaining} days left · {format(primaryDeadline.targetDate, "MMM d")}
-                    </p>
-                  </div>
-                </div>
-              )}
+          <AlertDescription className="space-y-6">
+            {/* Header Section */}
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-orange-900 dark:text-orange-100">Tax planning countdown</h2>
+              <p className="text-sm text-orange-800 dark:text-orange-200">
+                Stay ahead of the year-end rush—tackle the urgent items below to keep penalties and paperwork surprises off your plate.
+              </p>
             </div>
 
-            <div className="grid gap-3 xl:grid-cols-2">
+            {/* Next Deadline Highlight */}
+            {primaryDeadline && (
+              <div className="flex items-center gap-3 rounded-lg border border-orange-200 bg-white/80 px-4 py-3 shadow-sm dark:border-orange-900/60 dark:bg-orange-950/40">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
+                  <CalendarDays className="h-5 w-5 text-orange-600 dark:text-orange-400" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium uppercase tracking-wide text-orange-700 dark:text-orange-300">Next deadline</p>
+                  <p className="text-sm font-semibold text-orange-900 dark:text-orange-100">{primaryDeadline.label}</p>
+                  <p className="text-xs text-orange-700 dark:text-orange-300">
+                    {primaryDeadline.daysRemaining} days left · {format(primaryDeadline.targetDate, "MMM d")}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* All Deadlines Grid */}
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {deadlineItems.map((deadline) => (
                 <div
                   key={deadline.id}
-                  className="rounded-lg border border-orange-200/70 bg-white/80 p-4 text-orange-900 shadow-sm transition hover:border-orange-300 dark:border-orange-900/60 dark:bg-orange-950/40 dark:text-orange-100"
+                  className="flex flex-col rounded-lg border border-orange-200/70 bg-white/80 p-4 shadow-sm transition hover:border-orange-300 hover:shadow dark:border-orange-900/60 dark:bg-orange-950/40"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-semibold leading-snug">{deadline.label}</p>
-                      <p className="text-xs text-orange-700/90 dark:text-orange-300/90">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-semibold text-orange-900 dark:text-orange-100">{deadline.label}</h3>
+                      <p className="mt-1 text-xs text-orange-700 dark:text-orange-300">
                         {format(deadline.targetDate, "MMM d, yyyy")}
                       </p>
                     </div>
-                    <div className="text-right text-xs font-semibold text-orange-700 dark:text-orange-300">
-                      {deadline.daysRemaining} days
+                    <div className="shrink-0 rounded bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                      {deadline.daysRemaining}d
                     </div>
                   </div>
-                  <p className="mt-2 text-xs text-orange-800/90 dark:text-orange-200/90">{deadline.description}</p>
-                  <div className="mt-3">
-                    {deadline.action.type === "button" ? (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="border-orange-300 text-orange-900 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-100 dark:hover:bg-orange-900"
-                        onClick={deadline.action.onClick}
-                      >
-                        {deadline.action.label}
-                      </Button>
-                    ) : (
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="secondary"
-                        className="border-orange-300 text-orange-900 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-100 dark:hover:bg-orange-900"
-                      >
-                        <Link href={deadline.action.href}>{deadline.action.label}</Link>
-                      </Button>
-                    )}
-                  </div>
+                  <p className="mb-4 flex-1 text-xs leading-relaxed text-orange-800 dark:text-orange-200">{deadline.description}</p>
+                  {deadline.action.type === "button" ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full border-orange-300 text-orange-900 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-100 dark:hover:bg-orange-900"
+                      onClick={deadline.action.onClick}
+                    >
+                      {deadline.action.label}
+                    </Button>
+                  ) : (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="secondary"
+                      className="w-full border-orange-300 text-orange-900 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-100 dark:hover:bg-orange-900"
+                    >
+                      <Link href={deadline.action.href}>{deadline.action.label}</Link>
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-orange-800 dark:text-orange-200">
-              <div className="flex items-center gap-1 font-medium">
-                <Clock className="h-4 w-4" />
-                <span>
-                  Loss harvesting closes {primaryDeadline ? format(primaryDeadline.targetDate, "MMM d") : "soon"}
-                </span>
-              </div>
-              <Button
-                size="sm"
-                className="bg-orange-600 hover:bg-orange-700 text-white"
-                onClick={() => setCopilotOpen(true)}
+            {/* Help Link */}
+            <div className="flex items-center justify-center pt-2">
+              <Button 
+                variant="link" 
+                size="sm" 
+                className="text-orange-700 dark:text-orange-300" 
+                onClick={() => setExplanationKey("harvest")}
               >
-                Review Positions
-              </Button>
-              <Button variant="link" size="sm" className="px-0 text-orange-700" onClick={() => setExplanationKey("harvest")}>
-                Why?
+                <Info className="mr-1.5 h-3.5 w-3.5" />
+                Why are these deadlines important?
               </Button>
             </div>
           </AlertDescription>
@@ -255,13 +261,13 @@ export default function TaxesPage() {
 
         <CapitalGainsTable initialFilter={gainsFilter} />
         <TaxDocuments />
-      </div>
 
-  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 mt-8 flex justify-end">
-        <Button variant="link" size="sm" className="px-0" onClick={() => setExplanationKey("liability")}>
-          Why is my projected liability this high?
-        </Button>
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 mt-8 flex justify-end">
+          <Button variant="link" size="sm" className="px-0" onClick={() => setExplanationKey("liability")}>
+            Why is my projected liability this high?
+          </Button>
       </div>
+      </motion.div>
 
       <AutomationCopilotDrawer
         isOpen={copilotOpen}
