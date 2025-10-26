@@ -25,17 +25,17 @@ import { useMaskToggleDetails } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
 import { useDateRange } from "@/components/date-range-provider"
-import { BRAND } from "@/lib/brand"
-import { useOnboardingState } from "@/hooks/use-onboarding-state"
+// Brand title lives in the Sidebar header now; TopBar is embedded inside the content area.
 import { useWorkspace } from "@/components/workspace-provider"
 import { NotificationCenter } from "@/components/notification-center"
 
-export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
+import { cn } from "@/lib/utils"
+
+export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => void; sidebarCollapsed?: boolean }) {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
   const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
-  const { progress: onboardingProgress, state: onboardingState, hydrated } = useOnboardingState()
   const { activeWorkspace, workspaces, selectWorkspace, unreadCount, activeMember } = useWorkspace()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
@@ -58,26 +58,25 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   }
 
   return (
-    <header className="fixed top-0 z-40 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
-      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+    <div
+      className={cn(
+        // Fixed top bar that adapts to sidebar width on large screens
+        "fixed top-0 right-0 z-40 bg-background transition-[left,width] duration-300",
+        // Mobile/tablet: full width
+        "left-0 w-auto",
+        // Desktop: shift right based on sidebar state so it's visually centered with content
+        sidebarCollapsed ? "lg:left-16" : "lg:left-64",
+      )}
+    >
+      {/* Inner container: constrain width and center horizontally; match bar height */}
+      <div className="mx-auto flex h-12 w-full max-w-[1680px] items-center justify-between px-4 md:h-14 md:px-6">
         <div className="flex items-center gap-3 md:gap-6">
           <div className="lg:hidden">
             <Button variant="ghost" size="icon" onClick={onMenuClick} aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </Button>
           </div>
-
-          <h1 className="text-lg md:text-xl font-bold tracking-tight">{BRAND.name}</h1>
-          <Badge variant="outline" className="font-mono text-xs hidden sm:inline-flex">
-            Live
-          </Badge>
-          {hydrated && onboardingState.status !== "completed" ? (
-            <Badge variant="secondary" className="hidden sm:inline-flex items-center gap-1">
-              <Link href="/onboarding" className="flex items-center gap-1">
-                <span className="font-medium">Setup {onboardingProgress}%</span>
-              </Link>
-            </Badge>
-          ) : null}
+          {/* Brand title and Live badge are shown in the Sidebar header */}
         </div>
 
         <div className="flex flex-1 items-center justify-center px-2 md:px-4 lg:px-8">
@@ -222,6 +221,6 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
       </div>
       <CommandMenu />
       <NotificationCenter open={notificationsOpen} onOpenChange={setNotificationsOpen} />
-    </header>
+    </div>
   )
 }

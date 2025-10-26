@@ -204,15 +204,15 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
                   </p>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     {adjustedMonthsRounded !== null ? (
-                      <Badge variant="outline" className="bg-background">
+                      <Badge variant="outline" className="bg-card">
                         {adjustedMonthsRounded} months remaining
                       </Badge>
                     ) : null}
-                    <Badge variant="outline" className="bg-background">
+                    <Badge variant="outline" className="bg-card">
                       {formatCurrency(goal.target - goal.current)} to go
                     </Badge>
                     {baselineMonthsRounded !== null ? (
-                      <Badge variant="outline" className="bg-background">
+                      <Badge variant="outline" className="bg-card">
                         Baseline: {baselineMonthsRounded} mo
                       </Badge>
                     ) : null}

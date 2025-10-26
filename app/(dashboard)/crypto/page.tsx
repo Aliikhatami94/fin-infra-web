@@ -67,35 +67,41 @@ export default function CryptoPage() {
 
   return (
     <>
-      <div className="space-y-6 page-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-display font-semibold text-foreground">Crypto</h1>
+      {/* Header */}
+      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 className="text-2xl font-semibold text-foreground">Crypto</h1>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Exchange filter chips */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Exchange:</span>
-              {(["All", "Coinbase", "Binance"] as const).map((exchange) => (
-                <Button
-                  key={exchange}
-                  variant={selectedExchange === exchange ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedExchange(exchange)}
-                  className="h-8"
-                >
-                  {exchange}
-                </Button>
-              ))}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Exchange filter chips */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Exchange:</span>
+                {(["All", "Coinbase", "Binance"] as const).map((exchange) => (
+                  <Button
+                    key={exchange}
+                    variant={selectedExchange === exchange ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedExchange(exchange)}
+                    className="h-8"
+                  >
+                    {exchange}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Network fees indicator */}
+              <Badge variant="outline" className="gap-1.5 px-3 py-1.5">
+                <Fuel className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                <span className="text-xs">Gas: 25 gwei</span>
+              </Badge>
             </div>
-
-            {/* Network fees indicator */}
-            <Badge variant="outline" className="gap-1.5 px-3 py-1.5">
-              <Fuel className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-              <span className="text-xs">Gas: 25 gwei</span>
-            </Badge>
           </div>
         </div>
+      </div>
 
+      {/* Body */}
+  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <div
           className="flex flex-wrap items-center gap-2"
           role="toolbar"
@@ -112,9 +118,9 @@ export default function CryptoPage() {
                 className={cn(
                   "flex items-center gap-2 rounded-full border px-4 py-2 text-left shadow-xs transition",
                   "hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                  isActive
+                isActive
                     ? "border-primary/80 bg-primary/10 text-foreground"
-                    : "border-border/80 bg-background/80 text-muted-foreground",
+                    : "border-border/80 bg-card/80 text-muted-foreground",
                 )}
                 aria-pressed={isActive}
               >
@@ -139,7 +145,7 @@ export default function CryptoPage() {
               "hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               showStablecoins
                 ? "border-primary/80 bg-primary/10 text-foreground"
-                : "border-border/80 bg-background/80 text-muted-foreground",
+                : "border-border/80 bg-card/80 text-muted-foreground",
             )}
             onMouseEnter={handleStablecoinHover}
             onClick={() => setShowStablecoins((prev) => !prev)}

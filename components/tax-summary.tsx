@@ -104,21 +104,22 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
 
   return (
     <>
-      <div className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
+  {/* Responsive auto-fit grid so cards reflow instead of squishing; stretch items so heights match per row */}
+  <div className="grid items-stretch gap-6 md:gap-8 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
       <motion.div {...createStaggeredCardVariants(0, 0)}>
-        <Card className="card-standard card-lift min-h-[140px]">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
+        <Card className="card-standard card-lift h-full min-h-[260px]">
+          <CardContent className="p-6 h-full flex flex-col">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground mb-2">Estimated Tax Liability</p>
                 <LastSyncBadge timestamp="1 hour ago" source="IRS" />
                 <p className="text-3xl font-semibold tabular-nums text-foreground">$18,450</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-950">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-950">
                 <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="mt-auto space-y-2">
               <p className="text-xs text-muted-foreground">vs. $16,000 paid to date</p>
               <Badge className="text-xs bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800">
                 $2,450 shortfall
@@ -140,11 +141,11 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
       </motion.div>
 
       <motion.div {...createStaggeredCardVariants(1, 0)}>
-        <Card className="card-standard card-lift min-h-[140px]">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+        <Card className="card-standard card-lift h-full min-h-[260px]">
+          <CardContent className="p-6 h-full flex flex-col">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
                   <p className="text-sm font-medium text-muted-foreground">Capital Gains YTD</p>
                   <LastSyncBadge timestamp="10 min ago" source="Broker" />
                   <TooltipProvider>
@@ -162,11 +163,11 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
                 </div>
                 <p className="text-3xl font-semibold tabular-nums text-foreground">$12,340</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-950">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-950">
                 <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="mt-auto space-y-2">
               <div className="h-8 -mx-2 cursor-pointer">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={capitalGainsData}>
@@ -187,7 +188,7 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex gap-2 text-xs">
+              <div className="flex flex-wrap gap-2 text-xs">
                 <Badge
                   variant="secondary"
                   className="bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-900 transition-smooth"
@@ -209,22 +210,22 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
       </motion.div>
 
       <motion.div {...createStaggeredCardVariants(2, 0)}>
-        <Card className="card-standard card-lift min-h-[140px]">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+        <Card className="card-standard card-lift h-full min-h-[260px]">
+          <CardContent className="p-6 h-full flex flex-col">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
                   <p className="text-sm font-medium text-muted-foreground">Dividends YTD</p>
                   <LastSyncBadge timestamp="10 min ago" source="Broker" />
                 </div>
                 <p className="text-3xl font-semibold tabular-nums text-foreground">$2,850</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-950">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-950">
                 <PieChart className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex gap-2">
+            <div className="mt-auto space-y-2">
+              <div className="flex flex-wrap gap-2">
                 <Badge
                   variant="secondary"
                   className="text-xs bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400"
@@ -245,21 +246,21 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
       </motion.div>
 
       <motion.div {...createStaggeredCardVariants(3, 0)}>
-        <Card className="card-standard card-lift min-h-[140px]">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+        <Card className="card-standard card-lift h-full min-h-[260px]">
+          <CardContent className="p-6 h-full flex flex-col">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
                   <p className="text-sm font-medium text-muted-foreground">Potential Tax Savings</p>
                   <LastSyncBadge timestamp="10 min ago" source="Broker" />
                 </div>
                 <p className="text-3xl font-semibold tabular-nums text-green-600 dark:text-green-400">$3,200</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-950">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-100 dark:bg-green-950">
                 <TrendingDown className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="mt-auto space-y-2">
               <p className="text-xs text-muted-foreground">Available loss harvesting</p>
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="outline" className="text-xs border-green-300 text-green-700 dark:text-green-400">
@@ -274,7 +275,8 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
           </CardContent>
         </Card>
       </motion.div>
-        <motion.div {...createStaggeredCardVariants(4, 0)} className="md:col-span-2 lg:col-span-4">
+  {/* Span the readiness card across all columns regardless of count */}
+  <motion.div {...createStaggeredCardVariants(4, 0)} className="col-[1/-1]">
           <Card className="card-standard card-lift">
             <CardContent className="p-6">
               <div className="flex flex-col gap-6">

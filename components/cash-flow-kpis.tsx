@@ -256,7 +256,7 @@ export function CashFlowKPIs() {
                   "h-8 rounded-full border-border/50 px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-background/60 text-muted-foreground hover:text-foreground",
+                    : "bg-card/60 text-muted-foreground hover:text-foreground",
                 )}
                 onClick={() => setActiveTimeScale(option.id)}
               >

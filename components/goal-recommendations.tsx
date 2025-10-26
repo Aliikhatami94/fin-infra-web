@@ -78,7 +78,7 @@ export function GoalRecommendations() {
                       <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-background text-xs">
+                      <Badge variant="outline" className="bg-card text-xs">
                         <DollarSign className="h-3 w-3 mr-1" />
                         {rec.impact}
                       </Badge>

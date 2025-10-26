@@ -62,15 +62,17 @@ export default function BudgetPage() {
 
   return (
     <>
-      <div className="space-y-6 md:space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
-              {format(date, "MMMM yyyy")} Budget Snapshot
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">Track and manage your monthly spending plan</p>
-          </div>
-          <div className="flex items-center gap-2 md:gap-3">
+      {/* Header */}
+      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                {format(date, "MMMM yyyy")} Budget Snapshot
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">Track and manage your monthly spending plan</p>
+            </div>
+            <div className="flex items-center gap-2 md:gap-3">
             <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Select budget month">
               <Button
                 type="button"
@@ -199,9 +201,13 @@ export default function BudgetPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            </div>
           </div>
         </div>
+      </div>
 
+      {/* Body */}
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6 md:space-y-8">
         <BudgetSummary />
 
         <ErrorBoundary feature="Budget insights">

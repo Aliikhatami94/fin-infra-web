@@ -25,4 +25,3 @@ export function ComingSoon({ children, message = "Coming soon" }: ComingSoonProp
     </Tooltip>
   )
 }
-

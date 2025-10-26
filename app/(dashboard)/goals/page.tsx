@@ -39,15 +39,21 @@ export default function GoalsPage() {
 
   return (
     <>
-      <div className="mx-auto w-full max-w-[1600px] space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-foreground">Financial Goals</h1>
-          <Button onClick={() => setShowAddGoal(true)} className="hidden md:flex">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Goal
-          </Button>
+      {/* Header */}
+      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-semibold text-foreground">Financial Goals</h1>
+            <Button onClick={() => setShowAddGoal(true)} className="hidden md:flex">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Goal
+            </Button>
+          </div>
         </div>
+      </div>
 
+      {/* Body */}
+  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <GoalsSummaryKPIs />
 
         <Card className="card-standard">
@@ -148,7 +154,7 @@ export default function GoalsPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+  </div>
 
       <Button
         size="lg"

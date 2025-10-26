@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TransactionsLoading() {
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6" aria-busy>
+  <div className="mx-auto w-full max-w-[1200px] space-y-6" aria-busy>
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-10 w-32" rounded="full" />

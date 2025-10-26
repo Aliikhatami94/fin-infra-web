@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function GoalsLoading() {
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6" aria-busy>
+  <div className="mx-auto w-full max-w-[1200px] space-y-6" aria-busy>
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-9 w-32" rounded="full" />

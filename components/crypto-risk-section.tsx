@@ -36,7 +36,7 @@ export function CryptoRiskSection() {
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-background border rounded-lg p-3 shadow-lg">
+                      <div className="bg-card border rounded-lg p-3 shadow-lg">
                         <p className="text-sm font-semibold">{payload[0].name}</p>
                         <p className="text-lg font-bold">{payload[0].value}%</p>
                       </div>

@@ -122,7 +122,7 @@ const CustomTooltip = ({ active, payload }: PortfolioTooltipProps) => {
     const value = typeof rawValue === "number" ? rawValue : Number(rawValue ?? 0)
 
     return (
-      <div className="rounded-lg border bg-background p-2.5 shadow-md">
+      <div className="rounded-lg border bg-card p-2.5 shadow-md">
         <div className="flex flex-col gap-1">
           <p className="text-xs text-muted-foreground">{dataPoint?.fullDate}</p>
           <p className="text-base font-semibold font-mono">${value.toLocaleString()}</p>
@@ -220,7 +220,7 @@ export function PortfolioValueChart() {
                 variant={tf === activeTimeframe ? "secondary" : "ghost"}
                 size="sm"
                 className={`h-8 px-3 text-xs font-medium ${
-                  tf === activeTimeframe ? "bg-background shadow-sm" : "hover:bg-background/50"
+                  tf === activeTimeframe ? "bg-card shadow-sm" : "hover:bg-card/60"
                 }`}
                 onClick={() => setActiveTimeframe(tf)}
               >

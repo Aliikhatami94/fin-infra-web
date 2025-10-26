@@ -3,8 +3,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TaxesLoading() {
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-8" aria-busy>
-      <div className="sticky top-0 -mx-4 mb-6 border-b border-border/20 bg-background/90 px-4 py-4 backdrop-blur-sm sm:-mx-6 lg:-mx-8 sm:px-6 lg:px-8">
+  <div className="mx-auto w-full max-w-[1200px] space-y-8" aria-busy>
+      <div className="sticky top-0 -mx-4 mb-6 border-b border-border/20 bg-card/90 px-4 py-4 backdrop-blur-sm sm:-mx-6 lg:-mx-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <Skeleton className="h-7 w-48" />

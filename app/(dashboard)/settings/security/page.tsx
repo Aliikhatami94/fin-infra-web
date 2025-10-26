@@ -319,7 +319,7 @@ export default function SecurityCenterPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] space-y-8">
+    <div className="mx-auto w-full max-w-[1200px] space-y-8 py-6">
       <section
         className="relative overflow-hidden rounded-3xl text-white shadow-[var(--shadow-bold)]"
         style={{ backgroundImage: heroBackground.base }}

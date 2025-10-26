@@ -123,10 +123,7 @@ export function CashFlowAIInsights() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           {overspendingSuggestions.map((suggestion) => (
-            <div
-              key={suggestion.id}
-              className="rounded-lg border border-border/60 bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-primary/40"
-            >
+            <div key={suggestion.id} className="card-standard card-lift gap-4 focus-within:ring-2 focus-within:ring-primary/40">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">{suggestion.category}</p>
@@ -140,7 +137,7 @@ export function CashFlowAIInsights() {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="mt-4 w-full justify-center gap-1"
+                className="w-full justify-center gap-1"
                 aria-label={`${suggestion.actionLabel} for ${suggestion.category}`}
               >
                 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />

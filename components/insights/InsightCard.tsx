@@ -230,11 +230,10 @@ export function InsightCard({
         aria-labelledby={headingId}
         aria-describedby={descriptionId}
         className={cn(
-          "relative h-full border border-border/40 bg-background/95 backdrop-blur-sm transition-shadow",
-          "hover:shadow-lg",
+          "card-standard card-lift relative h-full transition-shadow",
           "focus-within:ring-2 focus-within:ring-primary/40",
-          unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/50)] focus-within:ring-primary",
-          isResolved && "border-border/30 bg-muted/40 saturate-75",
+          unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/45)] focus-within:ring-primary",
+          isResolved && "border-border/40 bg-muted/40 saturate-75",
         )}
         data-state={isResolved ? "resolved" : "active"}
       >
@@ -299,7 +298,7 @@ export function InsightCard({
               <div className="mt-2 flex flex-wrap gap-2">
                 <Badge
                   variant="outline"
-                  className="flex items-center gap-1 text-xs border-border/40 bg-background/80 text-muted-foreground"
+                  className="flex items-center gap-1 text-xs border-border/40 bg-card/80 text-muted-foreground"
                 >
                   <CategoryIcon className="h-3.5 w-3.5" aria-hidden="true" />
                   {categoryLabel}

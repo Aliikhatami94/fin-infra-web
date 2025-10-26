@@ -27,9 +27,10 @@ export default function InsightsPage() {
   const activeTabId = useMemo(() => `insights-tab-${activeTab}`, [activeTab])
 
   return (
-    <div className="mx-auto w-full max-w-[1600px]">
-      <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 bg-background/90 backdrop-blur-md border-b border-border/20 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <>
+      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Insights</h1>
             <p className="text-sm text-muted-foreground mt-1">Personalized financial insights and recommendations</p>
@@ -43,13 +44,13 @@ export default function InsightsPage() {
                 placeholder="Search insights..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 bg-background border-border/40"
+                className="pl-9 h-9 bg-card border-border/40"
               />
             </div>
 
             {/* Time Range Filter */}
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-32 h-9 bg-background border-border/40">
+              <SelectTrigger className="w-32 h-9 bg-card border-border/40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -60,18 +61,18 @@ export default function InsightsPage() {
               </SelectContent>
             </Select>
           </div>
-          <SwitchField
-            layout="inline"
-            label="Hide resolved insights"
-            checked={hideResolved}
-            onCheckedChange={(next) => setHideResolved(Boolean(next))}
-            className="data-[state=checked]:bg-primary/80"
-            containerClassName="justify-end"
-          />
+            <SwitchField
+              layout="inline"
+              label="Hide resolved insights"
+              checked={hideResolved}
+              onCheckedChange={(next) => setHideResolved(Boolean(next))}
+              className="data-[state=checked]:bg-primary/80"
+              containerClassName="justify-end"
+            />
+          </div>
         </div>
       </div>
-
-      <div className="space-y-6">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-6">
         <div className="relative">
           <div
             className="flex items-center gap-2 overflow-x-auto rounded-full bg-muted/30 p-1"
@@ -100,7 +101,7 @@ export default function InsightsPage() {
                   {isActive ? (
                     <motion.span
                       layoutId="insights-tab-highlight"
-                      className="absolute inset-0 rounded-full bg-background shadow-sm"
+                      className="absolute inset-0 rounded-full bg-card shadow-sm"
                       transition={{ type: "spring", stiffness: 360, damping: 28 }}
                     />
                   ) : null}
@@ -132,6 +133,6 @@ export default function InsightsPage() {
           </motion.div>
         </AnimatePresence>
       </div>
-    </div>
+    </>
   )
 }

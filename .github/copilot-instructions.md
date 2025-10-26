@@ -22,7 +22,6 @@
 - Install deps, run dev server, build, and lint using the existing scripts:
 	- Install: `pnpm install`
 	- Dev: `pnpm dev` (starts Next.js in development mode)
-	- Build: `pnpm build` (Next build; note ESLint/TS build errors are ignored during build per `next.config.mjs`)
 	- Start: `pnpm start` (serve the production build)
 	- Lint: `pnpm lint` (eslint .)
 - Optional typecheck during development (not a script): `pnpm exec tsc -p tsconfig.json --noEmit`.
@@ -100,7 +99,6 @@
 - When adding new components, prefer small, composable pieces and reuse `components/ui` primitives.
 
 ## Quality gates
-- Build: `pnpm build` must complete without runtime errors.
 - Lint/Typecheck: `pnpm lint` and `pnpm exec tsc -p tsconfig.json --noEmit` should pass locally.
 - Tests: if present, all test suites must pass before merging.
 

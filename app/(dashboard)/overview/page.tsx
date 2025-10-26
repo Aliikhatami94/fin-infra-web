@@ -120,11 +120,19 @@ export default function OverviewPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6">
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Overview</h2>
-        <KPICards />
-      </section>
+    <>
+      {/* Header */}
+      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
+          <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
+        </div>
+      </div>
+
+      {/* Body */}
+  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+        <section>
+          <KPICards />
+        </section>
 
       <section>
         <AccountabilityChecklist surface="overview" />
@@ -164,8 +172,7 @@ export default function OverviewPage() {
           <AIInsights />
         </ErrorBoundary>
       </section>
-
-
-    </div>
+      </div>
+    </>
   )
 }

@@ -597,7 +597,7 @@ export function TransactionsWorkspace() {
       </CardContent>
 
       {selectedTransactionIds.length > 0 ? (
-        <div className="sticky bottom-28 z-20 mx-6 mb-4 rounded-xl border border-border/40 bg-background/95 p-4 shadow-lg md:bottom-4">
+        <div className="sticky bottom-28 z-20 mx-6 mb-4 rounded-xl border border-border/40 bg-card/95 p-4 shadow-lg md:bottom-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm font-medium text-foreground">
               {selectedTransactionIds.length} selected

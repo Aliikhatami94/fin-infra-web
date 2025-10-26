@@ -25,27 +25,35 @@ export default function CashFlowPage() {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-foreground">Cash Flow</h1>
-
-      <div className="space-y-6">
-        <CashFlowKPIs />
-
-        <ErrorBoundary feature="Cash flow insights">
-          <CashFlowAIInsights />
-        </ErrorBoundary>
-
-        <CashFlowChart onMonthClick={setSelectedMonth} selectedMonth={selectedMonth} />
+    <>
+      {/* Header */}
+      <div className="bg-card/90 backdrop-blur-md border-b border-border/20">
+  <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-4">
+          <h1 className="text-2xl font-semibold text-foreground">Cash Flow</h1>
+        </div>
       </div>
 
-      <CategoriesChart selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+      {/* Body */}
+  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+        <div className="space-y-6">
+          <CashFlowKPIs />
 
-      <UpcomingCharges />
+          <ErrorBoundary feature="Cash flow insights">
+            <CashFlowAIInsights />
+          </ErrorBoundary>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <RecurringExpenses selectedCategory={selectedCategory} />
-        <RecentTransactions selectedCategory={selectedCategory} selectedMonth={selectedMonth} />
+          <CashFlowChart onMonthClick={setSelectedMonth} selectedMonth={selectedMonth} />
+        </div>
+
+        <CategoriesChart selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+
+        <UpcomingCharges />
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <RecurringExpenses selectedCategory={selectedCategory} />
+          <RecentTransactions selectedCategory={selectedCategory} selectedMonth={selectedMonth} />
+        </div>
       </div>
-    </div>
+    </>
   )
 }

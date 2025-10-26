@@ -130,46 +130,26 @@ export function AccountsTable({
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}>
         <Card className="card-standard">
           <CardHeader className="space-y-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <CardTitle>All Accounts</CardTitle>
-                {!hasAccounts && (
-                  <p className="text-sm text-muted-foreground">
-                    Link your bank, credit, and investment accounts to see them here.
-                  </p>
-                )}
-                {isLinking && (
-                  <div
-                    className="flex items-center gap-2 text-xs text-muted-foreground sm:text-sm"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                    <span>
-                      Linking {linkingInstitution ? `${linkingInstitution}` : "account"}
-                      &hellip;
-                    </span>
-                  </div>
-                )}
-              </div>
-              <Button
-                size="sm"
-                className="gap-2 hidden md:inline-flex"
-                onClick={onRequestLink}
-                disabled={isLinking}
-              >
-                {isLinking ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    Linking…
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4" aria-hidden="true" />
-                    Link account
-                  </>
-                )}
-              </Button>
+            <div className="space-y-2">
+              <CardTitle>All Accounts</CardTitle>
+              {!hasAccounts && (
+                <p className="text-sm text-muted-foreground">
+                  Link your bank, credit, and investment accounts to see them here.
+                </p>
+              )}
+              {isLinking && (
+                <div
+                  className="flex items-center gap-2 text-xs text-muted-foreground sm:text-sm"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  <span>
+                    Linking {linkingInstitution ? `${linkingInstitution}` : "account"}
+                    &hellip;
+                  </span>
+                </div>
+              )}
             </div>
 
             {hasAccounts && (

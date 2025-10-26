@@ -96,7 +96,7 @@ export function DocumentCard({
         <Checkbox
           checked={isSelected}
           onCheckedChange={(checked) => onSelectionChange?.(checked === true)}
-          className="bg-background border-2"
+          className="bg-card border-2"
           onClick={(e) => e.stopPropagation()}
         />
       </div>

@@ -196,7 +196,7 @@ export function AutomationCopilotDrawer({
                 "w-full rounded-lg border px-3 py-2 text-left transition-colors",
                 isActive
                   ? "border-primary bg-primary/10"
-                  : "border-border/40 bg-background/80 hover:border-border/80",
+                  : "border-border/40 bg-card/80 hover:border-border/80",
               )}
             >
               <div className="flex items-start justify-between gap-2">

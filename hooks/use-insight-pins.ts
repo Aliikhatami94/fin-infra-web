@@ -140,4 +140,3 @@ export function useInsightPins() {
 
   return value
 }
-

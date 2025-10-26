@@ -6,8 +6,8 @@ import { Upload, Search } from "lucide-react"
 export default function Loading() {
   return (
     <div className="space-y-6">
-      <div className="sticky top-16 z-20 border-b border-border/20 bg-background/90 px-4 py-4 shadow-sm backdrop-blur-md sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
+      <div className="sticky top-16 z-20 border-b border-border/20 bg-card/90 px-4 py-4 shadow-sm backdrop-blur-md sm:px-6 lg:px-8">
+  <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4">
           <h1 className="text-lg font-semibold text-foreground md:text-xl">Documents</h1>
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -22,7 +22,7 @@ export default function Loading() {
       </div>
 
       <div className="px-4 pb-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-[1600px] space-y-6">
+  <div className="mx-auto max-w-[1200px] space-y-6">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <DocumentSkeleton key={i} />

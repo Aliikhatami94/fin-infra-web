@@ -233,7 +233,7 @@ export function DocumentUploadZone({ id, onUploadComplete }: DocumentUploadZoneP
           {uploads.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/80 p-3 shadow-sm"
+              className="flex items-center gap-3 rounded-lg border border-border/40 bg-card/80 p-3 shadow-sm"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
                 {item.status === "success" ? (
