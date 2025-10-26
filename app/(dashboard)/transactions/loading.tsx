@@ -3,8 +3,17 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TransactionsLoading() {
   return (
-  <div className="mx-auto w-full max-w-[1200px] space-y-6" aria-busy>
-      <div className="flex items-center justify-between">
+    <>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <Skeleton className="h-7 w-32" />
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6" aria-busy>
+        <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-10 w-32" rounded="full" />
       </div>
@@ -51,6 +60,7 @@ export default function TransactionsLoading() {
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

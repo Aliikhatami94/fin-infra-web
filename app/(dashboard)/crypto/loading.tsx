@@ -3,23 +3,29 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function CryptoLoading() {
   return (
-    <div className="space-y-6" aria-busy>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Skeleton className="h-8 w-32" />
-        <div className="flex flex-wrap items-center gap-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-8 w-28" rounded="full" />
-          ))}
-          <Skeleton className="h-8 w-28" rounded="full" />
+    <>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <Skeleton className="h-6 w-20 md:h-7 md:w-28" />
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3" role="toolbar">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <Skeleton key={index} className="h-10 w-40" rounded="full" />
-        ))}
-        <Skeleton className="h-10 w-48" rounded="full" />
-      </div>
+      {/* Body */}
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6" aria-busy>
+        {/* Exchange filter chips */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3.5 w-20" />
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} className="h-9 w-24" rounded="full" />
+            ))}
+          </div>
+          <Skeleton className="h-9 w-48" rounded="full" />
+          <Skeleton className="ml-auto h-9 w-9" rounded="md" />
+        </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
@@ -146,7 +152,8 @@ export default function CryptoLoading() {
         </CardContent>
       </Card>
 
-      <Skeleton className="fixed bottom-6 right-6 h-14 w-14 rounded-full md:hidden" />
-    </div>
+        <Skeleton className="fixed bottom-6 right-6 h-14 w-14 rounded-full md:hidden" />
+      </div>
+    </>
   )
 }

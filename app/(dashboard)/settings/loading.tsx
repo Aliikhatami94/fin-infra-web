@@ -3,7 +3,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function SettingsLoading() {
   return (
-    <div className="space-y-6" aria-busy>
+    <>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <Skeleton className="h-7 w-32" />
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6" aria-busy>
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <Skeleton className="h-8 w-48" />
@@ -49,6 +58,7 @@ export default function SettingsLoading() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   )
 }

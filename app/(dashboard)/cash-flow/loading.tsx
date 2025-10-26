@@ -3,8 +3,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function CashFlowLoading() {
   return (
-    <div className="space-y-6" aria-busy>
-      <Skeleton className="h-8 w-48" />
+    <>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <Skeleton className="h-6 w-24 md:h-7 md:w-32" />
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6" aria-busy>
 
       <div className="grid gap-4 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, index) => (
@@ -20,11 +28,11 @@ export default function CashFlowLoading() {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
 
-      <Card className="card-standard">
-        <CardHeader>
-          <Skeleton className="h-4 w-48" />
+        <Card className="card-standard">
+          <CardHeader>
+            <Skeleton className="h-4 w-48" />
         </CardHeader>
         <CardContent className="space-y-3">
           {Array.from({ length: 3 }).map((_, index) => (
@@ -89,12 +97,12 @@ export default function CashFlowLoading() {
           </div>
           <Skeleton className="h-4 w-36" />
         </CardContent>
-      </Card>
+        </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="card-standard">
-          <CardHeader>
-            <Skeleton className="h-4 w-40" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="card-standard">
+            <CardHeader>
+              <Skeleton className="h-4 w-40" />
           </CardHeader>
           <CardContent className="space-y-3">
             {Array.from({ length: 5 }).map((_, index) => (
@@ -130,8 +138,9 @@ export default function CashFlowLoading() {
               </div>
             ))}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

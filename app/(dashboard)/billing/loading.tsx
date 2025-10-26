@@ -3,7 +3,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function BillingLoading() {
   return (
-    <div className="mx-auto max-w-4xl space-y-6" aria-busy>
+    <>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <Skeleton className="h-7 w-32" />
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-10 py-6 space-y-6" aria-busy>
       <div className="space-y-2">
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-4 w-72" />
@@ -81,6 +90,7 @@ export default function BillingLoading() {
           ))}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   )
 }
