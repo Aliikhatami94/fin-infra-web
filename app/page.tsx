@@ -25,6 +25,13 @@ export default function LandingPage() {
       return
     }
 
+    // Ensure we always start at the top
+    try {
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      window.scrollTo(0, 0)
+    } catch {}
+
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
 
     if (mediaQuery.matches) {
@@ -35,7 +42,13 @@ export default function LandingPage() {
 
     introFallbackTimerRef.current = window.setTimeout(() => {
       introFallbackTimerRef.current = null
+      // Reveal content and keep scroll at top
       setContentVisible(true)
+      try {
+        document.documentElement.scrollTop = 0
+        document.body.scrollTop = 0
+        window.scrollTo(0, 0)
+      } catch {}
       if (cleanupTimerRef.current) {
         clearTimeout(cleanupTimerRef.current)
         cleanupTimerRef.current = null
@@ -76,10 +89,43 @@ export default function LandingPage() {
     }
   }, [])
 
+  // Lock body scroll while intro overlay is visible and keep at top
+  useEffect(() => {
+    if (typeof document === "undefined") return
+    if (showIntro) {
+      const prevOverflow = document.body.style.overflow
+      const prevOverscroll = document.documentElement.style.overscrollBehavior
+      try {
+        document.body.style.overflow = "hidden"
+        document.documentElement.style.overscrollBehavior = "contain"
+        document.documentElement.scrollTop = 0
+        document.body.scrollTop = 0
+        window.scrollTo(0, 0)
+      } catch {}
+      return () => {
+        document.body.style.overflow = prevOverflow
+        document.documentElement.style.overscrollBehavior = prevOverscroll
+      }
+    } else {
+      try {
+        document.body.style.overflow = ""
+        document.documentElement.style.overscrollBehavior = ""
+        window.scrollTo(0, 0)
+      } catch {}
+    }
+  }, [showIntro])
+
   const handleIntroAnimationEnd = () => {
     if (contentVisible) {
       return
     }
+
+    // Snap to top as the intro ends
+    try {
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      window.scrollTo(0, 0)
+    } catch {}
 
     setContentVisible(true)
 
@@ -127,7 +173,7 @@ export default function LandingPage() {
         {showIntro && (
           <div
             className={cn(
-              "pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-background via-background to-background/95 transition-opacity duration-500 ease-[var(--ease-standard)]",
+              "pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-background via-background to-background/95 transition-opacity duration-400 ease-[var(--ease-standard)]",
               contentVisible ? "opacity-0" : "opacity-100",
             )}
             aria-hidden
@@ -152,8 +198,8 @@ export default function LandingPage() {
             />
             <div
               className={cn(
-                "mx-auto max-w-5xl transition-all duration-700 ease-[var(--ease-standard)]",
-                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                "mx-auto max-w-5xl transition-all duration-500 ease-[var(--ease-standard)]",
+                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
               )}
               style={{ transitionDelay: contentVisible ? "0.2s" : "0s" }}
             >
@@ -217,8 +263,8 @@ export default function LandingPage() {
                 <Link
                   href="#product-highlights"
                   className={cn(
-                    "mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 transition-all duration-700 ease-[var(--ease-standard)]",
-                    contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
+                    "mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 transition-all duration-500 ease-[var(--ease-standard)]",
+                    contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
                   )}
                   style={{ transitionDelay: contentVisible ? "0.55s" : "0s" }}
                   aria-label="Scroll to the feature highlights section"
@@ -237,8 +283,8 @@ export default function LandingPage() {
           >
             <div
               className={cn(
-                "mx-auto max-w-7xl transition-all duration-700 ease-[var(--ease-standard)]",
-                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                "mx-auto max-w-7xl transition-all duration-500 ease-[var(--ease-standard)]",
+                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
               )}
               style={{ transitionDelay: contentVisible ? "0.35s" : "0s" }}
             >
@@ -254,10 +300,10 @@ export default function LandingPage() {
                     key={feature.title}
                     href={feature.href}
                     className={cn(
-                      "group relative flex h-full min-h-[20rem] flex-col justify-between overflow-hidden rounded-3xl border border-border/30 bg-card/80 p-8 text-left shadow-[var(--shadow-soft)] transition-all duration-700 ease-[var(--ease-standard)]",
+                      "group relative flex h-full min-h-[20rem] flex-col justify-between overflow-hidden rounded-3xl border border-border/30 bg-card/80 p-8 text-left shadow-[var(--shadow-soft)] transition-all duration-500 ease-[var(--ease-standard)]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
                       "hover:-translate-y-1 hover:shadow-[var(--shadow-bold)] hover:border-primary/40",
-                      contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
+                      contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
                     )}
                     style={{ transitionDelay: getTransitionDelay(index, 0.4) }}
                     aria-label={`Learn more about ${feature.title}`}
@@ -281,8 +327,8 @@ export default function LandingPage() {
           <section aria-labelledby="feature-highlights" className="relative px-6 pb-24 lg:px-8">
             <div
               className={cn(
-                "mx-auto max-w-5xl space-y-24 transition-all duration-700 ease-[var(--ease-standard)]",
-                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                "mx-auto max-w-5xl space-y-24 transition-all duration-500 ease-[var(--ease-standard)]",
+                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
               )}
               style={{ transitionDelay: contentVisible ? "0.45s" : "0s" }}
             >
@@ -299,8 +345,8 @@ export default function LandingPage() {
                   id={highlight.id}
                   aria-labelledby={`${highlight.id}-title`}
                   className={cn(
-                    "grid items-center gap-8 rounded-3xl border border-border/30 bg-card/80 p-8 shadow-[var(--shadow-soft)] lg:grid-cols-[1.2fr_1fr] scroll-mt-20 transition-all duration-700 ease-[var(--ease-standard)]",
-                    contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
+                    "grid items-center gap-8 rounded-3xl border border-border/30 bg-card/80 p-8 shadow-[var(--shadow-soft)] lg:grid-cols-[1.2fr_1fr] scroll-mt-20 transition-all duration-500 ease-[var(--ease-standard)]",
+                    contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
                   )}
                   style={{ transitionDelay: getTransitionDelay(index, 0.55) }}
                 >
@@ -329,8 +375,8 @@ export default function LandingPage() {
           <section className="relative px-6 py-32 lg:px-8">
             <div
               className={cn(
-                "mx-auto max-w-4xl text-center transition-all duration-700 ease-[var(--ease-standard)]",
-                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                "mx-auto max-w-4xl text-center transition-all duration-500 ease-[var(--ease-standard)]",
+                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
               )}
               style={{ transitionDelay: contentVisible ? "0.65s" : "0s" }}
             >
