@@ -100,8 +100,8 @@ export default function DemoPage() {
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Button asChild className="flex-1 focus-visible:ring-offset-2">
-                    <Link href="/sign-in" aria-label={`Create your ${BRAND.name} account after watching the demo`}>
-                      Get started
+                    <Link href="/sign-up" aria-label={`Get started with ${BRAND.name} by creating an account`}>
+                      Get Started
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="flex-1 focus-visible:ring-offset-2">
@@ -109,7 +109,7 @@ export default function DemoPage() {
                       href="/#product-highlights"
                       aria-label={`Browse ${BRAND.name} product highlights without leaving the landing page`}
                     >
-                      Browse product
+                      Browse Features
                     </Link>
                   </Button>
                 </div>
