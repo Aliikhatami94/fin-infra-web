@@ -78,8 +78,8 @@
   --focus-ring-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 55%, transparent);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
-  --shadow-soft: 0 24px 60px -32px oklch(0.5 0.08 250 / 0.4);
-  --shadow-bold: 0 32px 80px -40px oklch(0.42 0.12 250 / 0.6);
+  --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-bold: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 .dark {
@@ -140,8 +140,8 @@
   --surface-cashflow: linear-gradient(135deg, oklch(0.36 0.08 160) 0%, oklch(0.32 0.06 140) 100%);
   --surface-security: linear-gradient(135deg, oklch(0.34 0.08 250) 0%, oklch(0.3 0.08 270) 100%);
 
-  --shadow-soft: 0 24px 60px -32px oklch(0.08 0.02 255 / 0.75);
-  --shadow-bold: 0 36px 90px -38px oklch(0.06 0.02 260 / 0.85);
+  --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-bold: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   --table-surface-bg: color-mix(in oklab, var(--card) 85%, transparent);
   --table-header-bg: color-mix(in oklab, var(--background) 40%, var(--card) 60%);
@@ -250,8 +250,8 @@
   .card-standard {
     border-radius: var(--card-radius);
     background-color: var(--card);
-    border: 1px solid color-mix(in oklab, var(--border) 82%, transparent);
-    box-shadow: var(--shadow-soft);
+    border: 1px solid color-mix(in oklab, var(--border) 82%, transparent) !important;
+    box-shadow: var(--shadow-soft) !important;
     padding-block: var(--space-card-block);
     padding-inline: var(--space-card-inline);
     transition:
@@ -264,19 +264,17 @@
   }
 
   .card-standard:hover {
-    box-shadow: var(--shadow-bold);
-    border-color: color-mix(in oklab, var(--border) 94%, transparent);
-    transform: translateY(-1px);
+    border-color: color-mix(in oklab, var(--border) 100%, transparent);
   }
 
   .card-standard:focus-within {
-    box-shadow: var(--shadow-bold);
+    box-shadow: var(--shadow-bold) !important;
     border-color: color-mix(in oklab, var(--ring) 55%, var(--border) 45%);
   }
 
   .card-standard:focus-visible {
     outline: none;
-    box-shadow: var(--shadow-bold), var(--focus-ring-shadow);
+    box-shadow: var(--shadow-bold) !important;
   }
 
   /* Page fade-in animation */

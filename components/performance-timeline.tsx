@@ -135,7 +135,7 @@ export function PerformanceTimeline() {
   const planDelta = latestPoint ? latestPoint.portfolio - latestPoint.planned : 0
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Performance Timeline</CardTitle>

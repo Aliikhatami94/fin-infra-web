@@ -80,7 +80,7 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
   }
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Portfolio Allocation</CardTitle>

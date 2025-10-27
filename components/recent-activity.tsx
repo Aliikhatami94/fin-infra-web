@@ -25,7 +25,7 @@ export function RecentActivity() {
 
   return (
     <>
-      <Card>
+      <Card className="card-standard">
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>

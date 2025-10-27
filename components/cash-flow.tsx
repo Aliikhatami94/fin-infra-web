@@ -82,7 +82,7 @@ export function CashFlow() {
   }, [dateRange])
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <CardTitle>Cash Flow</CardTitle>
         <CardDescription>Income vs expenses with net cash flow trend</CardDescription>
