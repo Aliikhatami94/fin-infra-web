@@ -20,9 +20,9 @@ The toolbar should be hidden in production builds to avoid confusing end users. 
 
 ### Method 2: Environment Variable
 Add the following environment variable in Vercel:
-```
+\`\`\`
 VERCEL_TOOLBAR=0
-```
+\`\`\`
 
 ## Current Implementation
 - **Analytics**: The `<Analytics />` component is now wrapped in a production check and only initializes in production builds
@@ -31,13 +31,13 @@ VERCEL_TOOLBAR=0
 
 ## Testing
 To verify toolbar is hidden:
-```bash
+\`\`\`bash
 # Build and run production mode locally
 pnpm build && pnpm start
 
 # Navigate to http://localhost:3000
 # Verify no floating toolbar icons in bottom-right
-```
+\`\`\`
 
 ## Related Documentation
 - [Vercel Toolbar Docs](https://vercel.com/docs/workflow-collaboration/toolbar)
