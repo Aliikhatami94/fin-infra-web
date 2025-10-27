@@ -20,6 +20,7 @@ const BENCHMARKS = {
 type BenchmarkKey = keyof typeof BENCHMARKS
 
 type TimelinePoint = {
+  index: number
   date: string
   portfolio: number
   planned: number
@@ -33,11 +34,19 @@ const generateData = (days: number): TimelinePoint[] => {
     (Object.keys(BENCHMARKS) as BenchmarkKey[]).map((key) => [key, 100000]),
   ) as Record<BenchmarkKey, number>
 
+  const now = Date.now()
+  
   for (let i = 0; i < days; i++) {
     actual += (Math.random() - 0.45) * 1000
     planned += 320
+    
+    // Calculate date going backwards from now
+    const dateMs = now - (days - i - 1) * 24 * 60 * 60 * 1000
+    const date = new Date(dateMs)
+    
     const point: TimelinePoint = {
-      date: new Date(Date.now() - (days - i - 1) * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
+      index: i,
+      date: date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       }),
@@ -162,7 +171,10 @@ export function PerformanceTimeline() {
       <CardContent>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data}>
+            <AreaChart 
+              data={data} 
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0.3} />
@@ -183,35 +195,37 @@ export function PerformanceTimeline() {
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                domain={['dataMin - 5000', 'dataMax + 5000']}
               />
               <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const portfolioValue = payload.find((item) => item.dataKey === "portfolio")?.value
-                    const plannedValue = payload.find((item) => item.dataKey === "planned")?.value
-                    const benchmarkValue = benchmark
-                      ? payload.find((item) => item.dataKey === benchmark)?.value
-                      : null
-                    return (
-                      <div className="rounded-lg border bg-card p-3 shadow-sm">
-                        <p className="text-xs text-muted-foreground mb-1">{payload[0].payload.date}</p>
-                        <p className="text-sm font-medium">
-                          Portfolio: ${Number(portfolioValue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Plan: ${Number(plannedValue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </p>
-                        {benchmark && benchmarkValue != null && (
-                          <p className="text-sm text-muted-foreground">
-                            {BENCHMARKS[benchmark].label}: ${Number(benchmarkValue).toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                            })}
-                          </p>
-                        )}
-                      </div>
-                    )
+                cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '3 3' }}
+                animationDuration={150}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload || !payload.length) {
+                    return null
                   }
-                  return null
+                  
+                  // Get the data directly from the payload
+                  const dataPoint = payload[0].payload as TimelinePoint
+                  
+                  return (
+                    <div className="rounded-lg border bg-card p-3 shadow-sm">
+                      <p className="text-xs text-muted-foreground mb-1">{dataPoint.date}</p>
+                      <p className="text-sm font-medium">
+                        Portfolio: ${Number(dataPoint.portfolio).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Plan: ${Number(dataPoint.planned).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      {benchmark && dataPoint[benchmark] != null && (
+                        <p className="text-sm text-muted-foreground">
+                          {BENCHMARKS[benchmark].label}: ${Number(dataPoint[benchmark]).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  )
                 }}
               />
               <Area
@@ -220,6 +234,7 @@ export function PerformanceTimeline() {
                 stroke="hsl(210, 100%, 60%)"
                 strokeWidth={2}
                 fill="url(#portfolioGradient)"
+                activeDot={{ r: 6, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
               />
               <Line
                 type="monotone"
@@ -228,6 +243,7 @@ export function PerformanceTimeline() {
                 strokeWidth={1.5}
                 strokeDasharray="6 4"
                 dot={false}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
               />
               {milestones.map((milestone) => (
                 <ReferenceDot
@@ -248,6 +264,7 @@ export function PerformanceTimeline() {
                   strokeWidth={1.5}
                   strokeDasharray="5 5"
                   dot={false}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
                 />
               )}
             </AreaChart>
