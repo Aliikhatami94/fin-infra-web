@@ -52,6 +52,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { AnimatedSwitch } from "@/components/animated-switch"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "@/components/ui/sonner"
 import { trackPreferenceToggle } from "@/lib/analytics/events"
 import { MaskedInput, maskEmail } from "@/components/ui/masked-input"
@@ -150,6 +151,10 @@ export default function SecurityCenterPage() {
   const [sessions, setSessions] = useState(loginHistorySeed)
   const [isAuditDialogOpen, setIsAuditDialogOpen] = useState(false)
   const [isAuditScheduling, setIsAuditScheduling] = useState(false)
+  const [sessionToEnd, setSessionToEnd] = useState<string | null>(null)
+  const [confirmEndAll, setConfirmEndAll] = useState(false)
+  const [showBackupPhone, setShowBackupPhone] = useState(false)
+  const [phoneRevealTimer, setPhoneRevealTimer] = useState<number | null>(null)
 
   const loginAlertsLabelId = useId()
   const loginAlertsDescriptionId = useId()
@@ -266,6 +271,17 @@ export default function SecurityCenterPage() {
     })
   }
 
+  const handleEndSessionRequest = (sessionId: string) => {
+    setSessionToEnd(sessionId)
+  }
+
+  const handleConfirmEndSession = () => {
+    if (!sessionToEnd) return
+    
+    handleEndSession(sessionToEnd)
+    setSessionToEnd(null)
+  }
+
   const handleEndSession = (sessionId: string) => {
     setSessions((previous) =>
       previous.map((session) =>
@@ -290,6 +306,8 @@ export default function SecurityCenterPage() {
   }
 
   const handleEndAllOtherSessions = () => {
+    setConfirmEndAll(false)
+    
     setSessions((previous) =>
       previous.map((session) =>
         session.id === currentSessionId
@@ -305,6 +323,28 @@ export default function SecurityCenterPage() {
 
     toast("Signed out of other devices", {
       description: "All other active sessions were ended. Keep an eye on your alerts for any new sign-ins.",
+    })
+  }
+
+  const handleRevealPhone = () => {
+    setShowBackupPhone(true)
+    const timer = 30 // 30 seconds
+    setPhoneRevealTimer(timer)
+    
+    const interval = setInterval(() => {
+      setPhoneRevealTimer((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval)
+          setShowBackupPhone(false)
+          setPhoneRevealTimer(null)
+          return null
+        }
+        return prev - 1
+      })
+    }, 1000)
+    
+    toast("Phone number revealed temporarily", {
+      description: "Number will be re-hidden after 30 seconds for security.",
     })
   }
 
@@ -565,7 +605,7 @@ export default function SecurityCenterPage() {
                           variant="outline"
                           size="sm"
                           className="gap-1.5"
-                          onClick={() => handleEndSession(entry.id)}
+                          onClick={() => handleEndSessionRequest(entry.id)}
                           disabled={entry.status !== "Active"}
                         >
                           End
@@ -588,7 +628,7 @@ export default function SecurityCenterPage() {
                           variant="outline"
                           size="sm"
                           className="gap-1.5"
-                          onClick={() => handleEndSession(entry.id)}
+                          onClick={() => handleEndSessionRequest(entry.id)}
                           disabled={entry.status !== "Active"}
                         >
                           End
@@ -609,7 +649,7 @@ export default function SecurityCenterPage() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={handleEndAllOtherSessions}
+              onClick={() => setConfirmEndAll(true)}
               disabled={!hasOtherActiveSessions}
             >
               <Activity className="h-4 w-4" /> End all other sessions
@@ -662,6 +702,11 @@ export default function SecurityCenterPage() {
                           section: "security",
                           value,
                         })
+                        toast(value ? "Login alerts enabled" : "Login alerts disabled", {
+                          description: value
+                            ? "You'll receive notifications for new device sign-ins."
+                            : "You won't receive notifications for new sign-ins. Consider re-enabling for better security.",
+                        })
                       }}
                     />
                   </div>
@@ -701,6 +746,11 @@ export default function SecurityCenterPage() {
                           section: "security",
                           value,
                         })
+                        toast(value ? "Masking enabled" : "Masking disabled", {
+                          description: value
+                            ? "Sensitive identifiers will be masked in exports and notifications."
+                            : "Sensitive data will be visible. Consider re-enabling for privacy protection.",
+                        })
                       }}
                     />
                   </div>
@@ -723,16 +773,57 @@ export default function SecurityCenterPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="alternate-phone">Backup phone</Label>
-                    <Input
-                      id="alternate-phone"
-                      type="tel"
-                      autoComplete="tel"
-                      value={alternatePhone}
-                      onChange={(event) => setAlternatePhone(event.target.value)}
-                      aria-describedby="alternate-phone-help"
-                    />
+                    {!showBackupPhone ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="alternate-phone"
+                          type="text"
+                          value={`••••${alternatePhone.slice(-4)}`}
+                          disabled
+                          className="flex-1"
+                          aria-describedby="alternate-phone-help"
+                        />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRevealPhone}
+                              >
+                                <EyeOff className="h-4 w-4" />
+                                <span className="sr-only">Reveal phone number</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">Temporarily reveal phone number</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="alternate-phone"
+                            type="tel"
+                            autoComplete="tel"
+                            value={alternatePhone}
+                            onChange={(event) => setAlternatePhone(event.target.value)}
+                            aria-describedby="alternate-phone-help"
+                            className="flex-1"
+                          />
+                          {phoneRevealTimer && (
+                            <Badge variant="secondary" className="shrink-0">
+                              {phoneRevealTimer}s
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <p id="alternate-phone-help" className="text-xs text-muted-foreground">
-                      SMS alerts are only sent for high-risk events. We display your number as ••••{alternatePhone.slice(-4)}.
+                      SMS alerts are only sent for high-risk events. {!showBackupPhone && `We display your number as ••••${alternatePhone.slice(-4)}.`}
                     </p>
                   </div>
                 </div>
@@ -755,46 +846,45 @@ export default function SecurityCenterPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <TooltipProvider delayDuration={100}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                  onClick={() => handleExportRequest("csv")}
-                >
-                  <Download className="h-4 w-4" /> Export access log (CSV)
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="ml-auto inline-flex items-center text-muted-foreground">
-                        <Info className="h-4 w-4" aria-hidden />
-                        <span className="sr-only">Retention policy</span>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs text-xs leading-relaxed">
-                      Encrypted download link remains active for 24 hours and is auto-deleted after pickup.
-                    </TooltipContent>
-                  </Tooltip>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                  onClick={() => handleExportRequest("pdf")}
-                >
-                  <Download className="h-4 w-4" /> Download masking report (PDF)
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="ml-auto inline-flex items-center text-muted-foreground">
-                        <Info className="h-4 w-4" aria-hidden />
-                        <span className="sr-only">Retention policy</span>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs text-xs leading-relaxed">
-                      Reports are retained for 24 hours, then purged from the Security Center and storage logs.
-                    </TooltipContent>
-                  </Tooltip>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start gap-2"
+                        onClick={() => handleExportRequest("csv")}
+                        disabled
+                      >
+                        <Download className="h-4 w-4" /> Export access log (CSV)
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs px-1.5 py-1">
+                    <p className="text-xs">Export functionality will be available once enterprise SSO controls are configured</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start gap-2"
+                        onClick={() => handleExportRequest("pdf")}
+                        disabled
+                      >
+                        <Download className="h-4 w-4" /> Download masking report (PDF)
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs px-1.5 py-1">
+                    <p className="text-xs">Export functionality will be available once enterprise SSO controls are configured</p>
+                  </TooltipContent>
+                </Tooltip>
               </TooltipProvider>
             </CardContent>
             <CardFooter>
@@ -806,6 +896,32 @@ export default function SecurityCenterPage() {
         </div>
       </div>
       </motion.div>
+
+      {/* Confirmation dialog for ending individual session */}
+      <ConfirmDialog
+        open={sessionToEnd !== null}
+        onOpenChange={(open) => !open && setSessionToEnd(null)}
+        title="End this session?"
+        description={
+          sessionToEnd
+            ? `Device: ${sessions.find((s) => s.id === sessionToEnd)?.device}\nLocation: ${sessions.find((s) => s.id === sessionToEnd)?.location}\n\nThis device will be signed out immediately and must re-authenticate to access your account.`
+            : ""
+        }
+        confirmLabel="End session"
+        confirmVariant="destructive"
+        onConfirm={handleConfirmEndSession}
+      />
+
+      {/* Confirmation dialog for ending all other sessions */}
+      <ConfirmDialog
+        open={confirmEndAll}
+        onOpenChange={setConfirmEndAll}
+        title="End all other sessions?"
+        description={`This will sign out ${sessions.filter((s) => s.status === "Active" && s.id !== currentSessionId).length} active session(s) on other devices. They will need to re-authenticate to access your account.`}
+        confirmLabel="End all sessions"
+        confirmVariant="destructive"
+        onConfirm={handleEndAllOtherSessions}
+      />
     </>
   )
 }

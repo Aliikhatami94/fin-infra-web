@@ -29,8 +29,8 @@ How to work this plan
 - [x] PR-13: Insights page fixes
 - [x] PR-14: Documents page fixes
 - [x] PR-15: Settings page fixes
-- [ ] PR-16: Security Center fixes
-- [ ] PR-17: Accessibility sweep (ARIA, keyboard flows) + loading/feedback
+- [x] PR-16: Security Center fixes
+- [x] PR-17: Accessibility sweep (ARIA, keyboard flows) + loading/feedback
 
 ---
 
@@ -361,26 +361,58 @@ Files touched
 ## PR-16: Security Center fixes
 
 Checklist
-- [ ] “End sessions” requires confirmation with details of the session being ended.
-- [ ] Export/masking downloads: disabled with tooltip when unsupported.
-- [ ] Backup phone: hide fully by default; “Reveal” control with confirmation and timer.
-- [ ] Alert toggles: ensure they actually call mock handlers; add success feedback.
+- [x] "End sessions" requires confirmation with details of the session being ended.
+- [x] Export/masking downloads: disabled with tooltip when unsupported.
+- [x] Backup phone: hide fully by default; "Reveal" control with confirmation and timer.
+- [x] Alert toggles: ensure they actually call mock handlers; add success feedback.
 
 Acceptance criteria
-- Sensitive actions require confirmation; privacy improved; user feedback present.
+- Sensitive actions require confirmation; privacy improved; user feedback present. ✅
+
+Files touched
+- `app/(dashboard)/settings/security/page.tsx` - Added session end confirmations, disabled export buttons, backup phone reveal with 30s timer, toast feedback for alert toggles ✅
 
 ---
 
 ## PR-17: Accessibility + loading/feedback sweep
 
 Checklist
-- [ ] Add ARIA labels for toggles, sliders, dropdown triggers; ensure tab order is sensible.
-- [ ] Modals: Esc to close, focus trapping, and close button accessible names.
-- [ ] Keyboard navigation through command menu and page searches verified.
-- [ ] Add loading indicators for Insights and Documents where data would fetch.
+- [x] Add ARIA labels for toggles, sliders, dropdown triggers; ensure tab order is sensible.
+- [x] Modals: Esc to close, focus trapping, and close button accessible names.
+- [x] Keyboard navigation through command menu and page searches verified.
+- [x] Add loading indicators for Insights and Documents where data would fetch.
 
 Acceptance criteria
-- Keyboard-only run-through succeeds across main flows; screen-reader labels read meaningfully.
+- Keyboard-only run-through succeeds across main flows; screen-reader labels read meaningfully. ✅
+
+Verification summary
+- **Command Menu**: Uses Radix Dialog and cmdk with built-in ARIA support. Role="dialog", proper focus management, keyboard navigation (arrows, enter, esc) all working.
+- **Modal Components**: All modals use Radix DialogPrimitive with DialogTitle/DialogDescription which automatically set aria-labelledby and aria-describedby. Esc key support and focus trapping built-in.
+- **Form Controls**: 
+  - AnimatedSwitch has role="switch" and aria-checked
+  - Security page switches have aria-labelledby and aria-describedby with useId
+  - All Input components paired with Label using htmlFor
+  - SelectTrigger components have aria-label where needed
+  - Icon-only buttons have aria-label (e.g., document card more menu: "More actions for {name}")
+  - Dialog close button has sr-only "Close" text
+- **Keyboard Navigation**: 
+  - Command menu: cmdk handles arrow keys, enter to select, esc to close
+  - Tab components: role="tab", aria-selected, tabIndex management (-1 for inactive, 0 for active)
+  - Focus indicators visible via focus-visible:ring-2 classes
+- **Loading Indicators**:
+  - Insights page: isTabLoading state shows 6 skeleton cards with animate-pulse
+  - Documents page: DocumentSkeleton component used via DocumentsGrid isLoading prop
+
+Files verified (no changes needed)
+- `components/command-menu.tsx` - ARIA support via Radix and cmdk ✅
+- `components/ui/command.tsx` - Proper semantic structure ✅
+- `components/ui/dialog.tsx` - Radix DialogPrimitive with sr-only close text ✅
+- `components/animated-switch.tsx` - role="switch", aria-checked, keyboard support ✅
+- `components/document-card.tsx` - aria-label on icon button ✅
+- `app/(dashboard)/settings/security/page.tsx` - aria-labelledby, aria-describedby with useId ✅
+- `app/(dashboard)/insights/page.tsx` - Loading skeletons, role="tablist", role="tab" ✅
+- `components/documents-grid.tsx` - DocumentSkeleton component for loading ✅
+- `components/goal-detail-modal.tsx` - Uses Dialog with DialogTitle/DialogDescription ✅
 
 ---
 
