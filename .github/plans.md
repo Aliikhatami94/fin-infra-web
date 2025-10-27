@@ -26,7 +26,7 @@ How to work this plan
 - [x] PR-10: Budget page fixes
 - [x] PR-11: Goals page fixes
 - [x] PR-12: Taxes page fixes
-- [ ] PR-13: Insights page fixes
+- [x] PR-13: Insights page fixes
 - [ ] PR-14: Documents page fixes
 - [ ] PR-15: Settings page fixes
 - [ ] PR-16: Security Center fixes
@@ -302,16 +302,23 @@ Files touched
 
 ---
 
-## PR-13: Insights page fixes
+## PR-13: Insights page fixes ✅
 
 Checklist
-- [ ] Remove duplication with global search or ensure scopes are distinct.
-- [ ] Add loading state for tab switches.
-- [ ] High-impact actions show confirmation or are disabled with tooltip.
-- [ ] “Resolved” insights are viewable via a filter.
+- [x] Remove duplication with global search or ensure scopes are distinct.
+- [x] Add loading state for tab switches.
+- [x] High-impact actions show confirmation or are disabled with tooltip.
+- [x] "Resolved" insights are viewable via a filter.
 
 Acceptance criteria
-- Tabs load gracefully; actions are safe; resolved list accessible.
+- ✅ Search placeholder changed from "Search insights..." to "Filter insights..." with aria-label to clarify it filters current insights, not global search.
+- ✅ Tab switches show loading skeleton (6 animated cards) for 250ms during transition.
+- ✅ Automation actions (tax-harvest, budget-sweep, portfolio-rebalance, crypto-diversify) trigger confirmation dialogs with clear descriptions.
+- ✅ "Hide resolved insights" toggle works correctly; resolved insights are visible when toggle is off.
+
+Files touched
+- `app/(dashboard)/insights/page.tsx` - Updated search placeholder and aria-label, added loading state with skeleton UI during tab switches
+- `components/insights/InsightCard.tsx` - Added ConfirmDialog for automation actions, added confirmation state and handlers, added getAutomationConfirmation helper with specific messages for each automation type
 
 ---
 
