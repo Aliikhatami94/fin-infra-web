@@ -2,6 +2,9 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { LandingHeader } from "@/components/landing-header"
 import { BackToTopButton } from "@/components/back-to-top-button"
+import { AutomationLearnMoreModal } from "@/components/automation-learn-more-modal"
+import { InsightPreviewModal } from "@/components/insight-preview-modal"
+import { AllocationComparisonSlider } from "@/components/allocation-comparison-slider"
 import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock, ExternalLink, ArrowDownRight } from "lucide-react"
 import { BRAND } from "@/lib/brand"
 import { cn } from "@/lib/utils"
@@ -299,6 +302,9 @@ const featureHighlights = [
         <p className="mt-2">
           Preview pending rules, approvals, and follow-ups to keep back office workflows humming.
         </p>
+        <div className="mt-4">
+          <AutomationLearnMoreModal />
+        </div>
       </>
     ),
   },
@@ -317,6 +323,9 @@ const featureHighlights = [
         <p className="mt-2">
           Receive morning briefings that summarize emerging trends and recommended actions across portfolios.
         </p>
+        <div className="mt-4">
+          <InsightPreviewModal />
+        </div>
       </>
     ),
   },
@@ -329,14 +338,7 @@ const featureHighlights = [
       "Model scenarios across tax lots, fees, and cash needs.",
       "Provide LPs and execs curated snapshots without extra prep.",
     ],
-    snapshot: (
-      <>
-        <p className="font-medium text-foreground">Allocation overview</p>
-        <p className="mt-2">
-          Break down holdings by asset class, geography, and performance to uncover concentration risk instantly.
-        </p>
-      </>
-    ),
+    snapshot: <AllocationComparisonSlider />,
   },
   {
     id: "feature-cashflow",
