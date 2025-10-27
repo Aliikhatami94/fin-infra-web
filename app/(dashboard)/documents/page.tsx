@@ -4,6 +4,7 @@ import { DocumentsGrid } from "@/components/documents-grid"
 import { DocumentsAIInsights } from "@/components/documents-ai-insights"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   Upload,
   Search,
@@ -287,10 +288,21 @@ export default function DocumentsPage() {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button size="sm" className="gap-2" onClick={handleUploadButtonClick}>
-                <Upload className="h-4 w-4" />
-                <span className="hidden sm:inline">Upload</span>
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="inline-block">
+                      <Button size="sm" className="gap-2" disabled onClick={handleUploadButtonClick}>
+                        <Upload className="h-4 w-4" />
+                        <span className="hidden sm:inline">Upload</span>
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs px-1.5 py-1">
+                    <p className="text-xs">Document uploads will be available once secure file storage is configured for your environment</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>

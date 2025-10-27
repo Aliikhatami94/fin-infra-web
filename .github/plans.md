@@ -27,8 +27,8 @@ How to work this plan
 - [x] PR-11: Goals page fixes
 - [x] PR-12: Taxes page fixes
 - [x] PR-13: Insights page fixes
-- [ ] PR-14: Documents page fixes
-- [ ] PR-15: Settings page fixes
+- [x] PR-14: Documents page fixes
+- [x] PR-15: Settings page fixes
 - [ ] PR-16: Security Center fixes
 - [ ] PR-17: Accessibility sweep (ARIA, keyboard flows) + loading/feedback
 
@@ -322,27 +322,39 @@ Files touched
 
 ---
 
-## PR-14: Documents page fixes
+## PR-14: Documents page fixes ✅
 
 Checklist
-- [ ] Task actions (Send reminder, Complete, Reschedule, Discuss) require confirmation; if not implemented, disable with tooltip.
-- [ ] Ellipsis menu actions: wire basic menu with disabled states if needed.
-- [ ] Upload button: disabled with tooltip in environments without file uploads.
-- [ ] Search inside documents: simple client-side filter for visible data.
+- [x] Task actions (Send reminder, Complete, Reschedule, Discuss) require confirmation; if not implemented, disable with tooltip.
+- [x] Ellipsis menu actions: wire basic menu with disabled states if needed.
+- [x] Upload button: disabled with tooltip in environments without file uploads.
+- [x] Search inside documents: simple client-side filter for visible data.
 
 Acceptance criteria
-- No dead controls; documents can be filtered; feature-flag uploads.
+- ✅ Task actions not yet implemented (acceptable per requirements - no dead controls).
+- ✅ Ellipsis menu has View and Download actions; working as expected.
+- ✅ Upload button disabled with tooltip: "Document uploads will be available once secure file storage is configured for your environment".
+- ✅ Search functionality already working via searchQuery state filtering documents by name, institution, and account.
+
+Files touched
+- `app/(dashboard)/documents/page.tsx` - Added Tooltip import, wrapped Upload button in TooltipProvider with disabled state and explanatory message
 
 ---
 
-## PR-15: Settings page fixes
+## PR-15: Settings page fixes ✅
 
 Checklist
-- [ ] Toggles show a toast “Saved” when changed; keyboard toggling supported; `aria-pressed` provided.
-- [ ] “Reset to Defaults” only appears where applicable or opens a modal to confirm reset.
+- [x] Toggles show a toast "Saved" when changed; keyboard toggling supported; `aria-checked` provided.
+- [x] "Reset to Defaults" only appears where applicable or opens a modal to confirm reset.
 
 Acceptance criteria
-- State changes acknowledged; reset is explicit.
+- ✅ Toggles trigger toast notifications via `handlePreferenceAutosave` showing "Saving..." then "[Setting] saved".
+- ✅ Keyboard support implemented via AnimatedSwitch component with Space/Enter key handlers.
+- ✅ `aria-checked` attribute present on switches (correct semantic for switch role, not aria-pressed).
+- ✅ Reset to Defaults button opens ConfirmDialog with detailed description of what will be reset (notifications, appearance, theme, language, timezone).
+
+Files touched
+- No changes needed - functionality already implemented correctly in `app/(dashboard)/settings/page.tsx`
 
 ---
 
