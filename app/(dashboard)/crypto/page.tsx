@@ -9,6 +9,7 @@ import { CryptoAIInsights } from "@/components/crypto-ai-insights"
 import { ExchangeAnalytics } from "@/components/exchange-analytics"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   BadgePercent,
   Coins,
@@ -82,20 +83,29 @@ export default function CryptoPage() {
         <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
           {/* Exchange filter chips and gas indicator moved below header to reduce header height */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Exchange:</span>
-              {(["All", "Coinbase", "Binance"] as const).map((exchange) => (
-                <Button
-                  key={exchange}
-                  variant={selectedExchange === exchange ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedExchange(exchange)}
-                  className="h-8"
-                >
-                  {exchange}
-                </Button>
-              ))}
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Exchange:</span>
+                    {(["All", "Coinbase", "Binance"] as const).map((exchange) => (
+                      <Button
+                        key={exchange}
+                        variant={selectedExchange === exchange ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedExchange(exchange)}
+                        className="h-8"
+                      >
+                        {exchange}
+                      </Button>
+                    ))}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Filter table and chart by exchange</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Badge variant="outline" className="gap-1.5 px-3 py-1.5">
               <Fuel className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
               <span className="text-xs">Gas: 25 gwei</span>
@@ -138,22 +148,32 @@ export default function CryptoPage() {
               </button>
             )
           })}
-          <button
-            type="button"
-            className={cn(
-              "flex items-center gap-2 rounded-full border px-4 py-2 text-sm shadow-xs transition",
-              "hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-              showStablecoins
-                ? "border-primary/80 bg-primary/10 text-foreground"
-                : "border-border/80 bg-card/80 text-muted-foreground",
-            )}
-            onMouseEnter={handleStablecoinHover}
-            onClick={() => setShowStablecoins((prev) => !prev)}
-            aria-pressed={showStablecoins}
-          >
-            <BadgePercent className={cn("h-4 w-4", showStablecoins ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
-            {showStablecoins ? "Stablecoins included" : "Stablecoins hidden"}
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "flex items-center gap-2 rounded-full border px-4 py-2 text-sm shadow-xs transition",
+                    "hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    showStablecoins
+                      ? "border-primary/80 bg-primary/10 text-foreground"
+                      : "border-border/80 bg-card/80 text-muted-foreground",
+                  )}
+                  onMouseEnter={handleStablecoinHover}
+                  onClick={() => setShowStablecoins((prev) => !prev)}
+                  aria-pressed={showStablecoins}
+                >
+                  <BadgePercent className={cn("h-4 w-4", showStablecoins ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
+                  {showStablecoins ? "Stablecoins included" : "Stablecoins hidden"}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs font-medium">Toggle stablecoins</p>
+                <p className="text-xs text-muted-foreground">USDT, USDC, DAI, etc.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
           <CryptoKPIs />

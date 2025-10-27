@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { MaskableValue } from "@/components/privacy-provider"
 import {
   TrendingUp,
   TrendingDown,
@@ -148,7 +149,7 @@ export function CryptoKPIs() {
                     className="text-2xl font-bold tabular-nums text-foreground"
                     aria-label={`${kpi.label} ${kpi.value}`}
                   >
-                    {kpi.value}
+                    <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
                   </p>
                   <div className="flex items-center justify-between gap-3">
                     <TooltipProvider>
@@ -169,7 +170,7 @@ export function CryptoKPIs() {
                                 kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
                               }`}
                             >
-                              {kpi.change}
+                              <MaskableValue value={kpi.change} />
                             </span>
                           </button>
                         </TooltipTrigger>
