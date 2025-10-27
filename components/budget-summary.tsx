@@ -193,16 +193,22 @@ export function BudgetSummary() {
                         )}
                         <TooltipProvider>
                           <Tooltip>
-                            <TooltipTrigger>
-                              <span
-                                className={`font-medium ${
-                                  item.trend === "down"
-                                    ? "text-[var(--color-positive)]"
-                                    : "text-[var(--color-negative)]"
-                                }`}
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                                aria-label={`${item.subtext} trend details`}
                               >
-                                {item.subtext}
-                              </span>
+                                <span
+                                  className={`font-medium ${
+                                    item.trend === "down"
+                                      ? "text-[var(--color-positive)]"
+                                      : "text-[var(--color-negative)]"
+                                  }`}
+                                >
+                                  {item.subtext}
+                                </span>
+                              </button>
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="text-xs">Last Month: $6,150</p>

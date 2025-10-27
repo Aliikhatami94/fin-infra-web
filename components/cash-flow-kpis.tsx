@@ -291,7 +291,11 @@ export function CashFlowKPIs() {
               <div className="flex items-center justify-between">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 text-xs cursor-help">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-xs"
+                      aria-label={`${snapshot.changePercent >= 0 ? '+' : ''}${snapshot.changePercent}% ${snapshot.changeComparison}`}
+                    >
                       {snapshot.changePercent >= 0 ? (
                         <>
                           <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
@@ -303,7 +307,7 @@ export function CashFlowKPIs() {
                           <span className="text-[var(--color-negative)]">{snapshot.changePercent}%</span>
                         </>
                       )}
-                    </div>
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="text-xs">

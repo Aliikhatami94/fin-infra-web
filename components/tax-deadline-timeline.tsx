@@ -42,8 +42,14 @@ export function TaxDeadlineTimeline() {
                   </div>
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10" aria-label={deadline.detail}>
-                        <Icon className="h-4 w-4 text-primary" />
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                          aria-label={deadline.detail}
+                        >
+                          <Icon className="h-4 w-4 text-primary" />
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs text-xs">{deadline.detail}</TooltipContent>
                     </Tooltip>

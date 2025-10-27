@@ -127,8 +127,14 @@ export function CryptoKPIs() {
                       <p className="text-xs text-muted-foreground">{kpi.label}</p>
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-3 w-3 text-muted-foreground" />
+                          <TooltipTrigger asChild>
+                            <button 
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
+                              aria-label={`More information about ${kpi.label}`}
+                            >
+                              <Info className="h-3 w-3 text-muted-foreground" />
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="text-xs">{kpi.tooltip}</p>
@@ -148,7 +154,11 @@ export function CryptoKPIs() {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 cursor-help">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                            aria-label={`${kpi.change} vs. yesterday`}
+                          >
                             {kpi.positive ? (
                               <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
                             ) : (
@@ -161,7 +171,7 @@ export function CryptoKPIs() {
                             >
                               {kpi.change}
                             </span>
-                          </div>
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p className="text-xs">
