@@ -1,5 +1,10 @@
-export default function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
-  const q = (searchParams?.q ?? "").toString()
+export default async function SearchPage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ q?: string }> 
+}) {
+  const params = await searchParams
+  const q = (params?.q ?? "").toString()
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
       <h1 className="text-xl md:text-2xl font-semibold">Search</h1>

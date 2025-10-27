@@ -356,7 +356,7 @@ export default function TaxesPage() {
             <div className="space-y-2">
               <h4 className="font-semibold text-sm">Important considerations:</h4>
               <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                <li><strong>Wash sale rule:</strong> You cannot repurchase the same or "substantially identical" security within 30 days before or after the sale.</li>
+                <li><strong>Wash sale rule:</strong> You cannot repurchase the same or &ldquo;substantially identical&rdquo; security within 30 days before or after the sale.</li>
                 <li><strong>Market timing:</strong> Selling and repurchasing affects your market exposure during the waiting period.</li>
                 <li><strong>Transaction costs:</strong> Trading fees may reduce the benefit of small tax savings.</li>
                 <li><strong>Long-term strategy:</strong> Harvesting works best as part of a comprehensive tax plan, not a one-time action.</li>
