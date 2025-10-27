@@ -37,24 +37,28 @@ export default function CashFlowPage() {
       {/* Body */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
         <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-        <div className="space-y-6">
+          {/* KPI Cards */}
           <CashFlowKPIs />
 
+          {/* AI Insights */}
           <ErrorBoundary feature="Cash flow insights">
             <CashFlowAIInsights />
           </ErrorBoundary>
 
+          {/* Main Chart - Full Width */}
           <CashFlowChart onMonthClick={setSelectedMonth} selectedMonth={selectedMonth} />
-        </div>
 
-        <CategoriesChart selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+          {/* Two Column Layout - Categories & Upcoming Charges */}
+          <div className="grid gap-6 xl:grid-cols-2">
+            <CategoriesChart selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+            <UpcomingCharges />
+          </div>
 
-        <UpcomingCharges />
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <RecurringExpenses selectedCategory={selectedCategory} />
-          <RecentTransactions selectedCategory={selectedCategory} selectedMonth={selectedMonth} />
-        </div>
+          {/* Bottom Section - Recurring & Transactions */}
+          <div className="grid gap-6 xl:grid-cols-2">
+            <RecurringExpenses selectedCategory={selectedCategory} />
+            <RecentTransactions selectedCategory={selectedCategory} selectedMonth={selectedMonth} />
+          </div>
         </div>
       </motion.div>
     </>

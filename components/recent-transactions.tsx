@@ -128,8 +128,8 @@ export function RecentTransactions({ selectedCategory, selectedMonth }: RecentTr
           </div>
         )}
       </CardHeader>
-      <CardContent>
-        <div className="space-y-0.5">
+      <CardContent className="pb-4">
+        <div className="space-y-0.5 max-h-[500px] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
           {filteredTransactions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">No transactions match the selected filters</p>
           ) : (

@@ -88,20 +88,20 @@ export function CategoriesChart({ selectedCategory, onSelectCategory }: Categori
                       {isOverBudget && <span className="ml-1 text-xs">(+${overAmount})</span>}
                     </span>
                   </div>
-                  <div className="relative h-2 bg-muted rounded-full overflow-visible">
+                  <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                     {isOverBudget ? (
                       <>
                         <div className="absolute inset-0 bg-red-500/20 rounded-full" />
                         <div
                           className="absolute top-0 left-0 h-full bg-red-500 rounded-full"
-                          style={{ width: `${percentUsed}%` }}
+                          style={{ width: `${Math.min(percentUsed, 100)}%` }}
                         />
                       </>
                     ) : (
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
-                          width: `${percentUsed}%`,
+                          width: `${Math.min(percentUsed, 100)}%`,
                           backgroundColor: expense.color,
                         }}
                       />

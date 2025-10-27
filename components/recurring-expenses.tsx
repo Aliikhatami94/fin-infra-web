@@ -88,11 +88,11 @@ export function RecurringExpenses({ selectedCategory }: RecurringExpensesProps) 
         </div>
         {selectedCategory && <p className="text-xs text-muted-foreground">Filtered by: {selectedCategory}</p>}
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-4">
         <div className="mb-4">
           <InsightCard insight={insight} onAction={handleInsightAction} />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
           {filteredSubscriptions.map((sub, index) => {
             const Icon = sub.icon
             return (

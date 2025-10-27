@@ -78,8 +78,8 @@ export function UpcomingCharges() {
           </div>
           <p className="text-xs text-muted-foreground mt-1">Next 30 days of scheduled payments</p>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
+        <CardContent className="pb-4">
+          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
             {upcomingCharges.map((charge, index) => (
               <motion.div
                 key={index}
