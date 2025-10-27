@@ -313,9 +313,9 @@ export function BudgetTable() {
             </button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-4">
           <div className="space-y-4">
-            <div className="hidden md:block">
+            <div className="hidden md:block max-h-[640px]">
               <Virtuoso
                 data={filteredBudgets}
                 style={{ height: listHeight }}
@@ -330,37 +330,39 @@ export function BudgetTable() {
 
                   return (
                     <div className="mb-4 last:mb-0 group space-y-3 rounded-lg border border-transparent p-4 transition-all hover:border-border hover:bg-muted/30">
-                      <div
-                        className="grid grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))] lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))] items-center gap-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium text-foreground">{budget.category}</span>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-medium text-foreground truncate">{budget.category}</span>
                           {budget.rolloverEnabled && (
-                            <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
+                            <Badge variant="secondary" className="text-xs px-2 py-0 h-5 flex-shrink-0">
                               Rollover
                             </Badge>
                           )}
-                          <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 w-7 p-0"
-                              onClick={() => handleQuickEdit(budget)}
-                              aria-label={`Quick edit ${budget.category} budget`}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 w-7 p-0"
-                              onClick={() => handleAdvancedEdit(budget)}
-                              aria-label={`Open advanced settings for ${budget.category}`}
-                            >
-                              <Settings className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
                         </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleQuickEdit(budget)}
+                            aria-label={`Quick edit ${budget.category} budget`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleAdvancedEdit(budget)}
+                            aria-label={`Open advanced settings for ${budget.category}`}
+                          >
+                            <Settings className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div
+                        className="grid grid-cols-3 lg:grid-cols-4 items-center gap-3"
+                      >
                         <div className="min-w-0 text-right">
                           <div className="text-sm font-medium tabular-nums text-foreground">
                             ${budget.budget.toLocaleString()}
@@ -485,7 +487,7 @@ export function BudgetTable() {
                 }}
               />
             </div>
-            <div className="md:hidden space-y-3">
+            <div className="md:hidden space-y-3 max-h-[640px] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
               {filteredBudgets.map((budget, index) => {
                 const previousActual = comparisonPeriod === "lastMonth" ? budget.lastMonthActual : budget.lastYearActual
                 const periodChange = budget.actual - previousActual

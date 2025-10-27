@@ -218,7 +218,7 @@ export default function BudgetPage() {
 
           <ScenarioPlaybook surface="budget" />
 
-          <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
+          <div className="grid gap-6 md:gap-8 xl:grid-cols-2">
             <BudgetTable />
             <BudgetChart />
           </div>
