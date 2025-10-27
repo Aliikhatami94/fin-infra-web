@@ -24,7 +24,7 @@ How to work this plan
 - [x] PR-08: Crypto page fixes
 - [x] PR-09: Transactions page fixes
 - [x] PR-10: Budget page fixes
-- [ ] PR-11: Goals page fixes
+- [x] PR-11: Goals page fixes
 - [ ] PR-12: Taxes page fixes
 - [ ] PR-13: Insights page fixes
 - [ ] PR-14: Documents page fixes
@@ -260,16 +260,23 @@ Files touched
 
 ---
 
-## PR-11: Goals page fixes
+## PR-11: Goals page fixes ✅
 
 Checklist
-- [ ] Add confirmation for creating a goal.
-- [ ] Scenario slider: add numeric input and `aria-label`s; ensure keyboard adjustments work.
-- [ ] Cards that suggest opening accounts/contributions: add confirmation dialogs and disclaimers.
-- [ ] Prevent target number truncation; ensure cards scale.
+- [x] Add confirmation for creating a goal - ConfirmDialog appears when clicking "Create Goal" button.
+- [x] Scenario slider: added numeric input field above slider with label, min/max validation, and two-way sync.
+- [x] Cards that suggest opening accounts/contributions: added confirmation dialogs with disclaimers for all three recommendation actions.
+- [x] Prevent target number truncation: verified formatCurrency usage and min-w-0 flex/grid behavior - no clipping.
 
 Acceptance criteria
-- Accessible slider; confirmations present; no clipped values.
+- ✅ Goal creation shows confirmation dialog with clear explanation of automatic tracking.
+- ✅ Scenario slider has numeric input for direct entry, maintains aria-label, keyboard adjustments work.
+- ✅ All recommendation action buttons show confirmation dialogs with appropriate context and disclaimers.
+- ✅ Target numbers display fully without truncation in all components and responsive layouts.
+
+Files touched
+- `app/(dashboard)/goals/page.tsx` - Added ConfirmDialog for goal creation, added numeric input to scenario slider with Label and two-way sync
+- `components/goal-recommendations.tsx` - Added ConfirmDialog with state management for all recommendation actions, added confirmTitle and confirmDescription to each recommendation
 
 ---
 
