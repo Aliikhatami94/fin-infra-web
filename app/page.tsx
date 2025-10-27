@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { LandingHeader } from "@/components/landing-header"
+import { BackToTopButton } from "@/components/back-to-top-button"
 import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock, ExternalLink, ArrowDownRight } from "lucide-react"
 import { BRAND } from "@/lib/brand"
 import { cn } from "@/lib/utils"
@@ -9,6 +10,7 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-screen">
         <LandingHeader />
+        <BackToTopButton />
 
         <main id="main-content">
           <section className="relative px-6 pt-32 pb-24 lg:px-8 lg:pt-40">
@@ -83,7 +85,7 @@ export default function LandingPage() {
           <section
             id="product-highlights"
             aria-labelledby="product-highlights-heading"
-            className="relative px-6 py-32 lg:px-8"
+            className="relative px-6 py-32 lg:px-8 scroll-mt-20"
           >
             <div className="mx-auto max-w-7xl">
               <h2
@@ -134,7 +136,7 @@ export default function LandingPage() {
                   key={highlight.id}
                   id={highlight.id}
                   aria-labelledby={`${highlight.id}-title`}
-                  className="grid items-center gap-8 rounded-3xl border border-border/30 bg-card/80 p-8 shadow-[var(--shadow-soft)] lg:grid-cols-[1.2fr_1fr]"
+                  className="grid items-center gap-8 rounded-3xl border border-border/30 bg-card/80 p-8 shadow-[var(--shadow-soft)] lg:grid-cols-[1.2fr_1fr] scroll-mt-20"
                 >
                   <div className="space-y-4">
                     <h3 id={`${highlight.id}-title`} className="text-2xl font-semibold tracking-tight text-foreground">
