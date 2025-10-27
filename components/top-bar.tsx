@@ -65,8 +65,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
         sidebarCollapsed ? "lg:left-16" : "lg:left-64",
       )}
     >
-      {/* Inner container: constrain width and center horizontally; match bar height */}
-      <div className="mx-auto flex h-12 w-full max-w-[1680px] items-center justify-between px-4 md:h-14 md:px-6">
+      {/* Inner container: constrain width and center horizontally to match page content width */}
+      <div className="mx-auto flex h-12 w-full max-w-[1200px] items-center justify-between px-4 md:h-14 sm:px-6 lg:px-10">
         <div className="flex items-center gap-3 md:gap-6">
           <div className="lg:hidden">
             <Button variant="ghost" size="icon" onClick={onMenuClick} aria-label="Open menu">
