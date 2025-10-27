@@ -42,7 +42,8 @@ export default function RootLayout({
           </PrivacyProvider>
         </ThemeProvider>
         <Toaster richColors position="top-right" closeButton />
-        <Analytics />
+        {/* Analytics: Only track in production to avoid polluting data with dev traffic */}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )

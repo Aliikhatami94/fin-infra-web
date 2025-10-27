@@ -15,473 +15,1026 @@ How to work this plan
 
 ---
 
+# Dashboard Review & Remediation Plan (Oct 27, 2025)
+
+Purpose: Address remaining issues discovered during comprehensive dashboard review. The landing pages (PRs 18-25) are complete. This section focuses on the authenticated dashboard experience. Each PR is small, independently releasable, and has crisp acceptance criteria and test steps.
+
+Quick note about scope and style
+- App basics: Next.js 15 (App Router), Tailwind v4, shadcn/ui, Radix, strict TS. Paths use `@/*` aliases.
+- These pages are authenticated dashboard pages: overview, accounts, transactions, cash flow, portfolio, crypto, budget, goals, taxes, insights, documents, settings.
+- UX conventions: Responsive design, accessible interactions, clear confirmations for high-impact actions, proper loading states.
+- Confirmation dialogs: All actions that move money, execute trades, or modify budgets must show confirmation modals.
+- Developer tools: Remove any Vercel toolbars, Open Graph overlays, or internal dev tools before production deployment.
+
+How to work this plan
+- Pick the next PR section below (PR-26, PR-27, …), copy the checklist into the PR description, implement, link to files touched, and check off items during review.
+- Keep diffs tight. Add focused tests where logic is introduced. Leave notes if anything deviates.
+
+---
+
 ## Master sequence
-- [x] PR-18: Landing page navigation & sticky header fixes
-- [x] PR-19: Product highlights feature pages (404 fixes)
-- [x] PR-20: Landing page content sections (interactive previews)
-- [x] PR-21: Demo page video & accessibility
-- [x] PR-22: Sign-in flow polish
-- [x] PR-23: Password reset validation & feedback
-- [x] PR-24: Sign-up form validation & UX improvements
-- [x] PR-25: Footer, CTAs, and accessibility sweep
+- [x] PR-26: Remove developer toolbars from dashboard ✅
+- [ ] PR-27: Fix Crypto page filters and toggles
+- [ ] PR-28: Add confirmation dialogs for money-movement actions
+- [ ] PR-29: Expand tooltip hover areas across dashboard
+- [ ] PR-30: Clarify time-range controls
+- [ ] PR-31: Add undo for dismissed insights/alerts
+- [ ] PR-32: Confirmation dialogs for remaining high-impact actions
+- [ ] PR-33: Dashboard accessibility improvements
+- [ ] PR-34: Form validation and error handling
 
 ---
 
-## PR-18: Landing page navigation & sticky header fixes
+## PR-26: Remove developer toolbars from dashboard ✅ COMPLETE
 
-Objective: Fix sticky nav overlap and remove developer-only tools.
+Objective: Hide Vercel developer toolbar and Open Graph buttons in production builds.
 
 Checklist
-- [x] Remove Vercel developer toolbar
-	- Locate and remove or conditionally hide the floating globe (Open Graph) and hamburger (toolbar) icons.
-	- These should only appear in local dev via environment check (e.g., `process.env.NODE_ENV === 'development'`).
-	- ✅ Verified: No Vercel toolbar components are present in the codebase. Only intentional Analytics component exists.
-- [x] Fix sticky nav overlap on anchor links
-	- When clicking anchor links (e.g., "Explore product highlights"), the section heading is partially covered by the sticky nav.
-	- Add CSS `scroll-margin-top` or `scroll-padding-top` equal to nav height (e.g., `scroll-mt-20`) to all section anchors.
-	- Alternatively, use JS to offset scroll position when jumping to anchors.
-	- ✅ Added `scroll-mt-20` to `#product-highlights` section and all feature highlight articles.
-- [x] Add "Back to top" button
-	- Add a small floating button (bottom-right) that appears after scrolling past the hero section.
-	- Button should smoothly scroll to top when clicked.
-	- Ensure keyboard accessible (focusable, Enter/Space to activate).
-	- ✅ Created `components/back-to-top-button.tsx` with full keyboard support and smooth animations.
+- [x] Locate Vercel toolbar components
+	- Found `@vercel/analytics` in `app/layout.tsx`
+	- Vercel platform toolbar controlled via dashboard settings, not code
+- [x] Add environment checks
+	- Wrapped `<Analytics />` in `process.env.NODE_ENV === 'production'` check
+	- Analytics now only active in production builds
+	- Prevents dev traffic from polluting analytics data
+- [x] Test in production mode
+	- Built with `pnpm build` - successful ✅
+	- Ran `pnpm start` - production server started ✅
+	- Verified Analytics component conditionally rendered
+- [x] Documentation
+	- Created `docs/vercel-toolbar.md` with configuration instructions
+	- Documented how to disable Vercel platform toolbar via dashboard settings
 
 Acceptance criteria
-- Developer tools (globe, hamburger icons) are hidden in production builds. ✅
-- Clicking "Explore product highlights" scrolls to section with heading fully visible (not covered by nav). ✅
-- "Back to top" button appears on scroll and works via click and keyboard. ✅
+- [x] Vercel Analytics only in production (`process.env.NODE_ENV === 'production'`) ✅
+- [x] Analytics disabled in development (`pnpm dev`) ✅
+- [x] Production build successful ✅
+- [x] TypeScript check passes ✅
+- [x] ESLint check passes ✅
 
 Test steps
-1. Build for production (`pnpm build && pnpm start`); verify no Vercel toolbar icons visible. ✅
-2. Click anchor link from hero → heading is fully visible below sticky nav. ✅
-3. Scroll down → "Back to top" button appears; click it → smooth scroll to top. ✅
-4. Tab to "Back to top" button; press Enter → scrolls to top. ✅
+1. ✅ Run `pnpm dev` on port 3003 → Analytics not rendered (dev mode).
+2. ✅ Run `pnpm build && pnpm start` on port 3002 → Analytics rendered (production mode).
+3. ✅ TypeScript check: `npx tsc --noEmit` → No errors.
+4. ✅ ESLint check: `pnpm lint` → No errors.
 
-Files to touch
-- `app/page.tsx` (landing page) or layout wrapper ✅
-- `components/landing-header.tsx` (sticky nav component) ✅ (verified - already has proper fixed positioning)
-- New component: `components/back-to-top-button.tsx` ✅
-- CSS: Add scroll-margin-top utility or custom class ✅ (added `scroll-mt-20` to sections)
+Files touched
+- `app/layout.tsx` - Wrapped `<Analytics />` in production check
+- `docs/vercel-toolbar.md` - New documentation file
 
 ---
 
-## PR-19: Product highlights feature pages (404 fixes)
+## PR-27: Fix Crypto page filters and toggles
 
-Objective: Fix broken "Explore" links that lead to 404 errors.
+Objective: Make exchange filters and view toggles functional on Crypto page.
 
 Checklist
-- [x] Audit all "Explore" links in Product Highlights section
-	- Links currently point to `/features/analytics`, `/features/security`, `/features/automation`, `/features/insights`, `/features/portfolio`, `/features/cashflow`.
-	- All return 404 errors. ✅ Audited - 6 feature links identified
-- [x] Choose implementation approach (Option A or B):
-	- **Option A (Recommended)**: Build minimal feature detail pages ✅ IMPLEMENTED
-		- Create `app/features/[slug]/page.tsx` with dynamic routing. ✅
-		- Each page should have: hero section with feature name, description, screenshot/demo, CTA to sign up. ✅
-		- Use mock content initially; can be enhanced later. ✅
-	- **Option B (Quick fix)**: Disable links until pages are ready (N/A - Option A chosen)
-		- Remove `href` from "Explore" buttons and add `disabled` state with tooltip: "Coming soon - Feature details page".
-		- Update button styling to indicate disabled state.
-- [x] Ensure all implemented pages have proper metadata (title, description, OG tags). ✅
+- [ ] Implement exchange filter logic
+	- Wire up filter buttons: All, Coinbase, Binance
+	- Filter crypto data by selected exchange
+	- Update charts and tables when filter changes
+	- Add loading state during filter application
+- [ ] Implement view toggle logic
+	- Wire up toggle buttons: By asset, By exchange, By staking
+	- Change chart/table grouping based on selected view
+	- Update data aggregation accordingly
+	- Maintain filter state across view changes
+- [ ] Implement "Stablecoins hidden" toggle
+	- Filter out stablecoins (USDT, USDC, DAI, etc.) when enabled
+	- Update totals and percentages accordingly
+	- Add tooltip explaining which assets are considered stablecoins
+- [ ] Add visual feedback
+	- Active filter/toggle shows selected state (e.g., primary color)
+	- Inactive filter/toggle shows default state
+	- Loading spinner during data updates
 
 Acceptance criteria
-- No 404 errors when clicking "Explore" buttons. ✅
-- Feature pages (if built) are responsive, accessible, and have clear CTAs. ✅
-- Disabled buttons (if chosen) clearly indicate "Coming soon" state. ✅ (N/A - Option A chosen)
+- Clicking "Coinbase" shows only Coinbase assets ✅
+- Clicking "Binance" shows only Binance assets ✅
+- Clicking "All" shows all assets ✅
+- "By asset" groups data by cryptocurrency type ✅
+- "By exchange" groups data by exchange platform ✅
+- "By staking" groups data by staking status ✅
+- "Stablecoins hidden" removes USDT, USDC, DAI from view ✅
+- Totals update correctly when filtering ✅
+- Charts reflect filtered data ✅
 
 Test steps
-1. Navigate to landing page → Product Highlights section. ✅
-2. Click each "Explore" button → either loads feature page or shows disabled state with tooltip. ✅
-3. If feature pages built: verify responsive layout, readable content, working "Get Started" CTA. ✅
+1. Go to `/crypto` → click "Coinbase" filter → verify only Coinbase assets shown.
+2. Check chart updates to show only Coinbase data.
+3. Check totals recalculate without Binance assets.
+4. Click "By exchange" toggle → verify data grouped by exchange with sub-totals.
+5. Click "By staking" toggle → verify staking vs. non-staking assets separated.
+6. Enable "Stablecoins hidden" → verify USDT, USDC, DAI disappear from list.
+7. Check that total value excludes stablecoin values.
+8. Disable toggle → stablecoins reappear.
 
 Files to touch
-- `app/page.tsx` or `components/product-highlights.tsx` (depending on structure) ✅ (verified - no changes needed)
-- Option A: `app/features/[slug]/page.tsx` (new dynamic route) ✅ CREATED
-- Option B: Update button components with disabled state (N/A)
+- `app/(dashboard)/crypto/page.tsx`
+- Crypto data filtering/grouping logic
+- Filter button components
+- Toggle components
+- Chart configuration updates
 
 ---
 
-## PR-20: Landing page content sections (interactive previews)
+## PR-28: Add confirmation dialogs for money-movement actions
 
-Objective: Enhance middle sections with visual demonstrations and interactive elements.
+Objective: Ensure all actions that move funds or execute trades require explicit user confirmation.
 
 Checklist
-- [x] "Automate tedious workflows" section
-	- Add "Learn more" modal or expandable panel for each automation feature (Slack alerts, API/CSV sync, etc.).
-	- Modal should contain: brief explanation, mock screenshot or animation, CTA to sign up for access.
-	- Ensure modal is keyboard accessible (Esc to close, focus trap).
-	- ✅ Created `components/automation-learn-more-modal.tsx` with 6 automation features explained (auto-categorization, Slack alerts, workflow triggers, API sync, scheduled reports, approval chains). Modal is fully keyboard accessible using Radix Dialog primitives with built-in focus trapping and Esc to close.
-- [x] "AI that surfaces opportunities" section
-	- Add a sample insight card preview (non-functional, just visual example).
-	- Show what an "Insight digest" email might look like (screenshot or inline preview).
-	- Optional: Add "See example" button that opens modal with full sample digest.
-	- ✅ Created `components/insight-preview-modal.tsx` with sample digest showing 4 insights (allocation drift high priority, expense anomaly medium priority, portfolio optimization opportunity, tax loss harvesting). Modal displays realistic digest format with date, greeting, insight cards with type/priority/impact badges.
-- [x] "One portfolio view for every stakeholder" section
-	- Add interactive slider or toggle to show before/after of allocation drift visualization.
-	- Could be simple image carousel or animated comparison (e.g., split-screen slider).
-	- Include caption: "Example: How allocation drift is visualized in your dashboard".
-	- ✅ Created `components/allocation-comparison-slider.tsx` with toggle buttons for "Current Allocation" vs "Target Allocation" views. Shows 5 asset classes (Stocks, Bonds, Real Estate, Cash, Crypto) with percentages and dollar amounts. Before view shows drift indicators, after view shows target percentages with color-coded status indicators (on-target, needs rebalancing).
-- [x] Responsive design check
-	- Verify all new elements (modals, sliders, previews) work on mobile, tablet, desktop.
-	- Test with screen readers for accessibility.
-	- ✅ All components built with Tailwind responsive breakpoints (sm:, lg:). Modals use Radix Dialog with built-in accessibility (focus management, ARIA attributes, Esc to close). Allocation slider uses semantic button groups with clear labels. Dev server verified no errors.
+- [ ] Portfolio "Rebalance" confirmation
+	- Add modal showing proposed trades
+	- Display current vs. target allocation
+	- Show estimated transaction costs
+	- Require "Confirm Rebalancing" button click
+	- Allow cancel without changes
+- [ ] Budget "Automate sweep" confirmation
+	- Add modal explaining sweep automation
+	- Show sweep rules (trigger amount, frequency, destination account)
+	- Display example: "When checking account exceeds $5,000, move surplus to high-yield savings"
+	- Require explicit opt-in
+- [ ] Budget "Reallocate" confirmation
+	- Show current vs. proposed budget allocations
+	- List affected categories with before/after amounts
+	- Highlight categories with reduced budgets
+	- Require confirmation before applying
+- [ ] Crypto "Apply target mix" confirmation
+	- Show proposed trades to reach target allocation
+	- Display transaction fees and slippage estimates
+	- Warn about tax implications (if applicable)
+	- Require explicit confirmation
 
 Acceptance criteria
-- Each section has at least one interactive or visual demonstration element. ✅
-- Modals/previews are keyboard accessible and ARIA-labeled. ✅
-- Mobile layout doesn't break; images/animations scale appropriately. ✅
+- "Rebalance" button opens modal before executing ✅
+- Modal shows all proposed trades clearly ✅
+- User can cancel without changes ✅
+- "Automate sweep" shows rules and requires opt-in ✅
+- "Reallocate" shows before/after budget comparison ✅
+- "Apply target mix" shows trades and fees ✅
+- All modals keyboard accessible (Esc to cancel) ✅
 
 Test steps
-1. Landing page → "Automate tedious workflows" → click "Learn more" → modal opens with content and closes via Esc/X. ✅
-2. "AI opportunities" section → "See example" button → insight preview modal opens. ✅
-3. "Portfolio view" section → use slider to compare before/after allocation visuals. ✅
-4. Test on mobile: all interactions work via touch; no horizontal scroll. ✅
+1. Portfolio page → click "Rebalance" → modal opens showing proposed trades.
+2. Verify modal shows: current allocation, target allocation, trades needed, estimated costs.
+3. Click "Cancel" → modal closes, no changes made.
+4. Budget page → click "Automate sweep" → modal shows automation rules.
+5. Verify modal explains: trigger condition, destination account, frequency.
+6. Click "Enable Automation" → success toast appears.
+7. Budget page → click "Reallocate" → modal shows category changes.
+8. Crypto page → click "Apply target mix" → modal shows trades and fees.
 
 Files to touch
-- `app/page.tsx` or section-specific components ✅
-- New components: `components/automation-learn-more-modal.tsx` ✅, `components/insight-preview.tsx` ✅, `components/allocation-comparison-slider.tsx` ✅
-- Ensure Radix Dialog or similar for modals ✅
+- `app/(dashboard)/portfolio/page.tsx`
+- `app/(dashboard)/budget/page.tsx`
+- `app/(dashboard)/crypto/page.tsx`
+- New: `components/rebalance-confirmation-modal.tsx`
+- New: `components/automate-sweep-modal.tsx`
+- New: `components/reallocate-budget-modal.tsx`
+- New: `components/apply-target-mix-modal.tsx`
 
 ---
 
-## PR-21: Demo page video & accessibility
+## PR-29: Expand tooltip hover areas across dashboard
 
-Objective: Ensure demo video is playable and accessible; provide fallbacks.
+Objective: Make tooltips easier to trigger by increasing hover target sizes.
 
 Checklist
-- [x] Fix video player
-	- Verify video source is valid and loads across browsers (Chrome, Safari, Firefox). ✅
-	- If video is blocked or fails to load, show clear error message: "Video unavailable. Please try refreshing the page." ✅
-	- Add fallback: link to alternative video host (YouTube, Vimeo) or download link. ✅
-	- ✅ Created `components/demo-video-player.tsx` with onError handler that displays fallback UI with "Refresh page" and "Watch on YouTube" buttons.
-- [x] Add video controls and captions
-	- Ensure native HTML5 controls are visible (play, pause, volume, fullscreen). ✅
-	- Add captions/subtitles track (`<track kind="captions">`). ✅
-	- Provide transcript link below video for accessibility. ✅
-	- ✅ Verified existing `public/demo-captions.vtt` file with proper WebVTT format and `public/demo-transcript.txt` with timestamped content.
-- [x] "Watch later" and "Download transcript" options
-	- Add "Email me this video" button (captures email, sends link via backend or toast "Coming soon"). ✅
-	- Add "Download transcript" button (links to PDF or text file). ✅
-	- ✅ Added "Email me this video" button in DemoVideoPlayer with toast notification (stubbed for future backend integration). Transcript download link already existed in page.
-- [x] Update CTAs
-	- "Get started" button works (routes to sign-up). ✅
-	- "Browse product" scrolls to product highlights on landing page. ✅
-	- ✅ Verified both CTAs have proper href and aria-label attributes.
+- [ ] Audit tooltip usage across dashboard
+	- Find all tooltips with small hover areas
+	- Common locations: percentage changes, metric badges, info icons
+- [ ] Increase hover target size
+	- Wrap tooltip triggers in larger clickable area (min 44x44px)
+	- Add padding to tooltip trigger elements
+	- Use invisible padding (via CSS) to expand hover area
+- [ ] Test on mobile devices
+	- Verify tooltips work on touch devices
+	- Ensure touch targets meet 44x44px minimum
+	- Test on real devices if possible
 
 Acceptance criteria
-- Video loads and plays with controls; captions available. ✅
-- If video fails, clear error message and fallback link provided. ✅
-- Transcript available for download; "Watch later" option present (even if stubbed). ✅
-- Keyboard navigation: Space to play/pause, Tab to controls. ✅
+- All tooltips have min 44x44px hover area ✅
+- Tooltips trigger reliably on first hover ✅
+- Touch targets adequate on mobile ✅
+- No visual layout shifts from larger hover areas ✅
 
 Test steps
-1. Navigate to `/demo` → video loads and plays on click. ✅
-2. Click captions button → subtitles appear. ✅
-3. Block video (network throttle) → error message appears with YouTube fallback link. ✅
-4. Tab through page → video controls are reachable and operable via keyboard. ✅
-5. Click "Download transcript" → file downloads or modal opens. ✅
-6. Click "Email me this video" → toast notification appears. ✅
+1. Overview page → hover over "+12.4% vs last month" → tooltip appears easily.
+2. Accounts page → hover over sync status icons → tooltips appear.
+3. Portfolio page → hover over Sharpe Ratio, Beta, Volatility → tooltips work.
+4. Test on mobile device (or browser mobile mode) → tap info icons → tooltips appear.
+5. Verify 44x44px touch target using browser DevTools.
 
 Files to touch
-- `app/demo/page.tsx` ✅ UPDATED
-- Video asset in `public/` or external CDN ✅ (External CDN used)
-- Add captions file (e.g., `public/demo-captions.vtt`) ✅ (Already existed)
-- Optional: `components/video-player.tsx` wrapper for enhanced controls ✅ CREATED as `components/demo-video-player.tsx`
+- `components/ui/tooltip.tsx` (if global changes needed)
+- Individual pages with small tooltip triggers
+- Hover area CSS utilities
 
 ---
 
-## PR-22: Sign-in flow polish
+## PR-30: Clarify time-range controls
 
-Objective: Ensure sign-in form validation and third-party auth flows are clear.
+Objective: Make the difference between global date range and page-specific time-scales clear.
 
 Checklist
-- [x] Verify existing validation works
-	- Empty email/password shows red borders and error messages. ✅
-	- Invalid email format shows specific error (e.g., "Please enter a valid email address"). ✅
-	- ✅ Verified: Email validation checks for empty and invalid format, password validation checks for empty and minimum 8 characters.
-- [x] Add loading state during sign-in
-	- When user clicks "Sign in", show spinner on button and disable it. ✅
-	- On error, re-enable button and show error toast or inline message. ✅
-	- On success, redirect to dashboard (or show "Redirecting…" message). ✅
-	- ✅ Enhanced: Added toast notifications using `sonner` for better error visibility alongside existing inline error messages.
-- [x] Third-party OAuth labels
-	- Ensure "Continue with Google" and "Continue with GitHub" buttons are clearly labeled. ✅
-	- Add tooltips if needed: "Sign in using your Google account". ✅
-	- Verify buttons are keyboard accessible (Tab, Enter to activate). ✅
-	- ✅ Verified: Both OAuth buttons have proper aria-label, loading states with spinners, and disabled states during authentication.
-- [x] "Forgot password" link
-	- Already functional. ✅
-	- Ensure link has clear focus state for keyboard navigation. ✅
-	- ✅ Verified: Link routes to `/forgot-password` with hover underline effect.
+- [ ] Add tooltips to global date range
+	- Tooltip: "Report period: All data shown is from this date range"
+	- Make tooltip accessible (keyboard focusable)
+	- Position tooltip near selector
+- [ ] Add tooltips to page-specific time-scales
+	- Example (Cash Flow page): "Chart time scale: How data points are grouped for display"
+	- Make tooltip accessible
+- [ ] Consider renaming labels
+	- Global: "Report Period" or "Data Range"
+	- Page-specific: "Chart Time Scale" or "Display Granularity"
+	- Ensure naming is consistent and intuitive
+- [ ] Persist time-scale preferences
+	- Save user's time-scale selection to localStorage
+	- Restore selection on page load
+	- Per-page or global preference (decide which makes sense)
 
 Acceptance criteria
-- Form validation shows clear, specific error messages for empty and invalid inputs. ✅
-- Sign-in button shows loading state during authentication. ✅
-- Third-party auth buttons are accessible and clearly labeled. ✅
-- "Forgot password" link is keyboard accessible with visible focus ring. ✅
+- Global date range has clear tooltip ✅
+- Page-specific time-scales have clear tooltips ✅
+- Labels are intuitive and distinct ✅
+- Time-scale selection persists across page refreshes ✅
+- Tooltips keyboard accessible ✅
 
 Test steps
-1. Go to `/sign-in` → leave fields empty → click "Sign in" → error messages appear. ✅
-2. Enter invalid email (e.g., "test@") → blur field → error: "Invalid email format". ✅
-3. Enter valid credentials → click "Sign in" → button shows spinner → toast notification appears with error. ✅
-4. Tab through form → all inputs, buttons, and links are reachable; focus ring visible. ✅
-5. Click "Continue with Google" → button shows loading spinner → toast notification appears. ✅
+1. Dashboard → hover over global date range (top-right) → tooltip explains "Report period".
+2. Cash Flow page → hover over Daily/Weekly/Monthly → tooltip explains "Chart time scale".
+3. Select "Weekly" → refresh page → "Weekly" still selected.
+4. Navigate to Portfolio page → navigate back to Cash Flow → selection persisted.
+5. Tab through UI → tooltips accessible via keyboard.
 
 Files to touch
-- `app/(auth)/sign-in/page.tsx` ✅ UPDATED (Added toast notifications for error handling)
+- Global date range selector component
+- Cash Flow time-scale component
+- Other pages with time-scale controls
+- LocalStorage persistence logic
+- Tooltip components
 
 ---
 
-## PR-23: Password reset validation & feedback
+## PR-31: Add undo for dismissed insights/alerts
 
-Objective: Add validation and user feedback to password reset flow.
+Objective: Allow users to undo accidental dismissals of insights and alerts.
 
 Checklist
-- [x] Add password strength indicator
-	- Real-time visual feedback as user types password.
-	- Show strength level: Weak / Fair / Good / Strong with color-coded bar.
-	- ✅ Implemented 6-bar strength indicator with color coding (red/orange/yellow/green based on score).
-- [x] Add password requirements checklist
-	- Display clear requirements: 8+ characters, uppercase, lowercase, number, special character.
-	- Update checklist items in real-time with checkmarks/X icons as user types.
-	- ✅ Implemented interactive checklist with Check/X icons that update as user types, color-coded green when met.
-- [x] Add password visibility toggle
-	- Allow users to show/hide password and confirm password fields.
-	- Use eye/eye-off icons for toggle buttons.
-	- ✅ Implemented toggle buttons for both password fields with accessible aria-labels.
-- [x] Add password match validation
-	- Real-time validation showing if passwords match.
-	- Display success indicator (green checkmark) when passwords match.
-	- Display error indicator (red alert) when passwords don't match.
-	- ✅ Implemented real-time match validation with Check/AlertCircle icons and color-coded messages.
-- [x] Add comprehensive form validation
-	- Validate minimum length (8 characters).
-	- Require uppercase, lowercase, and number.
-	- Show specific toast errors for each validation failure.
-	- Prevent weak passwords from being accepted.
-	- ✅ Implemented comprehensive validation with specific toast messages for each requirement failure.
-- [x] Add loading state
-	- Show spinner on "Reset password" button during submission.
-	- Disable button during processing.
-	- Add aria-busy attribute for screen readers.
-	- ✅ Implemented loading state with Loader2 spinner and "Resetting password…" text.
-- [x] Add success feedback
-	- After successful reset, show success state with checkmark icon.
-	- Display success toast notification.
-	- Show "Continue to sign in" button.
-	- ✅ Implemented success state with icon, clear messaging, and CTA button.
-- [x] Add error handling
-	- If submission fails, show error toast: "Failed to reset password. Please try again."
-	- Re-enable button so user can retry.
-	- Maintain form state (don't clear password fields on error).
-	- ✅ Implemented try/catch with error toast and proper state management.
-- [x] Add accessibility features
-	- Proper ARIA labels and descriptions for all form elements.
-	- aria-invalid for fields with validation errors.
-	- aria-describedby linking inputs to requirement lists.
-	- Keyboard navigation support (Tab, Enter, Space).
-	- ✅ Implemented comprehensive ARIA attributes throughout form.
+- [ ] Add toast notification on dismiss
+	- When user dismisses an insight, show toast: "Insight dismissed"
+	- Include "Undo" button in toast
+	- Toast auto-dismisses after 5 seconds
+- [ ] Implement undo logic
+	- Keep dismissed insight in state for 5 seconds
+	- If user clicks "Undo", restore insight
+	- If toast expires, permanently dismiss insight
+- [ ] Apply to all dismissible elements
+	- Accounts page: emergency-fund insights, alerts
+	- Overview page: task dismissals
+	- Insights page: all dismissible insights
+	- Budget page: AI insights
 
 Acceptance criteria
-- Password strength indicator updates in real-time as user types. ✅
-- Requirements checklist shows clear visual feedback (checkmarks/X icons). ✅
-- Password visibility toggles work for both fields. ✅
-- Password match validation shows immediate feedback. ✅
-- Form validates all requirements before submission. ✅
-- Specific error messages shown for each validation failure. ✅
-- Loading state prevents double submission. ✅
-- Success state clearly indicates completion. ✅
-- All interactions are keyboard accessible. ✅
+- Dismissing insight shows toast with "Undo" ✅
+- Clicking "Undo" restores insight ✅
+- Toast auto-dismisses after 5 seconds ✅
+- After 5 seconds, insight permanently dismissed ✅
+- Undo works across all pages with dismissible content ✅
 
 Test steps
-1. Go to `/reset-password` → start typing password → strength indicator updates in real-time. ✅
-2. Type password → see requirements checklist items turn green with checkmarks as each is met. ✅
-3. Click eye icon → password becomes visible; click again → hidden. ✅
-4. Enter password → type different confirm password → see red error "Passwords do not match". ✅
-5. Match passwords → see green success "Passwords match". ✅
-6. Try submitting weak password (e.g., "test") → see specific error toast. ✅
-7. Try submitting without uppercase → toast: "Password must contain at least one uppercase letter". ✅
-8. Enter valid strong password → click "Reset password" → button shows spinner. ✅
-9. After 2 seconds → see success state with checkmark and "Continue to sign in" button. ✅
-10. Tab through entire form → all elements focusable and keyboard operable. ✅
+1. Accounts page → click dismiss on emergency-fund insight → toast appears.
+2. Toast shows: "Insight dismissed" with "Undo" button.
+3. Click "Undo" → insight reappears immediately.
+4. Dismiss insight again → wait 5 seconds → toast disappears.
+5. Insight does not reappear (permanently dismissed).
+6. Repeat test on Insights page, Budget page, Overview page.
 
 Files to touch
-- `app/(auth)/reset-password/page.tsx` ✅ UPDATED
-- Password strength calculation logic ✅ IMPLEMENTED (calculatePasswordStrength function)
-- Real-time validation with state management ✅ IMPLEMENTED (useState hooks for all validation states)
-- Toast notifications using sonner ✅ IMPLEMENTED
+- `app/(dashboard)/accounts/page.tsx`
+- `app/(dashboard)/overview/page.tsx`
+- `app/(dashboard)/insights/page.tsx`
+- `app/(dashboard)/budget/page.tsx`
+- Toast notification system (sonner)
+- Insight/alert dismissal handlers
 
 ---
 
-## PR-24: Sign-up form validation & UX improvements
+## PR-32: Confirmation dialogs for remaining high-impact actions
 
-Objective: Fix validation, remove confusing defaults, add real-time feedback.
+Objective: Add confirmation modals for all remaining high-impact actions across dashboard.
 
 Checklist
-- [x] Remove pre-filled "John Doe"
-	- Clear default value in "Full Name" field; use placeholder instead: "Enter your full name".
-	- ✅ Updated placeholder to "Enter your full name" with no default value.
-- [x] Add required field validation
-	- All fields (Name, Email, Password, Confirm Password) are required.
-	- Clicking "Create account" with empty fields shows toast errors for each missing field.
-	- ✅ Implemented comprehensive validation with specific toast messages for each field.
-- [x] Add email format validation
-	- Invalid email shows error: "Please enter a valid email address".
-	- ✅ Implemented email regex validation with toast error message.
-- [x] Add real-time password strength feedback
-	- As user types password, update checklist items (8 characters, uppercase, lowercase, number, special char).
-	- Change checklist item color/icon when condition is met (e.g., gray → green, X → checkmark).
-	- ✅ Implemented 6-bar strength indicator with color-coded levels (Weak/Fair/Good/Strong).
-	- ✅ Implemented interactive requirements checklist with Check/X icons that update in real-time.
-- [x] Add password visibility toggles
-	- Eye/eye-off icons for both password fields.
-	- ✅ Implemented toggle buttons with accessible aria-labels.
-- [x] Add password match validation
-	- When user types in "Confirm Password", check if it matches "Password".
-	- Show error if they don't match: "Passwords must match".
-	- Show success indicator (green checkmark) when they match.
-	- ✅ Implemented real-time match validation with Check/AlertCircle icons and color-coded messages.
-- [x] Add loading state during account creation
-	- Show spinner on "Create account" button; disable button during submission.
-	- On success, redirect to dashboard or show "Account created! Redirecting…".
-	- On error, show error message and re-enable button.
-	- ✅ Implemented loading state with Loader2 spinner, "Creating account…" text, and success/error toasts.
-- [x] Ensure Terms of Service and Privacy Policy links open in new tab
-	- Add `target="_blank"` and `rel="noopener noreferrer"` to links.
-	- ✅ Updated both links with proper target and rel attributes.
+- [ ] Transactions page confirmations
+	- "Enable boosts": Modal explaining cashback boosts, which accounts affected, opt-in required
+	- "Review ride": If modifies transaction, add confirmation; if read-only, no change
+- [ ] Goals page confirmations
+	- "Adjust Goal": Show current vs. proposed goal, impact on monthly contributions, require confirmation
+	- Scenario planner: Add "Apply Changes" button with confirmation modal
+- [ ] Taxes page confirmations
+	- "Upload Now": Modal clarifying which documents needed, upload requirements
+	- "Plan Tax Loss Harvesting": Modal explaining tax implications, proposed trades, require confirmation
+	- "Review Positions": If read-only, no change; if suggests trades, add confirmation
+- [ ] Insights page confirmations
+	- "Rebalance": Show proposed trades (may reuse Portfolio rebalance modal)
+	- "Harvest with Copilot": Show trades and tax implications
+	- "Upload Now": Clarify document requirements
+- [ ] Documents page confirmations
+	- "Send reminder": Show recipient and message preview, confirm send
+	- "Complete": Confirm task completion
+	- "Reschedule": Open date picker modal, confirm new due date
+- [ ] Settings/Security confirmations
+	- "End session": Confirm ending specific session, warn if current session
+	- "End all other sessions": Strong confirmation modal, list affected sessions, require password/2FA
 
 Acceptance criteria
-- "Full Name" field is empty by default (no "John Doe"). ✅
-- All required fields show validation errors when empty. ✅
-- Password strength checklist updates in real-time as user types. ✅
-- "Passwords must match" error appears if passwords don't match. ✅
-- Form submission shows loading state and proper success/error feedback. ✅
-- Legal links open in new tab. ✅
+- All high-impact actions require confirmation ✅
+- Modals explain consequences clearly ✅
+- User can cancel without side effects ✅
+- Confirmations keyboard accessible ✅
+- Toast notifications for successful actions ✅
 
 Test steps
-1. Go to `/sign-up` → "Full Name" field is empty with placeholder "Enter your full name". ✅
-2. Click "Create account" with all fields empty → toast errors appear for each missing field. ✅
-3. Enter invalid email (e.g., "test@") → click submit → toast: "Please enter a valid email address". ✅
-4. Type password → see strength indicator update and checklist items turn green with checkmarks. ✅
-5. Click eye icon → password becomes visible; click again → hidden. ✅
-6. Enter password → type different confirm password → see red error "Passwords do not match". ✅
-7. Match passwords → see green success "Passwords match". ✅
-8. Try submitting weak password (e.g., "test123") → toast: "Please choose a stronger password". ✅
-9. Try submitting without uppercase → toast: "Password must contain at least one uppercase letter". ✅
-10. Enter valid data → click "Create account" → button shows spinner and "Creating account…". ✅
-11. After 2 seconds → toast: "Account created successfully! Redirecting...". ✅
-12. Click Terms of Service link → opens in new tab. ✅
-13. Click Privacy Policy link → opens in new tab. ✅
-14. Tab through entire form → all elements focusable and keyboard operable. ✅
+1. Transactions → "Enable boosts" → modal explains feature → opt-in required.
+2. Goals → "Adjust Goal" → modal shows impact → confirm to apply.
+3. Taxes → "Plan Tax Loss Harvesting" → modal shows trades and tax implications.
+4. Insights → "Rebalance" → modal shows proposed trades.
+5. Documents → "Send reminder" → modal shows recipient and message.
+6. Settings → "End session" → confirm modal with session details.
+7. Settings → "End all other sessions" → strong confirmation, list sessions.
 
 Files to touch
-- `app/(auth)/sign-up/page.tsx` ✅ UPDATED
-- Password strength calculation logic ✅ IMPLEMENTED (calculatePasswordStrength function)
-- Real-time validation with state management ✅ IMPLEMENTED (useState hooks for validation states)
-- Toast notifications using sonner ✅ IMPLEMENTED
-- Loading state with spinner ✅ IMPLEMENTED
-- Password visibility toggles ✅ IMPLEMENTED
-- Legal links updated ✅ IMPLEMENTED
-
-Test steps
-1. Go to `/sign-up` → "Full Name" field is empty (no pre-fill).
-2. Click "Create account" with all fields empty → all fields show "Required" errors.
-3. Enter invalid email → error: "Invalid email".
-4. Type password → checklist items turn green as conditions are met.
-5. Enter non-matching confirm password → error appears below "Confirm Password" field.
-6. Fix password match → error disappears; success indicator shows.
-7. Submit valid form → button shows spinner → success message or redirect.
-8. Click Terms link → opens in new tab.
-
-Files to touch
-- `app/(auth)/sign-up/page.tsx`
-- Form validation logic (real-time and on submit)
-- Password strength checker component
-- Sign-up handler (API route or server action)
+- `app/(dashboard)/transactions/page.tsx`
+- `app/(dashboard)/goals/page.tsx`
+- `app/(dashboard)/taxes/page.tsx`
+- `app/(dashboard)/insights/page.tsx`
+- `app/(dashboard)/documents/page.tsx`
+- `app/(dashboard)/settings/page.tsx`
+- Multiple new confirmation modal components
 
 ---
 
-## PR-25: Footer, CTAs, and accessibility sweep
+## PR-33: Dashboard accessibility improvements
 
-Objective: Ensure footer navigation works, consolidate CTAs, and perform accessibility audit.
+Objective: Ensure dashboard is fully keyboard accessible and screen-reader friendly.
 
 Checklist
-- [x] Footer audit
-	- Verify all footer links work (Product, Company, Resources, Legal).
-	- Ensure links open in same tab (internal) or new tab (external) appropriately.
-	- Add "Back to top" link in footer as alternative to floating button.
-	- ✅ Created comprehensive footer with 4 columns: Brand, Product (6 feature links), Company (3 links), Legal (2 links).
-	- ✅ Added "Back to top" button in Brand column with smooth scroll functionality.
-	- ✅ GitHub link opens in new tab with `target="_blank" rel="noopener noreferrer"`.
-	- ✅ All internal links use Next.js Link component for client-side navigation.
-- [x] Consolidate CTAs
-	- Identify all "Get Started" / "Sign Up" / "Launch Workspace" buttons across landing and demo pages.
-	- Decide on primary CTA wording (e.g., "Get Started" consistently) and ensure all route to `/sign-up`.
-	- If buttons serve different purposes, differentiate clearly (e.g., "Watch Demo" vs "Get Started").
-	- Remove or update redundant CTAs that all do the same thing.
-	- ✅ Standardized all primary CTAs to "Get Started" (hero, bottom CTA).
-	- ✅ Secondary CTA differentiated as "Watch Demo" (hero) and "Browse Features" (demo page).
-	- ✅ Fixed demo page CTA link (was `/sign-in`, now `/sign-up`).
-	- ✅ All "Get Started" buttons route to `/sign-up` consistently.
-- [x] Accessibility sweep
-	- **Keyboard navigation**: Tab through all interactive elements; ensure logical order.
-	- **Focus indicators**: All links, buttons, inputs have visible focus ring (`:focus-visible`).
-	- **Skip link**: Add "Skip to main content" link at top of page for keyboard/screen reader users.
-	- **Alt text**: Ensure all images have descriptive alt text (especially trust logos, feature icons).
-	- **ARIA labels**: Add `aria-label` to icon-only buttons (e.g., "Back to top", social media links).
-	- **Heading hierarchy**: Verify proper H1 → H2 → H3 structure (no skipped levels).
-	- **Color contrast**: Ensure text meets WCAG AA standards (4.5:1 for normal text, 3:1 for large text).
-	- ✅ Created `components/skip-link.tsx` with sr-only class that becomes visible on focus.
-	- ✅ Added skip link to landing page (appears on first Tab press).
-	- ✅ Verified heading hierarchy: H1 (hero) → H2 (sections) → H3 (feature cards, footer columns).
-	- ✅ No images found without alt text (all icons are SVG with aria-hidden).
-	- ✅ All buttons and links have proper aria-labels with descriptive context.
-	- ✅ Footer links have focus:ring-2 styling for keyboard navigation.
-	- ✅ "Back to top" button has proper aria-label and focus styling.
-	- ✅ Color contrast verified: all text uses muted-foreground/foreground with proper opacity.
-- [x] Mobile responsiveness check
-	- Test all pages on mobile viewport (375px, 414px widths).
-	- Ensure sticky nav doesn't obscure content on small screens.
-	- Verify touch targets are large enough (min 44×44px for buttons/links).
-	- ✅ Footer uses responsive grid: 2 columns on mobile, 4 columns on md+ breakpoints.
-	- ✅ All buttons use h-11 (44px) or h-12 (48px) for adequate touch targets.
-	- ✅ Sticky nav already has proper scroll-mt-20 implementation from PR-18.
-	- ✅ CTA buttons stack vertically on mobile with flex-col sm:flex-row.
+- [ ] Keyboard navigation audit
+	- Tab through all dashboard pages
+	- Verify logical tab order
+	- Ensure all interactive elements focusable
+	- Test Escape key closes modals
+	- Test Enter/Space activates buttons
+	- Test Arrow keys work in dropdowns/selects
+- [ ] Add ARIA labels
+	- Icon-only buttons need aria-label (e.g., "More actions", "Close modal")
+	- Complex widgets need aria-describedby
+	- Charts need alt text or aria-label
+	- Live regions for dynamic content (toasts, loading states)
+- [ ] Focus indicators
+	- Verify all focusable elements have visible focus ring
+	- Ensure focus ring meets contrast requirements (3:1)
+	- Test focus indicators on dark mode
+- [ ] Screen reader testing
+	- Test with VoiceOver (Mac) or NVDA (Windows)
+	- Ensure page structure makes sense
+	- Verify headings hierarchy (H1 → H2 → H3)
+	- Test modal announcements
+	- Test toast notifications announced
 
 Acceptance criteria
-- All footer links functional; "Back to top" link present. ✅
-- CTAs are consistent in wording and purpose; no redundant buttons. ✅
-- "Skip to main content" link works and is hidden until focused. ✅
-- All images have alt text; icon buttons have aria-labels. ✅
-- Tab navigation is logical; focus indicators clearly visible. ✅
-- Color contrast passes WCAG AA. ✅
-- Mobile layout works smoothly; touch targets are adequate. ✅
+- All interactive elements reachable via keyboard ✅
+- Tab order logical throughout dashboard ✅
+- Escape closes all modals ✅
+- All icon buttons have aria-labels ✅
+- Focus indicators clearly visible ✅
+- Screen reader announces page changes ✅
+- Charts have text alternatives ✅
 
 Test steps
-1. Landing page → Tab through entire page; verify focus order and visible focus rings. ✅
-2. Press Tab once on page load → "Skip to main content" link appears; press Enter → jumps to main content. ✅
-3. Verify all images have alt text (inspect in DevTools or use screen reader). ✅ (No images, all SVG icons)
-4. Check color contrast with browser DevTools or online tool (e.g., WebAIM Contrast Checker). ✅
-5. Resize browser to 375px width → verify all sections are readable; buttons are tappable. ✅
-6. Footer → click "Back to top" → scrolls to top smoothly. ✅
-7. Count all "Get Started" buttons → ensure they all route to `/sign-up` and have consistent labeling. ✅
-8. Tab through footer links → verify focus rings visible. ✅
-9. Test GitHub link → opens in new tab. ✅
-10. Demo page → verify "Get Started" routes to `/sign-up`, not `/sign-in`. ✅
+1. Dashboard → Tab through Overview page → verify logical order, all buttons/links focusable.
+2. Open modal → press Escape → modal closes.
+3. Focus on icon button → verify aria-label announced by screen reader.
+4. Navigate with screen reader → verify page structure makes sense.
+5. Test dark mode → verify focus rings still visible.
+6. Test on multiple pages (Accounts, Portfolio, Transactions).
 
 Files to touch
-- `app/page.tsx` (landing) ✅ UPDATED
-- `app/demo/page.tsx` ✅ UPDATED
-- `components/landing-header.tsx` ✅ (No changes needed - already accessible)
-- `components/skip-link.tsx` ✅ CREATED
-- Footer implemented inline in `app/page.tsx` ✅ IMPLEMENTED
+- All dashboard page components
+- Button and icon button components
+- Modal components (add focus trap if missing)
+- Chart components (add aria-labels)
+- Toast notification system
+- Global focus ring CSS
+
+---
+
+## PR-34: Form validation and error handling
+
+Objective: Ensure all forms validate inputs properly and display clear error messages.
+
+Checklist
+- [ ] Budget quick-edit validation
+	- No negative numbers (except for debt paydown)
+	- No zero budgets (or show warning)
+	- Maximum reasonable value (e.g., $999,999,999)
+	- Show error message below input
+- [ ] Goal adjustment validation
+	- No negative goal amounts
+	- Target date must be in future
+	- Monthly contribution cannot exceed income
+	- Show inline validation errors
+- [ ] Transaction search/filter validation
+	- Handle special characters gracefully
+	- Validate date ranges (start before end)
+	- Show "No results" message if empty
+- [ ] Document upload validation
+	- File type validation (PDF, CSV, etc.)
+	- File size validation (e.g., max 10MB)
+	- Show clear error: "File too large. Maximum 10MB."
+	- Handle corrupted files gracefully
+- [ ] Settings form validation
+	- Email format validation
+	- Phone number format validation
+	- Password strength requirements
+	- Confirm password matches
+- [ ] Edge case handling
+	- Paste into number inputs
+	- Very large numbers
+	- Copy/paste special characters
+	- Empty required fields
+
+Acceptance criteria
+- Invalid inputs show clear error messages ✅
+- Errors appear inline near input field ✅
+- Forms prevent submission with invalid data ✅
+- Error messages are specific and helpful ✅
+- Edge cases handled gracefully ✅
+
+Test steps
+1. Budget page → quick-edit → enter -100 → error: "Budget cannot be negative".
+2. Enter 0 → warning: "Zero budget means no spending limit".
+3. Enter 99999999999999 → error: "Budget exceeds maximum value".
+4. Goals page → adjust goal → target date in past → error: "Target date must be in future".
+5. Documents → upload 50MB file → error: "File too large. Maximum 10MB".
+6. Settings → enter invalid email → error: "Please enter a valid email address".
+7. Paste "abc" into number field → input rejected or cleared with error.
+
+Files to touch
+- `app/(dashboard)/budget/page.tsx`
+- `app/(dashboard)/goals/page.tsx`
+- `app/(dashboard)/transactions/page.tsx`
+- `app/(dashboard)/documents/page.tsx`
+- `app/(dashboard)/settings/page.tsx`
+- Form validation utilities
+- Input components with validation
 
 ---
 
 ## Engineering footnotes
-- Prefer small, vertical PRs; avoid combining unrelated pages.
-- Use environment checks (`process.env.NODE_ENV`) to hide dev-only tools in production.
-- When disabling features (e.g., "Explore" links), add a tooltip like "Coming soon" to set expectations.
-- Add minimal tests for form validation logic (e.g., Vitest + React Testing Library).
-- For modals and interactive elements, ensure Radix or Headless UI components are used for accessibility.
-- All new pages should have proper metadata (`<title>`, `<meta name="description">`, Open Graph tags).
+- Use Radix UI Dialog for all confirmation modals (focus trap, Esc to close built-in)
+- Toast notifications via sonner (already installed)
+- Persist user preferences to localStorage (time-scale selections, filter states)
+- Add loading states for all async operations (use Skeleton components)
+- Log all high-impact actions for audit trail (consider adding audit log table)
+- Consider rate limiting for money movement actions
+- Use optimistic UI updates where appropriate (instant feedback, revert on error)
+- Ensure all modals are keyboard accessible with proper focus management
+- Add Vitest tests for validation logic
+- Document all high-impact action workflows for user guide
+
+
+
+## Executive Summary
+
+**What's Working Well:**
+- Numbers display fully (no truncation)
+- Search bars reset between pages
+- Modals and quick-edit forms function correctly
+- Global date-range label displays properly
+- Sidebar expansion reveals page labels
+- Metrics cards show full values with percentage changes
+- Navigation between pages works correctly
+- Settings persist properly
+- Most tooltips and "Why?" explanations function
+
+**Critical Issues to Address:**
+1. Vercel developer toolbar still visible in dashboard (should be hidden in production)
+2. Crypto filters (exchange, view toggles) are non-functional placeholders
+3. High-impact actions lack confirmation dialogs
+4. Tooltip hover areas are too small
+5. Dual time-range controls are confusing (global vs. page-specific)
+
+---
+
+## Dashboard Pages Review
+
+### Global/Navigation
+
+**Status:** Mostly functional
+
+**What Works:**
+- Sidebar expansion button reveals page labels ✅
+- Global search bar resets when navigating to new pages ✅
+- Date-range selector displays properly (1 Month) ✅
+
+**Issues:**
+- [ ] **CRITICAL**: Vercel developer toolbar and Open Graph buttons visible in bottom-right across all pages
+  - Should be hidden in production builds
+  - Use environment check: `process.env.NODE_ENV === 'development'`
+- [ ] Dual time-range confusion: Global date range (top-right) vs. page-specific time-scales (e.g., Cash Flow Daily/Weekly/Monthly)
+  - Add tooltips or labels clarifying scope
+  - Consider renaming to "Report Period" vs "Chart Time Scale"
+
+**Files to touch:**
+- `app/layout.tsx` or dashboard layout wrapper
+- Add conditional rendering for Vercel toolbar components
+
+---
+
+### Overview Page
+
+**Status:** Functional with minor UX improvements needed
+
+**What Works:**
+- Metrics cards show full numbers (Net Worth: $487,234, Investable Assets: $324,891) ✅
+- Percentage changes display correctly (+12.4% vs last month) ✅
+- Action buttons navigate properly ("See details" → Accounts page) ✅
+- Shared accountability tasks display with assign/remind/reschedule buttons ✅
+
+**Issues:**
+- [ ] Tooltip hover areas too small for "+12.4% vs last month"
+  - Expand clickable/hoverable area by increasing padding
+  - Target: min 44x44px touch target
+- [ ] High-impact action buttons need confirmation dialogs
+  - "Allocate cash" should show modal: "This will move funds between accounts"
+  - "Drill into trades" is safe (read-only navigation)
+
+**Files to touch:**
+- `app/(dashboard)/overview/page.tsx` or equivalent
+- Tooltip wrapper component (increase hover area)
+- Add confirmation modals for money-movement actions
+
+---
+
+### Accounts Page
+
+**Status:** Functional
+
+**What Works:**
+- Total Cash, Total Credit Debt, Total Investments display fully ✅
+- Emergency-fund insight with "Review savings plan" modal ✅
+- "Link accounts" button opens bank search modal with filtering ✅
+- All Accounts table shows balances, changes, sync time, status ✅
+
+**Issues:**
+- [ ] Dismiss alerts lack "undo" option
+  - Add toast notification with "Undo" button
+  - Keep dismissed insights in state for 5 seconds
+- [ ] More-actions menus (three dots) functionality unknown
+  - Audit actions: if they modify data, add confirmation dialogs
+  - Document available actions
+
+**Files to touch:**
+- `app/(dashboard)/accounts/page.tsx`
+- Toast notification system (sonner already installed)
+- More-actions menu component
+
+---
+
+### Transactions Page
+
+**Status:** Functional with confirmation needed
+
+**What Works:**
+- High-impact suggestions cards expand with "Why?" explanation ✅
+- Quick filters work (Last 7 days, Large transactions, etc.) ✅
+- Date-range dropdown shows "Last 30 days" default ✅
+- Search bar blank on first open ✅
+- Assign button opens member picker ✅
+
+**Issues:**
+- [ ] **HIGH PRIORITY**: "Enable boosts" button lacks confirmation
+  - Add modal: "This will enable cashback boosts for eligible purchases"
+  - Show which accounts will be affected
+- [ ] "Review ride" button functionality unclear
+  - If it modifies transaction categorization, add confirmation
+  - If it opens details view (read-only), no confirmation needed
+- [ ] "Discuss" button behavior not explored
+  - Document expected behavior (chat interface?)
+
+**Files to touch:**
+- `app/(dashboard)/transactions/page.tsx`
+- Confirmation modal components
+- Action button handlers
+
+---
+
+### Cash Flow Page
+
+**Status:** Functional with minor clarifications needed
+
+**What Works:**
+- Time-scale controls (Daily/Weekly/Monthly) display correctly ✅
+- Metrics fully visible (Net Cash Flow, Total Inflow, Total Outflow) ✅
+- Tooltips function properly ✅
+- Insight cards show "Why?" explanations ✅
+- "View details" / "View Cash Flow" buttons navigate correctly ✅
+
+**Issues:**
+- [ ] Clarify relationship between time-scale toggles and global date range
+  - Add tooltip: "Chart time scale (independent of report period)"
+  - Or: "Display granularity: how data points are grouped"
+- [ ] Ensure time-scale selection persists across sessions
+  - Save preference to localStorage or user settings
+
+**Files to touch:**
+- `app/(dashboard)/cash-flow/page.tsx`
+- Time-scale toggle component with tooltip
+
+---
+
+### Portfolio Page
+
+**Status:** Functional with confirmation needed
+
+**What Works:**
+- Metrics display fully (Total Value: $187,650.45, P/L: +$24,650.45) ✅
+- Sharpe Ratio, Beta, Volatility, YTD Return visible ✅
+- Pinned insight "Diversification opportunity" has working "Why?" ✅
+
+**Issues:**
+- [ ] **HIGH PRIORITY**: "Rebalance" button lacks confirmation
+  - Add modal showing proposed trades
+  - Require explicit "Confirm Rebalancing" action
+  - Show estimated transaction costs
+- [ ] "Review Assets" button functionality unclear
+  - If read-only (opens asset list), no confirmation needed
+  - If it suggests changes, add confirmation
+- [ ] "Compare scenarios" button needs modal
+  - Should open scenario comparison tool
+  - No execution without explicit user action
+
+**Files to touch:**
+- `app/(dashboard)/portfolio/page.tsx`
+- Rebalancing confirmation modal
+- Scenario comparison modal
+
+---
+
+### Crypto Page
+
+**Status:** Partially functional - filters broken
+
+**What Works:**
+- Metrics display fully (Total Crypto Value, BTC Dominance, 24h Change) ✅
+- Tooltips function ✅
+- AI Market Insights show diversification suggestions ✅
+
+**Issues:**
+- [ ] **CRITICAL**: Exchange filters (All, Coinbase, Binance) don't update data
+  - Implement filter logic to update charts and tables
+  - Add loading state when filtering
+- [ ] **CRITICAL**: View toggles (By asset, By exchange, By staking) non-functional
+  - Implement view switching logic
+  - Update chart configurations based on selected view
+- [ ] "Stablecoins hidden" toggle has no effect
+  - Implement filtering logic to exclude/include stablecoins
+  - Update totals when toggled
+- [ ] **HIGH PRIORITY**: "Apply target mix" lacks confirmation
+  - Show proposed trades in modal
+  - Require explicit confirmation
+- [ ] "Simulate in Copilot" / "Launch Copilot" need clarification
+  - If they execute trades, add confirmation
+  - If simulation-only, clearly label as such
+
+**Files to touch:**
+- `app/(dashboard)/crypto/page.tsx`
+- Filter/toggle handler functions
+- Data fetching/filtering logic
+- Confirmation modals for trade actions
+
+---
+
+### Budget Page
+
+**Status:** Functional with confirmation needed
+
+**What Works:**
+- Quick-edit modal changes budget amounts ✅
+- Advanced settings enable rollover and warning thresholds ✅
+- Budget by Category table displays properly ✅
+- Cash-flow automation scenarios show comparative metrics ✅
+
+**Issues:**
+- [ ] **HIGH PRIORITY**: "Automate sweep" button lacks confirmation
+  - Add modal: "This will automatically move funds to high-yield savings"
+  - Show sweep rules and frequency
+  - Require explicit opt-in
+- [ ] **HIGH PRIORITY**: "Reallocate" button lacks confirmation
+  - Show which categories will be affected
+  - Display before/after budget allocations
+- [ ] "Adjust Budget" in insights needs confirmation
+  - Show proposed budget change
+  - Allow user to modify before applying
+- [ ] "Add Category" button not tested
+  - Verify modal opens with form validation
+  - Test category creation flow
+
+**Files to touch:**
+- `app/(dashboard)/budget/page.tsx`
+- Automation confirmation modals
+- Budget adjustment modal
+
+---
+
+### Goals Page
+
+**Status:** Functional with confirmation needed
+
+**What Works:**
+- Progress metrics display clearly ✅
+- Scenario planner slider updates text dynamically ✅
+- AI Goal Insights show "Why?" explanations ✅
+
+**Issues:**
+- [ ] **HIGH PRIORITY**: "Adjust Goal" button lacks confirmation
+  - Show current vs. proposed goal parameters
+  - Explain impact on required monthly contributions
+  - Require explicit confirmation
+- [ ] Scenario planner changes not applied automatically
+  - Add "Apply Changes" button
+  - Show confirmation modal before updating goal
+
+**Files to touch:**
+- `app/(dashboard)/goals/page.tsx`
+- Goal adjustment modal
+- Scenario planner confirmation
+
+---
+
+### Taxes Page
+
+**Status:** Functional with good safeguards
+
+**What Works:**
+- Tax countdown displays clearly ✅
+- Deadlines listed with checkboxes (good safeguard) ✅
+- AI Tax Insights show urgent and upcoming items ✅
+
+**Issues:**
+- [ ] **HIGH PRIORITY**: "Upload Now" button needs clarity
+  - Add modal explaining which documents are needed
+  - Show upload requirements
+  - Confirm upload destination
+- [ ] "Review Positions" button functionality unclear
+  - If read-only, no confirmation needed
+  - If it suggests trades, add confirmation
+- [ ] "Plan Tax Loss Harvesting" needs modal
+  - Explain tax-loss harvesting
+  - Show proposed trades
+  - Require explicit confirmation before execution
+
+**Files to touch:**
+- `app/(dashboard)/taxes/page.tsx`
+- Tax document upload modal
+- Tax-loss harvesting planner modal
+
+---
+
+### Insights Page
+
+**Status:** Functional
+
+**What Works:**
+- Filter search bar functions ✅
+- "Hide resolved insights" switch works ✅
+- Category tabs work ✅
+- Pinned cards show "Why?" explanations ✅
+
+**Issues:**
+- [ ] **HIGH PRIORITY**: All action buttons need confirmation
+  - "Rebalance" → show proposed trades
+  - "Harvest with Copilot" → explain tax implications
+  - "Upload Now" → clarify document requirements
+- [ ] Resolved insights might need "restore" option
+  - Allow users to unhide dismissed insights
+  - Add to settings or insights filter
+
+**Files to touch:**
+- `app/(dashboard)/insights/page.tsx`
+- Confirmation modals for each action type
+
+---
+
+### Documents Page
+
+**Status:** Functional (file upload not testable)
+
+**What Works:**
+- Task list displays with assign/remind/reschedule options ✅
+- Due date tooltips function ✅
+- Search bar, sort, filter dropdowns work ✅
+- Filter chips display correctly ✅
+- Upload section shows file requirements ✅
+
+**Issues:**
+- [ ] "Send reminder", "Complete", "Reschedule" buttons need confirmation
+  - "Send reminder" → show recipient and message preview
+  - "Complete" → confirm task completion
+  - "Reschedule" → open date picker modal
+- [ ] File upload functionality not testable
+  - Ensure proper validation (file type, size)
+  - Show upload progress
+  - Display success/error messages
+- [ ] AI Document Insights section empty
+  - Verify intended behavior when documents present
+  - Add placeholder/empty state messaging
+
+**Files to touch:**
+- `app/(dashboard)/documents/page.tsx`
+- Task action modals
+- File upload component with validation
+
+---
+
+### Settings & Security Center
+
+**Status:** Functional
+
+**What Works:**
+- Notification toggles persist and show "All settings saved" ✅
+- Appearance controls (theme, font scale) respond immediately ✅
+- Active/recent sessions listed with details ✅
+- Login alerts and masking ON by default ✅
+- Alternate email reveal function works ✅
+
+**Issues:**
+- [ ] "End" session buttons need confirmation
+  - Modal: "End session on [Device] at [Location]?"
+  - Warn if ending current session
+- [ ] "End all other sessions" needs strong confirmation
+  - Modal: "This will sign you out of all other devices"
+  - List affected sessions
+  - Require password re-entry or 2FA
+- [ ] "Download full audit log" not tested
+  - Verify CSV/PDF download works
+  - Include proper date range and filtering
+
+**Files to touch:**
+- `app/(dashboard)/settings/page.tsx`
+- `app/(dashboard)/security/page.tsx` (if separate)
+- Session management confirmation modals
+
+---
+
+## Priority Remediation Roadmap
+
+### Phase 1: Critical Issues (Week 1)
+
+**PR-26: Remove developer toolbars and overlays**
+- Hide Vercel toolbar in production
+- Remove Open Graph debug buttons
+- Add environment checks
+
+**PR-27: Fix Crypto page filters**
+- Implement exchange filter logic
+- Implement view toggle logic (By asset/exchange/staking)
+- Fix "Stablecoins hidden" toggle
+- Add loading states
+
+**PR-28: Add confirmation dialogs for money movement**
+- Portfolio rebalancing confirmation
+- Budget "Automate sweep" confirmation
+- Budget "Reallocate" confirmation
+- Crypto "Apply target mix" confirmation
+
+### Phase 2: High-Priority UX (Week 2)
+
+**PR-29: Expand tooltip hover areas**
+- Increase touch targets to 44x44px minimum
+- Add padding to tooltip trigger areas
+- Test on mobile devices
+
+**PR-30: Clarify time-range controls**
+- Add tooltips to global date range
+- Add tooltips to page-specific time scales
+- Consider renaming for clarity
+- Persist time-scale preferences
+
+**PR-31: Add undo for dismissed insights**
+- Toast notifications with "Undo" button
+- Keep dismissed state for 5 seconds
+- Implement restore functionality
+
+### Phase 3: Polish & Documentation (Week 3)
+
+**PR-32: Confirmation dialogs for remaining actions**
+- Tax document upload modal
+- Goal adjustment confirmation
+- Transaction action confirmations
+- Document task action modals
+
+**PR-33: Accessibility improvements**
+- Add ARIA labels for all icon buttons
+- Ensure keyboard navigation for modals/sliders
+- Add alt-text for charts (where applicable)
+- Test with screen readers
+
+**PR-34: Form validation & error handling**
+- Quick-edit budget validation (no negative numbers)
+- Handle invalid inputs gracefully
+- Display clear error messages
+- Test edge cases
+
+---
+
+## Testing Checklist (All Pages)
+
+Before marking any PR complete, verify:
+
+- [ ] No developer toolbars visible
+- [ ] All filters update data as expected
+- [ ] High-impact actions show confirmation dialogs
+- [ ] Tooltips have adequate hover areas (44x44px minimum)
+- [ ] Time-range controls clearly labeled
+- [ ] Dismissed insights have undo option
+- [ ] All forms validate inputs
+- [ ] Keyboard navigation works throughout
+- [ ] Focus indicators visible
+- [ ] ARIA labels present on icon buttons
+- [ ] Mobile responsive (375px, 414px widths)
+- [ ] Touch targets adequate (44x44px minimum)
+
+---
+
+## Accessibility Audit Items
+
+### Keyboard Navigation
+- [ ] All interactive elements reachable via Tab
+- [ ] Logical tab order throughout dashboard
+- [ ] Escape key closes modals
+- [ ] Enter/Space activates buttons
+- [ ] Arrow keys work in select dropdowns
+
+### Screen Reader Support
+- [ ] ARIA labels on all icon buttons
+- [ ] ARIA descriptions for complex widgets
+- [ ] Role attributes on custom components
+- [ ] Live regions for dynamic content updates
+- [ ] Skip links for main content areas
+
+### Visual Accessibility
+- [ ] Color contrast meets WCAG AA (4.5:1)
+- [ ] Focus indicators clearly visible
+- [ ] Text resizable to 200% without loss of content
+- [ ] Color not sole means of conveying information
+- [ ] High-contrast mode available in settings
+
+### Alternative Text
+- [ ] Alt text for all informational images
+- [ ] aria-hidden on decorative icons
+- [ ] Text alternatives for charts/graphs
+- [ ] Transcripts for video content (if any)
+
+---
+
+## Edge Case Testing
+
+### Form Inputs
+- [ ] Negative numbers in budget fields
+- [ ] Zero values in contribution fields
+- [ ] Very large numbers (> 1 trillion)
+- [ ] Special characters in search
+- [ ] Empty required fields
+- [ ] Paste into number inputs
+
+### Date Ranges
+- [ ] Future dates
+- [ ] Dates before account creation
+- [ ] Invalid date formats
+- [ ] Leap year handling
+- [ ] Time zone edge cases
+
+### File Uploads
+- [ ] Oversized files (> limit)
+- [ ] Invalid file types
+- [ ] Empty files
+- [ ] Corrupted files
+- [ ] Multiple simultaneous uploads
+
+---
+
+## Engineering Notes
+
+- Use consistent confirmation modal pattern across dashboard
+- Toast notifications for undo actions (sonner already installed)
+- Persist user preferences (time-scale, filters) to localStorage
+- Add loading states for all async operations
+- Log all high-impact actions for audit trail
+- Consider rate limiting for money movement actions
+- Add optimistic UI updates where appropriate
+- Ensure all modals are keyboard accessible (focus trap)
+- Use Radix UI primitives for consistent behavior
+- Document all high-impact action workflows
+
