@@ -397,7 +397,7 @@ export function InsightCard({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 gap-1.5 px-1.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40"
                 aria-expanded={showExplanation}
                 aria-controls={explanationId}
                 onClick={() => {

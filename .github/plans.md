@@ -18,7 +18,7 @@ How to work this plan
 - [x] PR-02: Tooltip ergonomics (increase hit-area, click-to-open fallback)
 - [x] PR-03: Global layout polish (label truncation, number wrapping) + sticky overlays dismissal
 - [x] PR-04: Overview page fixes
-- [ ] PR-05: Cash Flow page fixes
+- [x] PR-05: Cash Flow page fixes
 - [ ] PR-06: Accounts page fixes
 - [ ] PR-07: Portfolio page fixes
 - [ ] PR-08: Crypto page fixes
@@ -144,19 +144,20 @@ Files touched (2 files)
 
 ---
 
-## PR-05: Cash Flow page fixes
+## PR-05: Cash Flow page fixes ✅
 
 Checklist
-- [ ] Clarify scopes of filters: label global vs cash-flow local controls.
-- [ ] Ensure search input doesn’t inherit stale terms from other pages.
-- [ ] AI insights: ensure “Why?” affordance has larger click target; show explanation on click.
+- [x] Clarify scopes of filters: label global vs cash-flow local controls.
+- [x] Ensure search input doesn't inherit stale terms from other pages.
+- [x] AI insights: ensure "Why?" affordance has larger click target; show explanation on click.
 
 Acceptance criteria
-- Users can tell which filter affects global time vs the chart’s aggregation.
-- Search term doesn’t persist from Overview.
+- ✅ Users can tell which filter affects global time vs the chart's aggregation.
+- ✅ Search term doesn't persist from Overview (no search input on Cash Flow page).
 
-Files to touch
-- `app/(dashboard)/cash-flow/page.tsx` and components used by filters/insights
+Files touched
+- `components/cash-flow-chart.tsx` - Added tooltips to Account selector ("Filter this chart only") and Period toggle ("Chart aggregation only / Time range set in top bar"). Added "Group by:" label for clarity.
+- `components/insights/InsightCard.tsx` - Enhanced "Why?" button with `px-1.5 py-1 hover:bg-muted/40` for larger, more clickable hit area (consistent with PR-02 tooltip pattern).
 
 ---
 
