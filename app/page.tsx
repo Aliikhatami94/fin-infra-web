@@ -15,13 +15,30 @@ import { BRAND } from "@/lib/brand"
 import { cn } from "@/lib/utils"
 
 export default function LandingPage() {
-  const [contentVisible, setContentVisible] = useState(false)
-  const [showIntro, setShowIntro] = useState(true)
+  const [contentVisible, setContentVisible] = useState(() =>
+    typeof window !== "undefined" && (window as any).__introPlayed ? true : false,
+  )
+  const [showIntro, setShowIntro] = useState(() =>
+    typeof window !== "undefined" && (window as any).__introPlayed ? false : true,
+  )
   const cleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const introFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      return
+    }
+
+    // Skip intro on client-side navigations within the same document
+    if ((window as any).__introPlayed) {
+      setContentVisible(true)
+      setShowIntro(false)
+      // Ensure we always start at the top
+      try {
+        document.documentElement.scrollTop = 0
+        document.body.scrollTop = 0
+        window.scrollTo(0, 0)
+      } catch {}
       return
     }
 
@@ -37,6 +54,7 @@ export default function LandingPage() {
     if (mediaQuery.matches) {
       setContentVisible(true)
       setShowIntro(false)
+      ;(window as any).__introPlayed = true
       return
     }
 
@@ -44,6 +62,7 @@ export default function LandingPage() {
       introFallbackTimerRef.current = null
       // Reveal content and keep scroll at top
       setContentVisible(true)
+      ;(window as any).__introPlayed = true
       try {
         document.documentElement.scrollTop = 0
         document.body.scrollTop = 0
@@ -128,6 +147,7 @@ export default function LandingPage() {
     } catch {}
 
     setContentVisible(true)
+    ;(window as any).__introPlayed = true
 
     if (introFallbackTimerRef.current) {
       clearTimeout(introFallbackTimerRef.current)
