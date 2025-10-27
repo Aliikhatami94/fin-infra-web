@@ -19,8 +19,8 @@ How to work this plan
 - [x] PR-03: Global layout polish (label truncation, number wrapping) + sticky overlays dismissal
 - [x] PR-04: Overview page fixes
 - [x] PR-05: Cash Flow page fixes
-- [ ] PR-06: Accounts page fixes
-- [ ] PR-07: Portfolio page fixes
+- [x] PR-06: Accounts page fixes
+- [x] PR-07: Portfolio page fixes
 - [ ] PR-08: Crypto page fixes
 - [ ] PR-09: Transactions page fixes
 - [ ] PR-10: Budget page fixes
@@ -161,28 +161,43 @@ Files touched
 
 ---
 
-## PR-06: Accounts page fixes
+## PR-06: Accounts page fixes ✅
 
 Checklist
-- [ ] Prevent metrics truncation: widen containers or wrap values; use `break-words` where needed.
-- [ ] “View credit tips” button: wire to a modal or mark disabled with tooltip.
-- [ ] Dismissed insights: add a small toast offering Undo for 5s.
-- [ ] Link accounts modal search: implement simple client-side filter.
+- [x] Prevent metrics truncation: widen containers or wrap values; use `break-words` where needed.
+- [x] "View credit tips" button: wire to a modal or mark disabled with tooltip.
+- [x] Dismissed insights: add a small toast offering Undo for 5s.
+- [x] Link accounts modal search: implement simple client-side filter.
 
 Acceptance criteria
-- No clipped totals; button has a destination or is clearly disabled; Undo toast appears on dismiss.
+- ✅ No clipped totals (already fixed in PR-03 with `break-words`); 
+- ✅ "View credit tips" button is disabled with "Coming soon" tooltip;
+- ✅ Undo toast appears on dismiss with 5-second duration.
+- ✅ Search works in PlaidLinkDialog (already implemented).
+
+Files touched
+- `components/accounts-callouts.tsx` - Added Undo toast with 5-second duration when dismissing insights. Wrapped "View credit tips" button in Tooltip with "Coming soon" message and disabled state.
+- `components/accounts-kpi-cards.tsx` - No changes needed; `break-words` already applied in PR-03.
+- `components/plaid-link-dialog.tsx` - No changes needed; search already implemented.
 
 ---
 
-## PR-07: Portfolio page fixes
+## PR-07: Portfolio page fixes ✅
 
 Checklist
-- [ ] Confirm sticky header parity with Crypto (done recently) and keep consistent padding.
-- [ ] Clear search term on navigation.
-- [ ] High-impact actions (Rebalance/Review Assets): if not implemented, render disabled with tooltip; otherwise prompt confirm dialog.
+- [x] Confirm sticky header parity with Crypto (done recently) and keep consistent padding.
+- [x] Clear search term on navigation.
+- [x] High-impact actions (Rebalance/Review Assets): if not implemented, render disabled with tooltip; otherwise prompt confirm dialog.
 
 Acceptance criteria
-- No stale query term; actions are either disabled-with-tooltip or confirm via modal.
+- ✅ Sticky header matches other pages (already correct);
+- ✅ Search term in holdings table clears on navigation;
+- ✅ "Execute Rebalance" button disabled with "Coming soon" tooltip.
+
+Files touched
+- `components/holdings-table.tsx` - Added usePathname and useEffect to clear search query on navigation.
+- `components/rebalancing-preview.tsx` - Disabled "Execute Rebalance" button with "Coming soon - Manual rebalancing" tooltip.
+- `app/(dashboard)/portfolio/page.tsx` - No changes needed; sticky header already correct.
 
 ---
 

@@ -1,11 +1,13 @@
 "use client"
 
-import { forwardRef, useMemo, useState } from "react"
+import { forwardRef, useMemo, useState, useEffect } from "react"
 import type { HTMLAttributes } from "react"
+import { usePathname } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Building2, MoreVertical, Eye, EyeOff, TrendingUpIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -91,11 +93,17 @@ export interface HoldingsTableProps {
 }
 
 export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
+  const pathname = usePathname()
   const [query, setQuery] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("value")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [selectedHolding, setSelectedHolding] = useState<(typeof holdings)[0] | null>(null)
   const [groupBy, setGroupBy] = useState<GroupBy>("none")
+
+  // Clear search when navigating away
+  useEffect(() => {
+    setQuery("")
+  }, [pathname])
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -266,11 +274,16 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle>Holdings</CardTitle>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <select value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)}>
-                <option value="none">No grouping</option>
-                <option value="account">Group by Account</option>
-                <option value="asset-class">Group by Asset Class</option>
-              </select>
+              <Select value={groupBy} onValueChange={(value) => setGroupBy(value as GroupBy)}>
+                <SelectTrigger className="w-full sm:w-[180px] h-9 text-sm">
+                  <SelectValue placeholder="No grouping" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No grouping</SelectItem>
+                  <SelectItem value="account">Group by Account</SelectItem>
+                  <SelectItem value="asset-class">Group by Asset Class</SelectItem>
+                </SelectContent>
+              </Select>
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}

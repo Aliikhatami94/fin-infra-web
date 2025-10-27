@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { LucideIcon } from "lucide-react"
 import { Gauge, PiggyBank, TrendingDown, TrendingUp, X } from "lucide-react"
+import { toast } from "sonner"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSecureStorage } from "@/hooks/use-secure-storage"
 import { cn } from "@/lib/utils"
 import { ReviewSavingsPlanButton } from "@/components/review-savings-plan-button"
@@ -104,11 +106,30 @@ export function AccountsCallouts() {
 
   const handleDismiss = useCallback(
     (id: string) => {
+      const callout = CALLOUTS.find((c) => c.id === id)
+      const calloutTitle = callout?.title || "Insight"
+      
       setDismissed((current) => {
         const next = new Set(current)
         next.add(id)
         persistDismissed(next)
         return next
+      })
+
+      // Show toast with Undo action
+      toast(`${calloutTitle} dismissed`, {
+        duration: 5000,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            setDismissed((current) => {
+              const next = new Set(current)
+              next.delete(id)
+              persistDismissed(next)
+              return next
+            })
+          },
+        },
       })
     },
     [persistDismissed],
@@ -172,9 +193,25 @@ export function AccountsCallouts() {
                   {callout.id === "emergency-fund" ? (
                     <ReviewSavingsPlanButton className={cn("text-xs", callout.indicatorClass)} />
                   ) : (
-                    <Button variant="outline" size="sm" className={cn("text-xs", callout.indicatorClass)}>
-                      {callout.ctaLabel}
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-block">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className={cn("text-xs", callout.indicatorClass)}
+                              disabled
+                            >
+                              {callout.ctaLabel}
+                            </Button>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-xs">Coming soon</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
               </div>
