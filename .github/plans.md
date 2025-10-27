@@ -16,7 +16,7 @@ How to work this plan
 ## Master sequence
 - [x] PR-01: Global search + command palette polish
 - [x] PR-02: Tooltip ergonomics (increase hit-area, click-to-open fallback)
-- [ ] PR-03: Global layout polish (label truncation, number wrapping) + sticky overlays dismissal
+- [x] PR-03: Global layout polish (label truncation, number wrapping) + sticky overlays dismissal
 - [ ] PR-04: Overview page fixes
 - [ ] PR-05: Cash Flow page fixes
 - [ ] PR-06: Accounts page fixes
@@ -104,23 +104,27 @@ Files touched (11 files)
 Objective: Fix truncations and persistent overlays.
 
 Checklist
-- [ ] Label truncation
+- [x] Label truncation
 	- Ensure time-range and dropdown controls allocate enough width on all breakpoints.
 	- Use `truncate` + `max-w-*` + `title` attr or a Tooltip for full text on hover.
-- [ ] Numbers truncation
+- [x] Numbers truncation
 	- Allow wrapping or widen number columns; avoid clipping like `$8,00`.
 	- Use `tabular-nums` and `min-w-[ch]` where applicable.
-- [ ] Persistent notifications overlay
+- [x] Persistent notifications overlay
 	- Make overlay components self-dismiss on navigation: listen to `usePathname()` and close on change.
 	- Provide explicit Close button.
 
 Acceptance criteria
-- No clipped labels on Overview date filter (“6 Months” fully visible) and similar controls across pages.
-- Switching pages auto-closes any open notification/overlay.
+- No clipped labels on Overview date filter ("6 Months" fully visible) and similar controls across pages. ✅
+- Switching pages auto-closes any open notification/overlay. ✅
 
-Files to touch
-- `components/*` controls used by Overview, Portfolio, Cash Flow
-- Any overlay/notification provider component
+Files touched (6 files)
+- `components/top-bar.tsx` - Widened date range selector from `w-24 md:w-32` to `w-[7.5rem] md:w-36`, added `title` attr and `shrink-0` to icon ✅
+- `components/notification-center.tsx` - Added `usePathname()` and auto-dismiss on navigation ✅
+- `components/accounts-kpi-cards.tsx` - Changed `truncate` to `break-words` for monetary values ✅
+- `components/kpi-cards.tsx` - Changed `truncate` to `break-words` for monetary values ✅
+- `components/collaboration-drawer.tsx` - Added `usePathname()` and auto-dismiss on navigation ✅
+- `components/automation-copilot-drawer.tsx` - Added `usePathname()` and auto-dismiss on navigation ✅
 
 ---
 

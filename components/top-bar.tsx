@@ -111,8 +111,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
           </Button>
 
           <Select value={dateRange} onValueChange={handleDateRangeChange}>
-            <SelectTrigger className="w-24 md:w-32 rounded-full hidden sm:flex">
-              <Calendar className="mr-2 h-4 w-4" />
+            <SelectTrigger className="w-[7.5rem] md:w-36 rounded-full hidden sm:flex" title={`Date range: ${dateRange}`}>
+              <Calendar className="mr-2 h-4 w-4 shrink-0" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

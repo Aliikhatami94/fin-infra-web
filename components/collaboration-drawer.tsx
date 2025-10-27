@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { MessageSquare, Send, AtSign, Users } from "lucide-react"
 
 import { useWorkspace } from "@/components/workspace-provider"
@@ -41,6 +42,7 @@ export function CollaborationDrawer({
   const [internalOpen, setInternalOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [mentionIds, setMentionIds] = useState<string[]>([])
+  const pathname = usePathname()
 
   const thread = getThread(entityType, entityId)
 
@@ -53,6 +55,14 @@ export function CollaborationDrawer({
     }
     onOpenChange?.(value)
   }
+
+  // Auto-dismiss on navigation
+  useEffect(() => {
+    if (dialogOpen) {
+      handleOpenChange(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
 
   const availableMembers = useMemo(() => activeWorkspace.members, [activeWorkspace.members])
 
