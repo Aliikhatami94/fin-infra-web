@@ -101,6 +101,10 @@ export function TaxScenarioTool() {
             <CardDescription className="mt-1">
               Model potential tax savings by harvesting losses before year-end
             </CardDescription>
+            <Badge variant="outline" className="mt-2 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800">
+              <Info className="h-3 w-3 mr-1" />
+              Simulation Only - No actual trades will be executed
+            </Badge>
           </div>
           <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-400">
             <Sparkles className="h-3 w-3 mr-1" />

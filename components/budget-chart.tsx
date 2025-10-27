@@ -165,11 +165,13 @@ export function BudgetChart() {
                     className="text-xs"
                     tick={{ fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
+                    label={{ value: "Category", position: "insideBottom", offset: -5, fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                   />
                   <YAxis
                     className="text-xs"
                     tick={{ fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
+                    label={{ value: "Amount ($)", angle: -90, position: "insideLeft", fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                   />
                   <Tooltip content={comparisonTooltip} />
                   <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="circle" />
@@ -188,11 +190,13 @@ export function BudgetChart() {
                     className="text-xs"
                     tick={{ fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
+                    label={{ value: "Category", position: "insideBottom", offset: -5, fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                   />
                   <YAxis
                     className="text-xs"
                     tick={{ fill: "hsl(var(--muted-foreground))" }}
                     axisLine={{ stroke: "hsl(var(--border))" }}
+                    label={{ value: "Variance ($)", angle: -90, position: "insideLeft", fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                   />
                   <Tooltip content={varianceTooltip} />
                   <Bar dataKey="variance" name="Variance" radius={[4, 4, 0, 0]}>

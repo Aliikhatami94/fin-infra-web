@@ -84,7 +84,7 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
   }, [filter, goals])
 
   const renderGoalCard = (goal: Goal, index: number) => (
-    <motion.div key={goal.id} {...createStaggeredCardVariants(index, 0)}>
+    <motion.div key={goal.id} {...createStaggeredCardVariants(index, 0)} className="px-4">
       <Card className="card-standard card-lift cursor-pointer group" onClick={() => setSelectedGoal(goal)}>
         <CardContent className="p-6">
           <div className="flex gap-6">

@@ -111,7 +111,15 @@ export function GoalsSummaryKPIs() {
             <div className="flex items-end justify-between gap-4">
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger className="text-sm font-medium text-[var(--color-positive)]">Last 6 months</TooltipTrigger>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex items-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-sm font-medium text-[var(--color-positive)]"
+                      aria-label="Goal progress in the last 6 months"
+                    >
+                      Last 6 months
+                    </button>
+                  </TooltipTrigger>
                   <TooltipContent>
                     <p className="text-xs">Previous balance: $54,000</p>
                     <p className="text-xs">Current balance: ${totalSaved.toLocaleString()}</p>
@@ -146,8 +154,14 @@ export function GoalsSummaryKPIs() {
               <div className="flex items-center gap-2">
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger>
-                      <span className="text-sm font-medium text-[var(--color-warning)]">{contributionRate}%</span>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex items-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                        aria-label={`${contributionRate}% of target contribution`}
+                      >
+                        <span className="text-sm font-medium text-[var(--color-warning)]">{contributionRate}%</span>
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs">Target: ${targetContribution.toLocaleString()}/mo</p>

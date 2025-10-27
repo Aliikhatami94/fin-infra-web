@@ -15,7 +15,7 @@ interface TooltipContextValue {
 const TooltipContext = React.createContext<TooltipContextValue | null>(null)
 
 function TooltipProvider({
-  delayDuration = 0,
+  delayDuration = 150,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
   return (
@@ -68,7 +68,7 @@ function Tooltip({
 const TooltipTrigger = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>
->(({ ...props }, forwardedRef) => {
+>(({ onClick, ...props }, forwardedRef) => {
   const context = React.useContext(TooltipContext)
 
   const setRefs = React.useCallback(
@@ -86,10 +86,32 @@ const TooltipTrigger = React.forwardRef<
     [context, forwardedRef],
   )
 
+  // Click-to-open fallback for keyboard/touch users
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      onClick?.(e)
+      // Toggle tooltip on click
+      if (context) {
+        const currentOpen = context.open
+        // Dispatch a synthetic hover event to toggle
+        const trigger = context.triggerRef.current
+        if (trigger) {
+          if (!currentOpen) {
+            trigger.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
+          } else {
+            trigger.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+          }
+        }
+      }
+    },
+    [onClick, context],
+  )
+
   return (
     <TooltipPrimitive.Trigger
       ref={setRefs}
       data-slot="tooltip-trigger"
+      onClick={handleClick}
       {...props}
     />
   )
@@ -102,6 +124,7 @@ const TooltipContent = React.forwardRef<
 >(({ className, side, sideOffset = 8, children, collisionPadding, ...props }, ref) => {
   const context = React.useContext(TooltipContext)
   const [autoSide, setAutoSide] = React.useState<TooltipSide>('top')
+  const contentId = React.useId()
 
   const triggerRef = context?.triggerRef
 
@@ -123,12 +146,29 @@ const TooltipContent = React.forwardRef<
     setAutoSide(spaceBelow < spaceAbove ? 'top' : 'bottom')
   }, [context?.open, side, triggerRef])
 
+  // Set aria-describedby on trigger when tooltip is shown
+  React.useLayoutEffect(() => {
+    const trigger = triggerRef?.current
+    if (!trigger) return
+
+    if (context?.open) {
+      trigger.setAttribute('aria-describedby', contentId)
+    } else {
+      trigger.removeAttribute('aria-describedby')
+    }
+
+    return () => {
+      trigger.removeAttribute('aria-describedby')
+    }
+  }, [context?.open, triggerRef, contentId])
+
   const resolvedSide = side ?? autoSide
 
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         ref={ref}
+        id={contentId}
         data-slot="tooltip-content"
         side={resolvedSide}
         sideOffset={sideOffset}

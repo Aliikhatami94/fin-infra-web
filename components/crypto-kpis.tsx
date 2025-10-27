@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { MaskableValue } from "@/components/privacy-provider"
 import {
   TrendingUp,
   TrendingDown,
@@ -127,8 +128,14 @@ export function CryptoKPIs() {
                       <p className="text-xs text-muted-foreground">{kpi.label}</p>
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-3 w-3 text-muted-foreground" />
+                          <TooltipTrigger asChild>
+                            <button 
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
+                              aria-label={`More information about ${kpi.label}`}
+                            >
+                              <Info className="h-3 w-3 text-muted-foreground" />
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="text-xs">{kpi.tooltip}</p>
@@ -142,13 +149,17 @@ export function CryptoKPIs() {
                     className="text-2xl font-bold tabular-nums text-foreground"
                     aria-label={`${kpi.label} ${kpi.value}`}
                   >
-                    {kpi.value}
+                    <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
                   </p>
                   <div className="flex items-center justify-between gap-3">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 cursor-help">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                            aria-label={`${kpi.change} vs. yesterday`}
+                          >
                             {kpi.positive ? (
                               <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
                             ) : (
@@ -159,9 +170,9 @@ export function CryptoKPIs() {
                                 kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
                               }`}
                             >
-                              {kpi.change}
+                              <MaskableValue value={kpi.change} />
                             </span>
-                          </div>
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p className="text-xs">

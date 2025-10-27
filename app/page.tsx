@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { VantaBackground } from "@/components/vanta-background"
 import { LandingHeader } from "@/components/landing-header"
 import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock, ExternalLink, ArrowDownRight } from "lucide-react"
 import { BRAND } from "@/lib/brand"
@@ -8,10 +7,7 @@ import { cn } from "@/lib/utils"
 
 export default function LandingPage() {
   return (
-    <>
-      <VantaBackground />
-
-      <div className="relative min-h-screen">
+    <div className="relative min-h-screen">
         <LandingHeader />
 
         <main id="main-content">
@@ -207,7 +203,6 @@ export default function LandingPage() {
           </div>
         </footer>
       </div>
-    </>
   )
 }
 

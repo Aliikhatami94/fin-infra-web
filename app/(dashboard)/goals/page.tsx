@@ -17,11 +17,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion"
+import { ConfirmDialog } from "@/components/confirm-dialog"
+import { toast } from "@/components/ui/sonner"
 
 export default function GoalsPage() {
   const [showAddGoal, setShowAddGoal] = useState(false)
   const [filter, setFilter] = useState<"all" | "active" | "paused" | "completed">("all")
   const [contributionBoost, setContributionBoost] = useState(0)
+  const [confirmCreateGoal, setConfirmCreateGoal] = useState(false)
   const goals = useMemo(() => getGoals(), [])
 
   const activeGoals = useMemo(() => goals.filter((goal) => goal.status === "active"), [goals])
@@ -37,6 +40,14 @@ export default function GoalsPage() {
     if (totalActiveContribution === 0) return 0
     return Math.max(0, (contributionBoost * activeGoals.length) / (totalActiveContribution || 1))
   }, [activeGoals.length, contributionBoost, totalActiveContribution])
+
+  const handleCreateGoal = () => {
+    setConfirmCreateGoal(false)
+    setShowAddGoal(false)
+    toast.success("Goal created successfully", {
+      description: "Your new savings goal is now active and tracking."
+    })
+  }
 
   return (
     <>
@@ -71,18 +82,39 @@ export default function GoalsPage() {
                   Experiment with an extra monthly contribution and preview timeline impacts across active goals.
                 </p>
               </div>
-              <div className="w-full max-w-md space-y-2">
+              <div className="w-full max-w-md space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="contribution-boost-input" className="text-sm">
+                    Additional monthly contribution
+                  </Label>
+                  <Input
+                    id="contribution-boost-input"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={500}
+                    step={25}
+                    value={contributionBoost}
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10)
+                      if (!Number.isNaN(value)) {
+                        setContributionBoost(Math.min(Math.max(value, 0), 500))
+                      }
+                    }}
+                    className="w-full"
+                  />
+                </div>
                 <Slider
                   value={[contributionBoost]}
                   min={0}
                   max={500}
                   step={25}
                   onValueChange={([value]) => setContributionBoost(value)}
-                  aria-label="Additional monthly contribution"
+                  aria-label="Additional monthly contribution slider"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>$0</span>
-                  <span>${contributionBoost}</span>
+                  <span className="font-medium text-foreground">${contributionBoost}</span>
                   <span>$500</span>
                 </div>
               </div>
@@ -150,7 +182,7 @@ export default function GoalsPage() {
                 <Input id="monthly-target" type="number" placeholder="500" />
               </div>
               <div className="flex gap-2">
-                <Button className="flex-1" onClick={() => setShowAddGoal(false)}>
+                <Button className="flex-1" onClick={() => setConfirmCreateGoal(true)}>
                   Create Goal
                 </Button>
                 <Button variant="outline" className="bg-transparent" onClick={() => setShowAddGoal(false)}>
@@ -160,6 +192,15 @@ export default function GoalsPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={confirmCreateGoal}
+          onOpenChange={setConfirmCreateGoal}
+          title="Create new savings goal?"
+          description="This will set up automatic tracking for your new goal. You can adjust the target amount, contribution, and funding source at any time."
+          confirmLabel="Create goal"
+          onConfirm={handleCreateGoal}
+        />
         </div>
       </motion.div>
 

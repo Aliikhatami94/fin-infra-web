@@ -96,7 +96,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                   <div className="flex items-start justify-between mb-3">
                     <div className="space-y-1 flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground">{kpi.title}</p>
-                      <p className="text-2xl font-bold tracking-tight tabular-nums font-mono truncate">
+                      <p className="text-2xl font-bold tracking-tight tabular-nums font-mono break-words">
                         <MaskableValue
                           value={`$${Math.abs(kpi.value).toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
                           srLabel={`${kpi.title} value`}
@@ -108,7 +108,11 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                   <div className="flex items-end justify-between">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1 text-xs cursor-help">
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-xs"
+                          aria-label={`${kpi.trend > 0 ? '+' : ''}${kpi.trend}% vs. last month`}
+                        >
                           {kpi.trend > 0 ? (
                             <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
                           ) : (
@@ -120,7 +124,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                             {kpi.trend > 0 ? "+" : ""}
                             {kpi.trend}%
                           </span>
-                        </div>
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="text-xs">

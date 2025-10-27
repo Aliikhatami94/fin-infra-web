@@ -150,8 +150,14 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
                   <LastSyncBadge timestamp="10 min ago" source="Broker" />
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                      <TooltipTrigger asChild>
+                        <button 
+                          type="button"
+                          className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
+                          aria-label="More information about Capital Gains YTD"
+                        >
+                          <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="text-xs">Short-Term: $4,200 (higher tax rate)</p>

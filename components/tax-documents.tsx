@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { FileText, Download, CheckCircle2, AlertCircle, Clock, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
@@ -93,10 +94,21 @@ export function TaxDocuments() {
                 </div>
               </div>
               {doc.status === "received" && (
-                <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  Download PDF
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="inline-block">
+                        <Button variant="outline" size="sm" className="gap-2 bg-transparent" disabled>
+                          <Download className="h-4 w-4" />
+                          Download PDF
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs px-1.5 py-1">
+                      <p className="text-xs">Document downloads will be available once tax year closes and all forms are finalized</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
           ))}

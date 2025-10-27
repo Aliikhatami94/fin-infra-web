@@ -1,10 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, AlertCircle, Sparkles, DollarSign } from "lucide-react"
 import { motion } from "framer-motion"
+import { ConfirmDialog } from "@/components/confirm-dialog"
+import { toast } from "@/components/ui/sonner"
 
 const recommendations = [
   {
@@ -18,6 +21,8 @@ const recommendations = [
     color: "text-green-600 dark:text-green-400",
     bgColor: "bg-green-500/10",
     borderColor: "border-green-200 dark:border-green-800",
+    confirmTitle: "Increase monthly contribution?",
+    confirmDescription: "This will adjust your Emergency Fund contribution from $500 to $800/month. You can change this at any time in your goal settings."
   },
   {
     type: "catchup",
@@ -30,6 +35,8 @@ const recommendations = [
     color: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-500/10",
     borderColor: "border-orange-200 dark:border-orange-800",
+    confirmTitle: "Adjust budget allocation?",
+    confirmDescription: "This will increase your House Down Payment contribution from $600 to $750/month. Your budget categories will be updated to reflect this change."
   },
   {
     type: "opportunity",
@@ -42,10 +49,22 @@ const recommendations = [
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-200 dark:border-blue-800",
+    confirmTitle: "Review credit utilization strategy?",
+    confirmDescription: "This is a suggestion to use available credit strategically. Disclaimer: Using credit carries risks. Review terms carefully and ensure you can pay off balances before promotional rates expire."
   },
 ]
 
 export function GoalRecommendations() {
+  const [confirmAction, setConfirmAction] = useState<typeof recommendations[0] | null>(null)
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      toast.success(`${confirmAction.action} completed`, {
+        description: `Your ${confirmAction.title.toLowerCase()} has been updated.`
+      })
+    }
+    setConfirmAction(null)
+  }
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -83,7 +102,12 @@ export function GoalRecommendations() {
                         {rec.impact}
                       </Badge>
                     </div>
-                    <Button size="sm" variant="outline" className="w-full sm:w-auto bg-transparent">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full sm:w-auto bg-transparent"
+                      onClick={() => setConfirmAction(rec)}
+                    >
                       {rec.action}
                     </Button>
                   </div>
@@ -93,6 +117,15 @@ export function GoalRecommendations() {
           </motion.div>
         ))}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction?.confirmTitle || "Confirm action"}
+        description={confirmAction?.confirmDescription || "Are you sure you want to proceed?"}
+        confirmLabel={confirmAction?.action || "Continue"}
+        onConfirm={handleConfirm}
+      />
     </div>
   )
 }

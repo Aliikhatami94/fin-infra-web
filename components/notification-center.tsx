@@ -1,6 +1,7 @@
 "use client"
 
-import { Fragment, useMemo } from "react"
+import { Fragment, useMemo, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { Inbox, Bell, Mail, Smartphone } from "lucide-react"
 
 import { useWorkspace } from "@/components/workspace-provider"
@@ -29,6 +30,15 @@ const CHANNEL_ICONS = {
 
 export function NotificationCenter({ open, onOpenChange }: NotificationCenterProps) {
   const { workspaces, activeWorkspace, notifications, markNotificationRead, markChannelAsRead } = useWorkspace()
+  const pathname = usePathname()
+
+  // Auto-dismiss on navigation
+  useEffect(() => {
+    if (open) {
+      onOpenChange(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
 
   const channelTabs = [
     { id: "all", label: "All" },

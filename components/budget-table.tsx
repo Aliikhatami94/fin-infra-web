@@ -376,10 +376,14 @@ export function BudgetTable() {
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <div className="flex cursor-help items-center justify-end gap-1 text-sm font-medium tabular-nums text-muted-foreground">
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center justify-end gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-sm font-medium tabular-nums text-muted-foreground"
+                                    aria-label={`Suggested budget: $${budget.suggestedBudget.toLocaleString()}, based on 6-month average`}
+                                  >
                                     <Lightbulb className="h-3 w-3 text-yellow-500" />
                                     ${budget.suggestedBudget.toLocaleString()}
-                                  </div>
+                                  </button>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p className="text-xs font-semibold mb-1">Based on 6-month average</p>
@@ -396,7 +400,11 @@ export function BudgetTable() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className="flex items-center justify-end gap-1 mt-0.5">
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center justify-end gap-1 rounded-md px-1.5 py-1 mt-0.5 hover:bg-muted/40 transition-colors cursor-help"
+                                  aria-label={`${periodChange > 0 ? '+' : ''}${periodChangePercent}% vs. ${comparisonPeriod === 'lastMonth' ? 'last month' : 'last year'}`}
+                                >
                                   {periodChange > 0 ? (
                                     <TrendingUp className="h-3 w-3 text-[var(--color-negative)]" />
                                   ) : (
@@ -408,7 +416,7 @@ export function BudgetTable() {
                                     {periodChange > 0 ? "+" : ""}
                                     {periodChangePercent}%
                                   </span>
-                                </div>
+                                </button>
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="text-xs">

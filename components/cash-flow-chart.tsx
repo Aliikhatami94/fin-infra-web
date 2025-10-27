@@ -10,7 +10,7 @@ import {
   Line,
   ComposedChart,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   XAxis,
   YAxis,
   Legend,
@@ -23,6 +23,7 @@ import { AccessibleChart } from "@/components/accessible-chart"
 import { currencySummaryFormatter, describeTimeSeries } from "@/lib/a11y"
 import { formatCurrency } from "@/lib/format"
 import { ChartContainer } from "@/components/chart-kit"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const monthlyData: CashFlowDatum[] = [
   { month: "Jan", inflow: 8500, outflow: 6200, net: 2300 },
@@ -127,31 +128,55 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <CardTitle>Cash Flow Overview</CardTitle>
-            <Select value={account} onValueChange={setAccount}>
-              <SelectTrigger className="w-[160px] h-8 text-xs">
-                <SelectValue placeholder="Select account" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Accounts</SelectItem>
-                <SelectItem value="checking">Checking Only</SelectItem>
-                <SelectItem value="chase">Chase Total Checking</SelectItem>
-                <SelectItem value="fidelity">Fidelity Cash</SelectItem>
-              </SelectContent>
-            </Select>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Select value={account} onValueChange={setAccount}>
+                      <SelectTrigger className="w-[160px] h-8 text-xs">
+                        <SelectValue placeholder="Select account" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Accounts</SelectItem>
+                        <SelectItem value="checking">Checking Only</SelectItem>
+                        <SelectItem value="chase">Chase Total Checking</SelectItem>
+                        <SelectItem value="fidelity">Fidelity Cash</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Filter this chart only</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-          <div className="flex items-center gap-1 border rounded-md">
-            <Button variant={period === "month" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("month")}>
-              Month
-            </Button>
-            <Button variant={period === "quarter" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("quarter")}>
-              Quarter
-            </Button>
-            <Button variant={period === "year" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("year")}>
-              Year
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Calendar className="h-4 w-4" />
-            </Button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <span className="text-xs text-muted-foreground">Group by:</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1 border rounded-md">
+                    <Button variant={period === "month" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("month")}>
+                      Month
+                    </Button>
+                    <Button variant={period === "quarter" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("quarter")}>
+                      Quarter
+                    </Button>
+                    <Button variant={period === "year" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("year")}>
+                      Year
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Calendar className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Chart aggregation only</p>
+                  <p className="text-xs text-muted-foreground">Time range set in top bar</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         {projectionData && (
@@ -208,7 +233,7 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                   tickLine={false}
                 />
                 <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip content={CustomTooltip} cursor={{ fill: "transparent" }} />
+                <RechartsTooltip content={CustomTooltip} cursor={{ fill: "transparent" }} />
                 <Legend />
                 {visibleSeries.includes("inflow") ? (
                   <Bar

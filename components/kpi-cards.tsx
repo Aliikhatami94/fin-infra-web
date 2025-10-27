@@ -77,7 +77,7 @@ export function KPICards() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1 flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground">{kpi.label}</p>
-                        <p className="text-2xl font-bold font-mono tabular-nums truncate">
+                        <p className="text-2xl font-bold font-mono tabular-nums break-words">
                           <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
                         </p>
                       </div>

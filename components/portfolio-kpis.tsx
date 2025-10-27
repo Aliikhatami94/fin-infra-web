@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
+import { MaskableValue } from "@/components/privacy-provider"
 import { TrendingUp, TrendingDown, Info, DollarSign, TrendingUpIcon, Activity, Target } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -131,8 +132,14 @@ export function PortfolioKPIs() {
                         <p className="text-xs text-muted-foreground">{kpi.label}</p>
                         <TooltipProvider>
                           <Tooltip>
-                            <TooltipTrigger>
-                              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                            <TooltipTrigger asChild>
+                              <button 
+                                type="button"
+                                className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
+                                aria-label={`More information about ${kpi.label}`}
+                              >
+                                <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                              </button>
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="text-xs max-w-xs">{kpi.tooltip}</p>
@@ -142,11 +149,17 @@ export function PortfolioKPIs() {
                       </div>
                       <KPIIcon icon={Icon} tone="info" />
                     </div>
-                    <p className="text-2xl font-bold tabular-nums text-foreground">{kpi.value}</p>
+                    <p className="text-2xl font-bold tabular-nums text-foreground">
+                      <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
+                    </p>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 cursor-help">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                            aria-label={`${kpi.change} vs. last month`}
+                          >
                             {kpi.positive ? (
                               <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
                             ) : (
@@ -157,9 +170,9 @@ export function PortfolioKPIs() {
                                 kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
                               }`}
                             >
-                              {kpi.change}
+                              <MaskableValue value={kpi.change} />
                             </span>
-                          </div>
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p className="text-xs">

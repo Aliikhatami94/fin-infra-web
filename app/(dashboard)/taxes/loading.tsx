@@ -3,18 +3,23 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TaxesLoading() {
   return (
-  <div className="mx-auto w-full max-w-[1200px] space-y-8" aria-busy>
-      <div className="sticky top-0 -mx-4 mb-6 border-b border-border/20 bg-card/90 px-4 py-4 backdrop-blur-sm sm:-mx-6 lg:-mx-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-10 w-52" rounded="md" />
+    <>
+      {/* Sticky compact Header */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-7 w-24" />
+              <Skeleton className="h-10 w-52" rounded="md" />
+            </div>
+            <Skeleton className="h-10 w-56" rounded="full" />
           </div>
-          <Skeleton className="h-10 w-56" rounded="full" />
         </div>
       </div>
 
-      <Card className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
+      {/* Body */}
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-8" aria-busy>
+        <Card className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
         <CardContent className="space-y-4 p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
@@ -120,6 +125,7 @@ export default function TaxesLoading() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

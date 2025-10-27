@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
+import { MaskableValue } from "@/components/privacy-provider"
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { Line, LineChart, ResponsiveContainer } from "recharts"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -283,7 +284,7 @@ export function CashFlowKPIs() {
                     aria-label={`Net cash flow ${formattedNetCashFlow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
-                    {formattedNetCashFlow}
+                    <MaskableValue value={formattedNetCashFlow} srLabel="Net cash flow value" />
                   </p>
                 </div>
                 <KPIIcon icon={TrendingUp} tone="info" />
@@ -291,7 +292,11 @@ export function CashFlowKPIs() {
               <div className="flex items-center justify-between">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 text-xs cursor-help">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-xs"
+                      aria-label={`${snapshot.changePercent >= 0 ? '+' : ''}${snapshot.changePercent}% ${snapshot.changeComparison}`}
+                    >
                       {snapshot.changePercent >= 0 ? (
                         <>
                           <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
@@ -303,7 +308,7 @@ export function CashFlowKPIs() {
                           <span className="text-[var(--color-negative)]">{snapshot.changePercent}%</span>
                         </>
                       )}
-                    </div>
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="text-xs">
@@ -337,7 +342,7 @@ export function CashFlowKPIs() {
                     aria-label={`Total inflow ${formattedTotalInflow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
-                    {formattedTotalInflow}
+                    <MaskableValue value={formattedTotalInflow} srLabel="Total inflow value" />
                   </p>
                 </div>
                 <KPIIcon icon={ArrowDownRight} tone="positive" />
@@ -376,7 +381,7 @@ export function CashFlowKPIs() {
                     aria-label={`Total outflow ${formattedTotalOutflow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
-                    {formattedTotalOutflow}
+                    <MaskableValue value={formattedTotalOutflow} srLabel="Total outflow value" />
                   </p>
                 </div>
                 <KPIIcon icon={ArrowUpRight} tone="warning" />

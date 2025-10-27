@@ -309,12 +309,26 @@ export function TransactionsWorkspace() {
             </div>
             <div className="flex items-center gap-2">
               <AssignmentMenu entityId="transaction-review" entityType="transaction" />
-              <CollaborationDrawer
-                entityId="transaction-review"
-                entityType="transaction"
-                entityName="Transactions workspace"
-                triggerLabel="Discuss"
-              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <CollaborationDrawer
+                        entityId="transaction-review"
+                        entityType="transaction"
+                        entityName="Transactions workspace"
+                        triggerLabel="Discuss"
+                        disabled={selectedTransactionIds.length === 0}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  {selectedTransactionIds.length === 0 && (
+                    <TooltipContent>
+                      <p className="text-xs">Select transactions to discuss</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>

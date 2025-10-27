@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import {
   ArrowDownUp,
   Check,
@@ -137,6 +138,7 @@ export function InsightCard({
   const [isPinned, setIsPinned] = useState(Boolean(insight.pinned))
   const [isResolved, setIsResolved] = useState(Boolean(resolved))
   const [showExplanation, setShowExplanation] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<InsightAction | null>(null)
   const explanationId = useId()
   const headingId = useId()
   const descriptionId = useId()
@@ -202,8 +204,49 @@ export function InsightCard({
 
   const handleAction = (action: InsightAction) => {
     registerRead()
+    
+    // Check if this is an automation action that requires confirmation
+    if (action.id.startsWith('automation:')) {
+      setConfirmAction(action)
+      return
+    }
+    
     trackInsightAction({ insight, action })
     onAction?.({ insight, action })
+  }
+
+  const handleConfirmAction = () => {
+    if (confirmAction) {
+      trackInsightAction({ insight, action: confirmAction })
+      onAction?.({ insight, action: confirmAction })
+      setConfirmAction(null)
+    }
+  }
+
+  const getAutomationConfirmation = (action: InsightAction) => {
+    const confirmations: Record<string, { title: string; description: string }> = {
+      'automation:tax-harvest': {
+        title: 'Start automated tax-loss harvesting?',
+        description: 'This will analyze your portfolio for tax-loss harvesting opportunities and execute trades to offset capital gains. The Copilot will review wash sale rules and provide a detailed plan before executing.'
+      },
+      'automation:budget-sweep': {
+        title: 'Automate budget sweep?',
+        description: 'This will automatically transfer excess funds from your checking account to savings based on your budget rules. You can review and adjust the automation rules at any time.'
+      },
+      'automation:portfolio-rebalance': {
+        title: 'Start automated rebalancing?',
+        description: 'This will automatically rebalance your portfolio to match your target allocation. The Copilot will calculate required trades and execute them across your accounts.'
+      },
+      'automation:crypto-diversify': {
+        title: 'Diversify crypto holdings now?',
+        description: 'This will automatically diversify your crypto portfolio by selling overweight positions and buying underweight assets according to your target allocation.'
+      }
+    }
+    
+    return confirmations[action.id] || {
+      title: 'Confirm automation action?',
+      description: 'This automated action will make changes to your accounts. Review the details before proceeding.'
+    }
   }
 
   const toggleExplanation = () => {
@@ -397,7 +440,7 @@ export function InsightCard({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 gap-1.5 px-1.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40"
                 aria-expanded={showExplanation}
                 aria-controls={explanationId}
                 onClick={() => {
@@ -494,6 +537,17 @@ export function InsightCard({
           )}
         </CardContent>
       </Card>
+
+      {confirmAction && (
+        <ConfirmDialog
+          open={Boolean(confirmAction)}
+          onOpenChange={(open) => !open && setConfirmAction(null)}
+          title={getAutomationConfirmation(confirmAction).title}
+          description={getAutomationConfirmation(confirmAction).description}
+          confirmLabel="Continue"
+          onConfirm={handleConfirmAction}
+        />
+      )}
     </motion.div>
   )
 }
