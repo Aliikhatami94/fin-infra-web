@@ -27,9 +27,9 @@ export default function CryptoLoading() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Card key={index} className="card-standard card-lift">
+            <Card key={index} className="card-standard card-lift min-h-[280px]">
               <CardContent className="space-y-4 p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">

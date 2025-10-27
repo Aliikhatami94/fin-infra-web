@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function NetWorthDetailLoading() {
   return (
-    <div className="mx-auto max-w-7xl space-y-6" aria-busy>
+    <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6" aria-busy>
       <div className="space-y-2">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-4 w-72" />

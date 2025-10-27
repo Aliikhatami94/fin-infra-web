@@ -18,7 +18,7 @@ export default function OverviewLoading() {
 
       <div className="mx-auto w-full max-w-[1200px] space-y-6 px-4 py-6 sm:px-6 lg:px-10" aria-busy>
         <section>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
             {Array.from({ length: 6 }).map((_, index) => (
               <Card key={index} className="card-standard card-lift">
                 <CardContent className="space-y-4 p-5">
