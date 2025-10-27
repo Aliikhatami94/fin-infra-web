@@ -33,24 +33,24 @@ const monthlyData: CashFlowDatum[] = [
 
 const chartConfig = {
   inflow: {
-    label: "Inflow",
+    label: "Income",
     theme: {
-      light: "hsl(142, 76%, 36%)",
-      dark: "hsl(142, 71%, 45%)",
+      light: "hsl(142, 71%, 45%)",
+      dark: "hsl(142, 76%, 55%)",
     },
   },
   outflow: {
-    label: "Outflow",
+    label: "Expenses",
     theme: {
-      light: "hsl(24, 95%, 53%)",
-      dark: "hsl(24, 95%, 60%)",
+      light: "hsl(0, 72%, 51%)",
+      dark: "hsl(0, 72%, 60%)",
     },
   },
   net: {
-    label: "Net Flow",
+    label: "Net",
     theme: {
-      light: "hsl(217, 91%, 60%)",
-      dark: "hsl(217, 91%, 65%)",
+      light: "hsl(221, 83%, 53%)",
+      dark: "hsl(221, 83%, 65%)",
     },
   },
 } satisfies ChartConfig
@@ -182,90 +182,113 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
       <CardContent>
         <div className="space-y-4">
           {/* Series Toggle Buttons */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground mr-2">Show:</span>
             <Button
-              variant={visibleSeries.includes("inflow") ? "default" : "outline"}
+              variant={visibleSeries.includes("inflow") ? "secondary" : "outline"}
               size="sm"
               onClick={() => toggleSeries("inflow")}
-              className="text-xs"
+              className="h-7 text-xs gap-1.5"
             >
-              <div className="mr-2 h-3 w-3 rounded-full bg-[hsl(142,76%,36%)] dark:bg-[hsl(142,71%,45%)]" />
-              Inflow
+              <div className="h-2 w-2 rounded-full bg-[hsl(142,71%,45%)] dark:bg-[hsl(142,76%,55%)]" />
+              Income
             </Button>
             <Button
-              variant={visibleSeries.includes("outflow") ? "default" : "outline"}
+              variant={visibleSeries.includes("outflow") ? "secondary" : "outline"}
               size="sm"
               onClick={() => toggleSeries("outflow")}
-              className="text-xs"
+              className="h-7 text-xs gap-1.5"
             >
-              <div className="mr-2 h-3 w-3 rounded-full bg-[hsl(24,95%,53%)] dark:bg-[hsl(24,95%,60%)]" />
-              Outflow
+              <div className="h-2 w-2 rounded-full bg-[hsl(0,72%,51%)] dark:bg-[hsl(0,72%,60%)]" />
+              Expenses
             </Button>
             <Button
-              variant={visibleSeries.includes("net") ? "default" : "outline"}
+              variant={visibleSeries.includes("net") ? "secondary" : "outline"}
               size="sm"
               onClick={() => toggleSeries("net")}
-              className="text-xs"
+              className="h-7 text-xs gap-1.5"
             >
-              <div className="mr-2 h-3 w-3 rounded-full bg-[hsl(217,91%,60%)] dark:bg-[hsl(217,91%,65%)]" />
-              Net Flow
+              <div className="h-2 w-2 rounded-full bg-[hsl(221,83%,53%)] dark:bg-[hsl(221,83%,65%)]" />
+              Net
             </Button>
           </div>
 
           {/* Chart */}
           <ChartContainer config={chartConfig} className="h-[350px] w-full">
-            <ComposedChart data={monthlyData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
+            <ComposedChart data={monthlyData} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-inflow)" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="var(--color-inflow)" stopOpacity={0.6}/>
+                </linearGradient>
+                <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-outflow)" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="var(--color-outflow)" stopOpacity={0.6}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                className="stroke-muted"
+                stroke="currentColor"
+                className="stroke-muted/20"
               />
               <XAxis
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
-                tickMargin={8}
-                className="text-xs"
+                tickMargin={12}
+                className="text-[11px]"
+                stroke="currentColor"
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tickMargin={8}
-                className="text-xs"
+                tickMargin={12}
+                className="text-[11px]"
+                stroke="currentColor"
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                width={45}
               />
               <ChartTooltip
                 content={
                   <ChartTooltipContent
+                    className="w-[180px]"
                     labelFormatter={(value, payload) => {
                       const dataPoint = (payload as any)?.[0]?.payload as CashFlowDatum | undefined
                       return (
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{String(value)}</span>
+                          <span className="font-semibold">{String(value)}</span>
                           {dataPoint?.isProjection && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="h-4 text-[10px] px-1">
                               Forecast
                             </Badge>
                           )}
                         </div>
                       )
                     }}
-                    formatter={(value) => [`$${Number(value).toLocaleString()}`, ""]}
+                    formatter={(value, name) => {
+                      const displayName = name === "inflow" ? "Income" : name === "outflow" ? "Expenses" : "Net"
+                      return [
+                        <span className="font-medium">${Number(value).toLocaleString()}</span>,
+                        <span className="text-muted-foreground">{displayName}</span>
+                      ]
+                    }}
                   />
                 }
+                cursor={false}
               />
-              <ChartLegend content={<ChartLegendContent />} />
               
               {visibleSeries.includes("inflow") && (
                 <Bar
                   dataKey="inflow"
-                  fill="var(--color-inflow)"
-                  radius={[6, 6, 0, 0]}
+                  fill="url(#colorInflow)"
+                  radius={[8, 8, 0, 0]}
                   onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
                   cursor="pointer"
+                  maxBarSize={40}
                 >
                   {monthlyData.map((entry, index) => {
-                    const dimmed = entry.isProjection ? 0.6 : selectedMonth && entry.month !== selectedMonth ? 0.3 : 1
+                    const dimmed = entry.isProjection ? 0.5 : selectedMonth && entry.month !== selectedMonth ? 0.2 : 1
                     return <Cell key={`inflow-${index}`} opacity={dimmed} />
                   })}
                 </Bar>
@@ -274,13 +297,14 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
               {visibleSeries.includes("outflow") && (
                 <Bar
                   dataKey="outflow"
-                  fill="var(--color-outflow)"
-                  radius={[6, 6, 0, 0]}
+                  fill="url(#colorOutflow)"
+                  radius={[8, 8, 0, 0]}
                   onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
                   cursor="pointer"
+                  maxBarSize={40}
                 >
                   {monthlyData.map((entry, index) => {
-                    const dimmed = entry.isProjection ? 0.6 : selectedMonth && entry.month !== selectedMonth ? 0.3 : 0.85
+                    const dimmed = entry.isProjection ? 0.5 : selectedMonth && entry.month !== selectedMonth ? 0.2 : 1
                     return <Cell key={`outflow-${index}`} opacity={dimmed} />
                   })}
                 </Bar>
@@ -291,16 +315,17 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                   type="monotone"
                   dataKey="net"
                   stroke="var(--color-net)"
-                  strokeWidth={2.5}
+                  strokeWidth={2}
                   dot={{
                     fill: "var(--color-net)",
-                    r: 4,
-                    strokeWidth: 2,
-                    stroke: "hsl(var(--background))",
+                    strokeWidth: 0,
+                    r: 3,
                   }}
                   activeDot={{
-                    r: 6,
+                    r: 5,
                     strokeWidth: 2,
+                    stroke: "hsl(var(--background))",
+                    fill: "var(--color-net)",
                   }}
                 />
               )}
