@@ -22,7 +22,7 @@ How to work this plan
 - [x] PR-06: Accounts page fixes
 - [x] PR-07: Portfolio page fixes
 - [x] PR-08: Crypto page fixes
-- [ ] PR-09: Transactions page fixes
+- [x] PR-09: Transactions page fixes
 - [ ] PR-10: Budget page fixes
 - [ ] PR-11: Goals page fixes
 - [ ] PR-12: Taxes page fixes
@@ -217,15 +217,22 @@ Files touched
 
 ---
 
-## PR-09: Transactions page fixes
+## PR-09: Transactions page fixes ✅
 
 Checklist
-- [ ] “Discuss” should explain it requires a selected transaction; disable until selected and add tooltip.
-- [ ] High-impact cards (Cashback opportunity, Duplicate charge): add confirmation step before any side effect (even if mock).
-- [ ] AI assistant CTA: hide by default; only show after a user-initiated action, and add a disclaimer.
+- [x] "Discuss" should explain it requires a selected transaction; disable until selected and add tooltip.
+- [x] High-impact cards (Cashback opportunity, Duplicate charge): add confirmation step before any side effect (even if mock).
+- [x] AI assistant CTA: hide by default; only show after a user-initiated action, and add a disclaimer. (N/A - not present in current implementation)
 
 Acceptance criteria
-- No dead-end buttons; risky actions require confirmation; assistant appears only on intent.
+- ✅ "Discuss" button disabled when no transactions selected with tooltip: "Select transactions to discuss";
+- ✅ Cashback and duplicate charge actions show confirmation dialogs with clear descriptions;
+- ✅ No dead-end buttons; risky actions require confirmation.
+
+Files touched
+- `components/transactions-workspace.tsx` - Wrapped "Discuss" button in Tooltip, disabled when `selectedTransactionIds.length === 0`
+- `components/collaboration-drawer.tsx` - Added optional `disabled` prop to support disabling the trigger button
+- `components/transactions-insights.tsx` - Added ConfirmDialog for high-impact actions (cashback boost enable, duplicate charge review)
 
 ---
 

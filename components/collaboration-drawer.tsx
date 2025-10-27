@@ -27,6 +27,7 @@ interface CollaborationDrawerProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   hideTrigger?: boolean
+  disabled?: boolean
 }
 
 export function CollaborationDrawer({
@@ -37,6 +38,7 @@ export function CollaborationDrawer({
   open,
   onOpenChange,
   hideTrigger = false,
+  disabled = false,
 }: CollaborationDrawerProps) {
   const { activeWorkspace, getThread, addComment } = useWorkspace()
   const [internalOpen, setInternalOpen] = useState(false)
@@ -83,7 +85,7 @@ export function CollaborationDrawer({
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       {!hideTrigger && (
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2 rounded-full">
+          <Button variant="ghost" size="sm" className="gap-2 rounded-full" disabled={disabled}>
             <MessageSquare className="h-4 w-4" />
             {triggerLabel}
           </Button>
