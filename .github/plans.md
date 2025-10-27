@@ -262,24 +262,6 @@ Files touched
 
 ## PR-11: Goals page fixes
 
----
-
-## PR-10: Budget page fixes
-
-Checklist
-- [ ] “+” in Auto‑invest Budget: implement modal or disable with tooltip.
-- [ ] Increase tooltip hit-areas; allow click-to-open as fallback.
-- [ ] Quick edit/settings icons: implement inline edit drawer (mock is fine) or disable clearly.
-- [ ] Fix monetary truncation in category table; set flexible widths and wrapping.
-- [ ] Chart: add axis labels; ensure long category names truncate with tooltip rather than wrap unpredictably.
-
-Acceptance criteria
-- Controls do something or are clearly disabled; numbers visible; chart labeled.
-
----
-
-## PR-11: Goals page fixes
-
 Checklist
 - [ ] Add confirmation for creating a goal.
 - [ ] Scenario slider: add numeric input and `aria-label`s; ensure keyboard adjustments work.
