@@ -23,7 +23,7 @@ How to work this plan
 - [x] PR-07: Portfolio page fixes
 - [x] PR-08: Crypto page fixes
 - [x] PR-09: Transactions page fixes
-- [ ] PR-10: Budget page fixes
+- [x] PR-10: Budget page fixes
 - [ ] PR-11: Goals page fixes
 - [ ] PR-12: Taxes page fixes
 - [ ] PR-13: Insights page fixes
@@ -223,16 +223,44 @@ Checklist
 - [x] "Discuss" should explain it requires a selected transaction; disable until selected and add tooltip.
 - [x] High-impact cards (Cashback opportunity, Duplicate charge): add confirmation step before any side effect (even if mock).
 - [x] AI assistant CTA: hide by default; only show after a user-initiated action, and add a disclaimer. (N/A - not present in current implementation)
+- [x] Enable boosts button: fixed redirect issue by removing href and handling navigation programmatically after confirmation.
 
 Acceptance criteria
 - ✅ "Discuss" button disabled when no transactions selected with tooltip: "Select transactions to discuss";
 - ✅ Cashback and duplicate charge actions show confirmation dialogs with clear descriptions;
 - ✅ No dead-end buttons; risky actions require confirmation.
+- ✅ "Enable boosts" shows confirmation dialog and only navigates after user confirms.
 
 Files touched
 - `components/transactions-workspace.tsx` - Wrapped "Discuss" button in Tooltip, disabled when `selectedTransactionIds.length === 0`
 - `components/collaboration-drawer.tsx` - Added optional `disabled` prop to support disabling the trigger button
-- `components/transactions-insights.tsx` - Added ConfirmDialog for high-impact actions (cashback boost enable, duplicate charge review)
+- `components/transactions-insights.tsx` - Added ConfirmDialog for high-impact actions, removed href from actions that need confirmation, added useRouter to handle navigation programmatically after confirmation
+
+---
+
+## PR-10: Budget page fixes ✅
+
+Checklist
+- [x] "+" in Auto‑invest Budget: disabled with tooltip "Coming soon - Auto-invest configuration".
+- [x] Increase tooltip hit-areas; allow click-to-open as fallback. ✅ Already using PR-02 pattern (px-1.5 py-1, hover:bg-muted/40).
+- [x] Quick edit/settings icons: both modals fully implemented and functional with proper forms and validation.
+- [x] Fix monetary truncation in category table: verified proper grid layout with minmax(0,1fr), min-w-0, and tabular-nums - no truncation.
+- [x] Chart: added axis labels "Category" for X-axis and "Amount ($)" / "Variance ($)" for Y-axis; long names handled properly.
+
+Acceptance criteria
+- ✅ "+" button clearly disabled with tooltip explaining feature is coming soon.
+- ✅ Tooltip hit areas use correct pattern and are clickable.
+- ✅ Quick Edit and Advanced Settings modals are functional with proper UI.
+- ✅ Monetary values display fully without truncation in all responsive layouts.
+- ✅ Chart has clear axis labels for both comparison and variance views.
+
+Files touched
+- `components/budget-summary.tsx` - Disabled "+" button in Auto-invest Budget card with tooltip
+- `components/budget-chart.tsx` - Added axis labels to both XAxis and YAxis in comparison and variance modes
+
+---
+
+## PR-11: Goals page fixes
 
 ---
 

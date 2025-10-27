@@ -240,9 +240,18 @@ export function BudgetSummary() {
                   </div>
                   <div className="flex min-w-[3rem] items-center justify-end">
                     {item.actionable ? (
-                      <Button variant="outline" size="sm" className="h-9 w-9 bg-transparent p-0">
-                        <Plus className="h-4 w-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <Button variant="outline" size="sm" className="h-9 w-9 bg-transparent p-0" disabled>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Coming soon - Auto-invest configuration</p>
+                        </TooltipContent>
+                      </Tooltip>
                     ) : item.progress !== undefined ? (
                       <div
                         className="relative"
