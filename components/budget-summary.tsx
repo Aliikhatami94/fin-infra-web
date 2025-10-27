@@ -92,10 +92,11 @@ export function BudgetSummary() {
   }, [persona])
 
   return (
-    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
-      {summary.map((item, index) => {
-        const Icon = item.icon
-        const progressValue = item.progress ?? 0
+    <TooltipProvider>
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
+        {summary.map((item, index) => {
+          const Icon = item.icon
+          const progressValue = item.progress ?? 0
         const progressState =
           item.progress === undefined
             ? null
@@ -129,106 +130,104 @@ export function BudgetSummary() {
             ? "positive"
             : "neutral"
 
-        return (
-          <motion.div key={index} className="h-full" {...createStaggeredCardVariants(index, 0)}>
-            <Card className="card-standard card-lift h-full min-h-[280px]">
-              <CardContent className="flex flex-col h-full gap-3 p-6">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="sr-only" aria-live="polite">{`Budget information for ${item.label}.`}</div>
-                  <LastSyncBadge timestamp="3 min ago" source="Plaid" />
-                </div>
-
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">{item.label}</p>
-                    <p className="text-2xl font-bold font-mono tabular-nums break-words">
-                      {item.value}
-                    </p>
-                  </div>
-                  <KPIIcon icon={Icon} tone={tone as "positive" | "negative" | "warning" | "neutral"} size="md" />
-                </div>
-
-                <div className="flex items-end justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    {item.subtext && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 text-xs font-medium cursor-help">
-                            <span className="text-muted-foreground">{item.subtext}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-xs">Last Month: $6,150</p>
-                          <p className="text-xs">This Month: $5,840</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                    {item.badge && (
-                      <Badge variant="secondary" className="border-0 bg-green-500/10 text-[var(--color-positive)]">
-                        {item.badge}
-                      </Badge>
-                    )}
+          return (
+            <motion.div key={index} className="h-full" {...createStaggeredCardVariants(index, 0)}>
+              <Card className="card-standard card-lift h-full min-h-[280px]">
+                <CardContent className="flex h-full flex-col gap-4 p-6">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="sr-only" aria-live="polite">{`Budget information for ${item.label}.`}</div>
+                    <LastSyncBadge timestamp="3 min ago" source="Plaid" />
                   </div>
 
-                  <div className="flex-shrink-0">
-                    {item.actionable ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <Button variant="outline" size="sm" className="h-9 w-9 p-0" disabled>
-                              <Plus className="h-4 w-4" />
-                            </Button>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground">{item.label}</p>
+                      <p className="text-2xl font-bold font-mono tabular-nums break-words">
+                        {item.value}
+                      </p>
+                    </div>
+                    <KPIIcon icon={Icon} tone={tone as "positive" | "negative" | "warning" | "neutral"} size="md" />
+                  </div>
+
+                  <div className="mt-auto flex items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      {item.subtext && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:bg-muted/40 cursor-help">
+                              {item.subtext}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Last Month: $6,150</p>
+                            <p className="text-xs">This Month: $5,840</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      {item.badge && (
+                        <Badge variant="secondary" className="border-0 bg-green-500/10 text-[var(--color-positive)]">
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex-shrink-0">
+                      {item.actionable ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <Button variant="outline" size="sm" className="h-9 w-9 p-0" disabled>
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Coming soon - Auto-invest configuration</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : item.progress !== undefined ? (
+                        <div
+                          className="relative"
+                          role="img"
+                          aria-label={`${item.label} is ${progressValue}% complete, ${progressStatusLabel}.`}
+                          data-progress-state={progressState ?? undefined}
+                        >
+                          <svg className="h-16 w-16 -rotate-90" aria-hidden="true">
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              stroke="currentColor"
+                              strokeWidth="5"
+                              fill="none"
+                              className="text-muted/20"
+                            />
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              stroke="currentColor"
+                              strokeWidth="5"
+                              fill="none"
+                              strokeDasharray={`${2 * Math.PI * 28}`}
+                              strokeDashoffset={`${2 * Math.PI * 28 * (1 - item.progress / 100)}`}
+                              className={progressColorClass}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-sm font-bold tabular-nums">{item.progress}%</span>
                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Coming soon - Auto-invest configuration</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : item.progress !== undefined ? (
-                      <div
-                        className="relative"
-                        role="img"
-                        aria-label={`${item.label} is ${progressValue}% complete, ${progressStatusLabel}.`}
-                        data-progress-state={progressState ?? undefined}
-                      >
-                        <svg className="h-16 w-16 -rotate-90" aria-hidden="true">
-                          <circle
-                            cx="32"
-                            cy="32"
-                            r="28"
-                            stroke="currentColor"
-                            strokeWidth="5"
-                            fill="none"
-                            className="text-muted/20"
-                          />
-                          <circle
-                            cx="32"
-                            cy="32"
-                            r="28"
-                            stroke="currentColor"
-                            strokeWidth="5"
-                            fill="none"
-                            strokeDasharray={`${2 * Math.PI * 28}`}
-                            strokeDashoffset={`${2 * Math.PI * 28 * (1 - item.progress / 100)}`}
-                            className={progressColorClass}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-sm font-bold tabular-nums">{item.progress}%</span>
                         </div>
-                      </div>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-
-                <div className="border-t border-border/40 pt-3 mt-auto h-[52px]">
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )
-      })}
-    </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )
+        })}
+      </div>
+    </TooltipProvider>
   )
 }
