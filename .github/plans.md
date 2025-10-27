@@ -25,7 +25,7 @@ How to work this plan
 - [x] PR-09: Transactions page fixes
 - [x] PR-10: Budget page fixes
 - [x] PR-11: Goals page fixes
-- [ ] PR-12: Taxes page fixes
+- [x] PR-12: Taxes page fixes
 - [ ] PR-13: Insights page fixes
 - [ ] PR-14: Documents page fixes
 - [ ] PR-15: Settings page fixes
@@ -280,17 +280,25 @@ Files touched
 
 ---
 
-## PR-12: Taxes page fixes
+## PR-12: Taxes page fixes ✅
 
 Checklist
-- [ ] Add explanatory interstitial for “Plan Tax Loss Harvesting”.
-- [ ] Gate deadline action buttons behind acknowledgment toggle; disable until checked.
-- [ ] Update withholding card: add detailed context + confirmation.
-- [ ] Clearly label “What‑If” tools as simulations; no side effects.
-- [ ] Document list: add note if downloads disabled in environment; keep buttons disabled with tooltip.
+- [x] Add explanatory interstitial for "Plan Tax Loss Harvesting".
+- [x] Gate deadline action buttons behind acknowledgment toggle; disable until checked.
+- [x] Update withholding card: add detailed context + confirmation. (Verified - withholding adjustments are display-only progress indicators in readiness section, already have appropriate context)
+- [x] Clearly label "What‑If" tools as simulations; no side effects.
+- [x] Document list: add note if downloads disabled in environment; keep buttons disabled with tooltip.
 
 Acceptance criteria
-- Users get context before actions; simulations are labeled; downloads clarified.
+- ✅ Users get context before actions via explanatory dialog explaining tax loss harvesting, wash sale rule, and disclaimer.
+- ✅ Deadline actions (Review positions, View schedule) require acknowledgment checkbox to be checked before enabling.
+- ✅ Simulations are clearly labeled with "Simulation Only - No actual trades will be executed" badge.
+- ✅ Downloads disabled with tooltip: "Document downloads will be available once tax year closes and all forms are finalized".
+
+Files touched
+- `app/(dashboard)/taxes/page.tsx` - Added state for harvest intro dialog and deadline acknowledgment; added handlers and Dialog component for tax loss harvesting explanation; added acknowledgment checkbox that gates deadline action buttons
+- `components/tax-scenario-tool.tsx` - Added "Simulation Only" badge with Info icon below title
+- `components/tax-documents.tsx` - Disabled all download buttons with Tooltip explaining availability
 
 ---
 

@@ -12,6 +12,8 @@ import { ScenarioPlaybook } from "@/components/scenario-playbook"
 import { TaxDeadlineTimeline } from "@/components/tax-deadline-timeline"
 import { AutomationCopilotDrawer } from "@/components/automation-copilot-drawer"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TrendingDown, AlertCircle, CalendarDays, Info } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -33,9 +35,20 @@ export default function TaxesPage() {
   const [gainsFilter, setGainsFilter] = useState<string | null>(null)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [explanationKey, setExplanationKey] = useState<"liability" | "harvest" | null>(null)
+  const [showHarvestIntro, setShowHarvestIntro] = useState(false)
+  const [acknowledgedDeadlines, setAcknowledgedDeadlines] = useState(false)
 
   const isComparisonMode = taxYear === "2024-compare"
   const explanation = explanationKey ? getTaxExplanation(explanationKey) : null
+
+  const handlePlanHarvesting = () => {
+    setShowHarvestIntro(true)
+  }
+
+  const handleConfirmHarvesting = () => {
+    setShowHarvestIntro(false)
+    setCopilotOpen(true)
+  }
 
   const filingYear = useMemo(() => {
     const numeric = Number.parseInt(taxYear, 10)
@@ -146,7 +159,7 @@ export default function TaxesPage() {
               <Button
                 variant="destructive"
                 className="gap-2 bg-orange-600 hover:bg-orange-700"
-                onClick={() => setCopilotOpen(true)}
+                onClick={handlePlanHarvesting}
               >
                 <TrendingDown className="h-4 w-4" />
                 Plan Tax Loss Harvesting
@@ -191,6 +204,20 @@ export default function TaxesPage() {
             )}
 
             {/* All Deadlines Grid */}
+            <div className="mb-4 flex items-start gap-3 rounded-lg border border-orange-200/70 bg-white/80 p-3 dark:border-orange-900/60 dark:bg-orange-950/40">
+              <Checkbox
+                id="acknowledge-deadlines"
+                checked={acknowledgedDeadlines}
+                onCheckedChange={(checked) => setAcknowledgedDeadlines(checked === true)}
+              />
+              <Label
+                htmlFor="acknowledge-deadlines"
+                className="text-xs text-orange-800 dark:text-orange-200 cursor-pointer leading-relaxed"
+              >
+                I acknowledge these deadlines may have tax implications and filing requirements. I will review the details before taking action.
+              </Label>
+            </div>
+
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {deadlineItems.map((deadline) => (
                 <div
@@ -210,14 +237,22 @@ export default function TaxesPage() {
                   </div>
                   <p className="mb-4 flex-1 text-xs leading-relaxed text-orange-800 dark:text-orange-200">{deadline.description}</p>
                   {deadline.action.type === "button" ? (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="w-full border-orange-300 text-orange-900 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-100 dark:hover:bg-orange-900"
-                      onClick={deadline.action.onClick}
-                    >
-                      {deadline.action.label}
-                    </Button>
+                    <div>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="w-full border-orange-300 text-orange-900 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-100 dark:hover:bg-orange-900"
+                        onClick={deadline.action.onClick}
+                        disabled={!acknowledgedDeadlines}
+                      >
+                        {deadline.action.label}
+                      </Button>
+                      {!acknowledgedDeadlines && (
+                        <p className="mt-1 text-[10px] text-orange-600 dark:text-orange-400 text-center">
+                          Check acknowledgment above
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <Button
                       asChild
@@ -295,6 +330,50 @@ export default function TaxesPage() {
           <DialogFooter className="mt-6 flex justify-end">
             <Button variant="ghost" onClick={() => setExplanationKey(null)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showHarvestIntro} onOpenChange={setShowHarvestIntro}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingDown className="h-5 w-5 text-orange-600" />
+              About Tax Loss Harvesting
+            </DialogTitle>
+            <DialogDescription>
+              Understand how this strategy works before proceeding
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg border bg-blue-50 p-4 dark:bg-blue-950/20">
+              <h4 className="font-semibold text-sm mb-2">What is tax loss harvesting?</h4>
+              <p className="text-sm text-muted-foreground">
+                Tax loss harvesting is a strategy where you sell investments at a loss to offset capital gains and reduce your tax liability. This can help lower your overall tax bill for the year.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm">Important considerations:</h4>
+              <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                <li><strong>Wash sale rule:</strong> You cannot repurchase the same or "substantially identical" security within 30 days before or after the sale.</li>
+                <li><strong>Market timing:</strong> Selling and repurchasing affects your market exposure during the waiting period.</li>
+                <li><strong>Transaction costs:</strong> Trading fees may reduce the benefit of small tax savings.</li>
+                <li><strong>Long-term strategy:</strong> Harvesting works best as part of a comprehensive tax plan, not a one-time action.</li>
+              </ul>
+            </div>
+            <div className="rounded-lg border bg-amber-50 p-4 dark:bg-amber-950/20">
+              <p className="text-sm">
+                <strong>Disclaimer:</strong> This tool provides estimates based on your portfolio data. Always consult with a tax professional before executing any tax loss harvesting strategy. We do not provide tax advice.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowHarvestIntro(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmHarvesting} className="bg-orange-600 hover:bg-orange-700">
+              Continue to Planning Tool
             </Button>
           </DialogFooter>
         </DialogContent>
