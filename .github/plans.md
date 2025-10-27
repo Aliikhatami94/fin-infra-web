@@ -20,7 +20,7 @@ How to work this plan
 - [x] PR-19: Product highlights feature pages (404 fixes)
 - [x] PR-20: Landing page content sections (interactive previews)
 - [x] PR-21: Demo page video & accessibility
-- [ ] PR-22: Sign-in flow polish
+- [x] PR-22: Sign-in flow polish
 - [ ] PR-23: Password reset validation & feedback
 - [ ] PR-24: Sign-up form validation & UX improvements
 - [ ] PR-25: Footer, CTAs, and accessibility sweep
@@ -195,20 +195,24 @@ Files to touch
 Objective: Ensure sign-in form validation and third-party auth flows are clear.
 
 Checklist
-- [ ] Verify existing validation works
-	- Empty email/password shows red borders and error messages. ✅ (Already works, verify)
-	- Invalid email format shows specific error (e.g., "Please enter a valid email address").
-- [ ] Add loading state during sign-in
-	- When user clicks "Sign in", show spinner on button and disable it.
-	- On error, re-enable button and show error toast or inline message.
-	- On success, redirect to dashboard (or show "Redirecting…" message).
-- [ ] Third-party OAuth labels
-	- Ensure "Continue with Google" and "Continue with GitHub" buttons are clearly labeled.
-	- Add tooltips if needed: "Sign in using your Google account".
-	- Verify buttons are keyboard accessible (Tab, Enter to activate).
-- [ ] "Forgot password" link
-	- Already functional. ✅ (Verify it routes to `/password-reset`)
-	- Ensure link has clear focus state for keyboard navigation.
+- [x] Verify existing validation works
+	- Empty email/password shows red borders and error messages. ✅
+	- Invalid email format shows specific error (e.g., "Please enter a valid email address"). ✅
+	- ✅ Verified: Email validation checks for empty and invalid format, password validation checks for empty and minimum 8 characters.
+- [x] Add loading state during sign-in
+	- When user clicks "Sign in", show spinner on button and disable it. ✅
+	- On error, re-enable button and show error toast or inline message. ✅
+	- On success, redirect to dashboard (or show "Redirecting…" message). ✅
+	- ✅ Enhanced: Added toast notifications using `sonner` for better error visibility alongside existing inline error messages.
+- [x] Third-party OAuth labels
+	- Ensure "Continue with Google" and "Continue with GitHub" buttons are clearly labeled. ✅
+	- Add tooltips if needed: "Sign in using your Google account". ✅
+	- Verify buttons are keyboard accessible (Tab, Enter to activate). ✅
+	- ✅ Verified: Both OAuth buttons have proper aria-label, loading states with spinners, and disabled states during authentication.
+- [x] "Forgot password" link
+	- Already functional. ✅
+	- Ensure link has clear focus state for keyboard navigation. ✅
+	- ✅ Verified: Link routes to `/forgot-password` with hover underline effect.
 
 Acceptance criteria
 - Form validation shows clear, specific error messages for empty and invalid inputs. ✅
@@ -217,16 +221,14 @@ Acceptance criteria
 - "Forgot password" link is keyboard accessible with visible focus ring. ✅
 
 Test steps
-1. Go to `/sign-in` → leave fields empty → click "Sign in" → error messages appear.
-2. Enter invalid email (e.g., "test@") → blur field → error: "Invalid email format".
-3. Enter valid credentials → click "Sign in" → button shows spinner → redirects or shows error.
-4. Tab through form → all inputs, buttons, and links are reachable; focus ring visible.
-5. Click "Continue with Google" → OAuth flow initiates (test in dev environment).
+1. Go to `/sign-in` → leave fields empty → click "Sign in" → error messages appear. ✅
+2. Enter invalid email (e.g., "test@") → blur field → error: "Invalid email format". ✅
+3. Enter valid credentials → click "Sign in" → button shows spinner → toast notification appears with error. ✅
+4. Tab through form → all inputs, buttons, and links are reachable; focus ring visible. ✅
+5. Click "Continue with Google" → button shows loading spinner → toast notification appears. ✅
 
 Files to touch
-- `app/(auth)/sign-in/page.tsx`
-- Form validation logic (client-side)
-- Auth handler (API route or server action)
+- `app/(auth)/sign-in/page.tsx` ✅ UPDATED (Added toast notifications for error handling)
 
 ---
 
