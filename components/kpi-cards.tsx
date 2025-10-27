@@ -58,7 +58,7 @@ export function KPICards() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 items-stretch">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
       {kpis.map((kpi, index) => {
         const trendValue = kpi.trend === "up" ? 1 : kpi.trend === "down" ? -1 : 0
         const trendStyles = getTrendSemantic(trendValue)
@@ -66,15 +66,15 @@ export function KPICards() {
 
         return (
           <TooltipProvider key={kpi.label}>
-            <Link href={kpi.href}>
-              <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants}>
-                <Card className="cursor-pointer card-standard card-lift h-full">
-                  <CardContent className="grid h-full grid-rows-[auto_auto_1fr_auto] gap-4 p-6">
-                    <div className="flex items-center justify-between">
+            <Link href={kpi.href} className="h-full">
+              <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants} className="h-full">
+                <Card className="cursor-pointer card-standard card-lift h-full min-h-[280px]">
+                  <CardContent className="flex flex-col h-full gap-3 p-6">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="sr-only" aria-live="polite">{`View more insight about ${kpi.label}.`}</div>
                       <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                     </div>
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1 flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground">{kpi.label}</p>
                         <p className="text-2xl font-bold font-mono tabular-nums break-words">
@@ -114,10 +114,10 @@ export function KPICards() {
                     </div>
                     <div
                       className={cn(
-                        "border-t border-border/40 pt-3",
+                        "border-t border-border/40 pt-3 mt-auto h-[52px] overflow-hidden",
                         hasQuickActions
-                          ? "flex max-w-full items-center gap-x-2 gap-y-1 flex-wrap sm:flex-nowrap overflow-hidden"
-                          : "min-h-[28px]",
+                          ? "flex max-w-full items-start gap-2 flex-wrap content-start"
+                          : "",
                       )}
                     >
                       {hasQuickActions && kpi.quickActions?.map((action) => {
@@ -155,8 +155,8 @@ export function KPICards() {
                               disabled={isDisabled}
                             >
                               <span className="inline-flex items-center gap-1">
-                                <span>{action.label}</span>
-                                {!isDisabled && <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />}
+                                <span className="truncate">{action.label}</span>
+                                {!isDisabled && <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
                               </span>
                             </Button>
                           )

@@ -36,9 +36,29 @@ export default function CryptoPage() {
   const [selectedExchange, setSelectedExchange] = useState<"All" | "Coinbase" | "Binance">("All")
   const [showStablecoins, setShowStablecoins] = useState(false)
   const [groupBy, setGroupBy] = useState<"asset" | "exchange" | "staking">("asset")
+  const [isFilteringcrypto, setIsFiltering] = useState(false)
 
   const handleStablecoinHover = () => {
     void import("@/components/crypto-table")
+  }
+
+  const handleExchangeChange = (exchange: "All" | "Coinbase" | "Binance") => {
+    setIsFiltering(true)
+    setSelectedExchange(exchange)
+    // Reset filtering state after a brief delay
+    setTimeout(() => setIsFiltering(false), 300)
+  }
+
+  const handleGroupByChange = (newGroupBy: "asset" | "exchange" | "staking") => {
+    setIsFiltering(true)
+    setGroupBy(newGroupBy)
+    setTimeout(() => setIsFiltering(false), 300)
+  }
+
+  const handleStablecoinToggle = () => {
+    setIsFiltering(true)
+    setShowStablecoins((prev) => !prev)
+    setTimeout(() => setIsFiltering(false), 300)
   }
 
   const groupByOptions: Array<{
@@ -86,15 +106,20 @@ export default function CryptoPage() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2" role="group" aria-label="Exchange filter">
                     <span className="text-sm text-muted-foreground">Exchange:</span>
                     {(["All", "Coinbase", "Binance"] as const).map((exchange) => (
                       <Button
                         key={exchange}
                         variant={selectedExchange === exchange ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setSelectedExchange(exchange)}
-                        className="h-8"
+                        onClick={() => handleExchangeChange(exchange)}
+                        className={cn(
+                          "h-8 transition-all",
+                          selectedExchange === exchange && "shadow-md"
+                        )}
+                        aria-pressed={selectedExchange === exchange}
+                        aria-label={`Filter by ${exchange}`}
                       >
                         {exchange}
                       </Button>
@@ -124,15 +149,16 @@ export default function CryptoPage() {
               <button
                 key={option.value}
                 type="button"
-                onClick={() => setGroupBy(option.value)}
+                onClick={() => handleGroupByChange(option.value)}
                 className={cn(
-                  "flex items-center gap-2 rounded-full border px-4 py-2 text-left shadow-xs transition",
-                  "hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                  "flex items-center gap-2 rounded-full border px-4 py-2 text-left shadow-xs transition-all",
+                  "hover:border-primary/60 hover:text-foreground hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 isActive
-                    ? "border-primary/80 bg-primary/10 text-foreground"
+                    ? "border-primary/80 bg-primary/10 text-foreground shadow-md scale-105"
                     : "border-border/80 bg-card/80 text-muted-foreground",
                 )}
                 aria-pressed={isActive}
+                aria-label={`Group ${option.label}`}
               >
                 <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground")}
                   aria-hidden="true"
@@ -154,15 +180,16 @@ export default function CryptoPage() {
                 <button
                   type="button"
                   className={cn(
-                    "flex items-center gap-2 rounded-full border px-4 py-2 text-sm shadow-xs transition",
-                    "hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    "flex items-center gap-2 rounded-full border px-4 py-2 text-sm shadow-xs transition-all",
+                    "hover:border-primary/60 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     showStablecoins
-                      ? "border-primary/80 bg-primary/10 text-foreground"
+                      ? "border-primary/80 bg-primary/10 text-foreground shadow-md scale-105"
                       : "border-border/80 bg-card/80 text-muted-foreground",
                   )}
                   onMouseEnter={handleStablecoinHover}
-                  onClick={() => setShowStablecoins((prev) => !prev)}
+                  onClick={handleStablecoinToggle}
                   aria-pressed={showStablecoins}
+                  aria-label={showStablecoins ? "Hide stablecoins" : "Show stablecoins"}
                 >
                   <BadgePercent className={cn("h-4 w-4", showStablecoins ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
                   {showStablecoins ? "Stablecoins included" : "Stablecoins hidden"}
@@ -180,13 +207,19 @@ export default function CryptoPage() {
           <ErrorBoundary feature="Crypto insights">
             <CryptoAIInsights />
           </ErrorBoundary>
-          <CryptoChart showStablecoins={showStablecoins} onToggleStablecoins={setShowStablecoins} />
-          <ExchangeAnalytics selectedExchange={selectedExchange} />
-          <CryptoTable
-            selectedExchange={selectedExchange}
-            showStablecoins={showStablecoins}
-            groupBy={groupBy}
-          />
+          <div className={cn("transition-opacity duration-300", isFilteringcrypto && "opacity-50")}>
+            <CryptoChart showStablecoins={showStablecoins} onToggleStablecoins={setShowStablecoins} />
+          </div>
+          <div className={cn("transition-opacity duration-300", isFilteringcrypto && "opacity-50")}>
+            <ExchangeAnalytics selectedExchange={selectedExchange} />
+          </div>
+          <div className={cn("transition-opacity duration-300", isFilteringcrypto && "opacity-50")}>
+            <CryptoTable
+              selectedExchange={selectedExchange}
+              showStablecoins={showStablecoins}
+              groupBy={groupBy}
+            />
+          </div>
           <CryptoRiskSection />
         </div>
       </motion.div>

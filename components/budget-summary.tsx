@@ -135,7 +135,7 @@ export function BudgetSummary() {
   }, [persona])
 
   return (
-    <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
       {summary.map((item, index) => {
         const TrendIcon = item.trend === "down" ? ArrowDown : ArrowUp
         const Icon = item.icon
@@ -164,8 +164,8 @@ export function BudgetSummary() {
               : "under budget"
         return (
           <motion.div key={index} className="h-full" {...createStaggeredCardVariants(index, 0)}>
-            <Card className="card-standard card-lift h-full">
-              <CardContent className="flex h-full flex-col gap-6 p-6">
+            <Card className="card-standard card-lift h-full min-h-[280px]">
+              <CardContent className="flex h-full flex-col gap-3 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     {Icon && (

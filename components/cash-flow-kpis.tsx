@@ -269,14 +269,14 @@ export function CashFlowKPIs() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <motion.div {...createStaggeredCardVariants(0, 0)}>
-          <Card className="card-standard card-lift">
-            <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
-              <div className="mb-2">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
+        <motion.div {...createStaggeredCardVariants(0, 0)} className="h-full">
+          <Card className="card-standard card-lift h-full min-h-[280px]">
+            <CardContent className="flex flex-col h-full gap-3 p-6">
+              <div className="flex items-start justify-between gap-2">
                 <LastSyncBadge timestamp="2 min ago" source="Plaid" />
               </div>
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
                   <p className="text-xs text-muted-foreground">Net Cash Flow</p>
                   <p
@@ -289,7 +289,7 @@ export function CashFlowKPIs() {
                 </div>
                 <KPIIcon icon={TrendingUp} tone="info" />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mt-auto">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -328,13 +328,13 @@ export function CashFlowKPIs() {
           </Card>
         </motion.div>
 
-        <motion.div {...createStaggeredCardVariants(1, 0)}>
-          <Card className="card-standard card-lift">
-            <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
-              <div className="mb-2">
+        <motion.div {...createStaggeredCardVariants(1, 0)} className="h-full">
+          <Card className="card-standard card-lift h-full min-h-[280px]">
+            <CardContent className="flex flex-col h-full gap-3 p-6">
+              <div className="flex items-start justify-between gap-2">
                 <LastSyncBadge timestamp="2 min ago" source="Plaid" />
               </div>
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
                   <p className="text-xs text-muted-foreground">Total Inflow</p>
                   <p
@@ -347,7 +347,7 @@ export function CashFlowKPIs() {
                 </div>
                 <KPIIcon icon={ArrowDownRight} tone="positive" />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mt-auto">
                 <p className="text-xs text-muted-foreground">{snapshot.inflowNote}</p>
                 <div className="w-20 h-10">
                   <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
@@ -367,13 +367,13 @@ export function CashFlowKPIs() {
           </Card>
         </motion.div>
 
-        <motion.div {...createStaggeredCardVariants(2, 0)}>
-          <Card className="card-standard card-lift">
-            <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
-              <div className="mb-2">
+        <motion.div {...createStaggeredCardVariants(2, 0)} className="h-full">
+          <Card className="card-standard card-lift h-full min-h-[280px]">
+            <CardContent className="flex flex-col h-full gap-3 p-6">
+              <div className="flex items-start justify-between gap-2">
                 <LastSyncBadge timestamp="2 min ago" source="Plaid" />
               </div>
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
                   <p className="text-xs text-muted-foreground">Total Outflow</p>
                   <p
@@ -386,7 +386,7 @@ export function CashFlowKPIs() {
                 </div>
                 <KPIIcon icon={ArrowUpRight} tone="warning" />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mt-auto">
                 <p className="text-xs text-muted-foreground">{snapshot.outflowNote}</p>
                 <div className="w-20 h-10">
                   <ResponsiveContainer width="100%" height="100%" aria-hidden="true">

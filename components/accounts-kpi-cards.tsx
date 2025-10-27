@@ -81,19 +81,19 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
 
   return (
     <TooltipProvider>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon
           const sparklineData = createSparklineSeries(kpi.value, kpi.baselineValue)
 
           return (
-            <motion.div key={kpi.title} {...createStaggeredCardVariants(index, 0)}>
-              <Card className="card-standard card-lift">
-                <CardContent className="p-6 min-h-[140px] flex flex-col justify-between">
-                  <div className="mb-2">
+            <motion.div key={kpi.title} {...createStaggeredCardVariants(index, 0)} className="h-full">
+              <Card className="card-standard card-lift h-full min-h-[280px]">
+                <CardContent className="flex flex-col h-full gap-3 p-6">
+                  <div className="flex items-start justify-between gap-2">
                     <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                   </div>
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1 flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground">{kpi.title}</p>
                       <p className="text-2xl font-bold tracking-tight tabular-nums font-mono break-words">
@@ -105,7 +105,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                     </div>
                     <KPIIcon icon={Icon} tone={kpi.tone} />
                   </div>
-                  <div className="flex items-end justify-between">
+                  <div className="flex items-end justify-between gap-3 mt-auto">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button

@@ -106,28 +106,28 @@ export function PortfolioKPIs() {
 
   return (
     <TooltipProvider>
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
         {kpis.map((kpi, index) => {
           const Icon = kpi.icon
           const metricKey = riskMetricLabelToKey[kpi.label]
           const isRiskMetric = metricKey !== undefined
 
           return (
-            <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
+            <motion.div key={index} {...createStaggeredCardVariants(index, 0)} className="h-full">
               <Card
-                className={`card-standard card-lift h-full ${isRiskMetric ? "cursor-pointer" : ""}`}
+                className={`card-standard card-lift h-full min-h-[280px] ${isRiskMetric ? "cursor-pointer" : ""}`}
                 onClick={() => {
                   if (metricKey) {
                     setSelectedMetric(metricKey)
                   }
                 }}
               >
-                <CardContent className="p-6 min-h-[140px] flex h-full flex-col justify-between">
-                  <div className="mb-2">
+                <CardContent className="flex flex-col h-full gap-3 p-6">
+                  <div className="flex items-start justify-between gap-2">
                     <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-1.5">
                         <p className="text-xs text-muted-foreground">{kpi.label}</p>
                         <TooltipProvider>

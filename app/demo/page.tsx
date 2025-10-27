@@ -2,6 +2,7 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DemoVideoPlayer } from "@/components/demo-video-player"
 import { Separator } from "@/components/ui/separator"
 import { BRAND } from "@/lib/brand"
 import { CheckCircle2, Compass, LineChart, ShieldCheck } from "lucide-react"
@@ -52,29 +53,11 @@ export default function DemoPage() {
               insights, and keeps teams aligned on every decision.
             </p>
             <div className="space-y-4">
-              <div className="overflow-hidden rounded-3xl border border-border/30 bg-card shadow-[var(--shadow-soft)]">
-                <div className="aspect-video bg-muted">
-                  <video
-                    controls
-                    poster="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80"
-                    className="h-full w-full"
-                    aria-describedby="demo-video-description"
-                  >
-                    <source
-                      src="https://cdn.coverr.co/videos/coverr-man-looking-at-stock-market-data-8809/1080p.mp4"
-                      type="video/mp4"
-                    />
-                    <track
-                      default
-                      kind="captions"
-                      src="/demo-captions.vtt"
-                      srcLang="en"
-                      label="English captions"
-                    />
-                    {`Your browser does not support the video tag.`}
-                  </video>
-                </div>
-              </div>
+              <DemoVideoPlayer
+                videoSrc="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                posterSrc="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80"
+                captionsSrc="/demo-captions.vtt"
+              />
               <div className="space-y-1 text-sm text-muted-foreground" id="demo-video-description">
                 <p>
                   This narrated walkthrough highlights how {BRAND.name} centralizes oversight, surfaces timely insights, and
@@ -117,8 +100,8 @@ export default function DemoPage() {
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Button asChild className="flex-1 focus-visible:ring-offset-2">
-                    <Link href="/sign-in" aria-label={`Create your ${BRAND.name} account after watching the demo`}>
-                      Get started
+                    <Link href="/sign-up" aria-label={`Get started with ${BRAND.name} by creating an account`}>
+                      Get Started
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="flex-1 focus-visible:ring-offset-2">
@@ -126,7 +109,7 @@ export default function DemoPage() {
                       href="/#product-highlights"
                       aria-label={`Browse ${BRAND.name} product highlights without leaving the landing page`}
                     >
-                      Browse product
+                      Browse Features
                     </Link>
                   </Button>
                 </div>

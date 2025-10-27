@@ -95,7 +95,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
               <main
                 id="main-content"
-                className="flex-1 overflow-x-hidden overflow-y-auto lg:rounded-xl bg-card border border-border lg:mr-2 lg:mb-2"
+                className="flex-1 overflow-hidden lg:rounded-xl bg-card lg:mr-2 lg:mb-2"
+                style={{ overflow: 'auto', overflowX: 'hidden' }}
               >
                 <div className="mx-auto min-h-full w-full">
                   {children}
