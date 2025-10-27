@@ -131,7 +131,7 @@ export function UpcomingCharges() {
                 <div className="flex items-center gap-3 ml-2">
                   <p className="text-sm font-semibold tabular-nums text-foreground">${charge.amount.toFixed(2)}</p>
                   {!charge.autopay && charge.status !== "due" && (
-                    <Button variant="outline" size="sm" className="h-7 text-xs bg-transparent">
+                    <Button variant="outline" size="sm" className="h-7 text-xs">
                       Pay Now
                     </Button>
                   )}

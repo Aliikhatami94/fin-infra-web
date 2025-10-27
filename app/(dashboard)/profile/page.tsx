@@ -44,7 +44,7 @@ export default function ProfilePage() {
                 <AvatarFallback className="text-2xl">JD</AvatarFallback>
               </Avatar>
               <div>
-                <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                <Button variant="outline" size="sm" className="gap-2">
                   <Camera className="h-4 w-4" />
                   Change Photo
                 </Button>
@@ -90,7 +90,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex justify-end gap-3">
-              <Button variant="outline" className="bg-transparent">Cancel</Button>
+              <Button variant="outline">Cancel</Button>
               <Button>Save Changes</Button>
             </div>
           </CardContent>
@@ -125,7 +125,7 @@ export default function ProfilePage() {
                 <p className="text-sm font-medium">Account Type</p>
                 <p className="text-sm text-muted-foreground">Premium Trader</p>
               </div>
-              <Button variant="outline" size="sm" className="bg-transparent">
+              <Button variant="outline" size="sm">
                 Upgrade
               </Button>
             </div>

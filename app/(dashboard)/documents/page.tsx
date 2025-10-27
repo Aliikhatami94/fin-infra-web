@@ -218,7 +218,7 @@ export default function DocumentsPage() {
                   <Badge variant="secondary" className="mr-2">
                     {selectedDocuments.length} selected
                   </Badge>
-                  <Button variant="outline" size="sm" onClick={handleBulkDownload} className="gap-2 bg-transparent">
+                  <Button variant="outline" size="sm" onClick={handleBulkDownload} className="gap-2">
                     <Download className="h-4 w-4" />
                     <span className="hidden sm:inline">Download</span>
                   </Button>
@@ -226,7 +226,7 @@ export default function DocumentsPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleBulkDelete}
-                    className="gap-2 bg-transparent text-destructive hover:text-destructive"
+                    className="gap-2 text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">Delete</span>
@@ -244,7 +244,7 @@ export default function DocumentsPage() {
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                  <Button variant="outline" size="sm" className="gap-2">
                     <ArrowUpDown className="h-4 w-4" />
                     <span className="hidden sm:inline">Sort</span>
                   </Button>
@@ -266,7 +266,7 @@ export default function DocumentsPage() {
               </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                  <Button variant="outline" size="sm" className="gap-2">
                     <Filter className="h-4 w-4" />
                     <span className="hidden sm:inline">Filter</span>
                     {selectedTypes.length > 0 && (

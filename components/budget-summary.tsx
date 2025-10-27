@@ -243,7 +243,7 @@ export function BudgetSummary() {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div>
-                            <Button variant="outline" size="sm" className="h-9 w-9 bg-transparent p-0" disabled>
+                            <Button variant="outline" size="sm" className="h-9 w-9 p-0" disabled>
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>

@@ -165,7 +165,7 @@ export function AccountsTable({
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                      <Button variant="outline" size="sm" className="gap-2">
                         <Filter className="h-4 w-4" aria-hidden="true" />
                         Group: {groupBy === "none" ? "None" : groupBy === "institution" ? "Institution" : "Type"}
                       </Button>

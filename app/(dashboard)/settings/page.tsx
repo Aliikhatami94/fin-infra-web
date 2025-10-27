@@ -656,17 +656,17 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-3 py-4">
-              <Button asChild variant="outline" className="w-full justify-start gap-2 bg-transparent">
+              <Button asChild variant="outline" className="w-full justify-start gap-2">
                 <Link href="/settings/security" className="flex items-center gap-2">
                   <Shield className="h-4 w-4" />
                   Visit Security Center
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+              <Button variant="outline" className="w-full justify-start gap-2">
                 <Smartphone className="h-4 w-4" />
                 Manage Devices
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+              <Button variant="outline" className="w-full justify-start gap-2">
                 <Lock className="h-4 w-4" />
                 Change Password
               </Button>

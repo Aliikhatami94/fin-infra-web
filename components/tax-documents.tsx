@@ -60,7 +60,7 @@ export function TaxDocuments() {
         <div className="flex items-center justify-between">
           <CardTitle>Tax Documents</CardTitle>
           <Link href="/documents">
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+            <Button variant="outline" size="sm" className="gap-2">
               <ExternalLink className="h-4 w-4" />
               View All Documents
             </Button>
@@ -98,7 +98,7 @@ export function TaxDocuments() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="inline-block">
-                        <Button variant="outline" size="sm" className="gap-2 bg-transparent" disabled>
+                        <Button variant="outline" size="sm" className="gap-2" disabled>
                           <Download className="h-4 w-4" />
                           Download PDF
                         </Button>

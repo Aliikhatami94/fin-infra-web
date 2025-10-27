@@ -185,7 +185,7 @@ export default function GoalsPage() {
                 <Button className="flex-1" onClick={() => setConfirmCreateGoal(true)}>
                   Create Goal
                 </Button>
-                <Button variant="outline" className="bg-transparent" onClick={() => setShowAddGoal(false)}>
+                <Button variant="outline" onClick={() => setShowAddGoal(false)}>
                   Cancel
                 </Button>
               </div>
