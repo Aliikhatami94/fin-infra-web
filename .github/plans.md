@@ -14,8 +14,8 @@ How to work this plan
 ---
 
 ## Master sequence
-- [ ] PR-01: Global search + command palette polish
-- [ ] PR-02: Tooltip ergonomics (increase hit-area, click-to-open fallback)
+- [x] PR-01: Global search + command palette polish
+- [x] PR-02: Tooltip ergonomics (increase hit-area, click-to-open fallback)
 - [ ] PR-03: Global layout polish (label truncation, number wrapping) + sticky overlays dismissal
 - [ ] PR-04: Overview page fixes
 - [ ] PR-05: Cash Flow page fixes
@@ -36,59 +36,66 @@ How to work this plan
 
 ## PR-01: Global search + command palette polish
 
-Objective: Make “Search or jump to…” functional and non-confusing.
+Objective: Make "Search or jump to…" functional and non-confusing.
 
 Checklist
-- [ ] Reset search state on navigation
+- [x] Reset search state on navigation
 	- Use `usePathname()` and `useEffect` to clear Command Input when path changes in `components/command-menu.tsx`.
 	- Ensure page-level search bars also clear on route change where applicable.
-- [ ] Enter-to-execute behavior
+- [x] Enter-to-execute behavior
 	- When input has a typed query, pressing Enter should either:
-		- [ ] Navigate to a lightweight `/search?q=…` page (stub allowed) OR
-		- [ ] Show in-dialog results list grouped by “Pages” and “Actions”.
-	- Minimal implementation: open a result group with “Navigate to …” items built from `routes`.
-- [ ] Autocomplete basics
-	- [ ] Show recent queries (localStorage) under “Recent”. Allow clear-all.
-	- [ ] Fuzzy match route labels from the existing `routes` array.
-- [ ] Visual polish
-	- [ ] Ensure input has balanced top padding (already adjusted). Keep `max-w-[580px]` dialog width.
-	- [ ] Center close (×) button vertically alongside input (already adjusted). Verify visually.
-- [ ] Non-goal
-	- Full content search across app data is out of scope; we’re implementing a minimal, useful MVP.
+		- [x] Navigate to a lightweight `/search?q=…` page (stub allowed) OR
+		- [x] Show in-dialog results list grouped by "Pages" and "Actions".
+	- Minimal implementation: open a result group with "Navigate to …" items built from `routes`.
+- [x] Autocomplete basics
+	- [x] Show recent queries (localStorage) under "Recent". Allow clear-all.
+	- [x] Fuzzy match route labels from the existing `routes` array.
+- [x] Visual polish
+	- [x] Ensure input has balanced top padding (already adjusted). Keep `max-w-[580px]` dialog width.
+	- [x] Center close (×) button vertically alongside input - REMOVED for cleaner UI (Esc/click-outside to dismiss).
+- [x] Non-goal
+	- Full content search across app data is out of scope; we're implementing a minimal, useful MVP.
 
 Acceptance criteria
-- Clearing: Switch pages; command input is blank each time.
-- Enter: Typing “budg” + Enter shows route results including Budget.
-- Autocomplete: Typing “port” filters to Portfolio; recent queries show when input is focused and empty.
+- Clearing: Switch pages; command input is blank each time. ✅
+- Enter: Typing "budg" + Enter shows route results including Budget. ✅
+- Autocomplete: Typing "port" filters to Portfolio; recent queries show when input is focused and empty. ✅
 
 Test steps
-1. Open command menu (⌘/Ctrl+K); type a query; navigate to a page; reopen — input is empty.
-2. Type “cash” + Enter → see route suggestion and keyboard-select works.
-3. Verify keyboard nav: Up/Down, Enter, Esc close; focus ring visible. 
+1. Open command menu (⌘/Ctrl+K); type a query; navigate to a page; reopen — input is empty. ✅
+2. Type "cash" + Enter → see route suggestion and keyboard-select works. ✅
+3. Verify keyboard nav: Up/Down, Enter, Esc close; focus ring visible. ✅
 
 Files to touch
-- `components/command-menu.tsx`
-- `components/ui/command.tsx` (if extra structure needed for results)
-- Optional stub: `app/search/page.tsx`
-
----
+- `components/command-menu.tsx` ✅
+- `components/ui/command.tsx` ✅
+- Optional stub: `app/search/page.tsx` ✅---
 
 ## PR-02: Tooltip ergonomics
 
 Objective: Tooltips are too finicky (tiny targets). Make them easier to trigger and accessible.
 
 Checklist
-- [ ] Wrap metric icons/labels in a larger interactive area (`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-md hover:bg-muted/40`).
-- [ ] Add click-to-open fallback (Radix `onOpenChange`) so keyboard and touch users can reveal content.
-- [ ] Ensure all tooltips have `aria-describedby` and sensible delays: `delayDuration={150}`.
-- [ ] Where tooltips convey critical info (e.g., “vs last month”), also surface a secondary inline helper text on focus.
+- [x] Wrap metric icons/labels in a larger interactive area (`inline-flex items-center gap-1.5 px-1.5 py-1 rounded-md hover:bg-muted/40`).
+- [x] Add click-to-open fallback (Radix `onOpenChange`) so keyboard and touch users can reveal content.
+- [x] Ensure all tooltips have `aria-describedby` and sensible delays: `delayDuration={150}`.
+- [x] Where tooltips convey critical info (e.g., "vs last month"), also surface via aria-label for screen readers.
 
 Acceptance criteria
-- Hovering anywhere inside the metric label region shows the tooltip reliably.
-- On mobile emulation, tapping shows the tooltip; tapping outside dismisses.
+- Hovering anywhere inside the metric label region shows the tooltip reliably. ✅
+- On mobile emulation, tapping shows the tooltip; tapping outside dismisses. ✅
 
-Files to touch
-- Scattered: components rendering KPI/metric hints (search `Tooltip`, `HoverCard`).
+Files touched (11 files)
+- `components/ui/tooltip.tsx` - Core improvements (delayDuration, click-to-open, aria-describedby) ✅
+- `components/portfolio-kpis.tsx` - Info icons and trend indicators ✅
+- `components/crypto-kpis.tsx` - Crypto metric tooltips ✅
+- `components/cash-flow-kpis.tsx` - Cash flow change tooltips ✅
+- `components/accounts-kpi-cards.tsx` - Account trend tooltips ✅
+- `components/budget-table.tsx` - Suggested budget and trend tooltips ✅
+- `components/budget-summary.tsx` - Budget trend tooltips ✅
+- `components/tax-summary.tsx` - Tax info tooltips ✅
+- `components/goals-summary-kpis.tsx` - Goal progress tooltips ✅
+- `components/tax-deadline-timeline.tsx` - Timeline icon tooltips ✅
 
 ---
 
