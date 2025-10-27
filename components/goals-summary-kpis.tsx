@@ -82,12 +82,12 @@ export function GoalsSummaryKPIs() {
   const fundingHeadline = persona?.goalsFocus === "wealth_building" ? "Growth Funding" : "Funding Status"
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      <motion.div {...createStaggeredCardVariants(0, 0)}>
-        <Card className="card-standard card-lift h-full">
-          <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
+      <motion.div {...createStaggeredCardVariants(0, 0)} className="h-full">
+        <Card className="card-standard card-lift h-full min-h-[280px]">
+          <CardContent className="flex h-full flex-col gap-3 p-6">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm text-muted-foreground">{primaryLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
@@ -108,7 +108,7 @@ export function GoalsSummaryKPIs() {
               </div>
               <KPIIcon icon={Target} tone="info" shape="circle" className="shrink-0" />
             </div>
-            <div className="flex items-end justify-between gap-4">
+            <div className="flex items-end justify-between gap-4 mt-auto">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -134,11 +134,11 @@ export function GoalsSummaryKPIs() {
         </Card>
       </motion.div>
 
-      <motion.div {...createStaggeredCardVariants(1, 0)}>
-        <Card className="card-standard card-lift h-full">
-          <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
+      <motion.div {...createStaggeredCardVariants(1, 0)} className="h-full">
+        <Card className="card-standard card-lift h-full min-h-[280px]">
+          <CardContent className="flex h-full flex-col gap-3 p-6">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1 min-w-0">
+              <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm text-muted-foreground">{monthlyLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
@@ -150,7 +150,7 @@ export function GoalsSummaryKPIs() {
               </div>
               <KPIIcon icon={DollarSign} tone="positive" shape="circle" className="shrink-0" />
             </div>
-            <div className="flex items-end justify-between gap-4">
+            <div className="flex items-end justify-between gap-4 mt-auto">
               <div className="flex items-center gap-2">
                 <TooltipProvider>
                   <Tooltip>
@@ -179,11 +179,11 @@ export function GoalsSummaryKPIs() {
         </Card>
       </motion.div>
 
-      <motion.div {...createStaggeredCardVariants(2, 0)}>
-        <Card className="card-standard card-lift h-full">
-          <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
+      <motion.div {...createStaggeredCardVariants(2, 0)} className="h-full">
+        <Card className="card-standard card-lift h-full min-h-[280px]">
+          <CardContent className="flex h-full flex-col gap-3 p-6">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm text-muted-foreground">{fundingHeadline}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
@@ -192,7 +192,7 @@ export function GoalsSummaryKPIs() {
               </div>
               <KPIIcon icon={TrendingUp} tone="positive" shape="circle" className="shrink-0" />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 mt-auto">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Emergency Fund</span>
                 <span className="font-medium">$500/mo</span>
