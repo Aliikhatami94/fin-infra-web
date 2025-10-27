@@ -269,8 +269,8 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                     formatter={(value, name) => {
                       const displayName = name === "inflow" ? "Income" : name === "outflow" ? "Expenses" : "Net"
                       return [
-                        <span className="font-medium">${Number(value).toLocaleString()}</span>,
-                        <span className="text-muted-foreground">{displayName}</span>
+                        <span key="value" className="font-medium">${Number(value).toLocaleString()}</span>,
+                        <span key="name" className="text-muted-foreground">{displayName}</span>
                       ]
                     }}
                   />

@@ -121,8 +121,8 @@ export function CashFlow() {
                   formatter={(value, name) => {
                     const displayName = name === "income" ? "Income" : name === "expenses" ? "Expenses" : "Net"
                     return [
-                      <span className="font-medium">${Number(value).toLocaleString()}</span>,
-                      <span className="text-muted-foreground">{displayName}</span>
+                      <span key="value" className="font-medium">${Number(value).toLocaleString()}</span>,
+                      <span key="name" className="text-muted-foreground">{displayName}</span>
                     ]
                   }}
                 />
