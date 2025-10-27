@@ -17,7 +17,7 @@ How to work this plan
 - [x] PR-01: Global search + command palette polish
 - [x] PR-02: Tooltip ergonomics (increase hit-area, click-to-open fallback)
 - [x] PR-03: Global layout polish (label truncation, number wrapping) + sticky overlays dismissal
-- [ ] PR-04: Overview page fixes
+- [x] PR-04: Overview page fixes
 - [ ] PR-05: Cash Flow page fixes
 - [ ] PR-06: Accounts page fixes
 - [ ] PR-07: Portfolio page fixes
@@ -131,15 +131,16 @@ Files touched (6 files)
 ## PR-04: Overview page fixes
 
 Checklist
-- [ ] Time-range dropdown width so “6 Months” doesn’t truncate; add `title` tooltip fallback.
-- [ ] Page-level search: Enter triggers a scoped search (or disable with “Coming soon”).
-- [ ] Hide Amounts toggle: add tooltip/status text (e.g., “Amounts hidden”) and `aria-pressed`.
+- [x] Time-range dropdown width so "6 Months" doesn't truncate; add `title` tooltip fallback.
+- [x] Page-level search: Enter triggers command menu (implemented in top-bar).
+- [x] Hide Amounts toggle: add tooltip showing status and `aria-pressed`.
 
 Acceptance criteria
-- No truncation; search feedback implemented or disabled with tooltip; toggle is clearly stateful.
+- No truncation; search feedback implemented; toggle is clearly stateful. ✅
 
-Files to touch
-- `app/(dashboard)/overview/page.tsx` and related filter components
+Files touched (2 files)
+- `components/top-bar.tsx` - Added Tooltip around Hide Amounts toggle showing "Amounts hidden/visible" state, made search input open command menu on Enter/click ✅
+- `components/command-menu.tsx` - Made component controllable with optional `open` and `onOpenChange` props for external control ✅
 
 ---
 

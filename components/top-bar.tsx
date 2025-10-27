@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +36,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
   const { masked, toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
   const { dateRange, setDateRange } = useDateRange()
   const [mounted, setMounted] = useState(false)
+  const [commandMenuOpen, setCommandMenuOpen] = useState(false)
   const { activeWorkspace, workspaces, selectWorkspace, unreadCount, activeMember } = useWorkspace()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
@@ -78,7 +80,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
           <div className="relative w-full max-w-sm md:max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Search or jump"
+              aria-label="Search or jump to page - Press Enter or ⌘K to open"
               placeholder="Search…"
               className="w-full pl-9 pr-4 text-sm"
               onFocus={() => {
@@ -86,9 +88,18 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
                 // Prevent virtual keyboard pop on mobile; keep as input for desktop
               }}
               onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  setCommandMenuOpen(true)
+                }
                 if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
                   e.preventDefault()
+                  setCommandMenuOpen(true)
                 }
+              }}
+              onClick={() => {
+                // Also open on click for better discoverability
+                setCommandMenuOpen(true)
               }}
             />
           </div>
@@ -99,16 +110,26 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
             <Building2 className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">{activeWorkspace.name}</span>
           </Badge>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-pressed={!masked}
-            aria-label={maskLabel}
-            onClick={toggleMasked}
-            className="hidden sm:flex"
-          >
-            <MaskIcon className="h-5 w-5" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-pressed={!masked}
+                  aria-label={maskLabel}
+                  onClick={toggleMasked}
+                  className="hidden sm:flex"
+                >
+                  <MaskIcon className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{masked ? "Amounts hidden" : "Amounts visible"}</p>
+                <p className="text-xs text-muted-foreground">Click to {masked ? "show" : "hide"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <Select value={dateRange} onValueChange={handleDateRangeChange}>
             <SelectTrigger className="w-[7.5rem] md:w-36 rounded-full hidden sm:flex" title={`Date range: ${dateRange}`}>
@@ -245,7 +266,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
           </DropdownMenu>
         </div>
       </div>
-      <CommandMenu />
+      <CommandMenu open={commandMenuOpen} onOpenChange={setCommandMenuOpen} />
       <NotificationCenter open={notificationsOpen} onOpenChange={setNotificationsOpen} />
     </div>
   )

@@ -37,24 +37,39 @@ const routes = [
   { label: "Settings", href: "/settings", icon: Settings },
 ]
 
-export function CommandMenu() {
-  const [open, setOpen] = React.useState(false)
+interface CommandMenuProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+export function CommandMenu({ open: controlledOpen, onOpenChange }: CommandMenuProps = {}) {
+  const [internalOpen, setInternalOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
   const [recent, setRecent] = React.useState<string[]>([])
   const router = useRouter()
   const pathname = usePathname()
   const { toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
 
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+
+  const handleOpenChange = React.useCallback((nextOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(nextOpen)
+    }
+    onOpenChange?.(nextOpen)
+  }, [isControlled, onOpenChange])
+
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault()
-        setOpen((v) => !v)
+        handleOpenChange(!open)
       }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+  }, [open, handleOpenChange])
 
   // Load recent queries from localStorage
   React.useEffect(() => {
@@ -107,7 +122,7 @@ export function CommandMenu() {
   }
 
   const navigate = (href: string) => {
-    setOpen(false)
+    handleOpenChange(false)
     router.push(href)
   }
 
@@ -124,7 +139,7 @@ export function CommandMenu() {
   }
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog open={open} onOpenChange={handleOpenChange}>
       <CommandInput
         placeholder="Search or jump to..."
         value={query}
@@ -166,7 +181,7 @@ export function CommandMenu() {
           <CommandItem
             onSelect={() => {
               toggleMasked()
-              setOpen(false)
+              handleOpenChange(false)
             }}
           >
             <MaskIcon className="h-4 w-4 text-muted-foreground/50" aria-hidden="true" />
