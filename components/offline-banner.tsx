@@ -11,12 +11,9 @@ export function OfflineBanner() {
   const { status, lastSyncedAt, isOffline } = useConnectivity()
 
   const message = useMemo(() => {
+    // Skip showing banner during initialization - let skeleton/loading handle this
     if (status === "initializing") {
-      return {
-        icon: Wifi,
-        label: "Checking connection…",
-        className: "bg-muted/60 text-muted-foreground",
-      }
+      return null
     }
 
     if (isOffline) {

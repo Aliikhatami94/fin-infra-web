@@ -10,8 +10,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Camera, Mail, Phone, MapPin, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
+import { useWorkspace } from "@/components/workspace-provider"
 
 export default function ProfilePage() {
+  const { activeMember } = useWorkspace()
+  
   return (
     <DashboardLayout>
       {/* Header: align with Settings page style */}
@@ -40,8 +43,10 @@ export default function ProfilePage() {
           <CardContent className="space-y-6">
             <div className="flex items-center gap-6">
               <Avatar className="h-24 w-24">
-                <AvatarImage src="/placeholder.svg?height=96&width=96" alt="Profile" />
-                <AvatarFallback className="text-2xl">JD</AvatarFallback>
+                <AvatarImage src={undefined} alt={activeMember.name} />
+                <AvatarFallback className="text-2xl bg-primary/10 text-primary font-semibold">
+                  {activeMember.avatarFallback}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -52,22 +57,16 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue="John" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue="Doe" />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input id="fullName" defaultValue={activeMember.name} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="email" type="email" className="pl-9" defaultValue="john.doe@example.com" />
+                <Input id="email" type="email" className="pl-9" defaultValue={activeMember.email} />
               </div>
             </div>
 

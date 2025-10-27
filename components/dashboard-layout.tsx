@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { TopBar } from "@/components/top-bar"
 import { OfflineBanner } from "@/components/offline-banner"
-import { ConnectivityProvider } from "@/components/connectivity-provider"
+import { ConnectivityProvider, useConnectivity } from "@/components/connectivity-provider"
 import { Button } from "@/components/ui/button"
 import { Bot } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -17,6 +17,28 @@ import { useOnboardingState } from "@/hooks/use-onboarding-state"
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar").then((m) => m.AIChatSidebar), {
   ssr: false,
 })
+
+function DashboardLoadingOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        <p className="text-sm text-muted-foreground">Loading dashboard...</p>
+      </div>
+    </div>
+  )
+}
+
+function DashboardContent({ children }: { children: React.ReactNode }) {
+  const { status } = useConnectivity()
+  
+  return (
+    <div className="relative min-h-full w-full">
+      {status === "initializing" && <DashboardLoadingOverlay />}
+      {children}
+    </div>
+  )
+}
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -95,12 +117,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
               <main
                 id="main-content"
-                className="flex-1 overflow-hidden lg:rounded-xl bg-card lg:mr-2 lg:mb-2 border border-border/70"
+                className="relative flex-1 overflow-hidden lg:rounded-xl bg-card lg:mr-2 lg:mb-2 border border-border/70"
                 style={{ overflow: 'auto', overflowX: 'hidden' }}
               >
-                <div className="mx-auto min-h-full w-full">
-                  {children}
-                </div>
+                <DashboardContent>{children}</DashboardContent>
               </main>
             </div>
 

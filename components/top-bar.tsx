@@ -166,16 +166,18 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open account menu">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>{activeMember.avatarFallback}</AvatarFallback>
+                  <AvatarImage src={undefined} alt={activeMember.name} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {activeMember.avatarFallback}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{activeMember.name}</p>
-                  <p className="text-xs text-muted-foreground">{activeMember.email}</p>
+                  <p className="text-sm font-medium truncate">{activeMember.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{activeMember.email}</p>
                 </div>
               </DropdownMenuLabel>
               <div className="px-2 pb-2">

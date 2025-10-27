@@ -12,6 +12,7 @@ import { prefetchAppRoute, getBadgeTooltipCopy } from "@/lib/linking"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useWorkspace } from "@/components/workspace-provider"
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -30,6 +31,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [internalCollapsed, setInternalCollapsed] = useState(false)
   const collapsed = collapsedProp ?? internalCollapsed
+  const { activeMember } = useWorkspace()
 
   const toggleCollapsed = () => {
     const nextCollapsed = !collapsed
@@ -186,12 +188,14 @@ export function Sidebar({
             {!collapsed && (
               <div className="flex items-center gap-3 p-4">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User avatar" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarImage src={undefined} alt={activeMember.name} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {activeMember.avatarFallback}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-medium truncate">John Doe</p>
-                  <p className="text-xs text-muted-foreground truncate">john@example.com</p>
+                  <p className="text-sm font-medium truncate">{activeMember.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{activeMember.email}</p>
                 </div>
               </div>
             )}
