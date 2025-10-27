@@ -109,7 +109,7 @@ export function BudgetChart() {
   }
 
   return (
-    <Card className="border-border/50 shadow-sm">
+    <Card className="card-standard">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Budget vs Actual Spending</CardTitle>

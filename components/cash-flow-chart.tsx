@@ -123,7 +123,7 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
   }
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">

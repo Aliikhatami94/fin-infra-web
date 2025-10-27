@@ -12,7 +12,7 @@ const trades = [
 
 export function RecentTrades() {
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <CardTitle>Recent Trades</CardTitle>
       </CardHeader>

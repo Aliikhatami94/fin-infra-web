@@ -460,8 +460,8 @@ export default function SecurityCenterPage() {
         </div>
       </section>
 
-  <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <Card className="border-border/40">
+  <div className="space-y-6">
+        <Card className="card-standard">
           <CardHeader className="border-b border-border/30">
             <CardTitle className="flex flex-wrap items-center gap-2 text-base font-semibold">
               <ShieldCheck className="h-5 w-5 text-primary" />
@@ -546,7 +546,7 @@ export default function SecurityCenterPage() {
             </div>
             <TooltipProvider delayDuration={100}>
               <div className="divide-y divide-border/30" role="table" aria-label="Recent login history">
-                <div className="hidden px-6 py-3 text-xs uppercase tracking-wide text-muted-foreground sm:grid sm:grid-cols-[2fr_1.5fr_1fr_6rem_7rem]">
+                <div className="hidden px-6 py-3 text-xs uppercase tracking-wide text-muted-foreground md:grid md:grid-cols-[2fr_1.5fr_1fr_auto_auto] md:gap-4">
                   <span>Device</span>
                   <span>Location</span>
                   <span>Time</span>
@@ -564,16 +564,16 @@ export default function SecurityCenterPage() {
                     <div
                       key={entry.id}
                       role="row"
-                      className="grid gap-4 px-6 py-4 sm:grid-cols-[2fr_1.5fr_1fr_6rem_7rem] sm:items-center"
+                      className="grid gap-4 px-6 py-4 md:grid-cols-[2fr_1.5fr_1fr_auto_auto] md:items-center"
                     >
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-foreground">{entry.device}</p>
-                        <p className="text-xs text-muted-foreground sm:hidden">
+                        <p className="text-xs text-muted-foreground md:hidden">
                           {entry.timeLabel} • {entry.status}
                         </p>
-                        <p className="text-xs text-muted-foreground sm:hidden">{entry.location}</p>
+                        <p className="text-xs text-muted-foreground md:hidden">{entry.location}</p>
                       </div>
-                      <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
+                      <div className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="inline-flex items-center gap-1.5 text-left">
@@ -586,8 +586,8 @@ export default function SecurityCenterPage() {
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <p className="text-sm text-muted-foreground">{entry.timeLabel}</p>
-                      <div className="hidden sm:flex sm:justify-center">
+                      <p className="hidden text-sm text-muted-foreground md:block">{entry.timeLabel}</p>
+                      <div className="hidden md:flex md:justify-center">
                         <Badge
                           variant="secondary"
                           className={
@@ -599,7 +599,7 @@ export default function SecurityCenterPage() {
                           {entry.status}
                         </Badge>
                       </div>
-                      <div className="hidden sm:flex sm:justify-end">
+                      <div className="hidden md:flex md:justify-end">
                         <Button
                           type="button"
                           variant="outline"
@@ -612,7 +612,7 @@ export default function SecurityCenterPage() {
                           <span className="sr-only"> session for {entry.device}</span>
                         </Button>
                       </div>
-                      <div className="flex items-center justify-between gap-2 sm:hidden">
+                      <div className="flex items-center justify-between gap-2 md:hidden">
                         <Badge
                           variant="secondary"
                           className={
@@ -658,7 +658,7 @@ export default function SecurityCenterPage() {
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-border/40">
+          <Card className="card-standard">
             <form onSubmit={handleAlertingSubmit} className="flex h-full flex-col">
               <CardHeader>
                 <CardTitle className="text-base font-semibold">Alerting</CardTitle>
@@ -839,7 +839,7 @@ export default function SecurityCenterPage() {
             </form>
           </Card>
 
-          <Card className="border-border/40">
+          <Card className="card-standard">
             <CardHeader>
               <CardTitle className="text-base font-semibold">Exports & backups</CardTitle>
               <CardDescription>Generate encrypted exports for compliance or record keeping.</CardDescription>

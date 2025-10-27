@@ -77,7 +77,7 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
   }
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <CardTitle>Allocation</CardTitle>
       </CardHeader>

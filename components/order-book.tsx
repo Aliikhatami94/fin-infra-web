@@ -20,7 +20,7 @@ const asks = [
 
 export function OrderBook() {
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <CardTitle>Order Book</CardTitle>
       </CardHeader>
