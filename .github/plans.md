@@ -19,7 +19,7 @@ How to work this plan
 - [x] PR-18: Landing page navigation & sticky header fixes
 - [x] PR-19: Product highlights feature pages (404 fixes)
 - [x] PR-20: Landing page content sections (interactive previews)
-- [ ] PR-21: Demo page video & accessibility
+- [x] PR-21: Demo page video & accessibility
 - [ ] PR-22: Sign-in flow polish
 - [ ] PR-23: Password reset validation & feedback
 - [ ] PR-24: Sign-up form validation & UX improvements
@@ -149,20 +149,24 @@ Files to touch
 Objective: Ensure demo video is playable and accessible; provide fallbacks.
 
 Checklist
-- [ ] Fix video player
-	- Verify video source is valid and loads across browsers (Chrome, Safari, Firefox).
-	- If video is blocked or fails to load, show clear error message: "Video unavailable. Please try refreshing the page."
-	- Add fallback: link to alternative video host (YouTube, Vimeo) or download link.
-- [ ] Add video controls and captions
-	- Ensure native HTML5 controls are visible (play, pause, volume, fullscreen).
-	- Add captions/subtitles track (`<track kind="captions">`).
-	- Provide transcript link below video for accessibility.
-- [ ] "Watch later" and "Download transcript" options
-	- Add "Email me this video" button (captures email, sends link via backend or toast "Coming soon").
-	- Add "Download transcript" button (links to PDF or text file).
-- [ ] Update CTAs
-	- "Get started" button works (routes to sign-up). ✅ (Already functional, verify)
-	- "Browse product" scrolls to product highlights on landing page. ✅ (Already functional, verify)
+- [x] Fix video player
+	- Verify video source is valid and loads across browsers (Chrome, Safari, Firefox). ✅
+	- If video is blocked or fails to load, show clear error message: "Video unavailable. Please try refreshing the page." ✅
+	- Add fallback: link to alternative video host (YouTube, Vimeo) or download link. ✅
+	- ✅ Created `components/demo-video-player.tsx` with onError handler that displays fallback UI with "Refresh page" and "Watch on YouTube" buttons.
+- [x] Add video controls and captions
+	- Ensure native HTML5 controls are visible (play, pause, volume, fullscreen). ✅
+	- Add captions/subtitles track (`<track kind="captions">`). ✅
+	- Provide transcript link below video for accessibility. ✅
+	- ✅ Verified existing `public/demo-captions.vtt` file with proper WebVTT format and `public/demo-transcript.txt` with timestamped content.
+- [x] "Watch later" and "Download transcript" options
+	- Add "Email me this video" button (captures email, sends link via backend or toast "Coming soon"). ✅
+	- Add "Download transcript" button (links to PDF or text file). ✅
+	- ✅ Added "Email me this video" button in DemoVideoPlayer with toast notification (stubbed for future backend integration). Transcript download link already existed in page.
+- [x] Update CTAs
+	- "Get started" button works (routes to sign-up). ✅
+	- "Browse product" scrolls to product highlights on landing page. ✅
+	- ✅ Verified both CTAs have proper href and aria-label attributes.
 
 Acceptance criteria
 - Video loads and plays with controls; captions available. ✅
@@ -171,17 +175,18 @@ Acceptance criteria
 - Keyboard navigation: Space to play/pause, Tab to controls. ✅
 
 Test steps
-1. Navigate to `/demo` → video loads and plays on click.
-2. Click captions button → subtitles appear.
-3. Block video (network throttle) → error message appears with YouTube fallback link.
-4. Tab through page → video controls are reachable and operable via keyboard.
-5. Click "Download transcript" → file downloads or modal opens.
+1. Navigate to `/demo` → video loads and plays on click. ✅
+2. Click captions button → subtitles appear. ✅
+3. Block video (network throttle) → error message appears with YouTube fallback link. ✅
+4. Tab through page → video controls are reachable and operable via keyboard. ✅
+5. Click "Download transcript" → file downloads or modal opens. ✅
+6. Click "Email me this video" → toast notification appears. ✅
 
 Files to touch
-- `app/demo/page.tsx`
-- Video asset in `public/` or external CDN
-- Add captions file (e.g., `public/demo-video-captions.vtt`)
-- Optional: `components/video-player.tsx` wrapper for enhanced controls
+- `app/demo/page.tsx` ✅ UPDATED
+- Video asset in `public/` or external CDN ✅ (External CDN used)
+- Add captions file (e.g., `public/demo-captions.vtt`) ✅ (Already existed)
+- Optional: `components/video-player.tsx` wrapper for enhanced controls ✅ CREATED as `components/demo-video-player.tsx`
 
 ---
 
