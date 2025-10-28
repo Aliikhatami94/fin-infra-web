@@ -4,10 +4,9 @@ import { useEffect, useMemo, useState, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, TrendingUp, User, Plus, Sliders, ChevronUp } from "lucide-react"
+import { X, TrendingUp, Plus, Sliders, ChevronUp } from "lucide-react"
 
 export interface AIChatMessage {
   id: string
@@ -132,31 +131,23 @@ export function AIChatSidebar({
       </div>
 
       <ScrollArea className="flex-1 p-4">
-        <div className="space-y-3">
+        <div className="space-y-4">
           {beforeMessagesSlot}
           {messages.map((message) => (
-            <div key={message.id} className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-              {message.role === "assistant" && (
-                <div className="flex-shrink-0 w-7 h-7 rounded-md border border-border/50 bg-card/80 flex items-center justify-center text-primary shadow-sm">
-                  <TrendingUp className="h-3.5 w-3.5" />
+            <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+              {message.role === "assistant" ? (
+                <div className="w-full space-y-2">
+                  <p className="text-sm leading-snug text-foreground">{message.content}</p>
+                  <p className="mt-0.5 text-[10px] leading-none opacity-60">
+                    {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
                 </div>
-              )}
-              <Card
-                className={`max-w-[80%] rounded-2xl px-3 py-2 border-transparent ${
-                  message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/60"
-                }`}
-              >
-                <p className="text-sm leading-snug">{message.content}</p>
-                <p className="mt-0.5 text-[10px] leading-none opacity-60">
-                  {message.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </Card>
-              {message.role === "user" && (
-                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-                  <User className="h-4 w-4 text-primary-foreground" />
+              ) : (
+                <div className="inline-block max-w-[80%] rounded-2xl bg-muted/60 px-3 py-2 text-foreground space-y-2">
+                  <p className="text-sm leading-snug">{message.content}</p>
+                  <p className="mt-0.5 text-[10px] leading-none opacity-60 text-right">
+                    {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
                 </div>
               )}
             </div>
