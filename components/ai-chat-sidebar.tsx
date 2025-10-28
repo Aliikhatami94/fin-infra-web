@@ -370,7 +370,8 @@ export function AIChatSidebar({
               <Button
                 size="sm"
                 variant="secondary"
-                className="rounded-full shadow mt-2 hover:opacity-100 active:opacity-100 focus:opacity-100"
+                // when hovered i want the button to rise a bit
+                className="rounded-full mt-2 hover:opacity-100 active:opacity-100 focus:opacity-100 hover:bg-secondary hover:shadow hover:transition hover:translate-y-[-2px]"
                 onClick={() => {
                   endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
                 }}
