@@ -9,10 +9,12 @@ import {
   Receipt,
   Target,
   FileText,
+  Folder,
   Lightbulb,
   Settings,
   Shield,
   BarChart3,
+  User,
 } from "lucide-react"
 import { isFeatureEnabled, type FeatureFlagKey } from "@/lib/analytics/experiments"
 
@@ -46,8 +48,8 @@ const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
   { name: "Taxes", href: "/dashboard/taxes", icon: FileText },
   { name: "Insights", href: "/dashboard/insights", icon: Lightbulb },
   { name: "Growth", href: "/dashboard/growth", icon: BarChart3, featureFlag: "growthDashboards" },
-  { name: "Documents", href: "/dashboard/documents", icon: FileText },
-  { name: "Profile", href: "/dashboard/profile", icon: Settings },
+  { name: "Documents", href: "/dashboard/documents", icon: Folder },
+  { name: "Profile", href: "/dashboard/profile", icon: User },
   { name: "Settings", href: "/dashboard/settings", icon: Settings, exact: true },
   { name: "Security Center", href: "/dashboard/settings/security", icon: Shield },
 ]
