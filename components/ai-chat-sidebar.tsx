@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { X, TrendingUp, Plus, Sliders, ChevronUp, Clock } from "lucide-react"
+import { X, Plus, Sliders, ChevronUp, Clock } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export interface AIChatMessage {
   id: string
@@ -46,8 +47,7 @@ interface AIConversation {
 export function AIChatSidebar({
   isOpen,
   onClose,
-  title = "AI Financial Assistant",
-  icon: Icon = TrendingUp,
+  title = "",
   initialMessages,
   promptPlaceholder = "Ask me anything about your account...",
   responseGenerator,
@@ -277,65 +277,86 @@ export function AIChatSidebar({
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          data-chat-sidebar
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
-          className="fixed inset-y-0 right-0 w-full sm:w-[clamp(300px,85vw,380px)] md:w-[clamp(340px,42vw,400px)] lg:w-[clamp(360px,36vw,420px)] xl:w-[clamp(380px,32vw,440px)] bg-card border-l shadow-lg z-[70] flex flex-col"
+          className="fixed inset-y-0 right-0 w-full sm:w-[clamp(300px,85vw,380px)] md:w-[clamp(340px,42vw,400px)] lg:w-[clamp(360px,36vw,420px)] xl:w-[clamp(380px,32vw,440px)] bg-card border-l shadow-lg z-[120] flex flex-col"
         >
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md border border-border/40 bg-card/80 text-primary shadow-sm">
-                <Icon className="h-3.5 w-3.5" />
-              </div>
-              <h2 className="font-semibold">{title}</h2>
+              {title ? <h2 className="font-semibold">{title}</h2> : null}
             </div>
             <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleNewChat}
-                aria-label="Start new chat"
-                title="New chat"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleNewChat}
+                    aria-label="Start new chat"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>New chat</TooltipContent>
+              </Tooltip>
               {/* Scenario switcher removed; configure via URL params (marketing, chat, scenario) */}
               {conversations.length === 0 ? (
-                <Button variant="ghost" size="icon" aria-label="Conversation history" title="No history" disabled>
-                  <Clock className="h-4 w-4" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <Button variant="ghost" size="icon" aria-label="Conversation history" disabled>
+                        <Clock className="h-4 w-4" />
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>No history</TooltipContent>
+                </Tooltip>
               ) : (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label="Conversation history" title="History">
-                      <Clock className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-72">
-                    <DropdownMenuLabel>Previous conversations</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {conversations.map((c) => (
-                      <DropdownMenuItem key={c.id} onClick={() => openConversation(c.id)} className="py-2">
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium">{c.title || "New chat"}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {c.createdAt.toLocaleString([], { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                          </div>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="inline-flex">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" aria-label="Conversation history">
+                            <Clock className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-72">
+                          <DropdownMenuLabel>Previous conversations</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {conversations.map((c) => (
+                            <DropdownMenuItem key={c.id} onClick={() => openConversation(c.id)} className="py-2">
+                              <div className="min-w-0">
+                                <div className="truncate text-sm font-medium">{c.title || "New chat"}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {c.createdAt.toLocaleString([], { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                </div>
+                              </div>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>History</TooltipContent>
+                </Tooltip>
               )}
-              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close assistant">
-                <X className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close chat">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Close</TooltipContent>
+              </Tooltip>
             </div>
       </div>
 
       <div ref={scrollWrapperRef} className="min-h-0 flex-1">
-  <ScrollArea className="size-full px-4">
+      <ScrollArea className="size-full px-4">
         <div className="space-y-4">
           {beforeMessagesSlot}
           {messages.map((message) => (
@@ -403,32 +424,47 @@ export function AIChatSidebar({
         {/* Bottom controls - placed below the textarea to avoid overlap with text */}
         <div className="mt-2 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-8 w-8 rounded-md"
-              aria-label="Add attachment"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-8 w-8 rounded-md"
-              aria-label="Settings"
-            >
-              <Sliders className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 w-8 rounded-md"
+                  aria-label="Add attachment"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Add attachment</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 w-8 rounded-md"
+                  aria-label="Settings"
+                >
+                  <Sliders className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Settings</TooltipContent>
+            </Tooltip>
           </div>
           <div className="flex items-center gap-x-4">
-            <Button
-              type="button"
-              className="h-8 w-8 rounded-md"
-              onClick={handleSend}
-              aria-label="Send message"
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  className="h-8 w-8 rounded-md"
+                  onClick={handleSend}
+                  aria-label="Send message"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Send</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </div>

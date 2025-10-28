@@ -3,16 +3,14 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronLeft, X } from "lucide-react"
+import { ChevronLeft, X, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { isActiveRoute } from "@/lib/navigation"
 import { prefetchAppRoute, getBadgeTooltipCopy } from "@/lib/linking"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useWorkspace } from "@/components/workspace-provider"
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -31,7 +29,6 @@ export function Sidebar({
 }: SidebarProps) {
   const [internalCollapsed, setInternalCollapsed] = useState(false)
   const collapsed = collapsedProp ?? internalCollapsed
-  const { activeMember } = useWorkspace()
 
   const toggleCollapsed = () => {
     const nextCollapsed = !collapsed
@@ -185,20 +182,40 @@ export function Sidebar({
           </div>
 
           <div className="border-t">
-            {!collapsed && (
-              <div className="flex items-center gap-3 p-4">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={undefined} alt={activeMember.name} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                    {activeMember.avatarFallback}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-medium truncate">{activeMember.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{activeMember.email}</p>
-                </div>
-              </div>
-            )}
+            <div className="p-2">
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-full"
+                      onClick={() => {
+                        window.dispatchEvent(new Event('openFeedbackDialog'))
+                      }}
+                      aria-label="Give feedback"
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Give feedback</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    window.dispatchEvent(new Event('openFeedbackDialog'))
+                  }}
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  <span className="ml-2">Give feedback</span>
+                </Button>
+              )}
+            </div>
             <div className="p-2 hidden lg:block">
               <Button
                 variant="ghost"

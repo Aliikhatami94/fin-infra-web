@@ -8,7 +8,7 @@ import { TopBar } from "@/components/top-bar"
 import { OfflineBanner } from "@/components/offline-banner"
 import { ConnectivityProvider, useConnectivity } from "@/components/connectivity-provider"
 import { Button } from "@/components/ui/button"
-import { Bot } from "lucide-react"
+import { MessageSquare } from "lucide-react"
 import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -181,11 +181,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             {/* Global AI chat trigger and sidebar */}
             <Button
               onClick={() => setIsChatOpen((v) => !v)}
-              className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-[60]"
+              className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg z-[110]"
               size="icon"
-              aria-label="Open AI assistant"
+              aria-label="Open chat"
             >
-              <Bot className="h-6 w-6" />
+              <MessageSquare className="h-6 w-6" />
             </Button>
             <AIChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} initialMessages={marketingInitialChat}
               // Marketing/demo props
