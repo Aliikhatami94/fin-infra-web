@@ -27,6 +27,13 @@ interface AIChatSidebarProps {
   beforeMessagesSlot?: ReactNode
   afterMessagesSlot?: ReactNode
   onSend?: (message: AIChatMessage) => void
+  // Marketing/demo helpers
+  prefillInput?: string | null
+  autoplay?: boolean
+  marketingMode?: boolean
+  currentScenario?: string | null
+  onScenarioChange?: (scenario: string) => void
+  onMessagesChange?: (messages: AIChatMessage[]) => void
 }
 
 interface AIConversation {
@@ -47,6 +54,12 @@ export function AIChatSidebar({
   beforeMessagesSlot,
   afterMessagesSlot,
   onSend,
+  prefillInput,
+  autoplay = false,
+  marketingMode: _marketingMode = false,
+  currentScenario: _currentScenario = null,
+  onScenarioChange: _onScenarioChange,
+  onMessagesChange,
 }: AIChatSidebarProps) {
   const defaultMessages = useMemo<AIChatMessage[]>(
     () => [
@@ -66,27 +79,97 @@ export function AIChatSidebar({
   const [input, setInput] = useState("")
   const endRef = useRef<HTMLDivElement | null>(null)
   const hasSavedCurrentRef = useRef(false)
+  const scrollWrapperRef = useRef<HTMLDivElement | null>(null)
+  const scrollViewportRef = useRef<HTMLElement | null>(null)
+  const [isAtBottom, setIsAtBottom] = useState(true)
+  const [isTyping, setIsTyping] = useState(false)
+  const autoplayRanForRef = useRef<string | null>(null)
 
   // Do not save conversations until the user actually sends a message
   const [conversations, setConversations] = useState<AIConversation[]>([])
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!initialMessages) {
-      return
+    if (!initialMessages) return
+    // If autoplay is enabled and we haven't run it for this batch, simulate reveal
+    const batchKey = initialMessages.map((m) => m.id).join('|')
+    if (autoplay && autoplayRanForRef.current !== batchKey) {
+      autoplayRanForRef.current = batchKey
+      let cancelled = false
+      ;(async () => {
+        setMessages([])
+        setIsTyping(false)
+        // small initial delay
+        await new Promise((r) => setTimeout(r, 350))
+        for (const msg of initialMessages) {
+          if (cancelled) break
+          if (msg.role === 'assistant') {
+            setIsTyping(true)
+            // type time proportional to content length
+            const base = 350
+            const perChar = 18
+            const delay = Math.min(2000, base + Math.floor(Math.min(120, msg.content.length) * perChar))
+            await new Promise((r) => setTimeout(r, delay))
+            setIsTyping(false)
+          } else {
+            // brief delay for user messages too, but shorter
+            await new Promise((r) => setTimeout(r, 220))
+          }
+          setMessages((prev) => [...prev, msg])
+        }
+      })()
+      return () => {
+        // cancel any pending sequence
+        cancelled = true
+        setIsTyping(false)
+      }
+    } else {
+      setMessages(initialMessages)
     }
+  }, [initialMessages, autoplay])
 
-    setMessages(initialMessages)
-  }, [initialMessages])
+  // Prefill input when instructed (marketing/demo)
+  useEffect(() => {
+    if (prefillInput && !input) {
+      setInput(prefillInput)
+    }
+  }, [prefillInput, input])
 
   // Auto-scroll to newest message when messages change or the panel opens
   useEffect(() => {
     // next frame to allow layout to settle
     const id = requestAnimationFrame(() => {
-      endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+      if (isAtBottom || autoplay) {
+        endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+      }
     })
     return () => cancelAnimationFrame(id)
-  }, [messages, isOpen])
+  }, [messages, isOpen, isAtBottom, autoplay])
+
+  // Track scroll position of the ScrollArea viewport
+  useEffect(() => {
+    const root = scrollWrapperRef.current
+    if (!root) return
+    const viewport = root.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]')
+    scrollViewportRef.current = viewport
+    if (!viewport) return
+    const handle = () => {
+      const el = viewport
+      const threshold = 32
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= threshold
+      setIsAtBottom(atBottom)
+    }
+    viewport.addEventListener('scroll', handle, { passive: true })
+    // initialize
+    handle()
+    return () => viewport.removeEventListener('scroll', handle)
+  }, [isOpen])
+
+  // Emit messages change to parent when needed (e.g., to persist)
+  useEffect(() => {
+    onMessagesChange?.(messages)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages])
 
   // Keep current conversation in sync with messages and derive a simple title
   useEffect(() => {
@@ -156,16 +239,20 @@ export function AIChatSidebar({
     onSend?.(userMessage)
     setInput("")
 
-    // Simulate AI response
+    // Simulate AI response with a brief typing delay
+    setIsTyping(true)
+    const simulated = getAIResponse(input)
+    const delay = Math.min(1800, 400 + Math.floor(Math.min(160, simulated.length) * 12))
     setTimeout(() => {
       const aiMessage: AIChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: getAIResponse(input),
+        content: simulated,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, aiMessage])
-    }, 600)
+      setIsTyping(false)
+    }, delay)
   }
 
   const getAIResponse = (query: string): string => {
@@ -175,15 +262,15 @@ export function AIChatSidebar({
 
     const lowerQuery = query.toLowerCase()
     if (lowerQuery.includes("automate") || lowerQuery.includes("strategy")) {
-      return "I can help you set up automated trading strategies. You can create rules based on technical indicators, price movements, or market conditions. Would you like to create a new strategy or modify an existing one?"
+      return "I can help you set up an automated strategy that fits your style—rules based on indicators, price moves, or simple schedules. Tell me the signal you trust most, and I’ll sketch a first pass you can tweak in seconds."
     }
     if (lowerQuery.includes("portfolio") || lowerQuery.includes("optimize")) {
-      return "Based on your current portfolio, I recommend diversifying into tech and healthcare sectors. Your current allocation shows 45% in tech stocks. Would you like me to suggest specific rebalancing actions?"
+      return "Looking at your portfolio, a small rebalance could lower hiccups without cutting growth. Want a quick proposal with the exact trades and the before/after picture so you can sanity‑check it?"
     }
     if (lowerQuery.includes("risk") || lowerQuery.includes("stop loss")) {
-      return "I can help you set up risk management rules. I recommend setting stop-loss orders at 5-7% below your entry price for volatile stocks. Would you like me to apply this to your current positions?"
+      return "We can add guardrails that run in the background—like a 5–7% stop for volatile names or a trailing stop that locks in gains. Say the word and I’ll wire it up to your current positions."
     }
-    return "I understand you're asking about trading automation. Could you provide more details about what you'd like to achieve? I can help with strategy creation, risk management, portfolio optimization, and market analysis."
+    return "Got it. If you share the outcome you want—grow, protect, or simplify—I’ll suggest the cleanest path and set up the pieces for you to approve."
   }
 
   return (
@@ -213,6 +300,7 @@ export function AIChatSidebar({
               >
                 <Plus className="h-4 w-4" />
               </Button>
+              {/* Scenario switcher removed; configure via URL params (marketing, chat, scenario) */}
               {conversations.length === 0 ? (
                 <Button variant="ghost" size="icon" aria-label="Conversation history" title="No history" disabled>
                   <Clock className="h-4 w-4" />
@@ -246,7 +334,8 @@ export function AIChatSidebar({
             </div>
       </div>
 
-      <ScrollArea className="min-h-0 flex-1 p-4">
+      <div ref={scrollWrapperRef} className="min-h-0 flex-1">
+      <ScrollArea className="size-full p-4">
         <div className="space-y-4">
           {beforeMessagesSlot}
           {messages.map((message) => (
@@ -268,10 +357,33 @@ export function AIChatSidebar({
               )}
             </div>
           ))}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="w-full space-y-2">
+                <p className="text-sm leading-snug text-muted-foreground">Assistant is typing…</p>
+              </div>
+            </div>
+          )}
           {afterMessagesSlot}
           <div ref={endRef} />
         </div>
       </ScrollArea>
+      </div>
+
+      {!isAtBottom && (
+        <div className="pointer-events-auto absolute bottom-24 left-0 right-0 flex justify-center">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="rounded-full shadow"
+            onClick={() => {
+              endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+            }}
+          >
+            Jump to latest
+          </Button>
+        </div>
+      )}
 
       <div className="p-4 border-t">
         <div className="relative">

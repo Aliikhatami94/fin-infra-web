@@ -17,6 +17,30 @@ import { isMarketingMode, parseMarketingOptions } from "@/lib/marketingMode"
 import { getMarketingChatPreset } from "@/lib/marketingPresets"
 import type { AIChatMessage } from "@/components/ai-chat-sidebar"
 
+// Module-level helpers for marketing transcript persistence
+const marketingKeyFor = (scenario?: string | null) => `marketing::chat::${(scenario ?? 'default').toLowerCase()}`
+type StoredMsg = { id: string; role: 'user' | 'assistant'; content: string; timestamp: string }
+function loadStoredTranscript(scenario?: string | null): AIChatMessage[] | undefined {
+  try {
+    if (typeof window === 'undefined') return undefined
+    const raw = window.localStorage.getItem(marketingKeyFor(scenario))
+    if (!raw) return undefined
+    const parsed = JSON.parse(raw) as StoredMsg[]
+    return parsed.map((m) => ({ ...m, timestamp: new Date(m.timestamp) }))
+  } catch {
+    return undefined
+  }
+}
+function saveStoredTranscript(messages: AIChatMessage[], scenario?: string | null) {
+  try {
+    if (typeof window === 'undefined') return
+    const toStore: StoredMsg[] = messages.map((m) => ({ ...m, timestamp: m.timestamp.toISOString() }))
+    window.localStorage.setItem(marketingKeyFor(scenario), JSON.stringify(toStore))
+  } catch {
+    // ignore write errors
+  }
+}
+
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar").then((m) => m.AIChatSidebar), {
   ssr: false,
 })
@@ -47,6 +71,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [marketingInitialChat, setMarketingInitialChat] = useState<AIChatMessage[] | undefined>(undefined)
+  const [marketingScenario, setMarketingScenario] = useState<string | null>(null)
+  const [marketingAutoplay, setMarketingAutoplay] = useState<boolean>(false)
+  const [marketingPrefill, setMarketingPrefill] = useState<string | null>(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -101,11 +128,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   // Marketing helpers: optionally auto-open chat and preload a transcript
   useEffect(() => {
-    const { enabled, chatOpen, scenario } = parseMarketingOptions(searchParams)
+    const { enabled, chatOpen, scenario, chatInput, autoplay } = parseMarketingOptions(searchParams)
     if (!enabled) return
+    setMarketingScenario(scenario ?? 'default')
+    setMarketingPrefill(chatInput ?? null)
+    // Load from storage if present; otherwise use presets
+    const stored = loadStoredTranscript(scenario)
+    const hasStored = !!stored && stored.length > 0
     if (chatOpen) {
       setIsChatOpen(true)
-      setMarketingInitialChat(getMarketingChatPreset(scenario))
+      setMarketingInitialChat(hasStored ? stored : getMarketingChatPreset(scenario))
+      setMarketingAutoplay(!!autoplay && !hasStored)
     }
   }, [searchParams])
   
@@ -155,6 +188,22 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               <Bot className="h-6 w-6" />
             </Button>
             <AIChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} initialMessages={marketingInitialChat}
+              // Marketing/demo props
+              marketingMode={inMarketingMode}
+              currentScenario={marketingScenario}
+              prefillInput={marketingPrefill}
+              autoplay={marketingAutoplay}
+              onScenarioChange={(s) => {
+                setMarketingScenario(s)
+                const stored = loadStoredTranscript(s)
+                const hasStored = !!stored && stored.length > 0
+                setMarketingInitialChat(hasStored ? stored : getMarketingChatPreset(s))
+                setMarketingAutoplay(!hasStored)
+              }}
+              onMessagesChange={(msgs) => {
+                if (!inMarketingMode) return
+                saveStoredTranscript(msgs, marketingScenario)
+              }}
             />
           </div>
         </div>
