@@ -15,66 +15,136 @@ type Shot = {
 
 const BASE_URL = process.env.MARKETING_BASE_URL ?? "http://localhost:3000"
 
-// Pages to capture
-const PAGES = [
-  { path: "/dashboard", name: "Dashboard" },
+// Pages to capture (expanded to cover dashboard sections)
+const PAGES: Array<{ path: string; name: string }> = [
+  { path: "/dashboard", name: "Overview" },
   { path: "/dashboard/portfolio", name: "Portfolio" },
-  { path: "/dashboard/cash-flow", name: "Cash Flow" },
   { path: "/dashboard/budget", name: "Budget" },
+  { path: "/dashboard/cash-flow", name: "Cash Flow" },
+  { path: "/dashboard/crypto", name: "Crypto" },
   { path: "/dashboard/insights", name: "Insights" },
+  { path: "/dashboard/accounts", name: "Accounts" },
+  { path: "/dashboard/transactions", name: "Transactions" },
+  { path: "/dashboard/net-worth-detail", name: "Net Worth" },
+  { path: "/dashboard/goals", name: "Goals" },
+  { path: "/dashboard/growth", name: "Growth" },
+  { path: "/dashboard/documents", name: "Documents" },
+  { path: "/dashboard/taxes", name: "Taxes" },
+  { path: "/dashboard/billing", name: "Billing" },
+  { path: "/dashboard/profile", name: "Profile" },
+  { path: "/dashboard/settings", name: "Settings" },
 ]
+
+// Map each page to the most relevant chat scenario for marketing
+function scenarioForPath(pathname: string): string {
+  if (pathname.includes("/portfolio")) return "portfolio"
+  if (pathname.includes("/budget")) return "budget"
+  if (pathname.includes("/crypto")) return "crypto"
+  // Default scenario works well across the rest
+  return "default"
+}
 
 // Generate shots for all pages in all modes
 const SHOTS: Shot[] = []
 
 for (const page of PAGES) {
-  const pageName = page.name.toLowerCase().replace(/\s+/g, "-")
-  
-  // Desktop - Light Mode
-  SHOTS.push({
-    name: `${page.name} - Desktop Light`,
-    url: `${page.path}?marketing=1`,
-    file: `${pageName}-desktop-light.png`,
-    viewport: { width: 1440, height: 900 },
-    deviceScaleFactor: 2,
-    fullPage: false,
-    colorScheme: "light",
-  })
-  
-  // Desktop - Dark Mode
-  SHOTS.push({
-    name: `${page.name} - Desktop Dark`,
-    url: `${page.path}?marketing=1`,
-    file: `${pageName}-desktop-dark.png`,
-    viewport: { width: 1440, height: 900 },
-    deviceScaleFactor: 2,
-    fullPage: false,
-    colorScheme: "dark",
-  })
-  
-  // Phone - Light Mode
-  SHOTS.push({
-    name: `${page.name} - Phone Light`,
-    url: `${page.path}?marketing=1`,
-    file: `${pageName}-phone-light.png`,
-    viewport: { width: 390, height: 844 },
-    deviceScaleFactor: 3,
-    fullPage: false,
-    emulate: "iPhone 13",
-    colorScheme: "light",
-  })
-  
-  // Phone - Dark Mode
-  SHOTS.push({
-    name: `${page.name} - Phone Dark`,
-    url: `${page.path}?marketing=1`,
-    file: `${pageName}-phone-dark.png`,
-    viewport: { width: 390, height: 844 },
-    deviceScaleFactor: 3,
-    fullPage: false,
-    emulate: "iPhone 13",
-    colorScheme: "dark",
-  })
+  const pageSlug = page.name.toLowerCase().replace(/\s+/g, "-")
+  const baseUrl = `${page.path}?marketing=1`
+  const chatScenario = scenarioForPath(page.path)
+  const chatUrl = `${baseUrl}&chat=open&scenario=${encodeURIComponent(chatScenario)}`
+
+  const variants: Array<{
+    label: string
+    url: string
+    fileSuffix: string
+    viewport: { width: number; height: number }
+    deviceScaleFactor: number
+    emulate?: keyof typeof devices
+    colorScheme: "light" | "dark"
+  }> = [
+    {
+      label: "Desktop Light",
+      url: baseUrl,
+      fileSuffix: "desktop-light",
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: "light",
+    },
+    {
+      label: "Desktop Dark",
+      url: baseUrl,
+      fileSuffix: "desktop-dark",
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: "dark",
+    },
+    {
+      label: "Phone Light",
+      url: baseUrl,
+      fileSuffix: "phone-light",
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 3,
+      emulate: "iPhone 13",
+      colorScheme: "light",
+    },
+    {
+      label: "Phone Dark",
+      url: baseUrl,
+      fileSuffix: "phone-dark",
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 3,
+      emulate: "iPhone 13",
+      colorScheme: "dark",
+    },
+    // Chat-open variants alongside the corresponding page
+    {
+      label: "Desktop Light (Chat)",
+      url: chatUrl,
+      fileSuffix: "desktop-light-chat",
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: "light",
+    },
+    {
+      label: "Desktop Dark (Chat)",
+      url: chatUrl,
+      fileSuffix: "desktop-dark-chat",
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: "dark",
+    },
+    {
+      label: "Phone Light (Chat)",
+      url: chatUrl,
+      fileSuffix: "phone-light-chat",
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 3,
+      emulate: "iPhone 13",
+      colorScheme: "light",
+    },
+    {
+      label: "Phone Dark (Chat)",
+      url: chatUrl,
+      fileSuffix: "phone-dark-chat",
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 3,
+      emulate: "iPhone 13",
+      colorScheme: "dark",
+    },
+  ]
+
+  for (const v of variants) {
+    SHOTS.push({
+      name: `${page.name} - ${v.label}`,
+      url: v.url,
+      file: `${pageSlug}-${v.fileSuffix}.png`,
+      viewport: v.viewport,
+      deviceScaleFactor: v.deviceScaleFactor,
+      fullPage: false,
+      emulate: v.emulate,
+      colorScheme: v.colorScheme,
+    })
+  }
 }
 
 async function ensureDir(dir: string) {

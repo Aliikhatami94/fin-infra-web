@@ -335,7 +335,7 @@ export function AIChatSidebar({
       </div>
 
       <div ref={scrollWrapperRef} className="min-h-0 flex-1">
-      <ScrollArea className="size-full p-4">
+  <ScrollArea className="size-full px-4">
         <div className="space-y-4">
           {beforeMessagesSlot}
           {messages.map((message) => (
@@ -365,25 +365,24 @@ export function AIChatSidebar({
             </div>
           )}
           {afterMessagesSlot}
+          {!isAtBottom && (
+            <div className="sticky bottom-2 flex justify-center">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="rounded-full shadow mt-2 hover:opacity-100 active:opacity-100 focus:opacity-100"
+                onClick={() => {
+                  endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+                }}
+              >
+                Jump to latest
+              </Button>
+            </div>
+          )}
           <div ref={endRef} />
         </div>
       </ScrollArea>
       </div>
-
-      {!isAtBottom && (
-        <div className="pointer-events-auto absolute bottom-24 left-0 right-0 flex justify-center">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="rounded-full shadow"
-            onClick={() => {
-              endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-            }}
-          >
-            Jump to latest
-          </Button>
-        </div>
-      )}
 
       <div className="p-4 border-t">
         <div className="relative">
