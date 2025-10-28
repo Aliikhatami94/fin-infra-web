@@ -17,11 +17,11 @@ const BASE_URL = process.env.MARKETING_BASE_URL ?? "http://localhost:3000"
 
 // Pages to capture
 const PAGES = [
-  { path: "/overview", name: "Dashboard" },
-  { path: "/portfolio", name: "Portfolio" },
-  { path: "/cash-flow", name: "Cash Flow" },
-  { path: "/budget", name: "Budget" },
-  { path: "/insights", name: "Insights" },
+  { path: "/dashboard", name: "Dashboard" },
+  { path: "/dashboard/portfolio", name: "Portfolio" },
+  { path: "/dashboard/cash-flow", name: "Cash Flow" },
+  { path: "/dashboard/budget", name: "Budget" },
+  { path: "/dashboard/insights", name: "Insights" },
 ]
 
 // Generate shots for all pages in all modes

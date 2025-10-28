@@ -248,7 +248,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/settings">
+                <Link href="/dashboard/settings">
                   <SettingsIcon className="mr-2 h-4 w-4" />
                   Settings
                 </Link>

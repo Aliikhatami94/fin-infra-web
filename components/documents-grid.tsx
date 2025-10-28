@@ -139,7 +139,7 @@ export function DocumentsGrid({
               </Button>
             )}
             <Button asChild variant="link" size="sm" className="text-xs">
-              <Link href="/taxes" className="inline-flex items-center gap-1">
+              <Link href="/dashboard/taxes" className="inline-flex items-center gap-1">
                 Missing a 1099? Go to Taxes
               </Link>
             </Button>

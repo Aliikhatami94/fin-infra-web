@@ -48,7 +48,7 @@ export function AIInsights() {
     <div className="relative space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">AI Insights</h2>
-        <Link href="/insights" className="flex items-center gap-1 text-sm text-primary transition-colors hover:text-primary/80">
+        <Link href="/dashboard/insights" className="flex items-center gap-1 text-sm text-primary transition-colors hover:text-primary/80">
           View all
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>

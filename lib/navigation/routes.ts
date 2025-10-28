@@ -29,26 +29,27 @@ export interface NavigationItem {
 }
 
 const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
-  { name: "Overview", href: "/overview", icon: LayoutDashboard },
+  { name: "Overview", href: "/dashboard", icon: LayoutDashboard, exact: true },
   {
     name: "Accounts",
-    href: "/accounts",
+    href: "/dashboard/accounts",
     icon: Building2,
     badge: 2,
     badgeTooltip: "Two accounts need your review",
   },
-  { name: "Portfolio", href: "/portfolio", icon: Wallet },
-  { name: "Crypto", href: "/crypto", icon: Bitcoin },
-  { name: "Cash Flow", href: "/cash-flow", icon: TrendingUp },
-  { name: "Transactions", href: "/transactions", icon: ListTree },
-  { name: "Budget", href: "/budget", icon: Receipt },
-  { name: "Goals", href: "/goals", icon: Target },
-  { name: "Taxes", href: "/taxes", icon: FileText },
-  { name: "Insights", href: "/insights", icon: Lightbulb },
-  { name: "Growth", href: "/growth", icon: BarChart3, featureFlag: "growthDashboards" },
-  { name: "Documents", href: "/documents", icon: FileText },
-  { name: "Settings", href: "/settings", icon: Settings, exact: true },
-  { name: "Security Center", href: "/settings/security", icon: Shield },
+  { name: "Portfolio", href: "/dashboard/portfolio", icon: Wallet },
+  { name: "Crypto", href: "/dashboard/crypto", icon: Bitcoin },
+  { name: "Cash Flow", href: "/dashboard/cash-flow", icon: TrendingUp },
+  { name: "Transactions", href: "/dashboard/transactions", icon: ListTree },
+  { name: "Budget", href: "/dashboard/budget", icon: Receipt },
+  { name: "Goals", href: "/dashboard/goals", icon: Target },
+  { name: "Taxes", href: "/dashboard/taxes", icon: FileText },
+  { name: "Insights", href: "/dashboard/insights", icon: Lightbulb },
+  { name: "Growth", href: "/dashboard/growth", icon: BarChart3, featureFlag: "growthDashboards" },
+  { name: "Documents", href: "/dashboard/documents", icon: FileText },
+  { name: "Profile", href: "/dashboard/profile", icon: Settings },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings, exact: true },
+  { name: "Security Center", href: "/dashboard/settings/security", icon: Shield },
 ]
 
 export const DASHBOARD_NAVIGATION: NavigationItem[] = BASE_DASHBOARD_NAVIGATION.filter(

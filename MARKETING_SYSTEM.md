@@ -101,7 +101,7 @@ For each page (Dashboard, Portfolio, Cash Flow, Budget, Insights):
 - Phone Light: `{page}-phone-light.png` (390x844, 3x scale)
 - Phone Dark: `{page}-phone-dark.png` (390x844, 3x scale)
 
-All pages use `?marketing=1` query parameter for:
+All pages use `/dashboard/*` paths with `?marketing=1` query parameter for:
 - Bypassing authentication/onboarding checks
 - Always showing values (privacy mode disabled)
 - Cleaner UI (no scrollbars, cursors hidden)

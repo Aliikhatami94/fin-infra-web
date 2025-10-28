@@ -57,7 +57,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 Retry section
               </Button>
               <Button variant="ghost" size="sm" asChild className="gap-2">
-                <Link href="/overview">
+                <Link href="/dashboard">
                   <Home className="h-4 w-4" aria-hidden="true" />
                   Back to dashboard
                 </Link>

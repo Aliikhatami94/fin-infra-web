@@ -59,7 +59,7 @@ export function TaxDocuments() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Tax Documents</CardTitle>
-          <Link href="/documents">
+          <Link href="/dashboard/documents">
             <Button variant="outline" size="sm" className="gap-2">
               <ExternalLink className="h-4 w-4" />
               View All Documents
