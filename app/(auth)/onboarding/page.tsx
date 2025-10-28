@@ -18,6 +18,7 @@ import {
   trackOnboardingStepCompleted,
   trackOnboardingStepViewed,
 } from "@/lib/analytics/events"
+
 import { toast } from "@/components/ui/sonner"
 import type {
   InstitutionConnectionStatus,

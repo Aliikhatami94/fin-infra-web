@@ -46,7 +46,8 @@ export function BackToTopButton() {
       size="icon"
       aria-label="Back to top"
       className={cn(
-        "fixed bottom-8 right-8 z-50 h-12 w-12 rounded-full shadow-lg transition-all duration-300",
+        // Positioned to avoid overlapping the global feedback button at right-6
+        "fixed bottom-6 right-20 z-[100] h-12 w-12 rounded-full shadow-lg transition-all duration-300",
         "hover:shadow-xl hover:-translate-y-1",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         isVisible
@@ -54,7 +55,7 @@ export function BackToTopButton() {
           : "opacity-0 translate-y-4 pointer-events-none",
       )}
     >
-      <ArrowUp className="h-5 w-5" aria-hidden="true" />
+      <ArrowUp className="h-6 w-6" aria-hidden="true" />
     </Button>
   )
 }

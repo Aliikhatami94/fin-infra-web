@@ -3,13 +3,12 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronLeft, X } from "lucide-react"
+import { ChevronLeft, X, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { isActiveRoute } from "@/lib/navigation"
 import { prefetchAppRoute, getBadgeTooltipCopy } from "@/lib/linking"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -72,9 +71,10 @@ export function Sidebar({
   return (
     <TooltipProvider delayDuration={200}>
       <>
+        {/* Mobile backdrop with blur and darken effect */}
         {mobileOpen && (
           <div
-            className="fixed inset-0 z-40 bg-background backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={onMobileClose}
             aria-hidden="true"
           />
@@ -82,11 +82,11 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen bg-background transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 z-50 h-screen bg-background transition-all duration-300 ease-in-out border-r border-border overflow-hidden",
           // Desktop: always visible with proper width
           "lg:translate-x-0",
-          // Mobile: slide in/out, full width when open
-          mobileOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
+          // Mobile: slide in/out, full width on very small screens (sm), partial on larger mobile
+          mobileOpen ? "translate-x-0 w-full sm:w-80" : "-translate-x-full w-full sm:w-80",
           // Desktop collapsed state
           collapsed && "lg:w-16",
           !collapsed && "lg:w-64",
@@ -124,7 +124,9 @@ export function Sidebar({
                   active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )
 
-                if (collapsed) {
+                // On mobile (when mobileOpen is true), always show expanded view
+                // On desktop (lg), respect collapsed state
+                if (collapsed && !mobileOpen) {
                   return (
                     <Tooltip key={item.name}>
                       <TooltipTrigger asChild>
@@ -183,18 +185,41 @@ export function Sidebar({
           </div>
 
           <div className="border-t">
-            {!collapsed && (
-              <div className="flex items-center gap-3 p-4">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User avatar" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-medium truncate">John Doe</p>
-                  <p className="text-xs text-muted-foreground truncate">john@example.com</p>
-                </div>
-              </div>
-            )}
+            <div className="p-2">
+              {/* On mobile, always show expanded button. On desktop, respect collapsed state */}
+              {collapsed && !mobileOpen ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-full"
+                      onClick={() => {
+                        window.dispatchEvent(new Event('openFeedbackDialog'))
+                      }}
+                      aria-label="Give feedback"
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Give feedback</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    window.dispatchEvent(new Event('openFeedbackDialog'))
+                  }}
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  <span className="ml-2">Give feedback</span>
+                </Button>
+              )}
+            </div>
             <div className="p-2 hidden lg:block">
               <Button
                 variant="ghost"

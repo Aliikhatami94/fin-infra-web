@@ -156,7 +156,7 @@ export function DocumentCard({
       <div className="flex items-center gap-2 mb-4 px-2">
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="flex-1 gap-2 bg-transparent">
+            <Button variant="outline" size="sm" className="flex-1 gap-2">
               <Eye className="h-4 w-4" />
               View
             </Button>
@@ -173,7 +173,7 @@ export function DocumentCard({
                 <span>{date}</span>
                 <span>•</span>
                 <span>{size}</span>
-                <Button size="sm" variant="outline" className="ml-auto bg-transparent">
+                <Button size="sm" variant="outline" className="ml-auto">
                   <Download className="mr-2 h-4 w-4" />
                   Download
                 </Button>
@@ -209,7 +209,7 @@ export function DocumentCard({
             </div>
           </DialogContent>
         </Dialog>
-        <Button variant="outline" size="sm" className="flex-1 gap-2 bg-transparent">
+        <Button variant="outline" size="sm" className="flex-1 gap-2">
           <Download className="h-4 w-4" />
           Download
         </Button>

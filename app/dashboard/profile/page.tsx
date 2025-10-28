@@ -1,0 +1,137 @@
+"use client"
+
+import DashboardLayout from "@/components/dashboard-layout"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Camera, Mail, Phone, MapPin, Calendar } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { motion } from "framer-motion"
+import { useWorkspace } from "@/components/workspace-provider"
+
+export default function ProfilePage() {
+  const { activeMember } = useWorkspace()
+  
+  return (
+    <DashboardLayout>
+      {/* Header: align with Settings page style */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
+        <div className="mx-auto p-4 flex justify-between items-center max-w-[1200px] px-4 sm:px-6 lg:px-10 z-[99]">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Profile</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Manage your account information and preferences</p>
+          </div>
+          <Badge variant="outline" className="text-xs px-3">Account</Badge>
+        </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+
+        <Card className="card-standard">
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+            <CardDescription>Update your personal details and profile picture</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center gap-6">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={undefined} alt={activeMember.name} />
+                <AvatarFallback className="text-2xl bg-primary/10 text-primary font-semibold">
+                  {activeMember.avatarFallback}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Camera className="h-4 w-4" />
+                  Change Photo
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">JPG, PNG or GIF. Max size 2MB</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input id="fullName" defaultValue={activeMember.name} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input id="email" type="email" className="pl-9" defaultValue={activeMember.email} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input id="phone" type="tel" className="pl-9" defaultValue="+1 (555) 123-4567" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                placeholder="Tell us about yourself"
+                rows={4}
+                defaultValue="Passionate trader with 5 years of experience in stock markets."
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button variant="outline">Cancel</Button>
+              <Button>Save Changes</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="card-standard">
+          <CardHeader>
+            <CardTitle>Account Details</CardTitle>
+            <CardDescription>Your account information and statistics</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between py-3 border-b">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Member Since</p>
+                  <p className="text-sm text-muted-foreground">January 15, 2023</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b">
+              <div className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Location</p>
+                  <p className="text-sm text-muted-foreground">New York, USA</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-3">
+              <div>
+                <p className="text-sm font-medium">Account Type</p>
+                <p className="text-sm text-muted-foreground">Premium Trader</p>
+              </div>
+              <Button variant="outline" size="sm">
+                Upgrade
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        </div>
+      </motion.div>
+    </DashboardLayout>
+  )
+}

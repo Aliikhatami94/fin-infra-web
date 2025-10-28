@@ -258,7 +258,7 @@ export function AccountsListMobile({
                             </div>
                           </div>
 
-                          <Button variant="outline" size="sm" className="w-full bg-transparent">
+                          <Button variant="outline" size="sm" className="w-full">
                             View All Transactions
                           </Button>
                         </motion.div>

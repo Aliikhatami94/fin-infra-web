@@ -86,7 +86,7 @@ export function Portfolio({ filter }: PortfolioProps) {
   }
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">

@@ -2,30 +2,87 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { TopBar } from "@/components/top-bar"
 import { OfflineBanner } from "@/components/offline-banner"
-import { ConnectivityProvider } from "@/components/connectivity-provider"
+import { ConnectivityProvider, useConnectivity } from "@/components/connectivity-provider"
 import { Button } from "@/components/ui/button"
-import { Bot } from "lucide-react"
+import { MessageSquare } from "lucide-react"
 import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { isMarketingMode, parseMarketingOptions } from "@/lib/marketingMode"
+import { getMarketingChatPreset } from "@/lib/marketingPresets"
+import type { AIChatMessage } from "@/components/ai-chat-sidebar"
+
+// Module-level helpers for marketing transcript persistence
+const marketingKeyFor = (scenario?: string | null) => `marketing::chat::${(scenario ?? 'default').toLowerCase()}`
+type StoredMsg = { id: string; role: 'user' | 'assistant'; content: string; timestamp: string }
+function loadStoredTranscript(scenario?: string | null): AIChatMessage[] | undefined {
+  try {
+    if (typeof window === 'undefined') return undefined
+    const raw = window.localStorage.getItem(marketingKeyFor(scenario))
+    if (!raw) return undefined
+    const parsed = JSON.parse(raw) as StoredMsg[]
+    return parsed.map((m) => ({ ...m, timestamp: new Date(m.timestamp) }))
+  } catch {
+    return undefined
+  }
+}
+function saveStoredTranscript(messages: AIChatMessage[], scenario?: string | null) {
+  try {
+    if (typeof window === 'undefined') return
+    const toStore: StoredMsg[] = messages.map((m) => ({ ...m, timestamp: m.timestamp.toISOString() }))
+    window.localStorage.setItem(marketingKeyFor(scenario), JSON.stringify(toStore))
+  } catch {
+    // ignore write errors
+  }
+}
 
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar").then((m) => m.AIChatSidebar), {
   ssr: false,
 })
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLoadingOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        <p className="text-sm text-muted-foreground">Loading dashboard...</p>
+      </div>
+    </div>
+  )
+}
+
+function DashboardContent({ children }: { children: React.ReactNode }) {
+  const { status } = useConnectivity()
+  
+  return (
+    <div className="relative min-h-full w-full">
+      {status === "initializing" && <DashboardLoadingOverlay />}
+      {children}
+    </div>
+  )
+}
+
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [marketingInitialChat, setMarketingInitialChat] = useState<AIChatMessage[] | undefined>(undefined)
+  const [marketingScenario, setMarketingScenario] = useState<string | null>(null)
+  const [marketingAutoplay, setMarketingAutoplay] = useState<boolean>(false)
+  const [marketingPrefill, setMarketingPrefill] = useState<string | null>(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { state, hydrated } = useOnboardingState()
   const SIDEBAR_STORAGE_KEY = "ui::sidebar-collapsed"
+
+  // Check if in marketing mode
+  const inMarketingMode = isMarketingMode(searchParams)
 
   // Load persisted sidebar state
   useEffect(() => {
@@ -56,6 +113,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   // Route gate: if no connected institutions, send users to the welcome screen before dashboard
   useEffect(() => {
+    // Skip auth checks in marketing mode
+    if (inMarketingMode) return
+    
     if (!hydrated) return
     const hasConnected = state.linkedInstitutions.some((i) => i.status === "connected")
     // Allow onboarding and the welcome page itself; everything else under the dashboard is gated
@@ -64,7 +124,23 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     if (!hasConnected && !allowed) {
       router.replace("/welcome")
     }
-  }, [hydrated, pathname, router, state.linkedInstitutions])
+  }, [hydrated, pathname, router, state.linkedInstitutions, inMarketingMode])
+
+  // Marketing helpers: optionally auto-open chat and preload a transcript
+  useEffect(() => {
+    const { enabled, chatOpen, scenario, chatInput, autoplay } = parseMarketingOptions(searchParams)
+    if (!enabled) return
+    setMarketingScenario(scenario ?? 'default')
+    setMarketingPrefill(chatInput ?? null)
+    // Load from storage if present; otherwise use presets
+    const stored = loadStoredTranscript(scenario)
+    const hasStored = !!stored && stored.length > 0
+    if (chatOpen) {
+      setIsChatOpen(true)
+      setMarketingInitialChat(hasStored ? stored : getMarketingChatPreset(scenario))
+      setMarketingAutoplay(!!autoplay && !hasStored)
+    }
+  }, [searchParams])
   
   return (
     <ConnectivityProvider>
@@ -95,30 +171,53 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
               <main
                 id="main-content"
-                className="flex-1 overflow-hidden lg:rounded-xl bg-card lg:mr-2 lg:mb-2"
+                className="relative flex-1 overflow-hidden lg:rounded-xl bg-card lg:mr-2 lg:mb-2 border border-border/70"
                 style={{ overflow: 'auto', overflowX: 'hidden' }}
               >
-                <div className="mx-auto min-h-full w-full">
-                  {children}
-                </div>
+                <DashboardContent>{children}</DashboardContent>
               </main>
             </div>
 
             {/* Global AI chat trigger and sidebar */}
             <Button
               onClick={() => setIsChatOpen((v) => !v)}
-              className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-[60]"
+              className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg z-[110]"
               size="icon"
-              aria-label="Open AI assistant"
+              aria-label="Open chat"
             >
-              <Bot className="h-6 w-6" />
+              <MessageSquare className="h-6 w-6" />
             </Button>
-            <AIChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+            <AIChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} initialMessages={marketingInitialChat}
+              // Marketing/demo props
+              marketingMode={inMarketingMode}
+              currentScenario={marketingScenario}
+              prefillInput={marketingPrefill}
+              autoplay={marketingAutoplay}
+              onScenarioChange={(s) => {
+                setMarketingScenario(s)
+                const stored = loadStoredTranscript(s)
+                const hasStored = !!stored && stored.length > 0
+                setMarketingInitialChat(hasStored ? stored : getMarketingChatPreset(s))
+                setMarketingAutoplay(!hasStored)
+              }}
+              onMessagesChange={(msgs) => {
+                if (!inMarketingMode) return
+                saveStoredTranscript(msgs, marketingScenario)
+              }}
+            />
           </div>
         </div>
 
       </div>
     </ConnectivityProvider>
+  )
+}
+
+export function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<DashboardLoadingOverlay />}>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </Suspense>
   )
 }
 

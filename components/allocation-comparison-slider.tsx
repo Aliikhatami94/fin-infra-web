@@ -80,7 +80,7 @@ export function AllocationComparisonSlider() {
 
         {/* Allocation Bars */}
         <div className="space-y-3 pt-2">
-          {currentData.items.map((item, index) => (
+          {currentData.items.map((item, _index) => (
             <div key={item.label} className="space-y-1.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-foreground">{item.label}</span>

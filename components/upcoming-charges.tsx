@@ -78,8 +78,8 @@ export function UpcomingCharges() {
           </div>
           <p className="text-xs text-muted-foreground mt-1">Next 30 days of scheduled payments</p>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
+        <CardContent className="pb-4">
+          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
             {upcomingCharges.map((charge, index) => (
               <motion.div
                 key={index}
@@ -131,7 +131,7 @@ export function UpcomingCharges() {
                 <div className="flex items-center gap-3 ml-2">
                   <p className="text-sm font-semibold tabular-nums text-foreground">${charge.amount.toFixed(2)}</p>
                   {!charge.autopay && charge.status !== "due" && (
-                    <Button variant="outline" size="sm" className="h-7 text-xs bg-transparent">
+                    <Button variant="outline" size="sm" className="h-7 text-xs">
                       Pay Now
                     </Button>
                   )}

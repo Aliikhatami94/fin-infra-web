@@ -11,7 +11,7 @@ export function TradePanel() {
   const [orderType, setOrderType] = useState<"market" | "limit">("market")
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <CardTitle>Trade</CardTitle>
       </CardHeader>

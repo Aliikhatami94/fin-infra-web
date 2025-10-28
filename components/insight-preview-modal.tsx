@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog"
 import { 
   TrendingUp, 
-  TrendingDown, 
   AlertTriangle, 
   Sparkles, 
   ArrowRight,

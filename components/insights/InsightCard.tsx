@@ -470,17 +470,10 @@ export function InsightCard({
               {insight.actions.map((action, actionIndex) => {
                 const isPrimaryAction = actionIndex === primaryActionIndex
                 const effectiveVariant = action.variant ?? (isPrimaryAction ? "default" : "outline")
-                const intent = isPrimaryAction && effectiveVariant === "default" ? "primary" : "secondary"
                 const commonProps = {
                   variant: effectiveVariant,
                   size: "sm" as const,
-                  className: cn(
-                    "text-xs transition-all data-[intent=primary]:shadow-sm data-[intent=primary]:shadow-primary/20",
-                    "data-[intent=secondary]:border-border/50 data-[intent=secondary]:text-muted-foreground",
-                    "data-[intent=secondary]:hover:text-foreground",
-                    isResolved && "opacity-80",
-                  ),
-                  "data-intent": intent,
+                  className: isResolved ? "opacity-80" : undefined,
                   onClick: () => handleAction(action),
                   "aria-label": action.ariaLabel ?? action.label,
                 }

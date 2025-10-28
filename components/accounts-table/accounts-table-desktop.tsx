@@ -161,12 +161,12 @@ export function AccountsTableDesktop({
       return (
         <table {...props} ref={ref} className={cn("w-full text-sm table-auto", className)}>
           <colgroup>
-            <col className="w-[30%]" />
+            <col className="w-[28%]" />
             <col className="w-[12%]" />
             <col className="w-[16%]" />
+            <col className="w-[16%]" />
+            <col className="w-[10%]" />
             <col className="w-[14%]" />
-            <col className="w-[12%]" />
-            <col className="w-[12%]" />
             <col className="w-[4%]" />
           </colgroup>
           {children}
@@ -182,10 +182,7 @@ export function AccountsTableDesktop({
         <thead
           {...props}
           ref={ref}
-          className={cn(
-            "sticky top-0 z-20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80",
-            className,
-          )}
+          className={cn("sticky top-0 z-20", className)}
         />
       )
     })
@@ -239,7 +236,7 @@ export function AccountsTableDesktop({
       <div className="table-surface">
         <TableVirtuoso
           data={virtualRows}
-          style={{ height: tableHeight }}
+          style={{ height: tableHeight, scrollbarGutter: "stable" }}
           components={tableComponents}
           className="min-w-full"
         fixedHeaderContent={() => (

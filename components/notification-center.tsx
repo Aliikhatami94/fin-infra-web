@@ -56,7 +56,7 @@ export function NotificationCenter({ open, onOpenChange }: NotificationCenterPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[min(95vw,42rem)] max-h-[85vh] h-[85vh] overflow-hidden p-0 sm:max-w-2xl">
+      <DialogContent className="w-[min(95vw,42rem)] max-h-[85vh] h-[60vh] overflow-hidden p-2 sm:max-w-2xl">
         <div className="flex h-full min-h-0 flex-col">
           <DialogHeader className="px-4 py-3 border-b border-border/20 bg-card/80 backdrop-blur-sm">
             <DialogTitle className="flex items-center gap-2 text-left">

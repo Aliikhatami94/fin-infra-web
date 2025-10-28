@@ -17,7 +17,7 @@ export function CryptoRiskSection() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      <Card>
+      <Card className="card-standard">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Risk Allocation
@@ -61,7 +61,7 @@ export function CryptoRiskSection() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="card-standard">
         <CardHeader>
           <CardTitle>Tax & Compliance</CardTitle>
         </CardHeader>

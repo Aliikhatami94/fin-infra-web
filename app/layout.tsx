@@ -6,9 +6,11 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { PrivacyProvider } from "../components/privacy-provider"
 import { DateRangeProvider } from "@/components/date-range-provider"
 import { PersonaProvider } from "@/components/persona-provider"
+import { MarketingModeScript } from "@/components/marketing-mode-script"
 import { BRAND } from "@/lib/brand"
 import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
+import GlobalFeedbackTrigger from "@/components/global-feedback-trigger"
 
 const _inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -37,7 +39,12 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <PrivacyProvider>
             <PersonaProvider>
-              <DateRangeProvider>{children}</DateRangeProvider>
+              <DateRangeProvider>
+                <MarketingModeScript />
+                {children}
+                {/* Global feedback button available on all pages */}
+                <GlobalFeedbackTrigger />
+              </DateRangeProvider>
             </PersonaProvider>
           </PrivacyProvider>
         </ThemeProvider>

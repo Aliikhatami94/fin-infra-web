@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function AccountsKPICardsSkeleton() {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
       {Array.from({ length: 3 }).map((_, index) => (
         <Card key={index} className="card-standard card-lift">
           <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
@@ -222,7 +222,7 @@ export function AIInsightsListSkeleton() {
 
 export function PortfolioKPIsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
       {Array.from({ length: 6 }).map((_, index) => (
         <Card key={index} className="card-standard card-lift">
           <CardContent className="flex h-full flex-col justify-between gap-4 p-6">

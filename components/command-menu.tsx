@@ -13,29 +13,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command"
 import { useMaskToggleDetails } from "@/components/privacy-provider"
-import {
-  LayoutDashboard,
-  Wallet,
-  TrendingUp,
-  ArrowLeftRight,
-  PiggyBank,
-  FileText,
-  Lightbulb,
-  FolderOpen,
-  Settings,
-} from "lucide-react"
-
-const routes = [
-  { label: "Overview", href: "/overview", icon: LayoutDashboard },
-  { label: "Accounts", href: "/accounts", icon: Wallet },
-  { label: "Portfolio", href: "/portfolio", icon: TrendingUp },
-  { label: "Cash Flow", href: "/cash-flow", icon: ArrowLeftRight },
-  { label: "Budget", href: "/budget", icon: PiggyBank },
-  { label: "Taxes", href: "/taxes", icon: FileText },
-  { label: "Insights", href: "/insights", icon: Lightbulb },
-  { label: "Documents", href: "/documents", icon: FolderOpen },
-  { label: "Settings", href: "/settings", icon: Settings },
-]
+import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 
 interface CommandMenuProps {
   open?: boolean
@@ -104,15 +82,15 @@ export function CommandMenu({ open: controlledOpen, onOpenChange }: CommandMenuP
   const bestRouteFor = (q: string) => {
     const v = q.trim().toLowerCase()
     if (!v) return null
-    const scored = routes
+    const scored = DASHBOARD_NAVIGATION
       .map((r) => ({
         r,
         score:
-          r.label.toLowerCase() === v
+          r.name.toLowerCase() === v
             ? 100
-            : r.label.toLowerCase().startsWith(v)
+            : r.name.toLowerCase().startsWith(v)
             ? 80
-            : r.label.toLowerCase().includes(v)
+            : r.name.toLowerCase().includes(v)
             ? 60
             : 0,
       }))
@@ -166,12 +144,12 @@ export function CommandMenu({ open: controlledOpen, onOpenChange }: CommandMenuP
           </>
         )}
         <CommandGroup heading="Navigation">
-          {routes.map((r) => {
-            const Icon = r.icon
+          {DASHBOARD_NAVIGATION.map((item) => {
+            const Icon = item.icon
             return (
-              <CommandItem key={r.href} onSelect={() => navigate(r.href)}>
+              <CommandItem key={item.href} onSelect={() => navigate(item.href)}>
                 <Icon className="h-4 w-4 text-muted-foreground/50" />
-                <span>{r.label}</span>
+                <span>{item.name}</span>
               </CommandItem>
             )
           })}

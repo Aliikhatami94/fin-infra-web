@@ -1,9 +1,11 @@
 "use client"
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, Suspense } from "react"
 import { Eye, EyeOff } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 
 import { useSecureStorage } from "@/hooks/use-secure-storage"
+import { isMarketingMode } from "@/lib/marketingMode"
 
 type PrivacyContextValue = {
   masked: boolean
@@ -13,9 +15,13 @@ type PrivacyContextValue = {
 
 const PrivacyContext = createContext<PrivacyContextValue | undefined>(undefined)
 
-export function PrivacyProvider({ children }: { children: React.ReactNode }) {
+function PrivacyProviderInner({ children }: { children: React.ReactNode }) {
   const [masked, setMaskedState] = useState<boolean>(true)
+  const searchParams = useSearchParams()
   const secureStorage = useSecureStorage({ namespace: "privacy" })
+  
+  // In marketing mode, always show values (masked = false)
+  const inMarketingMode = isMarketingMode(searchParams)
 
   // hydrate from localStorage on client
   useEffect(() => {
@@ -41,15 +47,34 @@ export function PrivacyProvider({ children }: { children: React.ReactNode }) {
   }, [secureStorage])
 
   const setMasked = useCallback((v: boolean) => {
+    // In marketing mode, always keep unmasked
+    if (inMarketingMode) return
+    
     setMaskedState(v)
     secureStorage?.setItem("masked", String(v)).catch(() => {})
-  }, [secureStorage])
+  }, [secureStorage, inMarketingMode])
 
   const toggleMasked = useCallback(() => setMasked(!masked), [masked, setMasked])
 
-  const value = useMemo(() => ({ masked, toggleMasked, setMasked }), [masked, toggleMasked, setMasked])
+  // Return unmasked state in marketing mode
+  const effectiveMasked = inMarketingMode ? false : masked
+  const value = useMemo(() => ({ masked: effectiveMasked, toggleMasked, setMasked }), [effectiveMasked, toggleMasked, setMasked])
 
   return <PrivacyContext.Provider value={value}>{children}</PrivacyContext.Provider>
+}
+
+const defaultValue: PrivacyContextValue = {
+  masked: true,
+  toggleMasked: () => {},
+  setMasked: () => {},
+}
+
+export function PrivacyProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<PrivacyContext.Provider value={defaultValue}>{children}</PrivacyContext.Provider>}>
+      <PrivacyProviderInner>{children}</PrivacyProviderInner>
+    </Suspense>
+  )
 }
 
 export function usePrivacy() {

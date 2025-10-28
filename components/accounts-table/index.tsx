@@ -165,7 +165,7 @@ export function AccountsTable({
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                      <Button variant="outline" size="sm" className="gap-2">
                         <Filter className="h-4 w-4" aria-hidden="true" />
                         Group: {groupBy === "none" ? "None" : groupBy === "institution" ? "Institution" : "Type"}
                       </Button>
@@ -275,20 +275,6 @@ export function AccountsTable({
           </CardContent>
         </Card>
       </motion.div>
-
-      <Button
-        size="lg"
-        className="fixed bottom-6 right-6 rounded-full shadow-md md:hidden z-50 h-14 w-14 p-0"
-        onClick={onRequestLink}
-        aria-label={isLinking ? "Linking account" : "Link a new account"}
-        disabled={isLinking}
-      >
-        {isLinking ? (
-          <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
-        ) : (
-          <Plus className="h-6 w-6" aria-hidden="true" />
-        )}
-      </Button>
     </>
   )
 }

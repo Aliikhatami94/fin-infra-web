@@ -12,7 +12,6 @@ import { toast } from "sonner"
 
 import { BRAND } from "@/lib/brand"
 import { PasswordInput } from "@/components/ui/password-input"
-import { ComingSoon } from "@/components/coming-soon"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")

@@ -78,8 +78,8 @@
   --focus-ring-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 55%, transparent);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
-  --shadow-soft: 0 24px 60px -32px oklch(0.5 0.08 250 / 0.4);
-  --shadow-bold: 0 32px 80px -40px oklch(0.42 0.12 250 / 0.6);
+  --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-bold: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 .dark {
@@ -140,8 +140,8 @@
   --surface-cashflow: linear-gradient(135deg, oklch(0.36 0.08 160) 0%, oklch(0.32 0.06 140) 100%);
   --surface-security: linear-gradient(135deg, oklch(0.34 0.08 250) 0%, oklch(0.3 0.08 270) 100%);
 
-  --shadow-soft: 0 24px 60px -32px oklch(0.08 0.02 255 / 0.75);
-  --shadow-bold: 0 36px 90px -38px oklch(0.06 0.02 260 / 0.85);
+  --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-bold: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   --table-surface-bg: color-mix(in oklab, var(--card) 85%, transparent);
   --table-header-bg: color-mix(in oklab, var(--background) 40%, var(--card) 60%);
@@ -235,6 +235,8 @@
     font-size: var(--font-size-base);
     line-height: var(--line-height-base);
     letter-spacing: var(--letter-spacing-tight);
+    /* Prevent layout shift when scrollbars appear/disappear during intro */
+    scrollbar-gutter: stable both-edges;
     background-image: radial-gradient(circle at top left, oklch(0.98 0.04 260 / 0.35), transparent 55%),
       radial-gradient(circle at bottom right, oklch(0.96 0.05 160 / 0.25), transparent 55%);
     background-attachment: fixed;
@@ -250,8 +252,8 @@
   .card-standard {
     border-radius: var(--card-radius);
     background-color: var(--card);
-    border: 1px solid color-mix(in oklab, var(--border) 82%, transparent);
-    box-shadow: var(--shadow-soft);
+    border: 1px solid color-mix(in oklab, var(--border) 82%, transparent) !important;
+    box-shadow: var(--shadow-soft) !important;
     padding-block: var(--space-card-block);
     padding-inline: var(--space-card-inline);
     transition:
@@ -264,19 +266,17 @@
   }
 
   .card-standard:hover {
-    box-shadow: var(--shadow-bold);
-    border-color: color-mix(in oklab, var(--border) 94%, transparent);
-    transform: translateY(-1px);
+    border-color: color-mix(in oklab, var(--border) 100%, transparent);
   }
 
   .card-standard:focus-within {
-    box-shadow: var(--shadow-bold);
+    box-shadow: var(--shadow-bold) !important;
     border-color: color-mix(in oklab, var(--ring) 55%, var(--border) 45%);
   }
 
   .card-standard:focus-visible {
     outline: none;
-    box-shadow: var(--shadow-bold), var(--focus-ring-shadow);
+    box-shadow: var(--shadow-bold) !important;
   }
 
   /* Page fade-in animation */
@@ -342,6 +342,24 @@
 
   .focus-ring-soft:focus-visible {
     box-shadow: var(--focus-ring-shadow), 0 0 0 1px color-mix(in oklab, var(--ring) 35%, transparent);
+  }
+
+  /* Marketing Mode: cleaner screenshots */
+  html[data-marketing-mode="true"] {
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    * {
+      scroll-behavior: auto !important;
+      /* Hide carets by default to avoid blinking in screenshots */
+      caret-color: transparent !important;
+    }
+    /* But keep caret visible for actual text inputs even in marketing mode */
+    input,
+    textarea,
+    [contenteditable="true"] {
+      caret-color: var(--foreground) !important;
+    }
   }
 }
 
@@ -448,4 +466,70 @@
 
 #main-content::-webkit-scrollbar-thumb:hover {
   background: color-mix(in oklab, var(--foreground) 35%, transparent);
+}
+
+.intro-icon {
+  animation: introIconRecede 1.5s var(--ease-standard) forwards;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  /* Prevent subpixel jitter on some GPUs */
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  contain: layout paint;
+}
+
+.intro-icon-glow {
+  background: radial-gradient(circle at center, color-mix(in oklab, var(--primary) 50%, transparent) 0%, transparent 65%);
+  opacity: 0.35;
+  animation: introIconGlow 1s var(--ease-standard) forwards;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+@keyframes introIconRecede {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  /* Hold perfectly still to avoid any drift */
+  45% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  80% {
+    transform: translate3d(0, 0, 0) scale(0.82);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes introIconGlow {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.35;
+  }
+  /* Hold steady to match icon */
+  45% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.35;
+  }
+  80% {
+    transform: translate3d(0, 0, 0) scale(0.88);
+    opacity: 0.22;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-icon,
+  .intro-icon-glow {
+    animation: none;
+  }
 }

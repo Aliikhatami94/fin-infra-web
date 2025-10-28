@@ -2,7 +2,6 @@
 
 import { Bell, Search, Calendar, Menu, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -65,8 +64,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
         sidebarCollapsed ? "lg:left-16" : "lg:left-64",
       )}
     >
-      {/* Inner container: constrain width and center horizontally; match bar height */}
-      <div className="mx-auto flex h-12 w-full max-w-[1680px] items-center justify-between px-4 md:h-14 md:px-6">
+      {/* Inner container: constrain width and center horizontally to match page content width */}
+      <div className="mx-auto flex h-12 w-full max-w-[1200px] items-center justify-between gap-3 px-4 md:h-14 sm:px-6 lg:px-10">
         <div className="flex items-center gap-3 md:gap-6">
           <div className="lg:hidden">
             <Button variant="ghost" size="icon" onClick={onMenuClick} aria-label="Open menu">
@@ -76,33 +75,18 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
           {/* Brand title and Live badge are shown in the Sidebar header */}
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-2 md:px-4 lg:px-8">
-          <div className="relative w-full max-w-sm md:max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Search or jump to page - Press Enter or ⌘K to open"
-              placeholder="Search…"
-              className="w-full pl-9 pr-4 text-sm"
-              onFocus={() => {
-                // Lightly encourage the command menu for global actions
-                // Prevent virtual keyboard pop on mobile; keep as input for desktop
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault()
-                  setCommandMenuOpen(true)
-                }
-                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-                  e.preventDefault()
-                  setCommandMenuOpen(true)
-                }
-              }}
-              onClick={() => {
-                // Also open on click for better discoverability
-                setCommandMenuOpen(true)
-              }}
-            />
-          </div>
+        <div className="flex flex-1 items-center justify-start">
+          <Button
+            variant="outline"
+            className="w-full max-w-sm md:max-w-md lg:max-w-lg justify-start text-muted-foreground hover:text-foreground"
+            onClick={() => setCommandMenuOpen(true)}
+          >
+            <Search className="h-4 w-4" />
+            <span className="ml-2">Search…</span>
+            <kbd className="ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
         </div>
 
         <div className="flex items-center gap-1 md:gap-2">
@@ -166,16 +150,18 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open account menu">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>{activeMember.avatarFallback}</AvatarFallback>
+                  <AvatarImage src={undefined} alt={activeMember.name} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {activeMember.avatarFallback}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{activeMember.name}</p>
-                  <p className="text-xs text-muted-foreground">{activeMember.email}</p>
+                  <p className="text-sm font-medium truncate">{activeMember.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{activeMember.email}</p>
                 </div>
               </DropdownMenuLabel>
               <div className="px-2 pb-2">
@@ -246,7 +232,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/settings">
+                <Link href="/dashboard/settings">
                   <SettingsIcon className="mr-2 h-4 w-4" />
                   Settings
                 </Link>
