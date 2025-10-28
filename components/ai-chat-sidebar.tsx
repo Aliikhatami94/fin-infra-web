@@ -284,11 +284,11 @@ export function AIChatSidebar({
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
           className="fixed inset-y-0 right-0 w-full sm:w-[clamp(300px,85vw,380px)] md:w-[clamp(340px,42vw,400px)] lg:w-[clamp(360px,36vw,420px)] xl:w-[clamp(380px,32vw,440px)] bg-card border-l shadow-lg z-[120] flex flex-col"
         >
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between px-3 py-2 border-b">
             <div className="flex items-center gap-2">
-              {title ? <h2 className="font-semibold">{title}</h2> : null}
+              {title ? <h2 className="text-sm font-semibold">{title}</h2> : null}
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

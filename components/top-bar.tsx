@@ -2,7 +2,6 @@
 
 import { Bell, Search, Calendar, Menu, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -77,32 +76,17 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
         </div>
 
         <div className="flex flex-1 items-center justify-center px-2 md:px-4 lg:px-8">
-          <div className="relative w-full max-w-sm md:max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Search or jump to page - Press Enter or ⌘K to open"
-              placeholder="Search…"
-              className="w-full pl-9 pr-4 text-sm"
-              onFocus={() => {
-                // Lightly encourage the command menu for global actions
-                // Prevent virtual keyboard pop on mobile; keep as input for desktop
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault()
-                  setCommandMenuOpen(true)
-                }
-                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-                  e.preventDefault()
-                  setCommandMenuOpen(true)
-                }
-              }}
-              onClick={() => {
-                // Also open on click for better discoverability
-                setCommandMenuOpen(true)
-              }}
-            />
-          </div>
+          <Button
+            variant="outline"
+            className="w-full max-w-sm md:max-w-md justify-start text-muted-foreground hover:text-foreground"
+            onClick={() => setCommandMenuOpen(true)}
+          >
+            <Search className="h-4 w-4" />
+            <span className="ml-2">Search…</span>
+            <kbd className="ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
         </div>
 
         <div className="flex items-center gap-1 md:gap-2">

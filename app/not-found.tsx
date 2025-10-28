@@ -15,11 +15,6 @@ export default function NotFound() {
 
       <main className="relative">
         <section className="relative grid min-h-[90vh] place-items-center px-6 py-20 lg:px-8">
-          <div
-            className="absolute inset-0 -z-10 bg-gradient-to-b from-background/90 via-background/80 to-background/95"
-            aria-hidden="true"
-          />
-
           <div className={cn("relative z-10 mx-auto max-w-3xl text-center")}> 
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
               <span>404</span>
