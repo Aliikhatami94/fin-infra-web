@@ -13,7 +13,9 @@ import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
-import { isMarketingMode } from "@/lib/marketingMode"
+import { isMarketingMode, parseMarketingOptions } from "@/lib/marketingMode"
+import { getMarketingChatPreset } from "@/lib/marketingPresets"
+import type { AIChatMessage } from "@/components/ai-chat-sidebar"
 
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar").then((m) => m.AIChatSidebar), {
   ssr: false,
@@ -44,6 +46,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [marketingInitialChat, setMarketingInitialChat] = useState<AIChatMessage[] | undefined>(undefined)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -95,6 +98,16 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       router.replace("/welcome")
     }
   }, [hydrated, pathname, router, state.linkedInstitutions, inMarketingMode])
+
+  // Marketing helpers: optionally auto-open chat and preload a transcript
+  useEffect(() => {
+    const { enabled, chatOpen, scenario } = parseMarketingOptions(searchParams)
+    if (!enabled) return
+    if (chatOpen) {
+      setIsChatOpen(true)
+      setMarketingInitialChat(getMarketingChatPreset(scenario))
+    }
+  }, [searchParams])
   
   return (
     <ConnectivityProvider>
@@ -141,7 +154,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             >
               <Bot className="h-6 w-6" />
             </Button>
-            <AIChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+            <AIChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} initialMessages={marketingInitialChat}
+            />
           </div>
         </div>
 

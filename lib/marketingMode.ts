@@ -4,3 +4,25 @@ export function isMarketingMode(searchParams?: URLSearchParams): boolean {
   }
   return searchParams?.get("marketing") === "1"
 }
+
+export type MarketingOptions = {
+  enabled: boolean
+  chatOpen: boolean
+  scenario?: string | null
+}
+
+/**
+ * Parse marketing-related flags from the current URL or provided search params.
+ * Supported params:
+ * - marketing=1 → enables marketing mode
+ * - chat=1|true|open → opens the AI chat sidebar automatically
+ * - scenario|chatScenario=<name> → loads a predefined chat transcript
+ */
+export function parseMarketingOptions(searchParams?: URLSearchParams): MarketingOptions {
+  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : searchParams
+  const enabled = (params?.get("marketing") ?? "") === "1"
+  const chatRaw = (params?.get("chat") ?? "").toLowerCase()
+  const chatOpen = chatRaw === "1" || chatRaw === "true" || chatRaw === "open"
+  const scenario = params?.get("scenario") ?? params?.get("chatScenario") ?? null
+  return { enabled, chatOpen, scenario }
+}
