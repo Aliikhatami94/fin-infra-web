@@ -226,8 +226,8 @@ export function CashFlowKPIs() {
     <TooltipProvider>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/30 px-4 py-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground/80">Net flow time scale</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-label-xs uppercase tracking-wide text-muted-foreground/80">Net flow time scale</p>
+          <p className="text-body-sm text-muted-foreground">
             Viewing {timeScaleOptions.find((option) => option.id === activeTimeScale)?.label ?? ""} totals
           </p>
         </div>
@@ -254,7 +254,7 @@ export function CashFlowKPIs() {
                   optionRefs.current[option.id] = node
                 }}
                 className={cn(
-                  "h-8 rounded-full border-border/50 px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  "h-8 rounded-full border-border/50 px-3 text-label-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "bg-card/60 text-muted-foreground hover:text-foreground",
@@ -278,13 +278,17 @@ export function CashFlowKPIs() {
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
-                  <p className="text-xs text-muted-foreground">Net Cash Flow</p>
+                  <p className="text-label-xs text-muted-foreground">Net Cash Flow</p>
                   <p
-                    className="text-2xl font-bold tabular-nums text-foreground"
+                    className="text-kpi font-semibold font-tabular text-foreground"
                     aria-label={`Net cash flow ${formattedNetCashFlow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
-                    <MaskableValue value={formattedNetCashFlow} srLabel="Net cash flow value" />
+                    <MaskableValue
+                      value={formattedNetCashFlow}
+                      srLabel="Net cash flow value"
+                      className="font-tabular"
+                    />
                   </p>
                 </div>
                 <KPIIcon icon={TrendingUp} tone="info" />
@@ -294,24 +298,30 @@ export function CashFlowKPIs() {
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-xs"
+                      className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
                       aria-label={`${snapshot.changePercent >= 0 ? '+' : ''}${snapshot.changePercent}% ${snapshot.changeComparison}`}
                     >
-                      {snapshot.changePercent >= 0 ? (
-                        <>
-                          <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
-                          <span className="text-[var(--color-positive)]">+{snapshot.changePercent}%</span>
-                        </>
-                      ) : (
-                        <>
-                          <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
-                          <span className="text-[var(--color-negative)]">{snapshot.changePercent}%</span>
-                        </>
-                      )}
+                      {(() => {
+                        const deltaIsPositive = snapshot.changePercent >= 0
+                        const DeltaIcon = deltaIsPositive ? TrendingUp : TrendingDown
+                        const deltaColor = deltaIsPositive
+                          ? "text-[var(--color-positive)]"
+                          : "text-[var(--color-negative)]"
+                        const deltaPrefix = deltaIsPositive ? "+" : ""
+                        return (
+                          <>
+                            <DeltaIcon className={cn("h-3 w-3", deltaColor)} />
+                            <span className={cn("text-delta font-medium font-tabular", deltaColor)}>
+                              {deltaPrefix}
+                              {snapshot.changePercent}%
+                            </span>
+                          </>
+                        )
+                      })()}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-xs">
+                    <p className="text-label-xs font-normal">
                       {snapshot.changeComparison}
                     </p>
                   </TooltipContent>
@@ -336,19 +346,23 @@ export function CashFlowKPIs() {
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
-                  <p className="text-xs text-muted-foreground">Total Inflow</p>
+                  <p className="text-label-xs text-muted-foreground">Total Inflow</p>
                   <p
-                    className="text-2xl font-bold tabular-nums text-foreground"
+                    className="text-kpi font-semibold font-tabular text-foreground"
                     aria-label={`Total inflow ${formattedTotalInflow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
-                    <MaskableValue value={formattedTotalInflow} srLabel="Total inflow value" />
+                    <MaskableValue
+                      value={formattedTotalInflow}
+                      srLabel="Total inflow value"
+                      className="font-tabular"
+                    />
                   </p>
                 </div>
                 <KPIIcon icon={ArrowDownRight} tone="positive" />
               </div>
               <div className="flex items-center justify-between mt-auto">
-                <p className="text-xs text-muted-foreground">{snapshot.inflowNote}</p>
+                <p className="text-label-xs text-muted-foreground font-normal">{snapshot.inflowNote}</p>
                 <div className="w-20 h-10">
                   <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
                     <LineChart data={snapshot.inflowSparkline}>
@@ -375,19 +389,23 @@ export function CashFlowKPIs() {
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
-                  <p className="text-xs text-muted-foreground">Total Outflow</p>
+                  <p className="text-label-xs text-muted-foreground">Total Outflow</p>
                   <p
-                    className="text-2xl font-bold tabular-nums text-foreground"
+                    className="text-kpi font-semibold font-tabular text-foreground"
                     aria-label={`Total outflow ${formattedTotalOutflow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
-                    <MaskableValue value={formattedTotalOutflow} srLabel="Total outflow value" />
+                    <MaskableValue
+                      value={formattedTotalOutflow}
+                      srLabel="Total outflow value"
+                      className="font-tabular"
+                    />
                   </p>
                 </div>
                 <KPIIcon icon={ArrowUpRight} tone="warning" />
               </div>
               <div className="flex items-center justify-between mt-auto">
-                <p className="text-xs text-muted-foreground">{snapshot.outflowNote}</p>
+                <p className="text-label-xs text-muted-foreground font-normal">{snapshot.outflowNote}</p>
                 <div className="w-20 h-10">
                   <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
                     <LineChart data={snapshot.outflowSparkline}>

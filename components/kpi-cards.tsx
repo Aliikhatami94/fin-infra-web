@@ -76,9 +76,9 @@ export function KPICards() {
                     </div>
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1 flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground">{kpi.label}</p>
-                        <p className="text-2xl font-bold font-mono tabular-nums break-words">
-                          <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
+                        <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
+                        <p className="text-kpi font-semibold font-tabular break-words text-foreground">
+                          <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
                         </p>
                       </div>
                       <KPIIcon icon={kpi.icon} tone={trendStyles.tone} size="md" />
@@ -86,14 +86,18 @@ export function KPICards() {
                     <div className="flex items-end justify-between gap-4">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 text-xs font-medium cursor-help">
+                          <div className="delta-chip text-delta font-medium cursor-help">
                             {kpi.trend === "up" ? (
                               <TrendingUp className={cn("h-3.5 w-3.5", trendStyles.iconClass)} aria-hidden="true" />
                             ) : (
                               <TrendingDown className={cn("h-3.5 w-3.5", trendStyles.iconClass)} aria-hidden="true" />
                             )}
-                            <span className={cn(trendStyles.textClass)}>
-                              <MaskableValue value={kpi.change} srLabel={`${kpi.label} change`} />
+                            <span className={cn("text-delta font-medium font-tabular", trendStyles.textClass)}>
+                              <MaskableValue
+                                value={kpi.change}
+                                srLabel={`${kpi.label} change`}
+                                className="font-tabular"
+                              />
                             </span>
                             <span className="sr-only">
                               {trendStyles.tone === "positive"

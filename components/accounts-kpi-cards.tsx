@@ -95,11 +95,12 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                   </div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1 flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground">{kpi.title}</p>
-                      <p className="text-2xl font-bold tracking-tight tabular-nums font-mono break-words">
+                      <p className="text-label-xs text-muted-foreground">{kpi.title}</p>
+                      <p className="text-kpi font-semibold font-tabular break-words text-foreground">
                         <MaskableValue
                           value={`$${Math.abs(kpi.value).toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
                           srLabel={`${kpi.title} value`}
+                          className="font-tabular"
                         />
                       </p>
                     </div>
@@ -110,7 +111,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-xs"
+                          className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
                           aria-label={`${kpi.trend > 0 ? '+' : ''}${kpi.trend}% vs. last month`}
                         >
                           {kpi.trend > 0 ? (
@@ -119,7 +120,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                             <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
                           )}
                           <span
-                            className={`font-medium ${kpi.trend > 0 ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
+                            className={`text-delta font-medium font-tabular ${kpi.trend > 0 ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
                           >
                             {kpi.trend > 0 ? "+" : ""}
                             {kpi.trend}%
@@ -127,7 +128,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="text-xs">
+                        <p className="text-label-xs font-normal">
                           vs. last month:{" "}
                           <span className="font-mono">
                             ${Math.abs(kpi.baselineValue).toLocaleString("en-US", { minimumFractionDigits: 2 })}

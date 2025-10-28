@@ -125,11 +125,11 @@ export function CryptoKPIs() {
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                      <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button 
+                            <button
                               type="button"
                               className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
                               aria-label={`More information about ${kpi.label}`}
@@ -138,7 +138,7 @@ export function CryptoKPIs() {
                             </button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="text-xs">{kpi.tooltip}</p>
+                            <p className="text-label-xs font-normal">{kpi.tooltip}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -146,10 +146,10 @@ export function CryptoKPIs() {
                     <KPIIcon icon={Icon} tone="info" />
                   </div>
                   <p
-                    className="text-2xl font-bold tabular-nums text-foreground"
+                    className="text-kpi font-semibold font-tabular text-foreground"
                     aria-label={`${kpi.label} ${kpi.value}`}
                   >
-                    <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} />
+                    <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
                   </p>
                   <div className="flex items-center justify-between gap-3">
                     <TooltipProvider>
@@ -157,7 +157,7 @@ export function CryptoKPIs() {
                         <TooltipTrigger asChild>
                           <button
                             type="button"
-                            className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                            className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
                             aria-label={`${kpi.change} vs. yesterday`}
                           >
                             {kpi.positive ? (
@@ -166,16 +166,16 @@ export function CryptoKPIs() {
                               <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
                             )}
                             <span
-                              className={`text-xs font-medium tabular-nums ${
+                              className={`text-delta font-medium font-tabular ${
                                 kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
                               }`}
                             >
-                              <MaskableValue value={kpi.change} />
+                              <MaskableValue value={kpi.change} className="font-tabular" />
                             </span>
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="text-xs">
+                          <p className="text-label-xs font-normal">
                             vs. yesterday: <span className="font-mono">{kpi.baselineValue}</span>
                           </p>
                         </TooltipContent>

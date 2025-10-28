@@ -141,8 +141,8 @@ export function BudgetSummary() {
 
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1 flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground">{item.label}</p>
-                      <p className="text-2xl font-bold font-mono tabular-nums break-words">
+                      <p className="text-label-xs text-muted-foreground">{item.label}</p>
+                      <p className="text-kpi font-semibold font-tabular break-words text-foreground">
                         {item.value}
                       </p>
                     </div>
@@ -150,17 +150,17 @@ export function BudgetSummary() {
                   </div>
 
                   <div className="mt-auto flex items-center justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <div className="flex flex-wrap items-center gap-2">
                       {item.subtext && (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:bg-muted/40 cursor-help">
+                            <span className="delta-chip text-delta font-medium text-muted-foreground inline-flex items-center rounded-md px-1.5 py-1 transition-colors hover:bg-muted/40 cursor-help">
                               {item.subtext}
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="text-xs">Last Month: $6,150</p>
-                            <p className="text-xs">This Month: $5,840</p>
+                            <p className="text-label-xs font-normal">Last Month: $6,150</p>
+                            <p className="text-label-xs font-normal">This Month: $5,840</p>
                           </TooltipContent>
                         </Tooltip>
                       )}
