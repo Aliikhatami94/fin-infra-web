@@ -15,7 +15,6 @@ import {
   Coins,
   Fuel,
   Layers3,
-  Plus,
   ShieldCheck,
 } from "lucide-react"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
@@ -224,13 +223,7 @@ export default function CryptoPage() {
         </div>
       </motion.div>
 
-      <Button
-        size="lg"
-        className="fixed bottom-6 right-6 rounded-full shadow-lg md:hidden z-50 h-14 w-14 p-0"
-        aria-label="Buy crypto"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+      {/* Floating action button removed per design update */}
     </>
   )
 }

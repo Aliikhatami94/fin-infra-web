@@ -16,38 +16,38 @@ Scope: Applies across Overview, Accounts, Taxes, Investments, Budgets, and futur
 Goal: A single attribute toggles Comfortable vs Compact density globally; default Compact on ≤1280px and all mobile; user preference persisted.
 
 - Changes
-	- [ ] Add `DensityProvider` with `data-density` attribute on `<html>` and localStorage persistence.
-	- [ ] Wire CSS tokens for spacing, radius, icon, KPI text size in `app/globals.css`.
-	- [ ] Expose a quick toggle (temporary in command menu or header) for validation.
+	- [x] Add `DensityProvider` with `data-density` attribute on `<html>` and localStorage persistence.
+	- [x] Wire CSS tokens for spacing, radius, icon, KPI text size in `app/globals.css`.
+	- [x] Expose a quick toggle (temporary in command menu or header) for validation.
 - Files
-	- [ ] `app/providers/density-provider.tsx` (new)
-	- [ ] `app/layout.tsx` (wrap with `DensityProvider`)
-	- [ ] `app/globals.css` (add tokens):
+	- [x] `app/providers/density-provider.tsx` (new)
+	- [x] `app/layout.tsx` (wrap with `DensityProvider`)
+	- [x] `app/globals.css` (add tokens):
 				`--space-card`, `--space-gap`, `--kpi-size`, `--radius-lg`, icon size deltas
 - Acceptance / QA
-	- [ ] Density persists after reload and across routes.
-	- [ ] Compact reduces paddings/fonts ~12–16% without truncating key labels.
-	- [ ] No layout shift on toggle; dark mode unaffected.
-	- [ ] Mobile defaults to Compact; desktop >1280px defaults to Comfortable.
+	- [x] Density persists after reload and across routes.
+	- [x] Compact reduces paddings/fonts ~12–16% without truncating key labels.
+	- [x] No layout shift on toggle; dark mode unaffected.
+	- [x] Mobile defaults to Compact; desktop >1280px defaults to Comfortable.
 - Rollout
-	- [ ] Ship behind a temporary toggle in UI; remove toggle after PR 4.
-	- [ ] Low risk; easy rollback by removing provider wrapper.
+	- [x] Ship behind a temporary toggle in UI; remove toggle after PR 4.
+	- [x] Low risk; easy rollback by removing provider wrapper.
 
 ### PR 2 — DashboardShell skeleton (layout contract)
 Goal: Replace page wrappers with a single shell enforcing the narrative: KPIs → Bands → Insights → Accountability bar.
 
 - Changes
-	- [ ] Add `DashboardShell` that lays out: `kpis`, `bands[]` (6/6 desktop), `insights`, optional sticky footer.
-	- [ ] Apply `DashboardShell` to Overview only (first adoption).
+	- [x] Add `DashboardShell` that lays out: `kpis`, `bands[]` (6/6 desktop), `insights`, optional sticky footer.
+	- [x] Apply `DashboardShell` to Overview only (first adoption).
 - Files
-	- [ ] `components/dashboard/shell.tsx` (new)
-	- [ ] `app/(dashboard)/page.tsx` or current Overview route to adopt the shell
+	- [x] `components/dashboard/shell.tsx` (new)
+	- [x] `app/(dashboard)/page.tsx` or current Overview route to adopt the shell
 - Acceptance / QA
-	- [ ] Shell renders with container widths (1280 base, 1440 wide).
-	- [ ] 12-col grid with `gap-[var(--space-gap)]` matches tokens.
-	- [ ] No regressions in header/footer or providers.
+	- [x] Shell renders with container widths (1280 base, 1440 wide).
+	- [x] 12-col grid with `gap-[var(--space-gap)]` matches tokens.
+	- [x] No regressions in header/footer or providers.
 - Rollout
-	- [ ] Start with Overview only; other pages migrate in PR 11–12.
+	- [x] Start with Overview only; other pages migrate in PR 11–12.
 
 ### PR 3 — KPI Rail (Hero KPI Rail, desktop grid + mobile chips)
 Goal: Normalize top KPIs into a single component that scales across breakpoints.

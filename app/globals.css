@@ -168,7 +168,19 @@
 }
 
 [data-density="compact"] {
+  /* Density overrides: reduce KPI size, paddings, gaps, radius, and icon sizes */
   --type-kpi: var(--type-28);
+  /* Card spacing (comfortable → compact):
+     inline 20px → 16px, block ~16px → 14px, gap 16–24px → 16px */
+  --space-card-inline: 1rem; /* 16px */
+  --space-card-block: 0.875rem; /* 14px */
+  --space-card-gap: 1rem; /* 16px */
+  /* Core tokens (for components that reference these directly) */
+  --space-card: 1rem;    /* 20px → 16px */
+  --space-gap: 1rem;     /* 24px → 16px */
+  --radius-lg: 0.75rem;  /* 16px → 12px */
+  --icon-size: 1.25rem;  /* 24px → 20px */
+  --icon-size-sm: 1rem;  /* 20px → 16px */
 }
 
 [data-font-scale="comfort"] {

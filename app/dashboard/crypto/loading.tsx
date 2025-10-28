@@ -224,7 +224,7 @@ export default function CryptoLoading() {
           </CardContent>
         </Card>
 
-        <Skeleton className="fixed bottom-6 right-6 h-14 w-14 rounded-full md:hidden" />
+  {/* Floating action button skeleton removed */}
       </div>
     </>
   )

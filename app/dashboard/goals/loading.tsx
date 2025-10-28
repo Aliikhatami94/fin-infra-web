@@ -136,7 +136,7 @@ export default function GoalsLoading() {
         </div>
       </div>
 
-      <Skeleton className="fixed bottom-24 right-5 z-50 h-14 w-14 rounded-full md:hidden" />
+  {/* Floating add goal skeleton removed */}
     </>
   )
 }
