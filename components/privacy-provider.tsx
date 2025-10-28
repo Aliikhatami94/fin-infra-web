@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, Suspense } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 
@@ -15,7 +15,7 @@ type PrivacyContextValue = {
 
 const PrivacyContext = createContext<PrivacyContextValue | undefined>(undefined)
 
-export function PrivacyProvider({ children }: { children: React.ReactNode }) {
+function PrivacyProviderInner({ children }: { children: React.ReactNode }) {
   const [masked, setMaskedState] = useState<boolean>(true)
   const searchParams = useSearchParams()
   const secureStorage = useSecureStorage({ namespace: "privacy" })
@@ -61,6 +61,20 @@ export function PrivacyProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(() => ({ masked: effectiveMasked, toggleMasked, setMasked }), [effectiveMasked, toggleMasked, setMasked])
 
   return <PrivacyContext.Provider value={value}>{children}</PrivacyContext.Provider>
+}
+
+const defaultValue: PrivacyContextValue = {
+  masked: true,
+  toggleMasked: () => {},
+  setMasked: () => {},
+}
+
+export function PrivacyProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<PrivacyContext.Provider value={defaultValue}>{children}</PrivacyContext.Provider>}>
+      <PrivacyProviderInner>{children}</PrivacyProviderInner>
+    </Suspense>
+  )
 }
 
 export function usePrivacy() {

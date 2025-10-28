@@ -1,14 +1,14 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, Suspense } from "react"
 import { isMarketingMode } from "@/lib/marketingMode"
 
 /**
  * Client component that sets the marketing mode data attribute on the HTML element.
  * This activates the marketing mode CSS styles (hide scrollbars, cursors, etc.)
  */
-export function MarketingModeScript() {
+function MarketingModeScriptInner() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -19,4 +19,12 @@ export function MarketingModeScript() {
   }, [searchParams])
 
   return null
+}
+
+export function MarketingModeScript() {
+  return (
+    <Suspense fallback={null}>
+      <MarketingModeScriptInner />
+    </Suspense>
+  )
 }
