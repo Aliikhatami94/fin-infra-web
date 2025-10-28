@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { AlertCircle, ExternalLink, Mail } from "lucide-react"
-import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -14,7 +13,7 @@ interface DemoVideoPlayerProps {
 
 export function DemoVideoPlayer({ videoSrc, posterSrc, captionsSrc }: DemoVideoPlayerProps) {
   const [videoError, setVideoError] = useState(false)
-  const [emailModalOpen, setEmailModalOpen] = useState(false)
+  const [_emailModalOpen, _setEmailModalOpen] = useState(false)
 
   const handleVideoError = () => {
     setVideoError(true)

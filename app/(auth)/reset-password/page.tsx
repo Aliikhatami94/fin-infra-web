@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0
 
   const isPasswordValid = hasMinLength && hasUpperCase && hasLowerCase && hasNumber
-  const isFormValid = isPasswordValid && passwordsMatch
+  const _isFormValid = isPasswordValid && passwordsMatch
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

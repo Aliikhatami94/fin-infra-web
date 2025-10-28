@@ -16,9 +16,8 @@ import {
 import { Calendar, TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { currencySummaryFormatter, describeTimeSeries } from "@/lib/a11y"
-import { formatCurrency } from "@/lib/format"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import type { ChartConfig } from "@/components/ui/chart"
 
 const monthlyData: CashFlowDatum[] = [
@@ -74,9 +73,9 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
   const [visibleSeries, setVisibleSeries] = useState<string[]>(["inflow", "outflow", "net"])
 
   const historicalData = monthlyData.filter((d) => !d.isProjection)
-  const avgNet = historicalData.reduce((sum, d) => sum + d.net, 0) / historicalData.length
+  const _avgNet = historicalData.reduce((sum, d) => sum + d.net, 0) / historicalData.length
   const projectionData = monthlyData.find((d) => d.isProjection)
-  const chartSummary = useMemo(() => {
+  const _chartSummary = useMemo(() => {
     const summary = describeTimeSeries({
       data: monthlyData,
       metric: "Monthly net cash flow",
@@ -254,7 +253,7 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                   <ChartTooltipContent
                     className="w-[180px]"
                     labelFormatter={(value, payload) => {
-                      const dataPoint = (payload as any)?.[0]?.payload as CashFlowDatum | undefined
+                      const dataPoint = (payload as Record<string, unknown>[])?.[0]?.payload as CashFlowDatum | undefined
                       return (
                         <div className="flex items-center gap-2">
                           <span className="font-semibold">{String(value)}</span>

@@ -67,7 +67,7 @@ export function AutomationLearnMoreModal() {
         <DialogHeader>
           <DialogTitle className="text-2xl">Automate Tedious Workflows</DialogTitle>
           <DialogDescription>
-            Save hours every week with intelligent automation. Here's what you can automate with our platform.
+            Save hours every week with intelligent automation. Here&apos;s what you can automate with our platform.
           </DialogDescription>
         </DialogHeader>
 

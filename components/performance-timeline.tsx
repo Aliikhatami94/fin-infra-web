@@ -200,7 +200,7 @@ export function PerformanceTimeline() {
               <Tooltip
                 cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '3 3' }}
                 animationDuration={150}
-                content={({ active, payload, label }) => {
+                content={({ active, payload, label: _label }) => {
                   if (!active || !payload || !payload.length) {
                     return null
                   }

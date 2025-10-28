@@ -20,7 +20,7 @@ type DeviceFrameProps = {
  * Wraps a screenshot in a device frame for marketing pages.
  * Uses react-device-frameset for the device chrome.
  */
-export function DeviceFrame({ device, screenshot, colorScheme, className, priority }: DeviceFrameProps) {
+export function DeviceFrame({ device, screenshot, colorScheme: _colorScheme, className, priority }: DeviceFrameProps) {
   // Map our simplified device names to react-device-frameset device codes
   const deviceMap: Record<
     DeviceType,
