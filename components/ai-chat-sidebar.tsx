@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, Bot, User, Plus, Sliders, Clock, ChevronUp } from "lucide-react"
+import { X, Bot, User, Plus, Sliders, ChevronUp } from "lucide-react"
 
 export interface AIChatMessage {
   id: string
@@ -169,7 +169,7 @@ export function AIChatSidebar({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={promptPlaceholder}
-            className="min-h-[120px] resize-none pr-4 pb-14"
+            className="min-h-[100px] max-h-[200px] resize-none overflow-y-auto pr-4"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
@@ -177,38 +177,36 @@ export function AIChatSidebar({
               }
             }}
           />
-          
-          {/* Bottom controls */}
-          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="h-8 w-8 rounded-md" 
-                aria-label="Add attachment"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="h-8 w-8 rounded-md" 
-                aria-label="Settings"
-              >
-                <Sliders className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-x-4">
-              <Button 
-                type="button" 
-                className="h-8 w-8 rounded-md" 
-                onClick={handleSend}
-                aria-label="Send message"
-              >
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-            </div>
+        </div>
+        {/* Bottom controls - placed below the textarea to avoid overlap with text */}
+        <div className="mt-2 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 w-8 rounded-md"
+              aria-label="Add attachment"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 w-8 rounded-md"
+              aria-label="Settings"
+            >
+              <Sliders className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-x-4">
+            <Button
+              type="button"
+              className="h-8 w-8 rounded-md"
+              onClick={handleSend}
+              aria-label="Send message"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

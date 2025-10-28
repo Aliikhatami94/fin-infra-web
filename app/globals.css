@@ -349,7 +349,14 @@
     }
     * {
       scroll-behavior: auto !important;
+      /* Hide carets by default to avoid blinking in screenshots */
       caret-color: transparent !important;
+    }
+    /* But keep caret visible for actual text inputs even in marketing mode */
+    input,
+    textarea,
+    [contenteditable="true"] {
+      caret-color: var(--foreground) !important;
     }
   }
 }
