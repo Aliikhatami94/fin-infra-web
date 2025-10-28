@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -108,16 +109,22 @@ export function AIChatSidebar({
     return "I understand you're asking about trading automation. Could you provide more details about what you'd like to achieve? I can help with strategy creation, risk management, portfolio optimization, and market analysis."
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-card border-l shadow-lg z-[70] flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2">
-          <Icon className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold">{title}</h2>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close assistant">
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={{ type: "spring", damping: 30, stiffness: 300 }}
+          className="fixed inset-y-0 right-0 w-full sm:w-[480px] bg-card border-l shadow-lg z-[70] flex flex-col"
+        >
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-2">
+              <Icon className="h-5 w-5 text-primary" />
+              <h2 className="font-semibold">{title}</h2>
+            </div>
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close assistant">
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -162,7 +169,7 @@ export function AIChatSidebar({
             e.preventDefault()
             handleSend()
           }}
-          className="flex gap-2"
+          className="flex items-center gap-2"
         >
           <Input
             value={input}
@@ -170,11 +177,13 @@ export function AIChatSidebar({
             placeholder={promptPlaceholder}
             className="flex-1"
           />
-          <Button type="submit" size="icon" aria-label="Send message">
+          <Button type="submit" size="icon" className="shrink-0" aria-label="Send message">
             <Send className="h-4 w-4" />
           </Button>
         </form>
       </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
