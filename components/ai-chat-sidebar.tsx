@@ -356,8 +356,8 @@ export function AIChatSidebar({
       </div>
 
       <div ref={scrollWrapperRef} className="min-h-0 flex-1">
-      <ScrollArea className="size-full px-4">
-        <div className="space-y-4">
+      <ScrollArea className="size-full">
+        <div className="space-y-4 p-4">
           {beforeMessagesSlot}
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
