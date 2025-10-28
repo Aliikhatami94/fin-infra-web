@@ -19,7 +19,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import { useTheme } from "next-themes"
-import { Moon, Sun, Monitor, UserCircle, SettingsIcon, CreditCard, LogOut } from "lucide-react"
+import { Moon, Sun, Monitor, UserCircle, SettingsIcon, CreditCard, LogOut, SlidersHorizontal } from "lucide-react"
 import { useMaskToggleDetails } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
 import { useEffect, useState } from "react"
@@ -27,6 +27,7 @@ import { useDateRange } from "@/components/date-range-provider"
 // Brand title lives in the Sidebar header now; TopBar is embedded inside the content area.
 import { useWorkspace } from "@/components/workspace-provider"
 import { NotificationCenter } from "@/components/notification-center"
+import { useDensity } from "@/app/providers/density-provider"
 
 import { cn } from "@/lib/utils"
 
@@ -38,6 +39,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
   const [commandMenuOpen, setCommandMenuOpen] = useState(false)
   const { activeWorkspace, workspaces, selectWorkspace, unreadCount, activeMember } = useWorkspace()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const { density, setDensity } = useDensity()
 
   const isDateRangeValue = (value: string): value is typeof dateRange => {
     return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
@@ -46,6 +48,12 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
   const handleDateRangeChange = (value: string) => {
     if (isDateRangeValue(value)) {
       setDateRange(value)
+    }
+  }
+
+  const handleDensityChange = (value: string) => {
+    if (value === "comfortable" || value === "compact") {
+      setDensity(value)
     }
   }
 
@@ -210,6 +218,20 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
                   </button>
                 </div>
               </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Density</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuRadioGroup value={density} onValueChange={handleDensityChange}>
+                  <DropdownMenuRadioItem value="comfortable" className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                    Comfortable
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="compact" className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                    Compact
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Workspace</DropdownMenuLabel>
               <DropdownMenuGroup>

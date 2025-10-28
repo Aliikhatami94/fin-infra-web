@@ -11,6 +11,7 @@ import { BRAND } from "@/lib/brand"
 import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
 import GlobalFeedbackTrigger from "@/components/global-feedback-trigger"
+import { DensityProvider } from "@/app/providers/density-provider"
 
 const _inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -36,18 +37,20 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <PrivacyProvider>
-            <PersonaProvider>
-              <DateRangeProvider>
-                <MarketingModeScript />
-                {children}
-                {/* Global feedback button available on all pages */}
-                <GlobalFeedbackTrigger />
-              </DateRangeProvider>
-            </PersonaProvider>
-          </PrivacyProvider>
-        </ThemeProvider>
+        <DensityProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <PrivacyProvider>
+              <PersonaProvider>
+                <DateRangeProvider>
+                  <MarketingModeScript />
+                  {children}
+                  {/* Global feedback button available on all pages */}
+                  <GlobalFeedbackTrigger />
+                </DateRangeProvider>
+              </PersonaProvider>
+            </PrivacyProvider>
+          </ThemeProvider>
+        </DensityProvider>
         <Toaster richColors position="top-right" closeButton />
         {/* Analytics: Only track in production to avoid polluting data with dev traffic */}
         {process.env.NODE_ENV === 'production' && <Analytics />}
