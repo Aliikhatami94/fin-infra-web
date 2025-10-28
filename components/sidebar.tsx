@@ -82,7 +82,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen bg-background transition-all duration-300 ease-in-out border-r border-border",
+          "fixed left-0 top-0 z-50 h-screen bg-background transition-all duration-300 ease-in-out border-r border-border overflow-hidden",
           // Desktop: always visible with proper width
           "lg:translate-x-0",
           // Mobile: slide in/out, full width on very small screens (sm), partial on larger mobile
