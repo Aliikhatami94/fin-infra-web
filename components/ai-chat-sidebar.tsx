@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -55,6 +55,7 @@ export function AIChatSidebar({
 
   const [messages, setMessages] = useState<AIChatMessage[]>(initialMessages ?? defaultMessages)
   const [input, setInput] = useState("")
+  const endRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!initialMessages) {
@@ -63,6 +64,15 @@ export function AIChatSidebar({
 
     setMessages(initialMessages)
   }, [initialMessages])
+
+  // Auto-scroll to newest message when messages change or the panel opens
+  useEffect(() => {
+    // next frame to allow layout to settle
+    const id = requestAnimationFrame(() => {
+      endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [messages, isOpen])
 
   const handleSend = () => {
     if (!input.trim()) return
@@ -130,7 +140,7 @@ export function AIChatSidebar({
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="min-h-0 flex-1 p-4">
         <div className="space-y-4">
           {beforeMessagesSlot}
           {messages.map((message) => (
@@ -153,6 +163,7 @@ export function AIChatSidebar({
             </div>
           ))}
           {afterMessagesSlot}
+          <div ref={endRef} />
         </div>
       </ScrollArea>
 
