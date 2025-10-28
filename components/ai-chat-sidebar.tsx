@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, TrendingUp, Plus, Sliders, ChevronUp } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { X, TrendingUp, Plus, Sliders, ChevronUp, Clock } from "lucide-react"
 
 export interface AIChatMessage {
   id: string
@@ -26,6 +27,13 @@ interface AIChatSidebarProps {
   beforeMessagesSlot?: ReactNode
   afterMessagesSlot?: ReactNode
   onSend?: (message: AIChatMessage) => void
+}
+
+interface AIConversation {
+  id: string
+  title: string
+  messages: AIChatMessage[]
+  createdAt: Date
 }
 
 export function AIChatSidebar({
@@ -53,9 +61,15 @@ export function AIChatSidebar({
     [],
   )
 
-  const [messages, setMessages] = useState<AIChatMessage[]>(initialMessages ?? defaultMessages)
+  const initialMsgs = initialMessages ?? defaultMessages
+  const [messages, setMessages] = useState<AIChatMessage[]>(initialMsgs)
   const [input, setInput] = useState("")
   const endRef = useRef<HTMLDivElement | null>(null)
+  const hasSavedCurrentRef = useRef(false)
+
+  // Do not save conversations until the user actually sends a message
+  const [conversations, setConversations] = useState<AIConversation[]>([])
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!initialMessages) {
@@ -74,6 +88,44 @@ export function AIChatSidebar({
     return () => cancelAnimationFrame(id)
   }, [messages, isOpen])
 
+  // Keep current conversation in sync with messages and derive a simple title
+  useEffect(() => {
+    if (!currentConversationId) return
+    const hasUserMessage = messages.some((m) => m.role === "user")
+    // Only keep a saved conversation updated after the first user message exists
+    if (!hasUserMessage) return
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === currentConversationId
+          ? {
+              ...c,
+              messages,
+              title: messages.find((m) => m.role === "user")?.content.slice(0, 40) || c.title,
+            }
+          : c,
+      ),
+    )
+  }, [messages, currentConversationId])
+
+  const handleNewChat = () => {
+    const base: AIChatMessage[] = defaultMessages
+    // Reset to a fresh, unsaved conversation (not added to history until user sends a message)
+    setCurrentConversationId(null)
+    hasSavedCurrentRef.current = false
+    setMessages(base)
+    setInput("")
+  }
+
+  const openConversation = (id: string) => {
+    const conv = conversations.find((c) => c.id === id)
+    if (!conv) return
+    setCurrentConversationId(conv.id)
+    hasSavedCurrentRef.current = true
+    setMessages(conv.messages)
+    setInput("")
+    // scroll will happen via effect
+  }
+
   const handleSend = () => {
     if (!input.trim()) return
 
@@ -84,7 +136,23 @@ export function AIChatSidebar({
       timestamp: new Date(),
     }
 
-    setMessages((prev) => [...prev, userMessage])
+    setMessages((prev) => {
+      const next = [...prev, userMessage]
+      // If this is the first user message in an unsaved chat, create and save it now
+      if (!currentConversationId && !hasSavedCurrentRef.current) {
+        const newId = `c-${Date.now()}`
+        const newConv: AIConversation = {
+          id: newId,
+          title: userMessage.content.slice(0, 40) || "New chat",
+          messages: next,
+          createdAt: new Date(),
+        }
+        setConversations((prevC) => [newConv, ...prevC])
+        setCurrentConversationId(newId)
+        hasSavedCurrentRef.current = true
+      }
+      return next
+    })
     onSend?.(userMessage)
     setInput("")
 
@@ -135,9 +203,47 @@ export function AIChatSidebar({
               </div>
               <h2 className="font-semibold">{title}</h2>
             </div>
-            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close assistant">
-          <X className="h-4 w-4" />
-        </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNewChat}
+                aria-label="Start new chat"
+                title="New chat"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+              {conversations.length === 0 ? (
+                <Button variant="ghost" size="icon" aria-label="Conversation history" title="No history" disabled>
+                  <Clock className="h-4 w-4" />
+                </Button>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="Conversation history" title="History">
+                      <Clock className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72">
+                    <DropdownMenuLabel>Previous conversations</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {conversations.map((c) => (
+                      <DropdownMenuItem key={c.id} onClick={() => openConversation(c.id)} className="py-2">
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium">{c.title || "New chat"}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {c.createdAt.toLocaleString([], { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close assistant">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
       </div>
 
       <ScrollArea className="min-h-0 flex-1 p-4">
