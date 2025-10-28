@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button"
 import { Bot } from "lucide-react"
 import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { isMarketingMode } from "@/lib/marketingMode"
 
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar").then((m) => m.AIChatSidebar), {
   ssr: false,
@@ -46,8 +47,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { state, hydrated } = useOnboardingState()
   const SIDEBAR_STORAGE_KEY = "ui::sidebar-collapsed"
+
+  // Check if in marketing mode
+  const inMarketingMode = isMarketingMode(searchParams)
 
   // Load persisted sidebar state
   useEffect(() => {
@@ -78,6 +83,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   // Route gate: if no connected institutions, send users to the welcome screen before dashboard
   useEffect(() => {
+    // Skip auth checks in marketing mode
+    if (inMarketingMode) return
+    
     if (!hydrated) return
     const hasConnected = state.linkedInstitutions.some((i) => i.status === "connected")
     // Allow onboarding and the welcome page itself; everything else under the dashboard is gated
@@ -86,7 +94,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     if (!hasConnected && !allowed) {
       router.replace("/welcome")
     }
-  }, [hydrated, pathname, router, state.linkedInstitutions])
+  }, [hydrated, pathname, router, state.linkedInstitutions, inMarketingMode])
   
   return (
     <ConnectivityProvider>

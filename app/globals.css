@@ -341,6 +341,17 @@
   .focus-ring-soft:focus-visible {
     box-shadow: var(--focus-ring-shadow), 0 0 0 1px color-mix(in oklab, var(--ring) 35%, transparent);
   }
+
+  /* Marketing Mode: cleaner screenshots */
+  html[data-marketing-mode="true"] {
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    * {
+      scroll-behavior: auto !important;
+      caret-color: transparent !important;
+    }
+  }
 }
 
 .table-surface {
