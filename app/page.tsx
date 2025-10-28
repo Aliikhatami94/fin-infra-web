@@ -16,13 +16,13 @@ import { cn } from "@/lib/utils"
 
 export default function LandingPage() {
   const [contentVisible, setContentVisible] = useState(() =>
-    typeof window !== "undefined" && (window as any).__introPlayed ? true : false,
+    typeof window !== "undefined" && (window as Window & { __introPlayed?: boolean }).__introPlayed ? true : false,
   )
   const [showIntro, setShowIntro] = useState(() =>
-    typeof window !== "undefined" && (window as any).__introPlayed ? false : true,
+    typeof window !== "undefined" && (window as Window & { __introPlayed?: boolean }).__introPlayed ? false : true,
   )
-  const cleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const introFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cleanupTimerRef = useRef<number | null>(null)
+  const introFallbackTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -30,7 +30,7 @@ export default function LandingPage() {
     }
 
     // Skip intro on client-side navigations within the same document
-    if ((window as any).__introPlayed) {
+    if ((window as Window & { __introPlayed?: boolean }).__introPlayed) {
       setContentVisible(true)
       setShowIntro(false)
       // Ensure we always start at the top
@@ -54,7 +54,7 @@ export default function LandingPage() {
     if (mediaQuery.matches) {
       setContentVisible(true)
       setShowIntro(false)
-      ;(window as any).__introPlayed = true
+      ;(window as Window & { __introPlayed?: boolean }).__introPlayed = true
       return
     }
 
@@ -62,7 +62,7 @@ export default function LandingPage() {
       introFallbackTimerRef.current = null
       // Reveal content and keep scroll at top
       setContentVisible(true)
-      ;(window as any).__introPlayed = true
+      ;(window as Window & { __introPlayed?: boolean }).__introPlayed = true
       try {
         document.documentElement.scrollTop = 0
         document.body.scrollTop = 0
@@ -147,7 +147,7 @@ export default function LandingPage() {
     } catch {}
 
     setContentVisible(true)
-    ;(window as any).__introPlayed = true
+    ;(window as Window & { __introPlayed?: boolean }).__introPlayed = true
 
     if (introFallbackTimerRef.current) {
       clearTimeout(introFallbackTimerRef.current)
@@ -204,7 +204,7 @@ export default function LandingPage() {
                 className="intro-icon relative flex h-40 w-40 items-center justify-center rounded-[2.75rem] bg-gradient-to-br from-primary via-primary/85 to-primary/65 text-primary-foreground shadow-[0_36px_120px_rgba(80,62,185,0.35)]"
                 onAnimationEnd={handleIntroAnimationEnd}
               >
-                <BarChart3 className="h-20 w-20" aria-hidden />
+                <TrendingUp className="h-20 w-20" strokeWidth={2.25} aria-hidden />
               </div>
             </div>
           </div>
