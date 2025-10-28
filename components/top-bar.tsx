@@ -75,15 +75,15 @@ export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => 
           {/* Brand title and Live badge are shown in the Sidebar header */}
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-2 md:px-4 lg:px-8">
+        <div className="flex flex-1 items-center justify-start">
           <Button
             variant="outline"
-            className="w-full max-w-sm md:max-w-md justify-start text-muted-foreground hover:text-foreground"
+            className="w-full max-w-sm md:max-w-md lg:max-w-lg justify-start text-muted-foreground hover:text-foreground"
             onClick={() => setCommandMenuOpen(true)}
           >
             <Search className="h-4 w-4" />
             <span className="ml-2">Search…</span>
-            <kbd className="ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+            <kbd className="ml-auto hidden sm:ingit dline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
               <span className="text-xs">⌘</span>K
             </kbd>
           </Button>
