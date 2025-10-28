@@ -235,6 +235,8 @@
     font-size: var(--font-size-base);
     line-height: var(--line-height-base);
     letter-spacing: var(--letter-spacing-tight);
+    /* Prevent layout shift when scrollbars appear/disappear during intro */
+    scrollbar-gutter: stable both-edges;
     background-image: radial-gradient(circle at top left, oklch(0.98 0.04 260 / 0.35), transparent 55%),
       radial-gradient(circle at bottom right, oklch(0.96 0.05 160 / 0.25), transparent 55%);
     background-attachment: fixed;
@@ -467,49 +469,60 @@
 }
 
 .intro-icon {
-  animation: introIconRecede 0.9s var(--ease-standard) forwards;
+  animation: introIconRecede 1.5s var(--ease-standard) forwards;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  /* Prevent subpixel jitter on some GPUs */
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  contain: layout paint;
 }
 
 .intro-icon-glow {
   background: radial-gradient(circle at center, color-mix(in oklab, var(--primary) 50%, transparent) 0%, transparent 65%);
   opacity: 0.35;
-  animation: introIconGlow 0.9s var(--ease-standard) forwards;
+  animation: introIconGlow 1s var(--ease-standard) forwards;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 
 @keyframes introIconRecede {
   0% {
-    transform: scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
-
-  35% {
-    transform: scale(1.03);
+  /* Hold perfectly still to avoid any drift */
+  45% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
   }
-
-  70% {
-    transform: scale(0.8);
+  80% {
+    transform: translate3d(0, 0, 0) scale(0.82);
     opacity: 0.85;
   }
-
   100% {
-    transform: scale(0.3);
+    transform: translate3d(0, 0, 0) scale(0.3);
     opacity: 0;
   }
 }
 
 @keyframes introIconGlow {
   0% {
-    transform: scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 0.35;
   }
-
-  60% {
-    transform: scale(0.85);
-    opacity: 0.25;
+  /* Hold steady to match icon */
+  45% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.35;
   }
-
+  80% {
+    transform: translate3d(0, 0, 0) scale(0.88);
+    opacity: 0.22;
+  }
   100% {
-    transform: scale(0.5);
+    transform: translate3d(0, 0, 0) scale(0.5);
     opacity: 0;
   }
 }

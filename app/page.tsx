@@ -201,10 +201,10 @@ export default function LandingPage() {
             <div className="relative flex items-center justify-center">
               <div className="intro-icon-glow absolute inset-0 rounded-[2.75rem]" aria-hidden />
               <div
-                className="intro-icon relative flex h-40 w-40 items-center justify-center rounded-[2.75rem] bg-gradient-to-br from-primary via-primary/85 to-primary/65 text-primary-foreground shadow-[0_36px_120px_rgba(80,62,185,0.35)]"
+                className="intro-icon relative flex h-48 w-48 items-center justify-center rounded-[2.75rem] bg-gradient-to-br from-primary via-primary/85 to-primary/65 text-primary-foreground shadow-[0_36px_120px_rgba(80,62,185,0.35)]"
                 onAnimationEnd={handleIntroAnimationEnd}
               >
-                <TrendingUp className="h-20 w-20" strokeWidth={2.25} aria-hidden />
+                <TrendingUp className="h-24 w-24" strokeWidth={2.25} aria-hidden />
               </div>
             </div>
           </div>
@@ -282,6 +282,12 @@ export default function LandingPage() {
                 </div>
                 <Link
                   href="#product-highlights"
+                  onClick={(e) => {
+                    // Smoothly scroll to highlights instead of a jump
+                    e.preventDefault()
+                    const el = document.getElementById("product-highlights")
+                    el?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }}
                   className={cn(
                     "mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 transition-all duration-500 ease-[var(--ease-standard)]",
                     contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
