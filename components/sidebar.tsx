@@ -71,9 +71,10 @@ export function Sidebar({
   return (
     <TooltipProvider delayDuration={200}>
       <>
+        {/* Mobile backdrop with blur and darken effect */}
         {mobileOpen && (
           <div
-            className="fixed inset-0 z-40 bg-background backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={onMobileClose}
             aria-hidden="true"
           />
@@ -81,11 +82,11 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen bg-background transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 z-50 h-screen bg-background transition-all duration-300 ease-in-out border-r border-border",
           // Desktop: always visible with proper width
           "lg:translate-x-0",
-          // Mobile: slide in/out, full width when open
-          mobileOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
+          // Mobile: slide in/out, full width on very small screens (sm), partial on larger mobile
+          mobileOpen ? "translate-x-0 w-full sm:w-80" : "-translate-x-full w-full sm:w-80",
           // Desktop collapsed state
           collapsed && "lg:w-16",
           !collapsed && "lg:w-64",
@@ -123,7 +124,9 @@ export function Sidebar({
                   active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )
 
-                if (collapsed) {
+                // On mobile (when mobileOpen is true), always show expanded view
+                // On desktop (lg), respect collapsed state
+                if (collapsed && !mobileOpen) {
                   return (
                     <Tooltip key={item.name}>
                       <TooltipTrigger asChild>
@@ -183,7 +186,8 @@ export function Sidebar({
 
           <div className="border-t">
             <div className="p-2">
-              {collapsed ? (
+              {/* On mobile, always show expanded button. On desktop, respect collapsed state */}
+              {collapsed && !mobileOpen ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button

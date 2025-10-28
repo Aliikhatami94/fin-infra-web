@@ -33,7 +33,7 @@ function CommandDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("p-0 overflow-hidden max-w-[580px] gap-0", className)} showCloseButton={false}>
+      <DialogContent className={cn("p-0 overflow-hidden max-w-[calc(100%-2rem)] sm:max-w-[580px] gap-0", className)} showCloseButton={false}>
         <Command className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground/70 [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:leading-none">
           {children}
         </Command>

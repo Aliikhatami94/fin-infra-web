@@ -1,13 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/sonner"
 
 export function GlobalFeedbackTrigger() {
@@ -16,36 +14,6 @@ export function GlobalFeedbackTrigger() {
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [chatSidebarOpen, setChatSidebarOpen] = useState(false)
-
-  // Detect when chat sidebar is open to hide feedback button and avoid overlap
-  useEffect(() => {
-    const checkSidebar = () => {
-      const sidebar = document.querySelector('[data-chat-sidebar]')
-      setChatSidebarOpen(!!sidebar)
-    }
-    
-    // Initial check
-    checkSidebar()
-    
-    // Use MutationObserver to detect DOM changes
-    const observer = new MutationObserver(() => {
-      // Small delay to sync with Framer Motion exit animation
-      requestAnimationFrame(checkSidebar)
-    })
-    observer.observe(document.body, { childList: true, subtree: true })
-    
-    // Also listen for animation/transition events
-    const handleTransition = () => requestAnimationFrame(checkSidebar)
-    document.addEventListener('transitionend', handleTransition)
-    document.addEventListener('animationend', handleTransition)
-    
-    return () => {
-      observer.disconnect()
-      document.removeEventListener('transitionend', handleTransition)
-      document.removeEventListener('animationend', handleTransition)
-    }
-  }, [])
 
   // Listen for custom event to open feedback dialog from anywhere (e.g., sidebar)
   useEffect(() => {
@@ -83,27 +51,8 @@ export function GlobalFeedbackTrigger() {
 
   return (
     <>
-      {!chatSidebarOpen && (
-        <div className="fixed bottom-6 right-6 z-[100] lg:hidden">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                size="icon"
-                variant="secondary"
-                className="h-12 w-12 rounded-full shadow-lg"
-                aria-label="Give feedback"
-                onClick={() => setOpen(true)}
-                disabled={open}
-                aria-expanded={open}
-              >
-                <HelpCircle className="h-6 w-6" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Feedback</TooltipContent>
-          </Tooltip>
-        </div>
-      )}
+      {/* Feedback trigger button is now in the sidebar, so this is hidden.
+          Keep the dialog component here for the custom event system to work. */}
 
       {/* Modal dialog to guarantee overlay backdrop and darkening */}
       <Dialog open={open} onOpenChange={setOpen}>
