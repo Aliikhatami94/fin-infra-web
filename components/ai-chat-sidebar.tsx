@@ -5,9 +5,9 @@ import type { LucideIcon } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, Send, Bot, User } from "lucide-react"
+import { X, Bot, User, Plus, Sliders, Clock, ChevronUp } from "lucide-react"
 
 export interface AIChatMessage {
   id: string
@@ -32,10 +32,10 @@ interface AIChatSidebarProps {
 export function AIChatSidebar({
   isOpen,
   onClose,
-  title = "AI Trading Assistant",
+  title = "AI Financial Assistant",
   icon: Icon = Bot,
   initialMessages,
-  promptPlaceholder = "Ask about trading automation...",
+  promptPlaceholder = "Ask me anything about your account...",
   responseGenerator,
   beforeMessagesSlot,
   afterMessagesSlot,
@@ -47,7 +47,7 @@ export function AIChatSidebar({
         id: "welcome",
         role: "assistant",
         content:
-          "Hello! I'm your AI trading assistant. I can help you automate your trading strategies, analyze market trends, and optimize your portfolio. How can I assist you today?",
+          "Hello! I'm your AI Financial Assistant. I can help learn about your finances, optimize your portfolio, and provide insights based on your account data. How can I assist you today?",
         timestamp: new Date(),
       },
     ],
@@ -164,23 +164,53 @@ export function AIChatSidebar({
       </ScrollArea>
 
       <div className="p-4 border-t">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            handleSend()
-          }}
-          className="flex items-center gap-2"
-        >
-          <Input
+        <div className="relative">
+          <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={promptPlaceholder}
-            className="flex-1"
+            className="min-h-[120px] resize-none pr-4 pb-14"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSend()
+              }
+            }}
           />
-          <Button type="submit" size="icon" className="shrink-0" aria-label="Send message">
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
+          
+          {/* Bottom controls */}
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="h-8 w-8 rounded-md" 
+                aria-label="Add attachment"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="h-8 w-8 rounded-md" 
+                aria-label="Settings"
+              >
+                <Sliders className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-x-4">
+              <Button 
+                type="button" 
+                className="h-8 w-8 rounded-md" 
+                onClick={handleSend}
+                aria-label="Send message"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
         </motion.div>
       )}
