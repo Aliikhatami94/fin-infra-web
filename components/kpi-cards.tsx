@@ -256,7 +256,7 @@ export function KPICards() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-1">
       {/* Collapse toggle button */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-muted-foreground">Key Metrics</h2>
@@ -287,7 +287,7 @@ export function KPICards() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden"
+            className="overflow-hidden pt-4"
           >
             {/* Mobile: Horizontal carousel */}
             <div className="md:hidden space-y-3">
