@@ -31,19 +31,19 @@ Files likely touched
 - `app/globals.css` for any token-level tweaks (optional, minimal).
 
 Implementation checklist
-- [x] Apply smaller type scale to KPI numerals and lighten labels.
-- [x] Add `text-balance` on long KPI labels.
-- [x] Update responsive grid breakpoints: 4-col at xl, 3-col at lg; 2-col on mobile.
-- [x] Ensure no regressions in wrapping or overflow.
+- [ ] Apply smaller type scale to KPI numerals and lighten labels.
+- [ ] Add `text-balance` on long KPI labels.
+- [ ] Update responsive grid breakpoints: 4-col at xl, 3-col at lg; 2-col on mobile.
+- [ ] Ensure no regressions in wrapping or overflow.
 
 Acceptance criteria
-- [x] KPI rows feel less "puffy"; numbers ~20% smaller than current.
-- [x] Desktop shows 3–4 columns where space allows; mobile shows 2 columns.
-- [x] No clipped labels; long labels wrap elegantly.
+- [ ] KPI rows feel less "puffy"; numbers ~20% smaller than current.
+- [ ] Desktop shows 3–4 columns where space allows; mobile shows 2 columns.
+- [ ] No clipped labels; long labels wrap elegantly.
 
 QA notes
-- [x] Verify across common widths: 360, 390, 768, 1024, 1280, 1440, 1600.
-- [x] Dark mode parity.
+- [ ] Verify across common widths: 360, 390, 768, 1024, 1280, 1440, 1600.
+- [ ] Dark mode parity.
 
 ---
 
