@@ -169,7 +169,7 @@ export function AIInsights() {
             <div className="md:hidden space-y-3">
               <div 
                 ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"
+                className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {pinnedInsights.map((insight, index) => (
@@ -247,7 +247,7 @@ export function AIInsights() {
           <div className="md:hidden space-y-3">
             <div 
               ref={latestScrollContainerRef}
-              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {insightsToRender.map((insight, index) => (

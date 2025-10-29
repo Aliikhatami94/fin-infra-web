@@ -293,7 +293,7 @@ export function KPICards() {
             <div className="md:hidden space-y-3">
               <div
                 ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"
+                className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {kpis.map((kpi, index) => (
