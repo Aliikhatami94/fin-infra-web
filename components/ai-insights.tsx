@@ -32,7 +32,9 @@ export function AIInsights() {
   const baseInsights = useMemo(() => getInsights({ surface: "overview", limit: 8 }), [])
   const [layoutMode, setLayoutMode] = useState<"horizontal" | "vertical">("horizontal")
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [currentLatestSlide, setCurrentLatestSlide] = useState(0)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const latestScrollContainerRef = useRef<HTMLDivElement>(null)
 
   const normalizedInsights = useMemo(
     () =>
@@ -49,16 +51,34 @@ export function AIInsights() {
   const otherInsights = normalizedInsights.filter((insight) => !insight.pinned).slice(0, 4)
   const insightsToRender = pinnedInsights.length > 0 ? otherInsights : normalizedInsights.slice(0, 4)
 
-  // Handle scroll to update carousel indicator
+  // Handle scroll to update carousel indicator for pinned insights
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container || layoutMode === "vertical") return
 
     const handleScroll = () => {
       const scrollLeft = container.scrollLeft
-      const cardWidth = 280 + 16 // min-w-[280px] + gap-4
-      const slideIndex = Math.round(scrollLeft / cardWidth)
+      const cardWidth = container.firstElementChild?.clientWidth || 0
+      const gap = 16 // gap-4 = 16px
+      const slideIndex = Math.round(scrollLeft / (cardWidth + gap))
       setCurrentSlide(slideIndex)
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [layoutMode])
+
+  // Handle scroll to update carousel indicator for latest insights
+  useEffect(() => {
+    const container = latestScrollContainerRef.current
+    if (!container || layoutMode === "vertical") return
+
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft
+      const cardWidth = container.firstElementChild?.clientWidth || 0
+      const gap = 16 // gap-4 = 16px
+      const slideIndex = Math.round(scrollLeft / (cardWidth + gap))
+      setCurrentLatestSlide(slideIndex)
     }
 
     container.addEventListener('scroll', handleScroll, { passive: true })
@@ -69,9 +89,22 @@ export function AIInsights() {
     const container = scrollContainerRef.current
     if (!container) return
     
-    const cardWidth = 280 + 16
+    const cardWidth = container.firstElementChild?.clientWidth || 0
+    const gap = 16
     container.scrollTo({
-      left: index * cardWidth,
+      left: index * (cardWidth + gap),
+      behavior: 'smooth'
+    })
+  }
+
+  const scrollToLatestSlide = (index: number) => {
+    const container = latestScrollContainerRef.current
+    if (!container) return
+    
+    const cardWidth = container.firstElementChild?.clientWidth || 0
+    const gap = 16
+    container.scrollTo({
+      left: index * (cardWidth + gap),
       behavior: 'smooth'
     })
   }
@@ -132,26 +165,31 @@ export function AIInsights() {
               ))}
             </div>
           ) : (
-            /* Horizontal carousel */
-            <div className="space-y-3 md:space-y-0">
+            /* Horizontal carousel - Mobile only, desktop uses grid below */
+            <div className="md:hidden space-y-3">
               <div 
                 ref={scrollContainerRef}
-                className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 scrollbar-thin md:scrollbar-hide"
+                className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {pinnedInsights.map((insight, index) => (
-                  <InsightCard
+                  <div
                     key={insight.id}
-                    insight={insight}
-                    index={index}
-                    className="min-w-[280px] md:min-w-[340px] snap-start"
-                    onPinChange={({ insight: changedInsight, pinned }) => setPinned(changedInsight.id, pinned)}
-                  />
+                    className="min-w-[85vw] max-w-[85vw] snap-center"
+                  >
+                    <InsightCard
+                      insight={insight}
+                      index={index}
+                      className="w-full"
+                      onPinChange={({ insight: changedInsight, pinned }) => setPinned(changedInsight.id, pinned)}
+                    />
+                  </div>
                 ))}
               </div>
               
-              {/* Carousel indicators - mobile only, horizontal mode */}
+              {/* Carousel indicators */}
               {pinnedInsights.length > 1 && (
-                <div className="flex md:hidden justify-center gap-1.5">
+                <div className="flex justify-center gap-1.5">
                   {pinnedInsights.map((_, index) => (
                     <button
                       key={index}
@@ -169,6 +207,19 @@ export function AIInsights() {
               )}
             </div>
           )}
+          
+          {/* Desktop: Grid layout */}
+          <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+            {pinnedInsights.map((insight, index) => (
+              <InsightCard
+                key={insight.id}
+                insight={insight}
+                index={index}
+                className="w-full"
+                onPinChange={({ insight: changedInsight, pinned }) => setPinned(changedInsight.id, pinned)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
@@ -192,30 +243,38 @@ export function AIInsights() {
             ))}
           </div>
         ) : (
-          /* Horizontal carousel */
-          <div className="space-y-3 md:space-y-0">
-            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 scrollbar-thin md:scrollbar-hide">
+          /* Horizontal carousel - Mobile only, desktop uses grid below */
+          <div className="md:hidden space-y-3">
+            <div 
+              ref={latestScrollContainerRef}
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {insightsToRender.map((insight, index) => (
-                <InsightCard
+                <div
                   key={insight.id}
-                  insight={insight}
-                  index={index}
-                  className="min-w-[280px] md:min-w-[340px] snap-start"
-                  onPinChange={({ insight: changedInsight, pinned }) => setPinned(changedInsight.id, pinned)}
-                />
+                  className="min-w-[85vw] max-w-[85vw] snap-center"
+                >
+                  <InsightCard
+                    insight={insight}
+                    index={index}
+                    className="w-full"
+                    onPinChange={({ insight: changedInsight, pinned }) => setPinned(changedInsight.id, pinned)}
+                  />
+                </div>
               ))}
             </div>
             
-            {/* Carousel indicators - mobile only, horizontal mode */}
+            {/* Carousel indicators */}
             {insightsToRender.length > 1 && (
-              <div className="flex md:hidden justify-center gap-1.5">
+              <div className="flex justify-center gap-1.5">
                 {insightsToRender.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => scrollToSlide(index)}
+                    onClick={() => scrollToLatestSlide(index)}
                     className={cn(
                       "h-1.5 rounded-full transition-all duration-300",
-                      currentSlide === index
+                      currentLatestSlide === index
                         ? "w-6 bg-primary"
                         : "w-1.5 bg-muted-foreground/30"
                     )}
@@ -227,14 +286,14 @@ export function AIInsights() {
           </div>
         )}
         
-        {/* Desktop: Always show horizontal grid */}
-        <div className="hidden md:flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 scrollbar-thin">
+        {/* Desktop: Grid layout */}
+        <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
           {insightsToRender.map((insight, index) => (
             <InsightCard
               key={insight.id}
               insight={insight}
               index={index}
-              className="min-w-[340px] snap-start"
+              className="w-full"
               onPinChange={({ insight: changedInsight, pinned }) => setPinned(changedInsight.id, pinned)}
             />
           ))}
