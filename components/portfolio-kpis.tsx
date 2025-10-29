@@ -252,7 +252,7 @@ export function PortfolioKPIs() {
     <div className="space-y-1">
       {/* Collapse toggle button */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-muted-foreground">Portfolio Metrics</h2>
+        <h2 className="text-sm font-medium text-muted-foreground">Key Metrics</h2>
         <Button
           variant="ghost"
           size="sm"
