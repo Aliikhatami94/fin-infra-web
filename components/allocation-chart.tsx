@@ -5,6 +5,7 @@ import type { TooltipContentProps } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
+import { Landmark, Building2, Globe2 } from "lucide-react"
 
 type AllocationView = "assetClass" | "sector" | "region"
 
@@ -82,18 +83,31 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
   return (
     <Card className="card-standard">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Portfolio Allocation</CardTitle>
           <Tabs value={view} onValueChange={handleViewChange}>
-            <TabsList className="h-8">
-              <TabsTrigger value="assetClass" className="text-xs">
-                Asset Class
+            <TabsList className="h-10 md:h-11">
+              <TabsTrigger 
+                value="assetClass" 
+                className="text-xs md:text-sm min-h-[44px] px-3 md:px-4"
+              >
+                <Landmark className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Asset Class</span>
+                <span className="sm:hidden">Assets</span>
               </TabsTrigger>
-              <TabsTrigger value="sector" className="text-xs">
-                Sector
+              <TabsTrigger 
+                value="sector" 
+                className="text-xs md:text-sm min-h-[44px] px-3 md:px-4"
+              >
+                <Building2 className="h-4 w-4 mr-1.5" />
+                <span>Sector</span>
               </TabsTrigger>
-              <TabsTrigger value="region" className="text-xs">
-                Region
+              <TabsTrigger 
+                value="region" 
+                className="text-xs md:text-sm min-h-[44px] px-3 md:px-4"
+              >
+                <Globe2 className="h-4 w-4 mr-1.5" />
+                <span>Region</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -101,14 +115,18 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
         {activeFilter && (
           <p className="text-xs text-muted-foreground mt-2">
             Filtering by: <span className="font-medium text-foreground">{activeFilter}</span>
-            <button onClick={() => onFilterChange?.(null)} className="ml-2 text-primary hover:underline">
+            <button 
+              onClick={() => onFilterChange?.(null)} 
+              className="ml-2 text-primary hover:underline min-h-[44px] inline-flex items-center"
+            >
               Clear
             </button>
           </p>
         )}
       </CardHeader>
       <CardContent>
-        <div className="flex w-full flex-col items-center gap-6 sm:flex-row sm:items-center">
+        <div className="flex w-full flex-col items-center gap-6">
+          {/* Chart */}
           <div className="h-40 w-40 sm:h-48 sm:w-48 shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -136,26 +154,48 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex-1 min-w-0 space-y-2 w-full">
-            {data.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => handleSegmentClick(item)}
-                className="flex w-full items-center justify-between rounded p-1 text-sm transition-colors hover:bg-muted/50"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 rounded-sm transition-opacity"
-                    style={{
-                      backgroundColor: item.color,
-                      opacity: activeFilter && activeFilter !== item.name ? 0.3 : 1,
-                    }}
-                  />
-                  <span className={activeFilter === item.name ? "font-medium" : ""}>{item.name}</span>
-                </div>
-                <span className="font-mono font-medium">{item.value}%</span>
-              </button>
-            ))}
+
+          {/* Color-coded legend with better touch targets */}
+          <div className="w-full space-y-2">
+            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+              Allocation Breakdown
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {data.map((item) => (
+                <button
+                  key={item.name}
+                  onClick={() => handleSegmentClick(item)}
+                  className="flex items-center justify-between rounded-lg p-3 min-h-[56px] text-sm transition-all hover:bg-muted/50 hover:scale-[1.02] active:scale-[0.98] group"
+                  style={{
+                    borderLeft: `4px solid ${item.color}`,
+                    opacity: activeFilter && activeFilter !== item.name ? 0.5 : 1,
+                  }}
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <div
+                      className="h-10 w-10 rounded-full flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor: `${item.color}20`,
+                      }}
+                    >
+                      <div
+                        className="h-4 w-4 rounded-full"
+                        style={{
+                          backgroundColor: item.color,
+                        }}
+                      />
+                    </div>
+                    <span className={`text-left ${activeFilter === item.name ? "font-semibold" : "font-medium"}`}>
+                      {item.name}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="font-mono font-bold text-lg">{item.value}%</span>
+                    <span className="text-xs text-muted-foreground">of portfolio</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </CardContent>

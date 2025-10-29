@@ -51,7 +51,6 @@ export function TopBar({
   
   // Scroll behavior for mobile: hide on scroll down, show on scroll up
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
-  const [isScrolled, setIsScrolled] = useState(false)
   const lastScrollY = useRef(0)
   const scrollThreshold = 10 // Minimum scroll distance to trigger hide/show
 
@@ -97,9 +96,6 @@ export function TopBar({
       setIsHeaderVisible(newVisibility)
       onHeaderVisibilityChange?.(newVisibility)
     }
-
-    // Track if scrolled past threshold for styling
-    setIsScrolled(currentScrollY > 10)
     
     lastScrollY.current = currentScrollY
   }, [scrollThreshold, isHeaderVisible, onHeaderVisibilityChange])

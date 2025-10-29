@@ -11,8 +11,13 @@ const activities = getRecentActivities()
 
 export function RecentActivity() {
   const [selectedActivity, setSelectedActivity] = useState<(typeof activities)[0] | null>(null)
+  const [showAll, setShowAll] = useState(false)
+  
+  const displayLimit = 5 // Show first 5 activities by default
+  const displayActivities = showAll ? activities : activities.slice(0, displayLimit)
+  const hasMore = activities.length > displayLimit
 
-  const groupedActivities = activities.reduce(
+  const groupedActivities = displayActivities.reduce(
     (acc, activity) => {
       if (!acc[activity.dateGroup]) {
         acc[activity.dateGroup] = []
@@ -20,14 +25,22 @@ export function RecentActivity() {
       acc[activity.dateGroup].push(activity)
       return acc
     },
-    {} as Record<string, typeof activities>,
+    {} as Record<string, typeof displayActivities>,
   )
 
   return (
     <>
       <Card className="card-standard">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Recent Activity</CardTitle>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-xs h-8"
+            asChild
+          >
+            <a href="/dashboard/transactions">View all →</a>
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -118,6 +131,24 @@ export function RecentActivity() {
                 </div>
               </div>
             ))}
+            
+            {/* Show more/less button */}
+            {hasMore && (
+              <div className="pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setShowAll(!showAll)}
+                >
+                  {showAll ? (
+                    <>Show less</>
+                  ) : (
+                    <>Show {activities.length - displayLimit} more activities</>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
