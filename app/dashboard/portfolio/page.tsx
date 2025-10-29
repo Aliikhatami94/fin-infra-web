@@ -78,7 +78,7 @@ export default function PortfolioPage() {
       </div>
 
       {/* Body */}
-  <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <PortfolioKPIs />
 
         <ErrorBoundary feature="Portfolio insights">
@@ -89,8 +89,12 @@ export default function PortfolioPage() {
 
         <RebalancingPreview />
 
-        <PerformanceComparison />
-        <AllocationGrid onFilterChange={setAllocationFilter} />
+        {/* Allocation and Performance side by side on larger screens */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <AllocationGrid onFilterChange={setAllocationFilter} />
+          <PerformanceComparison />
+        </div>
+
         <HoldingsTable allocationFilter={allocationFilter} />
       </div>
 
