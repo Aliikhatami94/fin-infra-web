@@ -52,7 +52,7 @@ export function RecentActivity() {
                       
                       <div
                         onClick={() => setSelectedActivity(activity)}
-                        className="relative flex items-start gap-4 cursor-pointer hover:bg-muted/50 -mx-2 px-2 py-2 rounded-lg transition-colors group"
+                        className="relative flex items-start gap-4 cursor-pointer hover:bg-muted/50 px-2 py-2 rounded-lg transition-colors group sm:-mx-2"
                       >
                         {/* Timeline dot with icon */}
                         <div

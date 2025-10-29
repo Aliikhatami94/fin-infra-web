@@ -58,13 +58,13 @@ export function DashboardShell({
 
           {hasBands ? (
             <section
-              className="grid gap-6 lg:grid-cols-12"
+              className="grid min-w-0 gap-6 lg:grid-cols-12"
               style={{ gap: "var(--space-gap, 1.5rem)" }}
             >
               {resolvedBands.map(({ content, span = "half" }, index) => (
                 <div
                   key={index}
-                  className={cn("space-y-4", span === "full" ? "lg:col-span-12" : "lg:col-span-6")}
+                  className={cn("min-w-0 space-y-4", span === "full" ? "lg:col-span-12" : "lg:col-span-6")}
                 >
                   {content}
                 </div>

@@ -108,8 +108,8 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
         )}
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-6">
-          <div className="h-48 w-48">
+        <div className="flex w-full flex-col items-center gap-6 sm:flex-row sm:items-center">
+          <div className="h-40 w-40 sm:h-48 sm:w-48 shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -136,12 +136,12 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 min-w-0 space-y-2 w-full">
             {data.map((item) => (
               <button
                 key={item.name}
                 onClick={() => handleSegmentClick(item)}
-                className="flex items-center justify-between text-sm w-full hover:bg-muted/50 p-1 rounded transition-colors"
+                className="flex w-full items-center justify-between rounded p-1 text-sm transition-colors hover:bg-muted/50"
               >
                 <div className="flex items-center gap-2">
                   <div
