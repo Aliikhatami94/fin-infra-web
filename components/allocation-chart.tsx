@@ -108,19 +108,19 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
         <CardTitle className="text-base sm:text-lg">Portfolio Allocation</CardTitle>
         
         {/* Tabs below title, above chart */}
-        <Tabs value={view} onValueChange={handleViewChange}>
-          <TabsList className="grid grid-cols-3 sm:inline-flex h-auto">
-            <TabsTrigger value="assetClass" className="gap-1.5">
-              <Landmark className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline text-xs md:text-sm">Assets</span>
+        <Tabs value={view} onValueChange={handleViewChange} className="sm:flex sm:justify-center sm:w-2/3 sm:mx-auto">
+          <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+            <TabsTrigger value="assetClass">
+              <Landmark className="h-4 w-4" />
+              <span className="hidden sm:inline">Assets</span>
             </TabsTrigger>
-            <TabsTrigger value="sector" className="gap-1.5">
-              <Building2 className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline text-xs md:text-sm">Sector</span>
+            <TabsTrigger value="sector">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Sector</span>
             </TabsTrigger>
-            <TabsTrigger value="region" className="gap-1.5">
-              <Globe2 className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline text-xs md:text-sm">Region</span>
+            <TabsTrigger value="region">
+              <Globe2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Region</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
