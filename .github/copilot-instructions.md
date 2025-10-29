@@ -47,17 +47,25 @@
 - Types (`types/`): ambient type declarations as needed.
 
 ## UI system and conventions
-- Tailwind v4 usage
-	- Use design tokens from `:root` in `app/globals.css`. Prefer utility classes and pre-defined helpers like `.card-standard`, `.text-heading`, etc.
-	- Dark mode uses the `dark` class on `<html>` via the `ThemeProvider`.
-- shadcn/ui configuration
+- **shadcn/ui components MUST be used for all UI primitives**
+	- **ALWAYS check `components/ui/` directory before creating any custom UI component**
+	- Available shadcn components (non-exhaustive): Button, Card, CardHeader, CardContent, CardFooter, Dialog, DialogTrigger, DialogContent, Popover, Select, Tabs, TabsList, TabsTrigger, TabsContent, Tooltip, TooltipProvider, TooltipTrigger, TooltipContent, Collapsible, CollapsibleTrigger, CollapsibleContent, Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, Accordion, AccordionItem, AccordionTrigger, AccordionContent, Sheet, Drawer, and many more
+	- These components are production-ready, accessible (ARIA), keyboard-navigable, and built on battle-tested Radix UI primitives
 	- See `components.json` for style preset, aliases, and paths. Aliases include:
 		- `components` → `@/components`
 		- `ui` → `@/components/ui`
 		- `utils` → `@/lib/utils`
 		- `lib` → `@/lib`
 		- `hooks` → `@/hooks`
-- Radix UI primitives are used for accessibility and composability (dialogs, popovers, menus, etc.).
+- **Custom components must compose shadcn primitives**
+	- Only create custom components for domain-specific patterns not covered by shadcn
+	- Even in custom components, always build on top of shadcn/ui primitives
+	- Examples: For collapsible sections, use `Collapsible` from shadcn. For carousels, use `Carousel` from shadcn. For modals, use `Dialog` from shadcn.
+	- Never manually implement features like scroll tracking, collapse animations, or modal overlays - shadcn handles these robustly
+- Tailwind v4 usage
+	- Use design tokens from `:root` in `app/globals.css`. Prefer utility classes and pre-defined helpers like `.card-standard`, `.text-heading`, etc.
+	- Dark mode uses the `dark` class on `<html>` via the `ThemeProvider`.
+- Radix UI primitives power all shadcn/ui components and provide accessibility and composability.
 - Charts with Recharts; animations with framer-motion; icons via lucide-react.
 - Client vs Server Components
 	- Use Server Components by default in `app/` routes. Add `"use client"` only where interactivity, hooks, or browser APIs are needed.
@@ -80,12 +88,15 @@
 - Add a client component
 	- Create `components/my-widget.tsx` with `"use client"` if it uses state/effects or browser APIs.
 - Use a UI primitive
-	- Import from `@/components/ui/*` or compose your own using Radix primitives and Tailwind utilities.
+	- **ALWAYS import from `@/components/ui/*` first** - check for existing shadcn components before creating custom UI
+	- Available: Button, Card, Dialog, Collapsible, Carousel, Accordion, Tabs, Select, Popover, Tooltip, Sheet, Drawer, etc.
+	- Only compose custom patterns when shadcn doesn't provide the exact component needed
 - Typecheck and lint before commit
 	- `pnpm exec tsc -p tsconfig.json --noEmit`
 	- `pnpm lint`
 
 ## Contribution expectations
+- **Use shadcn/ui components first, always**: Before building any UI pattern, check if shadcn provides it. Available in `components/ui/`: Button, Card, Dialog, Collapsible, Carousel, Accordion, Tabs, Select, Popover, Tooltip, Sheet, Drawer, and more.
 - Follow existing file structure and naming conventions; colocate page-specific components near their route or place reusable ones under `components/`.
 - Keep UI consistent with the design tokens in `app/globals.css`; prefer shared utilities and variants.
 - Maintain TypeScript strictness; add or refine types in `types/` when introducing new patterns.
@@ -93,10 +104,11 @@
 - No tests exist yet; if you introduce business logic beyond presentation, add lightweight tests (e.g., Vitest + React Testing Library) and a `test` script in `package.json`.
 
 ## Agent workflow expectations
+- **Check for shadcn components FIRST**: Before implementing any UI pattern, search `components/ui/` to see if shadcn already provides it. Examples: Collapsible, Carousel, Accordion, Dialog, Popover, Tabs, Select, etc.
 - Plan first: before any edits, write a clear, step-by-step task plan and keep it updated as you progress.
 - Hard gates between stages: Do not Implement until Research and Design are completed and recorded. Do not mark Verify until checks are green. Do not update Docs until Verify has passed. Follow this order: Research → Design → Implement → Verify → Docs.
 - For UI-only changes, Verify by running the dev server locally and lint/typecheck; for logic changes, add minimal tests and run them.
-- When adding new components, prefer small, composable pieces and reuse `components/ui` primitives.
+- When adding new components, prefer small, composable pieces and **always compose from shadcn/ui primitives** rather than building from scratch.
 
 ## Quality gates
 - Lint/Typecheck: `pnpm lint` and `pnpm exec tsc -p tsconfig.json --noEmit` should pass locally.
