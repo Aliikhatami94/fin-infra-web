@@ -135,7 +135,7 @@ export function AccountsTableDesktop({
   }, [groupedAccounts, collapsedGroups, groupBy, ignoredAccounts, expandedAccount])
 
   const tableHeight = useMemo(() => {
-    const estimatedRowHeight = 72
+    const estimatedRowHeight = 64
     const estimatedDetailHeight = 220
     const detailCount = virtualRows.filter((row) => row.type === "detail").length
     const baseRows = virtualRows.length - detailCount
@@ -214,7 +214,7 @@ export function AccountsTableDesktop({
             item.type === "group"
               ? "bg-muted/40"
               : item.type === "account"
-                ? "hover:bg-muted/50 transition-colors cursor-pointer"
+                ? "hover:bg-muted/50 transition-colors cursor-pointer odd:bg-muted/25"
                 : "bg-muted/20",
             item.type === "account" && item.isIgnored && "opacity-50",
             className,
@@ -394,7 +394,7 @@ export function AccountsTableDesktop({
                 )}
                 <span
                   className={cn(
-                    "text-sm font-medium tabular-nums",
+                    "text-sm font-medium font-mono tabular-nums",
                     account.change > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400",
                   )}
                 >

@@ -85,7 +85,7 @@
   --space-card-block: clamp(1rem, 0.8rem + 0.6vw, 1.9rem);
   --space-card-gap: clamp(1rem, 0.85rem + 0.5vw, 1.75rem);
   --card-radius: calc(var(--radius) + 0.35rem);
-  --table-cell-padding-y: 0.75rem;
+  --table-cell-padding-y: 0.6rem;
   --table-cell-padding-x: clamp(0.75rem, 0.65rem + 0.4vw, 1.35rem);
   --table-surface-bg: color-mix(in oklab, var(--card) 92%, transparent);
   --table-header-bg: color-mix(in oklab, var(--background) 75%, var(--card) 25%);
@@ -474,6 +474,10 @@
 .table-surface tbody tr {
   border-bottom: 1px solid var(--table-divider);
   transition: background-color 180ms var(--ease-standard);
+}
+
+.table-surface tbody tr:nth-child(even) {
+  background: color-mix(in oklab, var(--card) 94%, transparent);
 }
 
 .table-surface tbody tr:last-child {
