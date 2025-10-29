@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, type MouseEvent, useEffect, useRef } from "react"
+import { useMemo, useState, type MouseEvent, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -19,6 +19,12 @@ import { Button } from "@/components/ui/button"
 import { navigateInApp } from "@/lib/linking"
 import { PlanAdjustModal } from "@/components/plan-adjust-modal"
 import { KPIIcon } from "@/components/ui/kpi-icon"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel"
 
 const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
   const max = Math.max(...data)
@@ -204,9 +210,9 @@ export function KPICards() {
   const kpis = useMemo(() => getDashboardKpis(hydrated ? state.persona : undefined), [hydrated, state.persona])
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set())
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const handlePlanModalChange = (open: boolean) => {
     setIsPlanModalOpen(open)
@@ -226,34 +232,21 @@ export function KPICards() {
     })
   }
 
-  // Handle scroll to update carousel indicator
+  // Handle carousel slide change
   useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    if (!carouselApi) return
 
-    const handleScroll = () => {
-      const scrollLeft = container.scrollLeft
-      const cardWidth = container.firstElementChild?.clientWidth || 0
-      const gap = 16 // gap-4 = 16px
-      const slideIndex = Math.round(scrollLeft / (cardWidth + gap))
-      setCurrentSlide(slideIndex)
+    const onSelect = () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
     }
 
-    container.addEventListener('scroll', handleScroll, { passive: true })
-    return () => container.removeEventListener('scroll', handleScroll)
-  }, [])
+    carouselApi.on("select", onSelect)
+    onSelect()
 
-  const scrollToSlide = (index: number) => {
-    const container = scrollContainerRef.current
-    if (!container) return
-    
-    const cardWidth = container.firstElementChild?.clientWidth || 0
-    const gap = 16
-    container.scrollTo({
-      left: index * (cardWidth + gap),
-      behavior: 'smooth'
-    })
-  }
+    return () => {
+      carouselApi.off("select", onSelect)
+    }
+  }, [carouselApi])
 
   return (
     <div className="space-y-1">
@@ -291,34 +284,36 @@ export function KPICards() {
           >
             {/* Mobile: Horizontal carousel */}
             <div className="md:hidden space-y-3">
-              <div
-                ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              <Carousel
+                setApi={setCarouselApi}
+                opts={{
+                  align: "center",
+                  loop: false,
+                }}
+                className="w-full"
               >
-                {kpis.map((kpi, index) => (
-                  <div
-                    key={kpi.label}
-                    className="min-w-[85vw] max-w-[85vw] snap-center"
-                  >
-                    <KPICardContent
-                      kpi={kpi}
-                      index={index}
-                      isHidden={hiddenCards.has(kpi.label)}
-                      onToggleVisibility={(e) => toggleCardVisibility(kpi.label, e)}
-                      onPlanModalOpen={() => setIsPlanModalOpen(true)}
-                      router={router}
-                    />
-                  </div>
-                ))}
-              </div>
+                <CarouselContent className="-ml-4">
+                  {kpis.map((kpi, index) => (
+                    <CarouselItem key={kpi.label} className="pl-4 basis-[85%]">
+                      <KPICardContent
+                        kpi={kpi}
+                        index={index}
+                        isHidden={hiddenCards.has(kpi.label)}
+                        onToggleVisibility={(e) => toggleCardVisibility(kpi.label, e)}
+                        onPlanModalOpen={() => setIsPlanModalOpen(true)}
+                        router={router}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
 
               {/* Carousel indicators */}
               <div className="flex justify-center gap-1.5">
                 {kpis.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => scrollToSlide(index)}
+                    onClick={() => carouselApi?.scrollTo(index)}
                     className={cn(
                       "h-1.5 rounded-full transition-all duration-300",
                       currentSlide === index

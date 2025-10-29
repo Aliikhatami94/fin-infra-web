@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { useEffect, useRef, useState, type MouseEvent } from "react"
+import { useState, useEffect, type MouseEvent } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Wallet, CreditCard, TrendingUp, TrendingDown, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react"
@@ -14,6 +14,12 @@ import { KPIIcon } from "@/components/ui/kpi-icon"
 import type { SemanticTone } from "@/lib/color-utils"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel"
 
 interface AccountsKPICardsProps {
   totalCash: number
@@ -36,10 +42,10 @@ const createSparklineSeries = (currentValue: number, baselineValue: number) => {
 }
 
 export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments }: AccountsKPICardsProps) {
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set())
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const kpis: Array<{
     title: string
@@ -87,34 +93,21 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
     },
   ]
 
-  // Handle scroll to update carousel indicator
+  // Handle carousel slide change
   useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    if (!carouselApi) return
 
-    const handleScroll = () => {
-      const scrollLeft = container.scrollLeft
-      const cardWidth = container.firstElementChild?.clientWidth || 0
-      const gap = 16 // gap-4 = 16px
-      const slideIndex = Math.round(scrollLeft / (cardWidth + gap))
-      setCurrentSlide(slideIndex)
+    const onSelect = () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
     }
 
-    container.addEventListener('scroll', handleScroll, { passive: true })
-    return () => container.removeEventListener('scroll', handleScroll)
-  }, [])
+    carouselApi.on("select", onSelect)
+    onSelect()
 
-  const scrollToSlide = (index: number) => {
-    const container = scrollContainerRef.current
-    if (!container) return
-    
-    const cardWidth = container.firstElementChild?.clientWidth || 0
-    const gap = 16
-    container.scrollTo({
-      left: index * (cardWidth + gap),
-      behavior: 'smooth'
-    })
-  }
+    return () => {
+      carouselApi.off("select", onSelect)
+    }
+  }, [carouselApi])
 
   const toggleCardVisibility = (title: string, e: MouseEvent) => {
     e.preventDefault()
@@ -255,29 +248,31 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
             <TooltipProvider>
               {/* Mobile: Horizontal carousel */}
               <div className="md:hidden space-y-3">
-                <div
-                  ref={scrollContainerRef}
-                  className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
-                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                <Carousel
+                  setApi={setCarouselApi}
+                  opts={{
+                    align: "center",
+                    loop: false,
+                  }}
+                  className="w-full"
                 >
-                  {kpis.map((kpi, index) => (
-                    <div
-                      key={kpi.title}
-                      className="min-w-[85vw] max-w-[85vw] snap-center"
-                    >
-                      <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
-                        {renderKPICard(kpi)}
-                      </motion.div>
-                    </div>
-                  ))}
-                </div>
+                  <CarouselContent className="-ml-4">
+                    {kpis.map((kpi, index) => (
+                      <CarouselItem key={kpi.title} className="pl-4 basis-[85%]">
+                        <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
+                          {renderKPICard(kpi)}
+                        </motion.div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
 
                 {/* Carousel indicators */}
                 <div className="flex justify-center gap-1.5">
                   {kpis.map((_, index) => (
                     <button
                       key={index}
-                      onClick={() => scrollToSlide(index)}
+                      onClick={() => carouselApi?.scrollTo(index)}
                       className={cn(
                         "h-1.5 rounded-full transition-all duration-300",
                         currentSlide === index
