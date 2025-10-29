@@ -31,19 +31,19 @@ Files likely touched
 - `app/globals.css` for any token-level tweaks (optional, minimal).
 
 Implementation checklist
-- Apply smaller type scale to KPI numerals and lighten labels.
-- Add `text-balance` on long KPI labels.
-- Update responsive grid breakpoints: 4-col at xl, 3-col at lg; 2-col on mobile.
-- Ensure no regressions in wrapping or overflow.
+- [x] Apply smaller type scale to KPI numerals and lighten labels.
+- [x] Add `text-balance` on long KPI labels.
+- [x] Update responsive grid breakpoints: 4-col at xl, 3-col at lg; 2-col on mobile.
+- [x] Ensure no regressions in wrapping or overflow.
 
 Acceptance criteria
-- KPI rows feel less “puffy”; numbers ~20% smaller than current.
-- Desktop shows 3–4 columns where space allows; mobile shows 2 columns.
-- No clipped labels; long labels wrap elegantly.
+- [x] KPI rows feel less "puffy"; numbers ~20% smaller than current.
+- [x] Desktop shows 3–4 columns where space allows; mobile shows 2 columns.
+- [x] No clipped labels; long labels wrap elegantly.
 
 QA notes
-- Verify across common widths: 360, 390, 768, 1024, 1280, 1440, 1600.
-- Dark mode parity.
+- [x] Verify across common widths: 360, 390, 768, 1024, 1280, 1440, 1600.
+- [x] Dark mode parity.
 
 ---
 
@@ -67,17 +67,17 @@ Files likely touched
 - Any section wrapper components where insights are grouped.
 
 Implementation checklist
-- Add divider/left-accent styling to insight wrappers.
-- Reduce vertical padding for insight sections.
-- Apply icon color variants by insight type.
+- [ ] Add divider/left-accent styling to insight wrappers.
+- [ ] Reduce vertical padding for insight sections.
+- [ ] Apply icon color variants by insight type.
 
 Acceptance criteria
-- Insights are visually distinct from KPI/metric cards at a glance.
-- Spacing feels tighter without crowding.
-- Iconography communicates insight type consistently.
+- [ ] Insights are visually distinct from KPI/metric cards at a glance.
+- [ ] Spacing feels tighter without crowding.
+- [ ] Iconography communicates insight type consistently.
 
 QA notes
-- Check color contrast AA/AAA for accent borders and icon tints in light/dark modes.
+- [ ] Check color contrast AA/AAA for accent borders and icon tints in light/dark modes.
 
 ---
 
@@ -102,19 +102,19 @@ Files likely touched
 - Any shared table primitives if present in `components/ui`.
 
 Implementation checklist
-- Apply right alignment (`text-right`) on numeric `<td>` elements.
-- Use `font-mono text-sm` for currency and value fields.
-- Add row hover state and optional zebra background.
-- Tighten row padding to reduce height ~10px while keeping readability.
+- [ ] Apply right alignment (`text-right`) on numeric `<td>` elements.
+- [ ] Use `font-mono text-sm` for currency and value fields.
+- [ ] Add row hover state and optional zebra background.
+- [ ] Tighten row padding to reduce height ~10px while keeping readability.
 
 Acceptance criteria
-- Numeric columns are consistently right-aligned with monospace.
-- Row density improved without truncation or overflow.
-- Hover/active states aid scanning.
+- [ ] Numeric columns are consistently right-aligned with monospace.
+- [ ] Row density improved without truncation or overflow.
+- [ ] Hover/active states aid scanning.
 
 QA notes
-- Verify truncation/ellipsis policies for narrow columns.
-- Keyboard focus order and visible focus ring on rows/interactive cells.
+- [ ] Verify truncation/ellipsis policies for narrow columns.
+- [ ] Keyboard focus order and visible focus ring on rows/interactive cells.
 
 ---
 
@@ -139,18 +139,18 @@ Files likely touched
 - Any chart header subcomponents.
 
 Implementation checklist
-- Introduce a shared chart header pattern: Title + Filter group.
-- Adjust donut/pie inner radius or padding for breathing room.
-- Apply subtle gridlines to line/area charts.
-- Tweak legend item sizing and spacing.
+- [ ] Introduce a shared chart header pattern: Title + Filter group.
+- [ ] Adjust donut/pie inner radius or padding for breathing room.
+- [ ] Apply subtle gridlines to line/area charts.
+- [ ] Tweak legend item sizing and spacing.
 
 Acceptance criteria
-- All charts present with a consistent header pattern.
-- Legends are legible but unobtrusive; no label overlap.
-- Pie/donut charts no longer feel cramped.
+- [ ] All charts present with a consistent header pattern.
+- [ ] Legends are legible but unobtrusive; no label overlap.
+- [ ] Pie/donut charts no longer feel cramped.
 
 QA notes
-- Verify responsiveness at common breakpoints; ensure filter controls remain accessible.
+- [ ] Verify responsiveness at common breakpoints; ensure filter controls remain accessible.
 
 ---
 
@@ -175,19 +175,19 @@ Files likely touched
 - `components/insights-feed.tsx`, `components/holdings-table.tsx` (overflow handling), and section wrappers.
 
 Implementation checklist
-- Implement sticky section headers on mobile with appropriate top offsets (respect safe areas).
-- Introduce collapsible containers for long sections.
-- Reduce container paddings on mobile widths.
-- Confirm semantic headings and landmarks for screen readers.
+- [ ] Implement sticky section headers on mobile with appropriate top offsets (respect safe areas).
+- [ ] Introduce collapsible containers for long sections.
+- [ ] Reduce container paddings on mobile widths.
+- [ ] Confirm semantic headings and landmarks for screen readers.
 
 Acceptance criteria
-- Reduced scroll length to reach key content; sticky headers provide clear section context.
-- Wide content is horizontally scrollable with visual cues.
-- Typography scale matches the specified mobile guidelines.
+- [ ] Reduced scroll length to reach key content; sticky headers provide clear section context.
+- [ ] Wide content is horizontally scrollable with visual cues.
+- [ ] Typography scale matches the specified mobile guidelines.
 
 QA notes
-- Test on iOS Safari and Chrome Android for sticky behavior and scroll performance.
-- Verify safe-area insets on notched devices.
+- [ ] Test on iOS Safari and Chrome Android for sticky behavior and scroll performance.
+- [ ] Verify safe-area insets on notched devices.
 
 ---
 
@@ -211,18 +211,18 @@ Files likely touched
 - `components/ai-insights.tsx` and other icon-heavy areas for tooltips.
 
 Implementation checklist
-- Add motion utilities or framer-motion where needed.
-- Use Tailwind transitions for color and layout changes.
-- Honor `prefers-reduced-motion` in CSS or motion library configuration.
+- [ ] Add motion utilities or framer-motion where needed.
+- [ ] Use Tailwind transitions for color and layout changes.
+- [ ] Honor `prefers-reduced-motion` in CSS or motion library configuration.
 
 Acceptance criteria
-- Animations feel subtle and purposeful; no layout shift.
-- Tooltips do not obscure primary data and use a small open delay.
-- Reduced-motion users see static transitions.
+- [ ] Animations feel subtle and purposeful; no layout shift.
+- [ ] Tooltips do not obscure primary data and use a small open delay.
+- [ ] Reduced-motion users see static transitions.
 
 QA notes
-- Performance check on low-end mobile; ensure 60fps or acceptable smoothness.
-- Verify no animation triggers unwanted reflows.
+- [ ] Performance check on low-end mobile; ensure 60fps or acceptable smoothness.
+- [ ] Verify no animation triggers unwanted reflows.
 
 ---
 
