@@ -1,18 +1,24 @@
 "use client"
 
-import { useCallback, useMemo, useRef, useState, type KeyboardEvent } from "react"
-import { motion } from "framer-motion"
+import { useCallback, useMemo, useRef, useState, useEffect, type KeyboardEvent, type MouseEvent } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react"
 import { Line, LineChart, ResponsiveContainer } from "recharts"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
-import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { formatCurrency } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { KPIIcon } from "@/components/ui/kpi-icon"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel"
 
 type TimeScale = "daily" | "weekly" | "monthly"
 
@@ -148,11 +154,45 @@ const timeScaleSnapshots: Record<TimeScale, {
 
 export function CashFlowKPIs() {
   const [activeTimeScale, setActiveTimeScale] = useState<TimeScale>("monthly")
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set())
   const optionRefs = useRef<Record<TimeScale, HTMLButtonElement | null>>({
     daily: null,
     weekly: null,
     monthly: null,
   })
+
+  const toggleCardVisibility = (label: string, e: MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setHiddenCards(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(label)) {
+        newSet.delete(label)
+      } else {
+        newSet.add(label)
+      }
+      return newSet
+    })
+  }
+
+  // Handle carousel slide change
+  useEffect(() => {
+    if (!carouselApi) return
+
+    const onSelect = () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
+    }
+
+    carouselApi.on("select", onSelect)
+    onSelect()
+
+    return () => {
+      carouselApi.off("select", onSelect)
+    }
+  }, [carouselApi])
 
   const handleTimeScaleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
@@ -222,202 +262,565 @@ export function CashFlowKPIs() {
     maximumFractionDigits: 0,
   })
 
+  const kpiLabels = ["Net Cash Flow", "Total Inflow", "Total Outflow"]
+
   return (
-    <TooltipProvider>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/30 px-4 py-3">
-        <div>
-          <p className="text-label-xs uppercase tracking-wide text-muted-foreground/80">Net flow time scale</p>
-          <p className="text-body-sm text-muted-foreground">
-            Viewing {timeScaleOptions.find((option) => option.id === activeTimeScale)?.label ?? ""} totals
-          </p>
-        </div>
-        <div className="sr-only" id={timeScaleHelpId}>
-          Use left and right arrow keys to move between time scale options.
-        </div>
-        <div
-          role="group"
-          aria-label="Select cash flow time scale"
-          aria-describedby={timeScaleHelpId}
-          className="flex items-center gap-1.5"
-          onKeyDown={handleTimeScaleKeyDown}
+    <div className="space-y-1">
+      {/* Collapse toggle button */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-medium text-muted-foreground">Key Metrics</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="h-8 text-xs"
         >
-          {timeScaleOptions.map((option) => {
-            const isActive = option.id === activeTimeScale
-            return (
-              <Button
-                key={option.id}
-                type="button"
-                variant="outline"
-                size="sm"
-                aria-pressed={isActive}
-                ref={(node) => {
-                  optionRefs.current[option.id] = node
-                }}
-                className={cn(
-                  "h-8 rounded-full border-border/50 px-3 text-label-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-card/60 text-muted-foreground hover:text-foreground",
-                )}
-                onClick={() => setActiveTimeScale(option.id)}
-              >
-                {option.label}
-                <span className="sr-only"> – {option.srHint}</span>
-              </Button>
-            )
-          })}
-        </div>
+          {isCollapsed ? (
+            <>
+              <ChevronDown className="mr-1 h-3.5 w-3.5" />
+              Show metrics
+            </>
+          ) : (
+            <>
+              <ChevronUp className="mr-1 h-3.5 w-3.5" />
+              Hide metrics
+            </>
+          )}
+        </Button>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
-        <motion.div {...createStaggeredCardVariants(0, 0)} className="h-full">
-          <Card className="card-standard card-lift h-full min-h-[280px]">
-            <CardContent className="flex flex-col h-full gap-3 p-6">
-              <div className="flex items-start justify-between gap-2">
-                <LastSyncBadge timestamp="2 min ago" source="Plaid" />
-              </div>
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 flex-1">
-                  <p className="text-label-xs text-muted-foreground">Net Cash Flow</p>
-                  <p
-                    className="text-kpi font-semibold font-tabular text-foreground"
-                    aria-label={`Net cash flow ${formattedNetCashFlow} ${activeTimeScale}`}
-                    aria-live="polite"
-                  >
-                    <MaskableValue
-                      value={formattedNetCashFlow}
-                      srLabel="Net cash flow value"
-                      className="font-tabular"
-                    />
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden pt-4 space-y-4"
+          >
+            <TooltipProvider>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/30 px-4 py-3">
+                <div>
+                  <p className="text-label-xs uppercase tracking-wide text-muted-foreground/80">Net flow time scale</p>
+                  <p className="text-body-sm text-muted-foreground">
+                    Viewing {timeScaleOptions.find((option) => option.id === activeTimeScale)?.label ?? ""} totals
                   </p>
                 </div>
-                <KPIIcon icon={TrendingUp} tone="info" />
+                <div className="sr-only" id={timeScaleHelpId}>
+                  Use left and right arrow keys to move between time scale options.
+                </div>
+                <div
+                  role="group"
+                  aria-label="Select cash flow time scale"
+                  aria-describedby={timeScaleHelpId}
+                  className="flex items-center gap-1.5"
+                  onKeyDown={handleTimeScaleKeyDown}
+                >
+                  {timeScaleOptions.map((option) => {
+                    const isActive = option.id === activeTimeScale
+                    return (
+                      <Button
+                        key={option.id}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        aria-pressed={isActive}
+                        ref={(node) => {
+                          optionRefs.current[option.id] = node
+                        }}
+                        className={cn(
+                          "h-8 rounded-full border-border/50 px-3 text-label-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-card/60 text-muted-foreground hover:text-foreground",
+                        )}
+                        onClick={() => setActiveTimeScale(option.id)}
+                      >
+                        {option.label}
+                        <span className="sr-only"> – {option.srHint}</span>
+                      </Button>
+                    )
+                  })}
+                </div>
               </div>
-              <div className="flex items-center justify-between mt-auto">
-                <Tooltip>
-                  <TooltipTrigger asChild>
+
+              {/* Mobile: Horizontal carousel */}
+              <div className="md:hidden space-y-3">
+                <Carousel
+                  setApi={setCarouselApi}
+                  opts={{
+                    align: "center",
+                    loop: false,
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent className="-ml-4">
+                    {(() => {
+                      const netHidden = hiddenCards.has(kpiLabels[0])
+                      const inflowHidden = hiddenCards.has(kpiLabels[1])
+                      const outflowHidden = hiddenCards.has(kpiLabels[2])
+                      
+                      return (
+                        <>
+                          {/* Net Cash Flow */}
+                          <CarouselItem className="pl-4 basis-[85%]">
+                            <motion.div {...createStaggeredCardVariants(0, 0)} className="h-full">
+                              <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
+                                <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 -mr-1"
+                                      onClick={(e) => toggleCardVisibility(kpiLabels[0], e)}
+                                      aria-label={netHidden ? "Show values" : "Hide values"}
+                                    >
+                                      {netHidden ? (
+                                        <Eye className="h-3.5 w-3.5" />
+                                      ) : (
+                                        <EyeOff className="h-3.5 w-3.5" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="space-y-1 flex-1">
+                                      <p className="text-label-xs text-muted-foreground">Net Cash Flow</p>
+                                      {netHidden ? (
+                                        <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+                                      ) : (
+                                        <p
+                                          className="text-kpi font-semibold font-tabular text-foreground"
+                                          aria-label={`Net cash flow ${formattedNetCashFlow} ${activeTimeScale}`}
+                                          aria-live="polite"
+                                        >
+                                          <MaskableValue
+                                            value={formattedNetCashFlow}
+                                            srLabel="Net cash flow value"
+                                            className="font-tabular"
+                                          />
+                                        </p>
+                                      )}
+                                    </div>
+                                    <KPIIcon icon={TrendingUp} tone="info" size="md" />
+                                  </div>
+                                  {!netHidden && (
+                                    <div className="flex items-center justify-between mt-auto">
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            type="button"
+                                            className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                                            aria-label={`${snapshot.changePercent >= 0 ? '+' : ''}${snapshot.changePercent}% ${snapshot.changeComparison}`}
+                                          >
+                                            {(() => {
+                                              const deltaIsPositive = snapshot.changePercent >= 0
+                                              const DeltaIcon = deltaIsPositive ? TrendingUp : TrendingDown
+                                              const deltaColor = deltaIsPositive
+                                                ? "text-[var(--color-positive)]"
+                                                : "text-[var(--color-negative)]"
+                                              const deltaPrefix = deltaIsPositive ? "+" : ""
+                                              return (
+                                                <>
+                                                  <DeltaIcon className={cn("h-3 w-3", deltaColor)} />
+                                                  <span className={cn("text-delta font-medium font-tabular", deltaColor)}>
+                                                    {deltaPrefix}
+                                                    {snapshot.changePercent}%
+                                                  </span>
+                                                </>
+                                              )
+                                            })()}
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p className="text-label-xs font-normal">
+                                            {snapshot.changeComparison}
+                                          </p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      <div className="w-20 h-10">
+                                        <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
+                                          <LineChart data={snapshot.netSparkline}>
+                                            <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 60%)" strokeWidth={2} dot={false} />
+                                          </LineChart>
+                                        </ResponsiveContainer>
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          </CarouselItem>
+                          {/* Total Inflow */}
+                          <CarouselItem className="pl-4 basis-[85%]">
+                            <motion.div {...createStaggeredCardVariants(1, 0)} className="h-full">
+                              <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
+                                <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 -mr-1"
+                                      onClick={(e) => toggleCardVisibility(kpiLabels[1], e)}
+                                      aria-label={inflowHidden ? "Show values" : "Hide values"}
+                                    >
+                                      {inflowHidden ? (
+                                        <Eye className="h-3.5 w-3.5" />
+                                      ) : (
+                                        <EyeOff className="h-3.5 w-3.5" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="space-y-1 flex-1">
+                                      <p className="text-label-xs text-muted-foreground">Total Inflow</p>
+                                      {inflowHidden ? (
+                                        <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+                                      ) : (
+                                        <p
+                                          className="text-kpi font-semibold font-tabular text-foreground"
+                                          aria-label={`Total inflow ${formattedTotalInflow} ${activeTimeScale}`}
+                                          aria-live="polite"
+                                        >
+                                          <MaskableValue
+                                            value={formattedTotalInflow}
+                                            srLabel="Total inflow value"
+                                            className="font-tabular"
+                                          />
+                                        </p>
+                                      )}
+                                    </div>
+                                    <KPIIcon icon={ArrowDownRight} tone="positive" size="md" />
+                                  </div>
+                                  {!inflowHidden && (
+                                    <div className="flex items-center justify-between mt-auto">
+                                      <p className="text-label-xs text-muted-foreground font-normal">{snapshot.inflowNote}</p>
+                                      <div className="w-20 h-10">
+                                        <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
+                                          <LineChart data={snapshot.inflowSparkline}>
+                                            <Line
+                                              type="monotone"
+                                              dataKey="value"
+                                              stroke="var(--color-positive)"
+                                              strokeWidth={2}
+                                              dot={false}
+                                            />
+                                          </LineChart>
+                                        </ResponsiveContainer>
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          </CarouselItem>
+                          {/* Total Outflow */}
+                          <CarouselItem className="pl-4 basis-[85%]">
+                            <motion.div {...createStaggeredCardVariants(2, 0)} className="h-full">
+                              <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
+                                <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 -mr-1"
+                                      onClick={(e) => toggleCardVisibility(kpiLabels[2], e)}
+                                      aria-label={outflowHidden ? "Show values" : "Hide values"}
+                                    >
+                                      {outflowHidden ? (
+                                        <Eye className="h-3.5 w-3.5" />
+                                      ) : (
+                                        <EyeOff className="h-3.5 w-3.5" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="space-y-1 flex-1">
+                                      <p className="text-label-xs text-muted-foreground">Total Outflow</p>
+                                      {outflowHidden ? (
+                                        <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+                                      ) : (
+                                        <p
+                                          className="text-kpi font-semibold font-tabular text-foreground"
+                                          aria-label={`Total outflow ${formattedTotalOutflow} ${activeTimeScale}`}
+                                          aria-live="polite"
+                                        >
+                                          <MaskableValue
+                                            value={formattedTotalOutflow}
+                                            srLabel="Total outflow value"
+                                            className="font-tabular"
+                                          />
+                                        </p>
+                                      )}
+                                    </div>
+                                    <KPIIcon icon={ArrowUpRight} tone="warning" size="md" />
+                                  </div>
+                                  {!outflowHidden && (
+                                    <div className="flex items-center justify-between mt-auto">
+                                      <p className="text-label-xs text-muted-foreground font-normal">{snapshot.outflowNote}</p>
+                                      <div className="w-20 h-10">
+                                        <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
+                                          <LineChart data={snapshot.outflowSparkline}>
+                                            <Line type="monotone" dataKey="value" stroke="var(--color-warning)" strokeWidth={2} dot={false} />
+                                          </LineChart>
+                                        </ResponsiveContainer>
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </motion.div>
+                          </CarouselItem>
+                        </>
+                      )
+                    })()}
+                  </CarouselContent>
+                </Carousel>
+
+                {/* Carousel indicators */}
+                <div className="flex justify-center gap-1.5">
+                  {[0, 1, 2].map((index) => (
                     <button
-                      type="button"
-                      className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
-                      aria-label={`${snapshot.changePercent >= 0 ? '+' : ''}${snapshot.changePercent}% ${snapshot.changeComparison}`}
-                    >
-                      {(() => {
-                        const deltaIsPositive = snapshot.changePercent >= 0
-                        const DeltaIcon = deltaIsPositive ? TrendingUp : TrendingDown
-                        const deltaColor = deltaIsPositive
-                          ? "text-[var(--color-positive)]"
-                          : "text-[var(--color-negative)]"
-                        const deltaPrefix = deltaIsPositive ? "+" : ""
-                        return (
-                          <>
-                            <DeltaIcon className={cn("h-3 w-3", deltaColor)} />
-                            <span className={cn("text-delta font-medium font-tabular", deltaColor)}>
-                              {deltaPrefix}
-                              {snapshot.changePercent}%
-                            </span>
-                          </>
-                        )
-                      })()}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-label-xs font-normal">
-                      {snapshot.changeComparison}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-                <div className="w-20 h-10">
-                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
-                    <LineChart data={snapshot.netSparkline}>
-                      <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 60%)" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div {...createStaggeredCardVariants(1, 0)} className="h-full">
-          <Card className="card-standard card-lift h-full min-h-[280px]">
-            <CardContent className="flex flex-col h-full gap-3 p-6">
-              <div className="flex items-start justify-between gap-2">
-                <LastSyncBadge timestamp="2 min ago" source="Plaid" />
-              </div>
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 flex-1">
-                  <p className="text-label-xs text-muted-foreground">Total Inflow</p>
-                  <p
-                    className="text-kpi font-semibold font-tabular text-foreground"
-                    aria-label={`Total inflow ${formattedTotalInflow} ${activeTimeScale}`}
-                    aria-live="polite"
-                  >
-                    <MaskableValue
-                      value={formattedTotalInflow}
-                      srLabel="Total inflow value"
-                      className="font-tabular"
+                      key={index}
+                      onClick={() => carouselApi?.scrollTo(index)}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all duration-300",
+                        currentSlide === index
+                          ? "w-6 bg-primary"
+                          : "w-1.5 bg-muted-foreground/30"
+                      )}
+                      aria-label={`Go to slide ${index + 1}`}
                     />
-                  </p>
-                </div>
-                <KPIIcon icon={ArrowDownRight} tone="positive" />
-              </div>
-              <div className="flex items-center justify-between mt-auto">
-                <p className="text-label-xs text-muted-foreground font-normal">{snapshot.inflowNote}</p>
-                <div className="w-20 h-10">
-                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
-                    <LineChart data={snapshot.inflowSparkline}>
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="var(--color-positive)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
 
-        <motion.div {...createStaggeredCardVariants(2, 0)} className="h-full">
-          <Card className="card-standard card-lift h-full min-h-[280px]">
-            <CardContent className="flex flex-col h-full gap-3 p-6">
-              <div className="flex items-start justify-between gap-2">
-                <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+              {/* Tablet/Desktop: Grid layout */}
+              <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+                {(() => {
+                  const netHidden = hiddenCards.has(kpiLabels[0])
+                  const inflowHidden = hiddenCards.has(kpiLabels[1])
+                  const outflowHidden = hiddenCards.has(kpiLabels[2])
+                  
+                  return (
+                    <>
+                      {/* Net Cash Flow */}
+                      <motion.div {...createStaggeredCardVariants(0, 0)} className="h-full">
+                        <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
+                          <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+                            <div className="flex items-start justify-between gap-2">
+                              <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 -mr-1"
+                                onClick={(e) => toggleCardVisibility(kpiLabels[0], e)}
+                                aria-label={netHidden ? "Show values" : "Hide values"}
+                              >
+                                {netHidden ? (
+                                  <Eye className="h-3.5 w-3.5" />
+                                ) : (
+                                  <EyeOff className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                            </div>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="space-y-1 flex-1">
+                                <p className="text-label-xs text-muted-foreground">Net Cash Flow</p>
+                                {netHidden ? (
+                                  <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+                                ) : (
+                                  <p
+                                    className="text-kpi font-semibold font-tabular text-foreground"
+                                    aria-label={`Net cash flow ${formattedNetCashFlow} ${activeTimeScale}`}
+                                    aria-live="polite"
+                                  >
+                                    <MaskableValue
+                                      value={formattedNetCashFlow}
+                                      srLabel="Net cash flow value"
+                                      className="font-tabular"
+                                    />
+                                  </p>
+                                )}
+                              </div>
+                              <KPIIcon icon={TrendingUp} tone="info" size="md" />
+                            </div>
+                            {!netHidden && (
+                              <div className="flex items-center justify-between mt-auto">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                                      aria-label={`${snapshot.changePercent >= 0 ? '+' : ''}${snapshot.changePercent}% ${snapshot.changeComparison}`}
+                                    >
+                                      {(() => {
+                                        const deltaIsPositive = snapshot.changePercent >= 0
+                                        const DeltaIcon = deltaIsPositive ? TrendingUp : TrendingDown
+                                        const deltaColor = deltaIsPositive
+                                          ? "text-[var(--color-positive)]"
+                                          : "text-[var(--color-negative)]"
+                                        const deltaPrefix = deltaIsPositive ? "+" : ""
+                                        return (
+                                          <>
+                                            <DeltaIcon className={cn("h-3 w-3", deltaColor)} />
+                                            <span className={cn("text-delta font-medium font-tabular", deltaColor)}>
+                                              {deltaPrefix}
+                                              {snapshot.changePercent}%
+                                            </span>
+                                          </>
+                                        )
+                                      })()}
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-label-xs font-normal">
+                                      {snapshot.changeComparison}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <div className="w-20 h-10">
+                                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
+                                    <LineChart data={snapshot.netSparkline}>
+                                      <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 60%)" strokeWidth={2} dot={false} />
+                                    </LineChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+
+                      {/* Total Inflow */}
+                      <motion.div {...createStaggeredCardVariants(1, 0)} className="h-full">
+                        <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
+                          <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+                            <div className="flex items-start justify-between gap-2">
+                              <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 -mr-1"
+                                onClick={(e) => toggleCardVisibility(kpiLabels[1], e)}
+                                aria-label={inflowHidden ? "Show values" : "Hide values"}
+                              >
+                                {inflowHidden ? (
+                                  <Eye className="h-3.5 w-3.5" />
+                                ) : (
+                                  <EyeOff className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                            </div>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="space-y-1 flex-1">
+                                <p className="text-label-xs text-muted-foreground">Total Inflow</p>
+                                {inflowHidden ? (
+                                  <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+                                ) : (
+                                  <p
+                                    className="text-kpi font-semibold font-tabular text-foreground"
+                                    aria-label={`Total inflow ${formattedTotalInflow} ${activeTimeScale}`}
+                                    aria-live="polite"
+                                  >
+                                    <MaskableValue
+                                      value={formattedTotalInflow}
+                                      srLabel="Total inflow value"
+                                      className="font-tabular"
+                                    />
+                                  </p>
+                                )}
+                              </div>
+                              <KPIIcon icon={ArrowDownRight} tone="positive" size="md" />
+                            </div>
+                            {!inflowHidden && (
+                              <div className="flex items-center justify-between mt-auto">
+                                <p className="text-label-xs text-muted-foreground font-normal">{snapshot.inflowNote}</p>
+                                <div className="w-20 h-10">
+                                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
+                                    <LineChart data={snapshot.inflowSparkline}>
+                                      <Line
+                                        type="monotone"
+                                        dataKey="value"
+                                        stroke="var(--color-positive)"
+                                        strokeWidth={2}
+                                        dot={false}
+                                      />
+                                    </LineChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+
+                      {/* Total Outflow */}
+                      <motion.div {...createStaggeredCardVariants(2, 0)} className="h-full">
+                        <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
+                          <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+                            <div className="flex items-start justify-between gap-2">
+                              <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 -mr-1"
+                                onClick={(e) => toggleCardVisibility(kpiLabels[2], e)}
+                                aria-label={outflowHidden ? "Show values" : "Hide values"}
+                              >
+                                {outflowHidden ? (
+                                  <Eye className="h-3.5 w-3.5" />
+                                ) : (
+                                  <EyeOff className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                            </div>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="space-y-1 flex-1">
+                                <p className="text-label-xs text-muted-foreground">Total Outflow</p>
+                                {outflowHidden ? (
+                                  <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+                                ) : (
+                                  <p
+                                    className="text-kpi font-semibold font-tabular text-foreground"
+                                    aria-label={`Total outflow ${formattedTotalOutflow} ${activeTimeScale}`}
+                                    aria-live="polite"
+                                  >
+                                    <MaskableValue
+                                      value={formattedTotalOutflow}
+                                      srLabel="Total outflow value"
+                                      className="font-tabular"
+                                    />
+                                  </p>
+                                )}
+                              </div>
+                              <KPIIcon icon={ArrowUpRight} tone="warning" size="md" />
+                            </div>
+                            {!outflowHidden && (
+                              <div className="flex items-center justify-between mt-auto">
+                                <p className="text-label-xs text-muted-foreground font-normal">{snapshot.outflowNote}</p>
+                                <div className="w-20 h-10">
+                                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
+                                    <LineChart data={snapshot.outflowSparkline}>
+                                      <Line type="monotone" dataKey="value" stroke="var(--color-warning)" strokeWidth={2} dot={false} />
+                                    </LineChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </>
+                  )
+                })()}
               </div>
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 flex-1">
-                  <p className="text-label-xs text-muted-foreground">Total Outflow</p>
-                  <p
-                    className="text-kpi font-semibold font-tabular text-foreground"
-                    aria-label={`Total outflow ${formattedTotalOutflow} ${activeTimeScale}`}
-                    aria-live="polite"
-                  >
-                    <MaskableValue
-                      value={formattedTotalOutflow}
-                      srLabel="Total outflow value"
-                      className="font-tabular"
-                    />
-                  </p>
-                </div>
-                <KPIIcon icon={ArrowUpRight} tone="warning" />
-              </div>
-              <div className="flex items-center justify-between mt-auto">
-                <p className="text-label-xs text-muted-foreground font-normal">{snapshot.outflowNote}</p>
-                <div className="w-20 h-10">
-                  <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
-                    <LineChart data={snapshot.outflowSparkline}>
-                      <Line type="monotone" dataKey="value" stroke="var(--color-warning)" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </TooltipProvider>
+            </TooltipProvider>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
