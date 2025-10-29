@@ -109,8 +109,8 @@ export default function CryptoPage() {
       {/* Body */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
         <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-          {/* Compact filter button with active filter indicators and gas tooltip */}
-          <div className="flex items-center gap-3">
+          {/* Mobile: Compact filter button with drawer */}
+          <div className="flex lg:hidden items-center gap-3">
             <Sheet open={filterDrawerOpen} onOpenChange={setFilterDrawerOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" className="gap-2">
@@ -264,6 +264,87 @@ export default function CryptoPage() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+          </div>
+
+          {/* Desktop: Compact filter layout */}
+          <div className="hidden lg:block space-y-3">
+            {/* Exchange filter chips and gas indicator */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2" role="group" aria-label="Exchange filter">
+                <span className="text-xs text-muted-foreground">Exchange:</span>
+                {(["All", "Coinbase", "Binance"] as const).map((exchange) => (
+                  <Button
+                    key={exchange}
+                    variant={selectedExchange === exchange ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleExchangeChange(exchange)}
+                    className={cn(
+                      "h-7 text-xs transition-colors",
+                      selectedExchange === exchange && "shadow-sm"
+                    )}
+                    aria-pressed={selectedExchange === exchange}
+                    aria-label={`Filter by ${exchange}`}
+                  >
+                    {exchange}
+                  </Button>
+                ))}
+              </div>
+              <Badge variant="outline" className="gap-1 px-2 py-0.5 h-7">
+                <Fuel className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                <span className="text-xs">Gas: 25 gwei</span>
+              </Badge>
+            </div>
+
+            {/* Group by and stablecoins filters */}
+            <div
+              className="flex flex-wrap items-center gap-2"
+              role="toolbar"
+              aria-label="Crypto grouping controls"
+            >
+              {groupByOptions.map((option) => {
+                const Icon = option.icon
+                const isActive = groupBy === option.value
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleGroupByChange(option.value)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-left transition-colors",
+                      "hover:border-primary/60 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                      isActive
+                        ? "border-primary/80 bg-primary/10 text-foreground shadow-sm"
+                        : "border-border/60 bg-card text-muted-foreground",
+                    )}
+                    aria-pressed={isActive}
+                    aria-label={`Group ${option.label}`}
+                  >
+                    <Icon className={cn("h-3.5 w-3.5", isActive ? "text-primary" : "text-muted-foreground")}
+                      aria-hidden="true"
+                    />
+                    <span className="text-xs font-medium">
+                      {option.label}
+                    </span>
+                  </button>
+                )
+              })}
+              <button
+                type="button"
+                className={cn(
+                  "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs transition-colors",
+                  "hover:border-primary/60 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                  showStablecoins
+                    ? "border-primary/80 bg-primary/10 text-foreground shadow-sm"
+                    : "border-border/60 bg-card text-muted-foreground",
+                )}
+                onClick={handleStablecoinToggle}
+                aria-pressed={showStablecoins}
+                aria-label={showStablecoins ? "Hide stablecoins" : "Show stablecoins"}
+              >
+                <BadgePercent className={cn("h-3.5 w-3.5", showStablecoins ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
+                <span className="font-medium">{showStablecoins ? "Stablecoins included" : "Stablecoins hidden"}</span>
+              </button>
+            </div>
           </div>
 
           <CryptoKPIs />
