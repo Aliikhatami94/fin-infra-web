@@ -1,10 +1,10 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { useState, useEffect, type MouseEvent } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
-import { Wallet, CreditCard, TrendingUp, TrendingDown, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react"
+import { Wallet, CreditCard, TrendingUp, TrendingDown, ChevronDown, ChevronUp } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
@@ -45,7 +45,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set())
+  const [hiddenCards] = useState<Set<string>>(new Set())
 
   const kpis: Array<{
     title: string
@@ -109,20 +109,6 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
     }
   }, [carouselApi])
 
-  const toggleCardVisibility = (title: string, e: MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setHiddenCards(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(title)) {
-        newSet.delete(title)
-      } else {
-        newSet.add(title)
-      }
-      return newSet
-    })
-  }
-
   const renderKPICard = (kpi: typeof kpis[0]) => {
     const isHidden = hiddenCards.has(kpi.title)
     const Icon = kpi.icon
@@ -134,20 +120,6 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
           <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
             <div className="flex items-start justify-between gap-2">
               <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
-              {/* Per-card visibility toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 -mr-1"
-                onClick={(e) => toggleCardVisibility(kpi.title, e)}
-                aria-label={isHidden ? "Show values" : "Hide values"}
-              >
-                {isHidden ? (
-                  <Eye className="h-3.5 w-3.5" />
-                ) : (
-                  <EyeOff className="h-3.5 w-3.5" />
-                )}
-              </Button>
             </div>
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1 flex-1 min-w-0">

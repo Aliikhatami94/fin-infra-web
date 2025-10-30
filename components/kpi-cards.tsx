@@ -4,7 +4,7 @@ import { useMemo, useState, type MouseEvent, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, ArrowUpRight, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react"
+import { TrendingUp, TrendingDown, ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -57,12 +57,11 @@ interface KPICardContentProps {
   kpi: ReturnType<typeof getDashboardKpis>[0]
   index: number
   isHidden: boolean
-  onToggleVisibility: (e: MouseEvent<HTMLButtonElement>) => void
   onPlanModalOpen: () => void
   router: ReturnType<typeof useRouter>
 }
 
-function KPICardContent({ kpi, index, isHidden, onToggleVisibility, onPlanModalOpen, router }: KPICardContentProps) {
+function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICardContentProps) {
   const trendValue = kpi.trend === "up" ? 1 : kpi.trend === "down" ? -1 : 0
   const trendStyles = getTrendSemantic(trendValue)
   const hasQuickActions = kpi.quickActions && kpi.quickActions.length > 0
@@ -75,20 +74,6 @@ function KPICardContent({ kpi, index, isHidden, onToggleVisibility, onPlanModalO
             <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
               <div className="flex items-start justify-between gap-2">
                 <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
-                {/* Per-card visibility toggle */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 -mr-1"
-                  onClick={onToggleVisibility}
-                  aria-label={isHidden ? "Show values" : "Hide values"}
-                >
-                  {isHidden ? (
-                    <Eye className="h-3.5 w-3.5" />
-                  ) : (
-                    <EyeOff className="h-3.5 w-3.5" />
-                  )}
-                </Button>
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1 min-w-0">
@@ -212,24 +197,10 @@ export function KPICards() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set())
+  const [hiddenCards] = useState<Set<string>>(new Set())
 
   const handlePlanModalChange = (open: boolean) => {
     setIsPlanModalOpen(open)
-  }
-
-  const toggleCardVisibility = (label: string, e: MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setHiddenCards(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(label)) {
-        newSet.delete(label)
-      } else {
-        newSet.add(label)
-      }
-      return newSet
-    })
   }
 
   // Handle carousel slide change
@@ -299,7 +270,6 @@ export function KPICards() {
                         kpi={kpi}
                         index={index}
                         isHidden={hiddenCards.has(kpi.label)}
-                        onToggleVisibility={(e) => toggleCardVisibility(kpi.label, e)}
                         onPlanModalOpen={() => setIsPlanModalOpen(true)}
                         router={router}
                       />
@@ -334,7 +304,6 @@ export function KPICards() {
                   kpi={kpi}
                   index={index}
                   isHidden={hiddenCards.has(kpi.label)}
-                  onToggleVisibility={(e) => toggleCardVisibility(kpi.label, e)}
                   onPlanModalOpen={() => setIsPlanModalOpen(true)}
                   router={router}
                 />

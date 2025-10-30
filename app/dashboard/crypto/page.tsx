@@ -108,7 +108,7 @@ export default function CryptoPage() {
 
       {/* Body */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
-        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-4">
           {/* Mobile: Compact filter button with drawer */}
           <div className="flex lg:hidden items-center gap-3">
             <Sheet open={filterDrawerOpen} onOpenChange={setFilterDrawerOpen}>
