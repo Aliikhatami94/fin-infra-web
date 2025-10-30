@@ -78,12 +78,11 @@ export default function BudgetPage() {
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
+                size="icon-sm"
                 aria-label="View previous month"
                 onClick={() => setDate((current) => startOfMonth(addMonths(current, -1)))}
-                className="h-9 w-9 p-0 md:h-9 md:w-9"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft />
               </Button>
               <div className="flex items-center gap-1.5">
                 <Label htmlFor="budget-month-select" className="sr-only">
@@ -95,7 +94,7 @@ export default function BudgetPage() {
                     setDate((current) => startOfMonth(setMonth(current, Number.parseInt(value, 10))))
                   }
                 >
-                  <SelectTrigger id="budget-month-select" size="sm" aria-label="Select month" className="h-9 min-w-[100px] md:min-w-[110px] font-medium text-sm">
+                  <SelectTrigger id="budget-month-select" size="sm" aria-label="Select month" className="min-w-[100px] md:min-w-[110px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent align="end">
@@ -115,7 +114,7 @@ export default function BudgetPage() {
                     setDate((current) => startOfMonth(setYear(current, Number.parseInt(value, 10))))
                   }
                 >
-                  <SelectTrigger id="budget-year-select" size="sm" className="h-9 w-[85px] md:w-[95px] font-medium text-sm" aria-label="Select year">
+                  <SelectTrigger id="budget-year-select" size="sm" className="w-[85px] md:w-[95px]" aria-label="Select year">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent align="end">
@@ -130,12 +129,11 @@ export default function BudgetPage() {
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
+                size="icon-sm"
                 aria-label="View next month"
                 onClick={() => setDate((current) => startOfMonth(addMonths(current, 1)))}
-                className="h-9 w-9 p-0 md:h-9 md:w-9"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight />
               </Button>
               <span className="sr-only" aria-live="polite" role="status">
                 {formattedDate} selected

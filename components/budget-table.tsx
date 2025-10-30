@@ -26,6 +26,8 @@ import {
   TrendingUp,
   TrendingDown,
   Lightbulb,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -131,6 +133,8 @@ export function BudgetTable() {
   const [warningThreshold, setWarningThreshold] = useState("90")
   const [showSuggested, _setShowSuggested] = useState(true)
   const [comparisonPeriod, setComparisonPeriod] = useState<"lastMonth" | "lastYear">("lastMonth")
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -248,17 +252,39 @@ export function BudgetTable() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle className="text-lg font-semibold">Budget by Category</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-lg font-semibold">Budget by Category</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="gap-1.5"
+              >
+                {isCollapsed ? (
+                  <>
+                    <ChevronDown className="h-4 w-4" />
+                    Expand All
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp className="h-4 w-4" />
+                    Collapse
+                  </>
+                )}
+              </Button>
+            </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-end">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search categories..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-9 w-[200px]"
-                />
-              </div>
+              {!isCollapsed && (
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search categories..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-9 w-[200px]"
+                  />
+                </div>
+              )}
               <div className="flex gap-0.5 rounded-lg border p-0.5 bg-muted/30">
                 <Button
                   variant={comparisonPeriod === "lastMonth" ? "secondary" : "ghost"}
@@ -283,13 +309,14 @@ export function BudgetTable() {
               </Button>
             </div>
           </div>
-          <div
-            className="grid grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))] lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))] gap-3 px-4 text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
-          >
-            <button
-              onClick={() => handleSort("category")}
-              className="flex items-center text-left hover:text-foreground"
+          {!isCollapsed && (
+            <div
+              className="grid grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))] lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))] gap-3 px-4 text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
             >
+              <button
+                onClick={() => handleSort("category")}
+                className="flex items-center text-left hover:text-foreground"
+              >
               CATEGORY
               <SortIcon field="category" />
             </button>
@@ -312,9 +339,118 @@ export function BudgetTable() {
               <SortIcon field="variance" />
             </button>
           </div>
+          )}
         </CardHeader>
         <CardContent className="pb-4">
-          <div className="space-y-4">
+          {isCollapsed ? (
+            <div className="space-y-2">
+              {filteredBudgets.map((budget) => {
+                const isOverBudget = budget.percent > 100
+                const isNearLimit = budget.percent > 90 && budget.percent <= 100
+                const isExpanded = expandedCategory === budget.category
+
+                return (
+                  <div key={budget.category} className="border rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setExpandedCategory(isExpanded ? null : budget.category)}
+                      className="w-full p-3 hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <span className="font-medium text-sm">{budget.category}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold tabular-nums">
+                              ${budget.actual.toLocaleString()} / ${budget.budget.toLocaleString()}
+                            </span>
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Progress
+                            value={Math.min(budget.percent, 100)}
+                            className="h-1.5"
+                            indicatorClassName={
+                              isOverBudget
+                                ? "bg-red-500"
+                                : isNearLimit
+                                  ? "bg-orange-500"
+                                  : budget.percent > 75
+                                    ? "bg-yellow-500"
+                                    : "bg-green-500"
+                            }
+                          />
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">{budget.percent.toFixed(0)}% spent</span>
+                            {isOverBudget && (
+                              <Badge variant="destructive" className="text-xs px-1.5 py-0 h-4">
+                                Over
+                              </Badge>
+                            )}
+                            {isNearLimit && (
+                              <Badge variant="secondary" className="text-xs px-1.5 py-0 h-4 bg-orange-500/10 text-orange-700 dark:text-orange-400 border-0">
+                                At limit
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                    {isExpanded && (
+                      <div className="p-3 pt-0 border-t bg-muted/20 space-y-2">
+                        <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-0.5">Budget</div>
+                            <div className="font-semibold">${budget.budget.toLocaleString()}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-0.5">Actual</div>
+                            <div className="font-semibold">${budget.actual.toLocaleString()}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-0.5">Variance</div>
+                            <div className={`font-semibold ${budget.variance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                              ${Math.abs(budget.variance).toLocaleString()}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-0.5">Suggested</div>
+                            <div className="font-semibold text-yellow-600 dark:text-yellow-400">${budget.suggestedBudget.toLocaleString()}</div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleQuickEdit(budget)
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAdvancedEdit(budget)
+                            }}
+                          >
+                            <Settings className="h-3.5 w-3.5 mr-1.5" />
+                            Settings
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="space-y-4">
             <div className="hidden md:block max-h-[640px]">
               <Virtuoso
                 data={filteredBudgets}
@@ -599,6 +735,7 @@ export function BudgetTable() {
               })}
             </div>
           </div>
+          )}
         </CardContent>
       </Card>
 
