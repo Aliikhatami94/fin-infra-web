@@ -496,17 +496,17 @@ export function BudgetTable() {
                 const isNearLimit = budget.percent > 90 && budget.percent <= 100
 
                 return (
-                  <div key={index} className="card-standard card-lift p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <span className="font-medium text-foreground">{budget.category}</span>
+                  <div key={index} className="card-standard card-lift p-4 space-y-3 overflow-hidden">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <span className="font-medium text-foreground truncate block">{budget.category}</span>
                         {budget.rolloverEnabled && (
-                          <Badge variant="secondary" className="text-xs px-2 py-0 h-5 ml-2">
+                          <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
                             Rollover
                           </Badge>
                         )}
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-shrink-0">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -527,39 +527,41 @@ export function BudgetTable() {
                         </Button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Budget</p>
-                        <p className="text-base font-semibold tabular-nums">${budget.budget.toLocaleString()}</p>
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground mb-1">Budget</p>
+                          <p className="text-base font-semibold tabular-nums">${budget.budget.toLocaleString()}</p>
+                        </div>
+                        <div className="min-w-0 text-right">
+                          <p className="text-xs text-muted-foreground mb-1">Actual</p>
+                          <p className="text-base font-semibold tabular-nums">${budget.actual.toLocaleString()}</p>
+                          <div className="flex items-center justify-end gap-1 mt-1">
+                            {periodChange > 0 ? (
+                              <TrendingUp className="h-3 w-3 text-[var(--color-negative)]" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3 text-[var(--color-positive)]" />
+                            )}
+                            <span
+                              className={`text-xs font-medium ${periodChange > 0 ? "text-[var(--color-negative)]" : "text-[var(--color-positive)]"}`}
+                            >
+                              {periodChange > 0 ? "+" : ""}
+                              {periodChangePercent}%
+                            </span>
+                          </div>
+                        </div>
                       </div>
                       {showSuggested && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                            <Lightbulb className="h-3 w-3 text-yellow-500" />
-                            Suggested
-                          </p>
-                          <p className="text-base font-semibold tabular-nums text-muted-foreground">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/5 dark:bg-yellow-500/10 rounded-md border border-yellow-500/20">
+                          <Lightbulb className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-muted-foreground">Suggested budget</p>
+                          </div>
+                          <p className="text-sm font-semibold tabular-nums text-yellow-700 dark:text-yellow-400 flex-shrink-0">
                             ${budget.suggestedBudget.toLocaleString()}
                           </p>
                         </div>
                       )}
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground mb-1">Actual</p>
-                        <p className="text-base font-semibold tabular-nums">${budget.actual.toLocaleString()}</p>
-                        <div className="flex items-center justify-end gap-1 mt-1">
-                          {periodChange > 0 ? (
-                            <TrendingUp className="h-3 w-3 text-[var(--color-negative)]" />
-                          ) : (
-                            <TrendingDown className="h-3 w-3 text-[var(--color-positive)]" />
-                          )}
-                          <span
-                            className={`text-xs font-medium ${periodChange > 0 ? "text-[var(--color-negative)]" : "text-[var(--color-positive)]"}`}
-                          >
-                            {periodChange > 0 ? "+" : ""}
-                            {periodChangePercent}%
-                          </span>
-                        </div>
-                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">

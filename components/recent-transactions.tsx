@@ -138,31 +138,37 @@ export function RecentTransactions({ selectedCategory, selectedMonth }: RecentTr
               return (
                 <div
                   key={index}
-                  className="grid grid-cols-[auto_1fr_auto_auto] gap-3 items-center py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                  className="py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden"
                 >
-                  <div
-                    className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      transaction.type === "income" ? "bg-emerald-500/10" : "bg-orange-500/10"
-                    }`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 ${transaction.type === "income" ? "text-emerald-500" : "text-orange-500"}`}
-                    />
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        transaction.type === "income" ? "bg-emerald-500/10" : "bg-orange-500/10"
+                      }`}
+                    >
+                      <Icon
+                        className={`h-4 w-4 ${transaction.type === "income" ? "text-emerald-500" : "text-orange-500"}`}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <p className="text-sm font-medium text-foreground truncate flex-1">{transaction.merchant}</p>
+                        <p
+                          className={`text-sm font-semibold tabular-nums flex-shrink-0 ${
+                            transaction.type === "income" ? "text-emerald-500" : "text-foreground"
+                          }`}
+                        >
+                          {transaction.type === "income" ? "+" : "-"}${Math.abs(transaction.amount).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{transaction.date}</span>
+                        <Badge variant="outline" className="text-xs px-2 py-0">
+                          {transaction.category}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{transaction.merchant}</p>
-                    <span className="text-xs text-muted-foreground">{transaction.date}</span>
-                  </div>
-                  <Badge variant="outline" className="text-xs px-2 py-0 whitespace-nowrap">
-                    {transaction.category}
-                  </Badge>
-                  <p
-                    className={`text-sm font-semibold tabular-nums text-right ${
-                      transaction.type === "income" ? "text-emerald-500" : "text-foreground"
-                    }`}
-                  >
-                    {transaction.type === "income" ? "+" : "-"}${Math.abs(transaction.amount).toFixed(2)}
-                  </p>
                 </div>
               )
             })

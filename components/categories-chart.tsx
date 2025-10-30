@@ -24,21 +24,21 @@ export function CategoriesChart({ selectedCategory, onSelectCategory }: Categori
   const uncategorizedCount = 150
 
   return (
-    <Card className="card-standard">
+    <Card className="card-standard overflow-hidden">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Budget Status</CardTitle>
-          <div className="flex items-center gap-1 border rounded-md">
-            <Button variant="default" size="sm">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="truncate">Budget Status</CardTitle>
+          <div className="flex items-center gap-0.5 border rounded-md flex-shrink-0">
+            <Button variant="default" size="sm" className="h-7 px-2.5 text-xs">
               Expenses
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="h-7 px-2.5 text-xs">
               Income
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="overflow-hidden">
         {uncategorizedCount > 0 && (
           <div
             className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-start gap-2 cursor-pointer hover:bg-yellow-500/15 transition-colors"
@@ -66,7 +66,7 @@ export function CategoriesChart({ selectedCategory, onSelectCategory }: Categori
               return (
                 <div
                   key={expense.name}
-                  className={`space-y-2 cursor-pointer p-3 rounded-lg transition-all ${
+                  className={`space-y-2 cursor-pointer p-3 rounded-lg transition-all overflow-hidden ${
                     isOverBudget
                       ? "bg-red-500/5 hover:bg-red-500/10"
                       : isSelected
@@ -75,14 +75,14 @@ export function CategoriesChart({ selectedCategory, onSelectCategory }: Categori
                   }`}
                   onClick={() => onSelectCategory(isSelected ? null : expense.name)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: expense.color }} />
-                      <span className="text-sm font-medium text-foreground">{expense.name}</span>
-                      {isSelected && <span className="text-xs text-primary font-medium">(Filtering)</span>}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: expense.color }} />
+                      <span className="text-sm font-medium text-foreground truncate">{expense.name}</span>
+                      {isSelected && <span className="text-xs text-primary font-medium whitespace-nowrap flex-shrink-0">(Filtering)</span>}
                     </div>
                     <span
-                      className={`text-sm font-semibold tabular-nums ${isOverBudget ? "text-red-500" : "text-muted-foreground"}`}
+                      className={`text-sm font-semibold tabular-nums flex-shrink-0 ${isOverBudget ? "text-red-500" : "text-muted-foreground"}`}
                     >
                       ${expense.spent.toLocaleString()} / ${expense.budget.toLocaleString()}
                       {isOverBudget && <span className="ml-1 text-xs">(+${overAmount})</span>}
