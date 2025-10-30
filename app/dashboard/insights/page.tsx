@@ -14,7 +14,6 @@ type InsightFilter = "all" | "spending" | "investment" | "goals"
 export default function InsightsPage() {
   const [activeTab, setActiveTab] = useState<InsightFilter>("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [timeRange, setTimeRange] = useState("30d")
   const [isTabLoading, setIsTabLoading] = useState(false)
   const { hideResolved, setHideResolved } = useInsightPreferences()
 
@@ -25,7 +24,15 @@ export default function InsightsPage() {
     { value: "goals", label: "Goals Forecast" },
   ]
 
+  const activeTabLabel = tabs.find((tab) => tab.value === activeTab)?.label ?? "All Insights"
   const activeTabId = useMemo(() => `insights-tab-${activeTab}`, [activeTab])
+
+  const handleTabChange = (value: string) => {
+    setIsTabLoading(true)
+    setActiveTab(value as InsightFilter)
+    // Reset loading after animation completes
+    setTimeout(() => setIsTabLoading(false), 250)
+  }
 
   return (
     <>
@@ -50,19 +57,7 @@ export default function InsightsPage() {
               />
             </div>
 
-            {/* Time Range Filter */}
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-32 h-9 bg-card border-border/40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="90d">Last 90 days</SelectItem>
-                <SelectItem value="1y">Last year</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {/* Hide Resolved Switch */}
             <SwitchField
               layout="inline"
               label="Hide resolved insights"
@@ -71,6 +66,7 @@ export default function InsightsPage() {
               className="data-[state=checked]:bg-primary/80"
               containerClassName="justify-end"
             />
+          </div>
           </div>
         </div>
       </div>
@@ -81,8 +77,25 @@ export default function InsightsPage() {
       >
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
         <div className="relative">
+          {/* Mobile Dropdown - show on screens smaller than md (768px) */}
+          <div className="md:hidden">
+            <Select value={activeTab} onValueChange={handleTabChange}>
+              <SelectTrigger className="w-full h-10 bg-card border-border">
+                <SelectValue>{activeTabLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {tabs.map((tab) => (
+                  <SelectItem key={tab.value} value={tab.value}>
+                    {tab.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Desktop Tabs - show on md screens and larger */}
           <div
-            className="flex items-center gap-2 overflow-x-auto rounded-full bg-muted/30 p-1"
+            className="hidden md:flex items-center gap-2 overflow-x-auto rounded-full bg-muted/30 p-1"
             role="tablist"
             aria-label="Insight categories"
           >
@@ -98,12 +111,7 @@ export default function InsightsPage() {
                   aria-selected={isActive}
                   aria-controls="insights-tabpanel"
                   tabIndex={isActive ? 0 : -1}
-                  onClick={() => {
-                    setIsTabLoading(true)
-                    setActiveTab(tab.value)
-                    // Reset loading after animation completes
-                    setTimeout(() => setIsTabLoading(false), 250)
-                  }}
+                  onClick={() => handleTabChange(tab.value)}
                   className={
                     "relative inline-flex items-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40"
                   }
@@ -164,7 +172,6 @@ export default function InsightsPage() {
                 <InsightsFeed
                   filter={activeTab}
                   searchQuery={searchQuery}
-                  timeRange={timeRange}
                   hideResolved={hideResolved}
                 />
               )}
