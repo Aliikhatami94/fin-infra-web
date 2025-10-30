@@ -291,12 +291,12 @@ export function TransactionsWorkspace() {
   )
 
   return (
-    <Card className="card-standard">
+    <Card className="card-standard overflow-hidden">
       <CardHeader className="gap-4 md:gap-6 md:sticky md:top-0 md:z-10 md:border-b md:border-border/40 md:bg-card/95 md:backdrop-blur supports-[backdrop-filter]:md:bg-card/80">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between min-w-0">
+          <div className="space-y-1 min-w-0">
             <CardTitle className="text-lg font-semibold">Transactions workspace</CardTitle>
-            <CardDescription>
+            <CardDescription className="truncate">
               Bulk manage categories, tags, and reviews with keyboard shortcuts and virtualized scrolling.
             </CardDescription>
           </div>
@@ -332,19 +332,19 @@ export function TransactionsWorkspace() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant={selectedAccount === "All accounts" ? "secondary" : "outline"}
-              size="sm"
-              className="rounded-full"
-              aria-pressed={selectedAccount === "All accounts"}
-              onClick={() => setSelectedAccount("All accounts")}
-            >
-              All accounts
-            </Button>
-            <ScrollArea className="max-w-full lg:max-w-[420px] whitespace-nowrap">
-              <div className="flex items-center gap-2 pr-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between min-w-0">
+          <div className="min-w-0 flex-1 lg:flex-initial overflow-hidden">
+            <ScrollArea className="w-full">
+              <div className="flex items-center gap-2 pb-2">
+                <Button
+                  variant={selectedAccount === "All accounts" ? "secondary" : "outline"}
+                  size="sm"
+                  className="rounded-full flex-shrink-0"
+                  aria-pressed={selectedAccount === "All accounts"}
+                  onClick={() => setSelectedAccount("All accounts")}
+                >
+                  All accounts
+                </Button>
                 {accounts
                   .filter((account) => account !== "All accounts")
                   .map((account) => {
@@ -354,7 +354,7 @@ export function TransactionsWorkspace() {
                         key={account}
                         variant={active ? "secondary" : "outline"}
                         size="sm"
-                        className="rounded-full"
+                        className="rounded-full flex-shrink-0"
                         aria-pressed={active}
                         onClick={() => setSelectedAccount(account)}
                       >
@@ -365,8 +365,8 @@ export function TransactionsWorkspace() {
               </div>
             </ScrollArea>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-            <div className="relative w-full sm:w-64">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end min-w-0 flex-shrink-0">
+            <div className="relative w-full sm:w-auto sm:min-w-[160px] sm:max-w-[240px]">
               <Input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -380,10 +380,10 @@ export function TransactionsWorkspace() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full justify-start gap-2 rounded-full sm:w-auto sm:min-w-[200px]"
+                  className="w-full justify-start gap-2 rounded-full sm:w-auto sm:min-w-[160px] sm:max-w-[240px]"
                   aria-label={`Select transaction date range, currently ${dateRangeLabel}`}
                 >
-                  <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                  <CalendarDays className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   <span className="truncate">{dateRangeLabel}</span>
                 </Button>
               </PopoverTrigger>
@@ -431,8 +431,8 @@ export function TransactionsWorkspace() {
         </div>
 
         <TooltipProvider delayDuration={100}>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="gap-1" aria-hidden="true">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <Badge variant="outline" className="gap-1 flex-shrink-0" aria-hidden="true">
               <Filter className="h-3.5 w-3.5" />
               Quick filters
             </Badge>
@@ -468,7 +468,49 @@ export function TransactionsWorkspace() {
 
         <div className="space-y-3 px-4 py-4 md:hidden">
           {filteredTransactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center">No transactions match the current filters.</p>
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-4">
+              <div className="rounded-full bg-muted/50 p-3">
+                <Filter className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-foreground">No transactions found</p>
+                <p className="text-xs text-muted-foreground max-w-xs">
+                  Try adjusting your filters, expanding the date range, or linking additional accounts.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {selectedFilters.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedFilters([])}
+                    className="h-7 text-xs"
+                  >
+                    Clear filters
+                  </Button>
+                )}
+                {selectedPresetId !== "all" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => applyPreset("all")}
+                    className="h-7 text-xs"
+                  >
+                    Show all dates
+                  </Button>
+                )}
+                {selectedAccount !== "All accounts" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedAccount("All accounts")}
+                    className="h-7 text-xs"
+                  >
+                    All accounts
+                  </Button>
+                )}
+              </div>
+            </div>
           ) : (
             filteredTransactions.map((transaction) => {
               const isSelected = selectedTransactionIds.includes(transaction.id)
@@ -542,71 +584,114 @@ export function TransactionsWorkspace() {
           )}
         </div>
 
-        <div className="hidden md:block max-h-[540px]">
-          <Virtuoso<Transaction>
-            data={filteredTransactions}
-            overscan={200}
-            itemContent={(_index, transaction) => {
-              const isSelected = selectedTransactionIds.includes(transaction.id)
-              const amountClass = transaction.amount >= 0 ? "text-emerald-500" : "text-foreground"
+        <div className="hidden md:block max-h-[540px] overflow-hidden">
+          {filteredTransactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 text-center space-y-4">
+              <div className="rounded-full bg-muted/50 p-4">
+                <Filter className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-base font-medium text-foreground">No transactions found</p>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Try adjusting your filters, expanding the date range, or linking additional accounts to see more transactions.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {selectedFilters.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedFilters([])}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+                {selectedPresetId !== "all" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => applyPreset("all")}
+                  >
+                    Show all dates
+                  </Button>
+                )}
+                {selectedAccount !== "All accounts" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedAccount("All accounts")}
+                  >
+                    All accounts
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <Virtuoso<Transaction>
+              data={filteredTransactions}
+              overscan={200}
+              itemContent={(_index, transaction) => {
+                const isSelected = selectedTransactionIds.includes(transaction.id)
+                const amountClass = transaction.amount >= 0 ? "text-emerald-500" : "text-foreground"
 
-              return (
-                <div
-                  key={transaction.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => toggleTransaction(transaction.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault()
-                      toggleTransaction(transaction.id)
-                    }
-                  }}
-                  className={cn(
-                    "grid grid-cols-[auto_auto_1fr_auto] items-center gap-4 border-b border-border/40 px-6 py-4 transition-colors",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                    isSelected ? "bg-primary/5" : "hover:bg-muted/40",
-                  )}
-                >
-                  <Checkbox checked={isSelected} onCheckedChange={() => toggleTransaction(transaction.id)} />
-                  <div className="flex flex-col text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">{transaction.merchant}</span>
-                    <span>{new Date(transaction.date).toLocaleDateString()}</span>
-                    <span>{transaction.account}</span>
-                  </div>
-                  <div className="flex flex-col gap-1 text-xs">
-                    <span className="font-semibold text-foreground">{transaction.category}</span>
-                    <div className="flex flex-wrap items-center gap-1">
-                      {transaction.isNew ? <Badge variant="secondary">New</Badge> : null}
-                      {transaction.isRecurring ? (
-                        <Badge variant="secondary" className="bg-blue-500/10 text-blue-700">
-                          Recurring
-                        </Badge>
-                      ) : null}
-                      {transaction.isFlagged ? (
-                        <Badge variant="secondary" className="bg-amber-500/15 text-amber-700">
-                          Flagged
-                        </Badge>
-                      ) : null}
-                      {transaction.isTransfer ? (
-                        <Badge variant="secondary" className="bg-purple-500/15 text-purple-700">
-                          Transfer
-                        </Badge>
-                      ) : null}
-                      {(transaction.tags ?? []).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-[10px]">
-                          #{tag}
-                        </Badge>
-                      ))}
+                return (
+                  <div
+                    key={transaction.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleTransaction(transaction.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault()
+                        toggleTransaction(transaction.id)
+                      }
+                    }}
+                    className={cn(
+                      "grid grid-cols-[auto_minmax(0,auto)_minmax(0,1fr)_auto] items-center gap-4 border-b border-border/40 px-6 py-4 transition-colors",
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                      isSelected ? "bg-primary/5" : "hover:bg-muted/40",
+                    )}
+                  >
+                    <Checkbox checked={isSelected} onCheckedChange={() => toggleTransaction(transaction.id)} />
+                    <div className="flex flex-col text-xs text-muted-foreground min-w-0">
+                      <span className="font-medium text-foreground truncate">{transaction.merchant}</span>
+                      <span className="truncate">{new Date(transaction.date).toLocaleDateString()}</span>
+                      <span className="truncate">{transaction.account}</span>
+                    </div>
+                    <div className="flex flex-col gap-1 text-xs min-w-0">
+                      <span className="font-semibold text-foreground truncate">{transaction.category}</span>
+                      <div className="flex flex-wrap items-center gap-1">
+                        {transaction.isNew ? <Badge variant="secondary">New</Badge> : null}
+                        {transaction.isRecurring ? (
+                          <Badge variant="secondary" className="bg-blue-500/10 text-blue-700">
+                            Recurring
+                          </Badge>
+                        ) : null}
+                        {transaction.isFlagged ? (
+                          <Badge variant="secondary" className="bg-amber-500/15 text-amber-700">
+                            Flagged
+                          </Badge>
+                        ) : null}
+                        {transaction.isTransfer ? (
+                          <Badge variant="secondary" className="bg-purple-500/15 text-purple-700">
+                            Transfer
+                          </Badge>
+                        ) : null}
+                        {(transaction.tags ?? []).map((tag) => (
+                          <Badge key={tag} variant="outline" className="text-[10px]">
+                            #{tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className={cn("text-right text-sm font-semibold tabular-nums whitespace-nowrap", amountClass)}>
+                      {formatCurrency(transaction.amount)}
                     </div>
                   </div>
-                  <div className={cn("text-right text-sm font-semibold tabular-nums", amountClass)}>
-                    {formatCurrency(transaction.amount)}
-                  </div>
-                </div>
-              )
-            }}
-          />
+                )
+              }}
+            />
+          )}
         </div>
       </CardContent>
 
