@@ -3,8 +3,9 @@
 import { useCallback, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
-import { MaskableValue } from "@/components/privacy-provider"
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { MaskableValue, usePrivacy } from "@/components/privacy-provider"
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, EyeOff } from "lucide-react"
 import { Line, LineChart, ResponsiveContainer } from "recharts"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
@@ -148,6 +149,7 @@ const timeScaleSnapshots: Record<TimeScale, {
 
 export function CashFlowKPIs() {
   const [activeTimeScale, setActiveTimeScale] = useState<TimeScale>("monthly")
+  const { masked } = usePrivacy()
   const optionRefs = useRef<Record<TimeScale, HTMLButtonElement | null>>({
     daily: null,
     weekly: null,
@@ -271,16 +273,22 @@ export function CashFlowKPIs() {
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
         <motion.div {...createStaggeredCardVariants(0, 0)} className="h-full">
-          <Card className="card-standard card-lift h-full min-h-[280px]">
-            <CardContent className="flex flex-col h-full gap-3 p-6">
+          <Card className="card-standard card-lift h-full">
+            <CardContent className="flex flex-col h-full gap-2.5 p-4">
               <div className="flex items-start justify-between gap-2">
                 <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                {masked && (
+                  <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5">
+                    <EyeOff className="h-3 w-3" />
+                    Hidden
+                  </Badge>
+                )}
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
-                  <p className="text-label-xs text-muted-foreground">Net Cash Flow</p>
+                  <p className="text-xs text-muted-foreground">Net Cash Flow</p>
                   <p
-                    className="text-kpi font-semibold font-tabular text-foreground"
+                    className="text-2xl font-semibold font-tabular text-foreground"
                     aria-label={`Net cash flow ${formattedNetCashFlow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
@@ -290,48 +298,81 @@ export function CashFlowKPIs() {
                       className="font-tabular"
                     />
                   </p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="delta-chip text-delta font-medium rounded-md px-1.5 py-0.5 hover:bg-muted/40 transition-colors cursor-help inline-flex items-center gap-1"
+                        aria-label={`${snapshot.changePercent >= 0 ? '+' : ''}${snapshot.changePercent}% ${snapshot.changeComparison}`}
+                      >
+                        {(() => {
+                          const deltaIsPositive = snapshot.changePercent >= 0
+                          const DeltaIcon = deltaIsPositive ? TrendingUp : TrendingDown
+                          const deltaColor = deltaIsPositive
+                            ? "text-[var(--color-positive)]"
+                            : "text-[var(--color-negative)]"
+                          const deltaPrefix = deltaIsPositive ? "+" : ""
+                          return (
+                            <>
+                              <DeltaIcon className={cn("h-3 w-3", deltaColor)} />
+                              <span className={cn("text-xs font-medium font-tabular", deltaColor)}>
+                                {deltaPrefix}
+                                {snapshot.changePercent}%
+                              </span>
+                            </>
+                          )
+                        })()}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs font-normal">
+                        {snapshot.changeComparison}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <KPIIcon icon={TrendingUp} tone="info" />
-              </div>
-              <div className="flex items-center justify-between mt-auto">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
-                      aria-label={`${snapshot.changePercent >= 0 ? '+' : ''}${snapshot.changePercent}% ${snapshot.changeComparison}`}
-                    >
-                      {(() => {
-                        const deltaIsPositive = snapshot.changePercent >= 0
-                        const DeltaIcon = deltaIsPositive ? TrendingUp : TrendingDown
-                        const deltaColor = deltaIsPositive
-                          ? "text-[var(--color-positive)]"
-                          : "text-[var(--color-negative)]"
-                        const deltaPrefix = deltaIsPositive ? "+" : ""
-                        return (
-                          <>
-                            <DeltaIcon className={cn("h-3 w-3", deltaColor)} />
-                            <span className={cn("text-delta font-medium font-tabular", deltaColor)}>
-                              {deltaPrefix}
-                              {snapshot.changePercent}%
-                            </span>
-                          </>
-                        )
-                      })()}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-label-xs font-normal">
-                      {snapshot.changeComparison}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-                <div className="w-20 h-10">
+                <div className="w-16 h-8 shrink-0">
                   <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
                     <LineChart data={snapshot.netSparkline}>
-                      <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 60%)" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 60%)" strokeWidth={1.5} dot={false} />
                     </LineChart>
                   </ResponsiveContainer>
+                </div>
+              </div>
+              
+              {/* Income vs Expenses Trend */}
+              <div className="mt-auto pt-3 border-t space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-[var(--color-positive)]" />
+                    <span className="text-xs text-muted-foreground">Income</span>
+                  </div>
+                  <div className="w-20 h-6">
+                    <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
+                      <LineChart data={snapshot.inflowSparkline}>
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="var(--color-positive)"
+                          strokeWidth={1.5}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-[var(--color-warning)]" />
+                    <span className="text-xs text-muted-foreground">Expenses</span>
+                  </div>
+                  <div className="w-20 h-6">
+                    <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
+                      <LineChart data={snapshot.outflowSparkline}>
+                        <Line type="monotone" dataKey="value" stroke="var(--color-warning)" strokeWidth={1.5} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -339,16 +380,22 @@ export function CashFlowKPIs() {
         </motion.div>
 
         <motion.div {...createStaggeredCardVariants(1, 0)} className="h-full">
-          <Card className="card-standard card-lift h-full min-h-[280px]">
-            <CardContent className="flex flex-col h-full gap-3 p-6">
+          <Card className="card-standard card-lift h-full">
+            <CardContent className="flex flex-col h-full gap-3 p-4">
               <div className="flex items-start justify-between gap-2">
                 <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                {masked && (
+                  <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5">
+                    <EyeOff className="h-3 w-3" />
+                    Hidden
+                  </Badge>
+                )}
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
-                  <p className="text-label-xs text-muted-foreground">Total Inflow</p>
+                  <p className="text-xs text-muted-foreground">Total Inflow</p>
                   <p
-                    className="text-kpi font-semibold font-tabular text-foreground"
+                    className="text-2xl font-semibold font-tabular text-foreground"
                     aria-label={`Total inflow ${formattedTotalInflow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
@@ -361,16 +408,16 @@ export function CashFlowKPIs() {
                 </div>
                 <KPIIcon icon={ArrowDownRight} tone="positive" />
               </div>
-              <div className="flex items-center justify-between mt-auto">
-                <p className="text-label-xs text-muted-foreground font-normal">{snapshot.inflowNote}</p>
-                <div className="w-20 h-10">
+              <div className="flex items-center justify-between mt-auto pt-2 border-t">
+                <p className="text-xs text-muted-foreground font-normal line-clamp-2">{snapshot.inflowNote}</p>
+                <div className="w-24 h-10 shrink-0">
                   <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
                     <LineChart data={snapshot.inflowSparkline}>
                       <Line
                         type="monotone"
                         dataKey="value"
                         stroke="var(--color-positive)"
-                        strokeWidth={2}
+                        strokeWidth={1.5}
                         dot={false}
                       />
                     </LineChart>
@@ -382,16 +429,22 @@ export function CashFlowKPIs() {
         </motion.div>
 
         <motion.div {...createStaggeredCardVariants(2, 0)} className="h-full">
-          <Card className="card-standard card-lift h-full min-h-[280px]">
-            <CardContent className="flex flex-col h-full gap-3 p-6">
+          <Card className="card-standard card-lift h-full">
+            <CardContent className="flex flex-col h-full gap-3 p-4">
               <div className="flex items-start justify-between gap-2">
                 <LastSyncBadge timestamp="2 min ago" source="Plaid" />
+                {masked && (
+                  <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5">
+                    <EyeOff className="h-3 w-3" />
+                    Hidden
+                  </Badge>
+                )}
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1">
-                  <p className="text-label-xs text-muted-foreground">Total Outflow</p>
+                  <p className="text-xs text-muted-foreground">Total Outflow</p>
                   <p
-                    className="text-kpi font-semibold font-tabular text-foreground"
+                    className="text-2xl font-semibold font-tabular text-foreground"
                     aria-label={`Total outflow ${formattedTotalOutflow} ${activeTimeScale}`}
                     aria-live="polite"
                   >
@@ -404,12 +457,12 @@ export function CashFlowKPIs() {
                 </div>
                 <KPIIcon icon={ArrowUpRight} tone="warning" />
               </div>
-              <div className="flex items-center justify-between mt-auto">
-                <p className="text-label-xs text-muted-foreground font-normal">{snapshot.outflowNote}</p>
-                <div className="w-20 h-10">
+              <div className="flex items-center justify-between mt-auto pt-2 border-t">
+                <p className="text-xs text-muted-foreground font-normal line-clamp-2">{snapshot.outflowNote}</p>
+                <div className="w-24 h-10 shrink-0">
                   <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
                     <LineChart data={snapshot.outflowSparkline}>
-                      <Line type="monotone" dataKey="value" stroke="var(--color-warning)" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="value" stroke="var(--color-warning)" strokeWidth={1.5} dot={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
