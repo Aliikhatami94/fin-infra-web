@@ -176,27 +176,27 @@ export default function TaxesPage() {
         className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-8 py-6"
       >
         
-        <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
-          <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+        <Alert className="border-border bg-card dark:border-border">
+          <AlertCircle className="h-4 w-4 text-muted-foreground" />
           <AlertDescription className="space-y-6">
             {/* Header Section */}
             <div className="space-y-2">
-              <h2 className="text-lg font-semibold text-orange-900 dark:text-orange-100">Tax planning countdown</h2>
-              <p className="text-sm text-orange-800 dark:text-orange-200">
+              <h2 className="text-lg font-semibold text-foreground">Tax planning countdown</h2>
+              <p className="text-sm text-muted-foreground">
                 Stay ahead of the year-end rush—tackle the urgent items below to keep penalties and paperwork surprises off your plate.
               </p>
             </div>
 
             {/* Next Deadline Highlight */}
             {primaryDeadline && (
-              <div className="flex items-center gap-3 rounded-lg border border-orange-200 bg-white/80 px-4 py-3 shadow-sm dark:border-orange-900/60 dark:bg-orange-950/40">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 shadow-sm">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/40">
                   <CalendarDays className="h-5 w-5 text-orange-600 dark:text-orange-400" aria-hidden="true" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium uppercase tracking-wide text-orange-700 dark:text-orange-300">Next deadline</p>
-                  <p className="text-sm font-semibold text-orange-900 dark:text-orange-100">{primaryDeadline.label}</p>
-                  <p className="text-xs text-orange-700 dark:text-orange-300">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Next deadline</p>
+                  <p className="text-sm font-semibold text-foreground">{primaryDeadline.label}</p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
                     {primaryDeadline.daysRemaining} days left · {format(primaryDeadline.targetDate, "MMM d")}
                   </p>
                 </div>
@@ -204,7 +204,7 @@ export default function TaxesPage() {
             )}
 
             {/* All Deadlines Grid */}
-            <div className="mb-4 flex items-start gap-3 rounded-lg border border-orange-200/70 bg-white/80 p-3 dark:border-orange-900/60 dark:bg-orange-950/40">
+            <div className="mb-4 flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-3">
               <Checkbox
                 id="acknowledge-deadlines"
                 checked={acknowledgedDeadlines}
@@ -212,7 +212,7 @@ export default function TaxesPage() {
               />
               <Label
                 htmlFor="acknowledge-deadlines"
-                className="text-xs text-orange-800 dark:text-orange-200 cursor-pointer leading-relaxed"
+                className="text-xs text-muted-foreground cursor-pointer leading-relaxed"
               >
                 I acknowledge these deadlines may have tax implications and filing requirements. I will review the details before taking action.
               </Label>
@@ -222,33 +222,33 @@ export default function TaxesPage() {
               {deadlineItems.map((deadline) => (
                 <div
                   key={deadline.id}
-                  className="flex flex-col rounded-lg border border-orange-200/70 bg-white/80 p-4 shadow-sm transition hover:border-orange-300 hover:shadow dark:border-orange-900/60 dark:bg-orange-950/40"
+                  className="flex flex-col rounded-lg border border-border bg-card p-4 shadow-sm transition hover:border-primary/50 hover:shadow"
                 >
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-semibold text-orange-900 dark:text-orange-100">{deadline.label}</h3>
-                      <p className="mt-1 text-xs text-orange-700 dark:text-orange-300">
+                      <h3 className="text-sm font-semibold text-foreground">{deadline.label}</h3>
+                      <p className="mt-1 text-xs text-orange-600 dark:text-orange-400 font-medium">
                         {format(deadline.targetDate, "MMM d, yyyy")}
                       </p>
                     </div>
-                    <div className="shrink-0 rounded bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                    <div className="shrink-0 rounded bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400">
                       {deadline.daysRemaining}d
                     </div>
                   </div>
-                  <p className="mb-4 flex-1 text-xs leading-relaxed text-orange-800 dark:text-orange-200">{deadline.description}</p>
+                  <p className="mb-4 flex-1 text-xs leading-relaxed text-muted-foreground">{deadline.description}</p>
                   {deadline.action.type === "button" ? (
                     <div>
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="w-full border-orange-300 text-orange-900 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-100 dark:hover:bg-orange-900"
+                        className="w-full"
                         onClick={deadline.action.onClick}
                         disabled={!acknowledgedDeadlines}
                       >
                         {deadline.action.label}
                       </Button>
                       {!acknowledgedDeadlines && (
-                        <p className="mt-1 text-[10px] text-orange-600 dark:text-orange-400 text-center">
+                        <p className="mt-1 text-[10px] text-orange-600 dark:text-orange-400 text-center font-medium">
                           Check acknowledgment above
                         </p>
                       )}
@@ -258,7 +258,7 @@ export default function TaxesPage() {
                       asChild
                       size="sm"
                       variant="secondary"
-                      className="w-full border-orange-300 text-orange-900 hover:bg-orange-100 dark:border-orange-800 dark:text-orange-100 dark:hover:bg-orange-900"
+                      className="w-full"
                     >
                       <Link href={deadline.action.href}>{deadline.action.label}</Link>
                     </Button>
