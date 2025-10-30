@@ -21,12 +21,14 @@ const insights: InsightDefinition[] = [
     surfaces: ["overview", "insights"],
     icon: Lightbulb,
     accent: "emerald",
+    severity: "low",
     metrics: [
       { id: "eligible-spend", label: "Eligible spend", value: "$1,120", highlight: true },
       { id: "lost-rewards", label: "Lost rewards", value: "$28" },
     ],
     actions: [
       { id: "enable-boosts", label: "Enable boosts" },
+      { id: "dismiss", label: "Dismiss" },
     ],
     explanation: "Dining and travel categories qualify for 3% cashback when boosts are active.",
   },
@@ -38,9 +40,11 @@ const insights: InsightDefinition[] = [
     topic: "Monitoring",
     surfaces: ["insights"],
     icon: ShieldAlert,
-    accent: "orange",
+    accent: "rose",
+    severity: "high",
     actions: [
       { id: "review-charge", label: "Review ride" },
+      { id: "mark-resolved", label: "Mark resolved" },
     ],
     explanation: "We noticed two identical charges within 5 minutes for the same merchant and amount.",
   },
@@ -52,6 +56,13 @@ export function TransactionsInsights() {
   const [confirmAction, setConfirmAction] = useState<{ insight: InsightDefinition; action: InsightAction } | null>(null)
   
   const handleAction = (payload: { insight: InsightDefinition; action: InsightAction }) => {
+    // Handle dismiss and mark-resolved actions directly
+    if (payload.action.id === "dismiss" || payload.action.id === "mark-resolved") {
+      dismiss(payload.insight.id)
+      trackInsightAction(payload)
+      return
+    }
+    
     // High-impact actions require confirmation
     if (payload.insight.id === "transactions-cashback" || payload.insight.id === "transactions-duplicate") {
       setConfirmAction(payload)

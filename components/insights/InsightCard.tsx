@@ -349,6 +349,19 @@ export function InsightCard({
                 <Badge variant="outline" className={cn("text-xs", styles.badge)}>
                   {insight.topic}
                 </Badge>
+                {insight.severity && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs font-medium",
+                      insight.severity === "high" && "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+                      insight.severity === "medium" && "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
+                      insight.severity === "low" && "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+                    )}
+                  >
+                    {insight.severity === "high" ? "🔴 High Priority" : insight.severity === "medium" ? "🟡 Medium" : "🟢 Low Priority"}
+                  </Badge>
+                )}
                 {isPinned && (
                   <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
                     Pinned
