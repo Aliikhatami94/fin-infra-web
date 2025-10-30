@@ -294,17 +294,29 @@ export function InsightCard({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    type="button"
-                    aria-pressed={isPinned}
-                    aria-label={isPinned ? "Unpin insight" : "Pin insight"}
-                    onClick={handlePinToggle}
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    animate={isPinned ? { rotate: [0, -15, 0] } : {}}
+                    transition={{ duration: 0.3 }}
                   >
-                    {isPinned ? <PinOff className="h-4 w-4 text-primary" /> : <Pin className="h-4 w-4" />}
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      type="button"
+                      aria-pressed={isPinned}
+                      aria-label={isPinned ? "Unpin insight" : "Pin insight"}
+                      onClick={handlePinToggle}
+                    >
+                      <motion.div
+                        initial={false}
+                        animate={isPinned ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {isPinned ? <PinOff className="h-4 w-4 text-primary" /> : <Pin className="h-4 w-4" />}
+                      </motion.div>
+                    </Button>
+                  </motion.div>
                 </TooltipTrigger>
                 <TooltipContent>{isPinned ? "Unpin from overview" : "Pin to overview"}</TooltipContent>
               </Tooltip>
@@ -363,9 +375,16 @@ export function InsightCard({
                   </Badge>
                 )}
                 {isPinned && (
-                  <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
-                    Pinned
-                  </Badge>
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                      Pinned
+                    </Badge>
+                  </motion.div>
                 )}
                 {isResolved && (
                   <Badge
