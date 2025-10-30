@@ -53,6 +53,55 @@ const resolveDocumentTypeIcon = (type: string) => {
   return FileText
 }
 
+// Saved filter sets for quick access
+const SAVED_FILTER_SETS = [
+  {
+    id: "tax-docs",
+    name: "Tax Docs",
+    icon: FileSpreadsheet,
+    description: "Tax forms and related documents",
+    types: ["Tax Form", "1099", "W-2"],
+    accounts: [],
+    years: [],
+  },
+  {
+    id: "statements",
+    name: "Statements",
+    icon: FileText,
+    description: "Account statements and summaries",
+    types: ["Statement", "Account Summary"],
+    accounts: [],
+    years: [],
+  },
+  {
+    id: "reports",
+    name: "Reports",
+    icon: FileBarChart,
+    description: "Financial reports and analytics",
+    types: ["Report", "Performance Report"],
+    accounts: [],
+    years: [],
+  },
+  {
+    id: "receipts",
+    name: "Receipts",
+    icon: ReceiptText,
+    description: "Transaction receipts and confirmations",
+    types: ["Receipt", "Confirmation"],
+    accounts: [],
+    years: [],
+  },
+  {
+    id: "current-year",
+    name: "This Year",
+    icon: FileCheck2,
+    description: "Documents from current year",
+    types: [],
+    accounts: [],
+    years: [new Date().getFullYear().toString()],
+  },
+] as const
+
 export default function DocumentsPage() {
   const [sortBy, setSortBy] = useState<"date" | "name" | "size">("date")
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([])
@@ -61,6 +110,7 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [celebration, setCelebration] = useState<{ count: number; firstName: string } | null>(null)
   const [celebrationOpen, setCelebrationOpen] = useState(false)
+  const [activeFilterSet, setActiveFilterSet] = useState<string | null>(null)
   const fetchTimer = useRef<NodeJS.Timeout | null>(null)
   const {
     isUpdating,
@@ -127,7 +177,58 @@ export default function DocumentsPage() {
 
   const clearFilters = useCallback(() => {
     clearAll()
+    setActiveFilterSet(null)
   }, [clearAll])
+
+  const applySavedFilterSet = useCallback((filterId: string) => {
+    const filterSet = SAVED_FILTER_SETS.find(f => f.id === filterId)
+    if (!filterSet) return
+
+    // Clear existing filters first
+    clearAll()
+
+    // Apply the saved filter set
+    filterSet.types.forEach(type => {
+      if (fileTypes.includes(type) && !selectedTypes.includes(type)) {
+        toggleType(type)
+      }
+    })
+    filterSet.accounts.forEach(account => {
+      if (accounts.includes(account) && !selectedAccounts.includes(account)) {
+        toggleAccount(account)
+      }
+    })
+    filterSet.years.forEach(year => {
+      if (years.includes(year) && !selectedYears.includes(year)) {
+        toggleYear(year)
+      }
+    })
+
+    setActiveFilterSet(filterId)
+    toast.success(`Applied "${filterSet.name}" filter`)
+  }, [fileTypes, accounts, years, selectedTypes, selectedAccounts, selectedYears, toggleType, toggleAccount, toggleYear, clearAll])
+
+  // Check if current filters match a saved filter set
+  const checkActiveFilterSet = useCallback(() => {
+    for (const filterSet of SAVED_FILTER_SETS) {
+      const typesMatch = filterSet.types.length === selectedTypes.length && 
+        filterSet.types.every(t => selectedTypes.includes(t))
+      const accountsMatch = filterSet.accounts.length === selectedAccounts.length && 
+        filterSet.accounts.every(a => selectedAccounts.includes(a))
+      const yearsMatch = filterSet.years.length === selectedYears.length && 
+        filterSet.years.every(y => selectedYears.includes(y))
+      
+      if (typesMatch && accountsMatch && yearsMatch) {
+        setActiveFilterSet(filterSet.id)
+        return
+      }
+    }
+    setActiveFilterSet(null)
+  }, [selectedTypes, selectedAccounts, selectedYears])
+
+  useEffect(() => {
+    checkActiveFilterSet()
+  }, [checkActiveFilterSet])
 
   const describeActiveFilters = useMemo(() => {
     const segments: string[] = []
@@ -269,14 +370,53 @@ export default function DocumentsPage() {
                   <Button variant="outline" size="sm" className="gap-2">
                     <Filter className="h-4 w-4" />
                     <span className="hidden sm:inline">Filter</span>
-                    {selectedTypes.length > 0 && (
-                      <span className="ml-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs">{selectedTypes.length}</span>
+                    {(selectedTypes.length > 0 || activeFilterSet) && (
+                      <span className="ml-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs">
+                        {activeFilterSet ? '✓' : selectedTypes.length}
+                      </span>
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>File Type</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-72">
+                  {/* Quick Filters Section */}
+                  <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Quick Filters
+                  </DropdownMenuLabel>
+                  <div className="px-2 py-2 space-y-1">
+                    {SAVED_FILTER_SETS.map((filterSet) => {
+                      const isActive = activeFilterSet === filterSet.id
+                      const FilterIcon = filterSet.icon
+                      return (
+                        <button
+                          key={filterSet.id}
+                          onClick={() => applySavedFilterSet(filterSet.id)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                            isActive 
+                              ? "bg-primary text-primary-foreground" 
+                              : "hover:bg-muted"
+                          )}
+                        >
+                          <FilterIcon className="h-4 w-4 shrink-0" />
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="font-medium">{filterSet.name}</div>
+                            <div className={cn(
+                              "text-xs truncate",
+                              isActive ? "text-primary-foreground/80" : "text-muted-foreground"
+                            )}>
+                              {filterSet.description}
+                            </div>
+                          </div>
+                          {isActive && <Badge variant="secondary" className="shrink-0 bg-primary-foreground/20 text-primary-foreground">Active</Badge>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  
                   <DropdownMenuSeparator />
+                  
+                  {/* Manual Filter Options */}
+                  <DropdownMenuLabel>File Type</DropdownMenuLabel>
                   {fileTypes.map((type) => (
                     <DropdownMenuCheckboxItem
                       key={type}
@@ -286,6 +426,23 @@ export default function DocumentsPage() {
                       {type}
                     </DropdownMenuCheckboxItem>
                   ))}
+                  
+                  {(selectedTypes.length > 0 || selectedAccounts.length > 0 || selectedYears.length > 0 || activeFilterSet) && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <div className="px-2 py-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={clearFilters}
+                          className="w-full justify-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                          Clear All Filters
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
               <TooltipProvider>
