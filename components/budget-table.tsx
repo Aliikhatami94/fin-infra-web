@@ -133,7 +133,7 @@ export function BudgetTable() {
   const [warningThreshold, setWarningThreshold] = useState("90")
   const [showSuggested, _setShowSuggested] = useState(true)
   const [comparisonPeriod, setComparisonPeriod] = useState<"lastMonth" | "lastYear">("lastMonth")
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
   const handleSort = (field: SortField) => {
@@ -251,41 +251,22 @@ export function BudgetTable() {
     <>
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <CardTitle className="text-lg font-semibold">Budget by Category</CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className="gap-1.5"
-              >
-                {isCollapsed ? (
-                  <>
-                    <ChevronDown className="h-4 w-4" />
-                    Expand All
-                  </>
-                ) : (
-                  <>
-                    <ChevronUp className="h-4 w-4" />
-                    Collapse
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-end">
-              {!isCollapsed && (
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-end">
+                {!isCollapsed && (
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search categories..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 h-9 w-[200px]"
+                      className="pl-8 h-9 w-[200px]"
                   />
                 </div>
-              )}
-              <div className="flex gap-0.5 rounded-lg border p-0.5 bg-muted/30">
+                )}
+                <div className="flex gap-0.5 rounded-lg border p-0.5 bg-muted/30">
                 <Button
                   variant={comparisonPeriod === "lastMonth" ? "secondary" : "ghost"}
                   size="sm"
@@ -303,11 +284,30 @@ export function BudgetTable() {
                   vs Last Year
                 </Button>
               </div>
-              <Button size="sm" variant="outline">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Category
-              </Button>
+                <Button size="sm" variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Category
+                </Button>
+              </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="gap-1.5 w-fit"
+            >
+              {isCollapsed ? (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Expand All
+                </>
+              ) : (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  Collapse
+                </>
+              )}
+            </Button>
           </div>
           {!isCollapsed && (
             <div
