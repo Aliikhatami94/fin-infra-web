@@ -53,6 +53,8 @@ export function TopBar({
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const lastScrollY = useRef(0)
   const scrollThreshold = 10 // Minimum scroll distance to trigger hide/show
+  const isScrollingRef = useRef(false)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const isDateRangeValue = (value: string): value is typeof dateRange => {
     return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
@@ -75,11 +77,33 @@ export function TopBar({
     const mainContent = document.getElementById('main-content')
     if (!mainContent) return
 
+    // Prevent rapid toggling - only check scroll direction while actively scrolling
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
+    }
+
+    // Mark as actively scrolling
+    isScrollingRef.current = true
+
+    // Set timeout to detect when scrolling has stopped
+    scrollTimeoutRef.current = setTimeout(() => {
+      isScrollingRef.current = false
+    }, 150)
+
     const currentScrollY = mainContent.scrollTop
     const scrollDifference = Math.abs(currentScrollY - lastScrollY.current)
 
     // Only update if scroll difference exceeds threshold (prevents jitter)
     if (scrollDifference < scrollThreshold) return
+
+    // Check if we're at or near the bottom (within 50px)
+    const isNearBottom = mainContent.scrollHeight - currentScrollY - mainContent.clientHeight < 50
+    
+    // If near bottom, don't toggle - keep current state to prevent flickering
+    if (isNearBottom) {
+      lastScrollY.current = currentScrollY
+      return
+    }
 
     let newVisibility = isHeaderVisible
     
@@ -87,7 +111,7 @@ export function TopBar({
     if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
       newVisibility = true
     } 
-    // Hide header when scrolling down (only on mobile/tablet)
+    // Hide header when scrolling down (only on mobile/tablet) and not near bottom
     else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
       newVisibility = false
     }
@@ -111,6 +135,10 @@ export function TopBar({
     
     return () => {
       mainContent.removeEventListener('scroll', handleScroll)
+      // Clear timeout on cleanup
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
     }
   }, [handleScroll])
 
