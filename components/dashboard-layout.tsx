@@ -9,6 +9,7 @@ import { OfflineBanner } from "@/components/offline-banner"
 import { ConnectivityProvider, useConnectivity } from "@/components/connectivity-provider"
 import { Button } from "@/components/ui/button"
 import { MessageSquare } from "lucide-react"
+import { DashboardBackToTop } from "@/components/dashboard-back-to-top"
 import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -75,7 +76,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [marketingAutoplay, setMarketingAutoplay] = useState<boolean>(false)
   const [marketingPrefill, setMarketingPrefill] = useState<string | null>(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -163,31 +163,32 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             <OfflineBanner />
             
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-              {/* Compact, responsive header with auto-hide on mobile */}
-              <header 
-                className={cn(
-                  "sticky inset-x-0 top-0 z-40 transition-all duration-300",
-                  // Dynamic height based on visibility - when hidden on mobile, collapse to 0
-                  isHeaderVisible 
-                    ? "h-11 md:h-12 lg:h-14" 
-                    : "h-0 md:h-12 lg:h-14"
-                )}
-              >
+              {/* Desktop: Header outside main content */}
+              <header className="hidden md:block">
                 <TopBar
                   onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   sidebarCollapsed={isSidebarCollapsed}
-                  onHeaderVisibilityChange={setIsHeaderVisible}
                 />
               </header>
 
               <main
                 id="main-content"
-                className="relative flex-1 overflow-hidden lg:rounded-xl bg-card lg:mr-2 lg:mb-2 border border-border/70"
-                style={{ overflow: 'auto', overflowX: 'hidden' }}
+                className="relative flex-1 overflow-auto lg:rounded-xl bg-card lg:mr-2 lg:mb-2 border border-border/70 md:mt-12 lg:mt-14"
               >
+                {/* Mobile: TopBar inside main content for sticky behavior */}
+                <div className="md:hidden">
+                  <TopBar
+                    onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    sidebarCollapsed={isSidebarCollapsed}
+                  />
+                </div>
+
                 <DashboardContent>{children}</DashboardContent>
               </main>
             </div>
+
+            {/* Mobile: Back to top button */}
+            <DashboardBackToTop />
 
             {/* Global AI chat trigger and sidebar */}
             <Button
