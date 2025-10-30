@@ -1,7 +1,10 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogPortal, DialogOverlay } from "@/components/ui/dialog"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { cn } from "@/lib/utils"
+import { XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -148,8 +151,30 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogPortal>
+        {/* Overlay with blur only on desktop */}
+        <DialogOverlay className="md:bg-black/60 md:backdrop-blur-sm md:backdrop-saturate-150 bg-background/100 backdrop-blur-none" />
+        <DialogPrimitive.Content
+          className={cn(
+            'bg-card fixed z-[1000] overflow-y-auto',
+            // Mobile: Full screen, no animations, top positioning
+            'inset-0 w-full h-full max-w-full max-h-full rounded-none p-0',
+            // Desktop: Centered modal with animations
+            'md:data-[state=open]:animate-in md:data-[state=closed]:animate-out md:data-[state=closed]:fade-out-0 md:data-[state=open]:fade-in-0 md:data-[state=closed]:zoom-out-95 md:data-[state=open]:zoom-in-95',
+            'md:top-[50%] md:left-[50%] md:translate-x-[-50%] md:translate-y-[-50%]',
+            'md:w-auto md:h-auto md:max-w-2xl lg:max-w-3xl md:max-h-[90vh]',
+            'md:rounded-lg md:p-6 md:shadow-lg md:border',
+            'md:duration-200'
+          )}
+        >
+          {/* Close button */}
+          <DialogPrimitive.Close className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-sm opacity-60 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden z-10">
+            <XIcon className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogPrimitive.Close>
+
+        <div className="p-4 md:p-0">
+        <DialogHeader className="md:mb-4">
           <div className="flex items-center gap-3">
             <div className={`flex h-10 w-10 items-center justify-center rounded-full ${goal.bgColor}`}>
               <goal.icon className={`h-5 w-5 ${goal.color}`} />
@@ -158,14 +183,14 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs defaultValue="overview" className="w-full px-4 md:px-0">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="contributions">Contributions</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-6 pb-4 md:pb-0">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Current Progress</span>
@@ -302,7 +327,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
             </div>
           </TabsContent>
 
-          <TabsContent value="contributions" className="space-y-4">
+          <TabsContent value="contributions" className="space-y-4 pb-4 md:pb-0">
             <div className="space-y-2">
               <h3 className="font-semibold">Recent Contributions</h3>
               <p className="text-sm text-muted-foreground">Your contribution history for this goal</p>
@@ -331,7 +356,7 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
             </Button>
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6">
+          <TabsContent value="settings" className="space-y-6 pb-4 md:pb-0">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -494,7 +519,9 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
             </div>
           </TabsContent>
         </Tabs>
-      </DialogContent>
+        </div>
+        </DialogPrimitive.Content>
+      </DialogPortal>
     </Dialog>
   )
 }

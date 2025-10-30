@@ -66,41 +66,42 @@ export function GoalRecommendations() {
     setConfirmAction(null)
   }
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="space-y-4 w-full min-w-0">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0">
           <h2 className="text-lg font-semibold">Smart Recommendations</h2>
           <p className="text-sm text-muted-foreground">AI-powered suggestions to optimize your goals</p>
         </div>
-        <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-200">
+        <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-200 shrink-0">
           <Sparkles className="h-3 w-3 mr-1" />3 New
         </Badge>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 w-full min-w-0">
         {recommendations.map((rec, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
+            className="w-full min-w-0"
           >
-            <Card className={`card-standard card-lift border-l-4 ${rec.borderColor}`}>
-              <CardContent className="p-4">
-                <div className="flex gap-4">
+            <Card className={`card-standard card-lift border-l-4 ${rec.borderColor} w-full overflow-hidden`}>
+              <CardContent className="p-4 w-full min-w-0">
+                <div className="flex gap-4 min-w-0">
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${rec.bgColor}`}>
                     <rec.icon className={`h-5 w-5 ${rec.color}`} />
                   </div>
-                  <div className="flex-1 space-y-2">
-                    <div>
-                      <h3 className="font-semibold">{rec.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
+                  <div className="flex-1 space-y-2 min-w-0 overflow-hidden">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold break-words">{rec.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1 break-words">{rec.description}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-card text-xs">
-                        <DollarSign className="h-3 w-3 mr-1" />
-                        {rec.impact}
-                      </Badge>
+                    <div className="w-full">
+                      <div className="inline-flex items-start gap-1.5 rounded-md border px-2.5 py-1 text-xs bg-card max-w-full">
+                        <DollarSign className="h-3 w-3 shrink-0 mt-0.5" />
+                        <span className="break-words leading-tight">{rec.impact}</span>
+                      </div>
                     </div>
                     <Button
                       size="sm"

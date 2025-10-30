@@ -69,8 +69,9 @@ export default function GoalsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full min-w-0"
       >
-        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6 min-w-0">
         <GoalsSummaryKPIs />
 
         <Card className="card-standard">
