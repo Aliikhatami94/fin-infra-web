@@ -1,6 +1,6 @@
 "use client"
 
-import { type ComponentType, type SVGProps, useMemo } from "react"
+import { type ComponentType, type SVGProps, useMemo, useState, useEffect } from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +12,13 @@ import { LastSyncBadge } from "@/components/last-sync-badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
 import { KPIIcon } from "@/components/ui/kpi-icon"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel"
+import { cn } from "@/lib/utils"
 
 type SummaryItem = {
   label: string
@@ -48,6 +55,18 @@ const baseSummary: SummaryItem[] = [
 export function BudgetSummary() {
   const { state, hydrated } = useOnboardingState()
   const persona = hydrated ? state.persona : undefined
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0)
+
+  useEffect(() => {
+    if (!carouselApi) return
+
+    setCurrentSlide(carouselApi.selectedScrollSnap())
+
+    carouselApi.on("select", () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
+    })
+  }, [carouselApi])
 
   const summary: SummaryItem[] = useMemo(() => {
     if (!persona) {
@@ -91,13 +110,10 @@ export function BudgetSummary() {
     return customized
   }, [persona])
 
-  return (
-    <TooltipProvider>
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
-        {summary.map((item, index) => {
-          const Icon = item.icon
-          const progressValue = item.progress ?? 0
-        const progressState =
+  const renderCard = (item: SummaryItem, index: number) => {
+    const Icon = item.icon
+    const progressValue = item.progress ?? 0
+    const progressState =
           item.progress === undefined
             ? null
             : progressValue > 110
@@ -225,8 +241,55 @@ export function BudgetSummary() {
                 </CardContent>
               </Card>
             </motion.div>
-          )
-        })}
+    )
+  }
+
+  return (
+    <TooltipProvider>
+      {/* Mobile: Horizontal carousel */}
+      <div className="md:hidden space-y-3">
+        <Carousel
+          setApi={setCarouselApi}
+          opts={{
+            align: "center",
+            loop: false,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4">
+            {summary.map((item, index) => (
+              <CarouselItem key={item.label} className="pl-4 basis-[85%]">
+                {renderCard(item, index)}
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+
+        {/* Carousel indicators */}
+        <div className="flex justify-center gap-1.5">
+          {summary.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => carouselApi?.scrollTo(index)}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                currentSlide === index
+                  ? "w-6 bg-primary"
+                  : "w-1.5 bg-muted-foreground/30"
+              )}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Tablet/Desktop: Grid layout */}
+      <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+        {summary.map((item, index) => (
+          <div key={item.label}>
+            {renderCard(item, index)}
+          </div>
+        ))}
       </div>
     </TooltipProvider>
   )
