@@ -13,10 +13,9 @@ import {
   YAxis,
   Cell,
 } from "recharts"
-import { Calendar, TrendingUp } from "lucide-react"
+import { TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { currencySummaryFormatter, describeTimeSeries } from "@/lib/a11y"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import type { ChartConfig } from "@/components/ui/chart"
 
@@ -102,151 +101,182 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
   }
 
   return (
-    <Card className="card-standard">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <CardTitle>Cash Flow Overview</CardTitle>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Select value={account} onValueChange={setAccount}>
-                      <SelectTrigger className="w-[160px] h-8 text-xs">
-                        <SelectValue placeholder="Select account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Accounts</SelectItem>
-                        <SelectItem value="checking">Checking Only</SelectItem>
-                        <SelectItem value="chase">Chase Total Checking</SelectItem>
-                        <SelectItem value="fidelity">Fidelity Cash</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">Filter this chart only</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <span className="text-xs text-muted-foreground">Group by:</span>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1 border rounded-md">
-                    <Button variant={period === "month" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("month")}>
-                      Month
-                    </Button>
-                    <Button variant={period === "quarter" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("quarter")}>
-                      Quarter
-                    </Button>
-                    <Button variant={period === "year" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("year")}>
-                      Year
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Calendar className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">Chart aggregation only</p>
-                  <p className="text-xs text-muted-foreground">Time range set in top bar</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+    <Card className="card-standard overflow-hidden">
+      <CardHeader className="pb-2 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-base">Cash Flow</CardTitle>
+          
+          {/* Series Toggle - Checkbox Style */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <button
+              onClick={() => toggleSeries("inflow")}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <div className={`h-3.5 w-3.5 rounded border-2 flex items-center justify-center transition-colors ${
+                visibleSeries.includes("inflow") 
+                  ? "bg-emerald-500 border-emerald-500" 
+                  : "border-muted-foreground/30 bg-transparent"
+              }`}>
+                {visibleSeries.includes("inflow") && (
+                  <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className={`hidden sm:inline font-medium ${visibleSeries.includes("inflow") ? "text-foreground" : "text-muted-foreground"}`}>
+                Income
+              </span>
+            </button>
+            
+            <button
+              onClick={() => toggleSeries("outflow")}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <div className={`h-3.5 w-3.5 rounded border-2 flex items-center justify-center transition-colors ${
+                visibleSeries.includes("outflow") 
+                  ? "bg-red-500 border-red-500" 
+                  : "border-muted-foreground/30 bg-transparent"
+              }`}>
+                {visibleSeries.includes("outflow") && (
+                  <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className={`hidden sm:inline font-medium ${visibleSeries.includes("outflow") ? "text-foreground" : "text-muted-foreground"}`}>
+                Expenses
+              </span>
+            </button>
+            
+            <button
+              onClick={() => toggleSeries("net")}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <div className={`h-3.5 w-3.5 rounded border-2 flex items-center justify-center transition-colors ${
+                visibleSeries.includes("net") 
+                  ? "bg-blue-500 border-blue-500" 
+                  : "border-muted-foreground/30 bg-transparent"
+              }`}>
+                {visibleSeries.includes("net") && (
+                  <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className={`hidden sm:inline font-medium ${visibleSeries.includes("net") ? "text-foreground" : "text-muted-foreground"}`}>
+                Net
+              </span>
+            </button>
           </div>
         </div>
-        {projectionData && (
-          <div className="flex items-center gap-2 mt-2 p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">July Forecast:</span> Net flow of $
-              {projectionData.net.toLocaleString()} based on 6-month average
-            </p>
-          </div>
-        )}
-        {selectedMonth && (
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="secondary" className="text-xs">
-              Filtered: {selectedMonth}
-            </Badge>
-            <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => onMonthClick?.(null)}>
-              Clear
-            </Button>
-          </div>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {/* Series Toggle Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground mr-2">Show:</span>
-            <Button
-              variant={visibleSeries.includes("inflow") ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => toggleSeries("inflow")}
-              className="h-7 text-xs gap-1.5"
+        
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Period Toggle */}
+          <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-card/30 p-1">
+            <Button 
+              variant={period === "month" ? "secondary" : "ghost"} 
+              size="sm" 
+              onClick={() => setPeriod("month")}
+              className="h-7 px-2.5 text-xs"
             >
-              <div className="h-2 w-2 rounded-full bg-[hsl(142,71%,45%)] dark:bg-[hsl(142,76%,55%)]" />
-              Income
+              Month
             </Button>
-            <Button
-              variant={visibleSeries.includes("outflow") ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => toggleSeries("outflow")}
-              className="h-7 text-xs gap-1.5"
+            <Button 
+              variant={period === "quarter" ? "secondary" : "ghost"} 
+              size="sm" 
+              onClick={() => setPeriod("quarter")}
+              className="h-7 px-2.5 text-xs"
             >
-              <div className="h-2 w-2 rounded-full bg-[hsl(0,72%,51%)] dark:bg-[hsl(0,72%,60%)]" />
-              Expenses
+              Quarter
             </Button>
-            <Button
-              variant={visibleSeries.includes("net") ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => toggleSeries("net")}
-              className="h-7 text-xs gap-1.5"
+            <Button 
+              variant={period === "year" ? "secondary" : "ghost"} 
+              size="sm" 
+              onClick={() => setPeriod("year")}
+              className="h-7 px-2.5 text-xs"
             >
-              <div className="h-2 w-2 rounded-full bg-[hsl(221,83%,53%)] dark:bg-[hsl(221,83%,65%)]" />
-              Net
+              Year
             </Button>
           </div>
 
-          {/* Chart */}
-          <ChartContainer config={chartConfig} className="h-[350px] w-full">
-            <ComposedChart data={monthlyData} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          {/* Account Filter */}
+          <Select value={account} onValueChange={setAccount}>
+            <SelectTrigger className="w-[130px] h-7 text-xs border-border/60 bg-card/30">
+              <SelectValue placeholder="Account" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All Accounts</SelectItem>
+              <SelectItem value="checking" className="text-xs">Checking</SelectItem>
+              <SelectItem value="chase" className="text-xs">Chase</SelectItem>
+              <SelectItem value="fidelity" className="text-xs">Fidelity</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Projection Badge */}
+          {projectionData && (
+            <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 bg-blue-500/5 border-blue-500/20">
+              <TrendingUp className="h-3 w-3 text-blue-500" />
+              <span className="hidden sm:inline text-muted-foreground">Forecast</span>
+            </Badge>
+          )}
+
+          {/* Selected Month Badge */}
+          {selectedMonth && (
+            <>
+              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                {selectedMonth}
+              </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-xs" 
+                onClick={() => onMonthClick?.(null)}
+              >
+                Clear
+              </Button>
+            </>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0 pb-3">
+          {/* Chart - Ultra Compact */}
+          <ChartContainer config={chartConfig} className="h-[240px] w-full">
+            <ComposedChart data={monthlyData} margin={{ left: -10, right: 5, top: 5, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-inflow)" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="var(--color-inflow)" stopOpacity={0.6}/>
+                  <stop offset="5%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.7}/>
                 </linearGradient>
                 <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-outflow)" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="var(--color-outflow)" stopOpacity={0.6}/>
+                  <stop offset="5%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.7}/>
                 </linearGradient>
               </defs>
               <CartesianGrid
-                strokeDasharray="3 3"
+                strokeDasharray="2 4"
                 vertical={false}
                 stroke="currentColor"
-                className="stroke-muted/20"
+                className="stroke-muted/5"
+                horizontal={true}
               />
               <XAxis
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
-                tickMargin={12}
-                className="text-[11px]"
+                tickMargin={6}
+                className="text-[10px] text-muted-foreground"
                 stroke="currentColor"
+                tick={{ fontSize: 10 }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tickMargin={12}
-                className="text-[11px]"
+                tickMargin={4}
+                className="text-[10px] text-muted-foreground"
                 stroke="currentColor"
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                width={45}
+                width={35}
+                tick={{ fontSize: 10 }}
               />
               <ChartTooltip
                 content={
@@ -281,13 +311,13 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                 <Bar
                   dataKey="inflow"
                   fill="url(#colorInflow)"
-                  radius={[8, 8, 0, 0]}
+                  radius={[4, 4, 0, 0]}
                   onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
                   cursor="pointer"
-                  maxBarSize={40}
+                  maxBarSize={28}
                 >
                   {monthlyData.map((entry, index) => {
-                    const dimmed = entry.isProjection ? 0.5 : selectedMonth && entry.month !== selectedMonth ? 0.2 : 1
+                    const dimmed = entry.isProjection ? 0.4 : selectedMonth && entry.month !== selectedMonth ? 0.2 : 1
                     return <Cell key={`inflow-${index}`} opacity={dimmed} />
                   })}
                 </Bar>
@@ -297,13 +327,13 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                 <Bar
                   dataKey="outflow"
                   fill="url(#colorOutflow)"
-                  radius={[8, 8, 0, 0]}
+                  radius={[4, 4, 0, 0]}
                   onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
                   cursor="pointer"
-                  maxBarSize={40}
+                  maxBarSize={28}
                 >
                   {monthlyData.map((entry, index) => {
-                    const dimmed = entry.isProjection ? 0.5 : selectedMonth && entry.month !== selectedMonth ? 0.2 : 1
+                    const dimmed = entry.isProjection ? 0.4 : selectedMonth && entry.month !== selectedMonth ? 0.2 : 1
                     return <Cell key={`outflow-${index}`} opacity={dimmed} />
                   })}
                 </Bar>
@@ -313,10 +343,10 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                 <Line
                   type="monotone"
                   dataKey="net"
-                  stroke="var(--color-net)"
+                  stroke="hsl(221, 83%, 53%)"
                   strokeWidth={2}
                   dot={{
-                    fill: "var(--color-net)",
+                    fill: "hsl(221, 83%, 53%)",
                     strokeWidth: 0,
                     r: 3,
                   }}
@@ -324,13 +354,12 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                     r: 5,
                     strokeWidth: 2,
                     stroke: "hsl(var(--background))",
-                    fill: "var(--color-net)",
+                    fill: "hsl(221, 83%, 53%)",
                   }}
                 />
               )}
             </ComposedChart>
           </ChartContainer>
-        </div>
       </CardContent>
     </Card>
   )
