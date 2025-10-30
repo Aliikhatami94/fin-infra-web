@@ -25,36 +25,36 @@ export function CategoriesChart({ selectedCategory, onSelectCategory }: Categori
 
   return (
     <Card className="card-standard overflow-hidden">
-      <CardHeader>
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
-          <CardTitle className="truncate">Budget Status</CardTitle>
-          <div className="flex items-center gap-0.5 border rounded-md flex-shrink-0">
-            <Button variant="default" size="sm" className="h-7 px-2.5 text-xs">
+          <CardTitle className="truncate text-base">Budget Status</CardTitle>
+          <div className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-card/30 p-0.5 flex-shrink-0">
+            <Button variant="default" size="sm" className="h-6 px-2 text-xs">
               Expenses
             </Button>
-            <Button variant="ghost" size="sm" className="h-7 px-2.5 text-xs">
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
               Income
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="overflow-hidden">
+      <CardContent className="overflow-hidden pt-0">
         {uncategorizedCount > 0 && (
           <div
-            className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-start gap-2 cursor-pointer hover:bg-yellow-500/15 transition-colors"
+            className="mb-3 p-2.5 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-start gap-2 cursor-pointer hover:bg-yellow-500/15 transition-colors"
             onClick={() => router.push("/cash-flow?filter=uncategorized")}
           >
-            <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-yellow-500">Uncategorized Transactions</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                ${uncategorizedCount} in transactions need categorization - Click to review
+            <AlertCircle className="h-3.5 w-3.5 text-yellow-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-yellow-500">Uncategorized</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                ${uncategorizedCount} need review
               </p>
             </div>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {expenseData
             .filter((e) => e.budget > 0)
             .map((expense) => {
@@ -66,29 +66,29 @@ export function CategoriesChart({ selectedCategory, onSelectCategory }: Categori
               return (
                 <div
                   key={expense.name}
-                  className={`space-y-2 cursor-pointer p-3 rounded-lg transition-all overflow-hidden ${
+                  className={`space-y-1.5 cursor-pointer p-2.5 rounded-lg transition-all overflow-hidden ${
                     isOverBudget
                       ? "bg-red-500/5 hover:bg-red-500/10"
                       : isSelected
-                        ? "bg-primary/10 ring-2 ring-primary/20"
+                        ? "bg-primary/10 ring-1 ring-primary/20"
                         : "hover:bg-muted/30"
                   }`}
                   onClick={() => onSelectCategory(isSelected ? null : expense.name)}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: expense.color }} />
-                      <span className="text-sm font-medium text-foreground truncate">{expense.name}</span>
-                      {isSelected && <span className="text-xs text-primary font-medium whitespace-nowrap flex-shrink-0">(Filtering)</span>}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: expense.color }} />
+                      <span className="text-xs font-medium text-foreground truncate">{expense.name}</span>
+                      {isSelected && <span className="text-[10px] text-primary font-medium whitespace-nowrap flex-shrink-0">(Active)</span>}
                     </div>
                     <span
-                      className={`text-sm font-semibold tabular-nums flex-shrink-0 ${isOverBudget ? "text-red-500" : "text-muted-foreground"}`}
+                      className={`text-xs font-semibold tabular-nums flex-shrink-0 ${isOverBudget ? "text-red-500" : "text-muted-foreground"}`}
                     >
                       ${expense.spent.toLocaleString()} / ${expense.budget.toLocaleString()}
-                      {isOverBudget && <span className="ml-1 text-xs">(+${overAmount})</span>}
+                      {isOverBudget && <span className="ml-1 text-[10px]">(+${overAmount})</span>}
                     </span>
                   </div>
-                  <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
                     {isOverBudget ? (
                       <>
                         <div className="absolute inset-0 bg-red-500/20 rounded-full" />
