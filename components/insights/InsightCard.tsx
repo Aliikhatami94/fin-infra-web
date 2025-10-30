@@ -262,6 +262,7 @@ export function InsightCard({
   )
 
   return (
+    <>
     <motion.div
       ref={cardRef}
       variants={createStaggeredCardVariants(index, 0)}
@@ -273,14 +274,14 @@ export function InsightCard({
         aria-labelledby={headingId}
         aria-describedby={descriptionId}
         className={cn(
-          "card-standard card-lift relative h-full transition-shadow",
+          "card-standard card-lift relative h-full transition-shadow flex flex-col",
           "focus-within:ring-2 focus-within:ring-primary/40",
           unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/45)] focus-within:ring-primary",
           isResolved && "border-border/40 bg-muted/40 saturate-75",
         )}
         data-state={isResolved ? "resolved" : "active"}
       >
-        <CardContent className={cn("space-y-4 p-6", isResolved && "opacity-80 transition-opacity")}
+        <CardContent className={cn("flex flex-col flex-1 p-6", isResolved && "opacity-80 transition-opacity")}
           data-resolved={isResolved}
         >
           {unread && !isResolved && (
@@ -342,11 +343,14 @@ export function InsightCard({
             </TooltipProvider>
           </div>
 
+          {/* Content Section - grows to push actions to bottom */}
+          <div className="flex-1">
+          <div className="space-y-4">
           <div className="flex items-start gap-3 pr-14">
             <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", styles.background)}>
               <insight.icon className={cn("h-5 w-5", styles.icon)} aria-hidden="true" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 id={headingId} className="text-sm font-semibold text-foreground">
                 {insight.title}
               </h3>
@@ -406,6 +410,7 @@ export function InsightCard({
                 )}
               </div>
             </div>
+          </div>
           </div>
 
           <p id={descriptionId} className="text-sm leading-relaxed text-muted-foreground">
@@ -497,8 +502,28 @@ export function InsightCard({
             </div>
           )}
 
+          {insight.progress && (
+            <div>
+              {insight.progress.label && (
+                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{insight.progress.label}</span>
+                  <span className="font-medium text-foreground">{insight.progress.value}%</span>
+                </div>
+              )}
+              <motion.div
+                className={cn("h-1.5 w-full rounded-full", styles.progress)}
+                initial={{ scaleX: 0, originX: 0 }}
+                animate={{ scaleX: Math.min(insight.progress.value, 100) / 100 }}
+                transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                role="presentation"
+              />
+            </div>
+          )}
+          </div>
+
+          {/* Sticky Actions Section at Bottom */}
           {insight.actions.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 border-t border-border/30 pt-4 mt-auto">
               {insight.actions.map((action, actionIndex) => {
                 const isPrimaryAction = actionIndex === primaryActionIndex
                 const effectiveVariant = action.variant ?? (isPrimaryAction ? "default" : "outline")
@@ -542,37 +567,19 @@ export function InsightCard({
               })}
             </div>
           )}
-
-          {insight.progress && (
-            <div className="pt-2">
-              {insight.progress.label && (
-                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{insight.progress.label}</span>
-                  <span className="font-medium text-foreground">{insight.progress.value}%</span>
-                </div>
-              )}
-              <motion.div
-                className={cn("h-1.5 w-full rounded-full", styles.progress)}
-                initial={{ scaleX: 0, originX: 0 }}
-                animate={{ scaleX: Math.min(insight.progress.value, 100) / 100 }}
-                transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-                role="presentation"
-              />
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {confirmAction && (
-        <ConfirmDialog
-          open={Boolean(confirmAction)}
-          onOpenChange={(open) => !open && setConfirmAction(null)}
-          title={getAutomationConfirmation(confirmAction).title}
-          description={getAutomationConfirmation(confirmAction).description}
-          confirmLabel="Continue"
-          onConfirm={handleConfirmAction}
-        />
-      )}
     </motion.div>
+
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction ? getAutomationConfirmation(confirmAction).title : ""}
+        description={confirmAction ? getAutomationConfirmation(confirmAction).description : ""}
+        confirmLabel="Continue"
+        onConfirm={handleConfirmAction}
+      />
+    </>
   )
 }
