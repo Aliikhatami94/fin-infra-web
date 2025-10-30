@@ -46,8 +46,8 @@ export function BackToTopButton() {
       size="icon"
       aria-label="Back to top"
       className={cn(
-        // Positioned to avoid overlapping the global feedback button at right-6
-        "fixed bottom-6 right-20 z-[100] h-12 w-12 rounded-full shadow-lg transition-all duration-300",
+        // Positioned in the bottom right corner
+        "fixed bottom-6 right-6 z-[100] h-12 w-12 rounded-full shadow-lg transition-all duration-300",
         "hover:shadow-xl hover:-translate-y-1",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         isVisible

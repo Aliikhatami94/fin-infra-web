@@ -46,22 +46,24 @@ export function DashboardBackToTop() {
   }
 
   return (
-    <Button
-      onClick={scrollToTop}
-      onKeyDown={handleKeyDown}
-      size="icon"
-      aria-label="Back to top"
-      className={cn(
-        // Mobile only, positioned above chat button
-        "md:hidden fixed bottom-20 right-4 z-[100] h-12 w-12 rounded-full shadow-lg transition-all duration-300",
-        "hover:shadow-xl hover:-translate-y-1",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        isVisible
-          ? "opacity-100 translate-y-0 pointer-events-auto"
-          : "opacity-0 translate-y-4 pointer-events-none",
-      )}
-    >
-      <ArrowUp className="h-6 w-6" aria-hidden="true" />
-    </Button>
+    <div className="md:hidden">
+      <Button
+        onClick={scrollToTop}
+        onKeyDown={handleKeyDown}
+        size="icon"
+        aria-label="Back to top"
+        className={cn(
+          // Mobile only, positioned above chat button
+          "fixed bottom-20 right-4 z-[100] h-12 w-12 rounded-full shadow-lg transition-all duration-300",
+          "hover:shadow-xl hover:-translate-y-1",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+          isVisible
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-4 pointer-events-none",
+        )}
+      >
+        <ArrowUp className="h-6 w-6" aria-hidden="true" />
+      </Button>
+    </div>
   )
 }
