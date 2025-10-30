@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TrendingDown, AlertCircle, CalendarDays, Info } from "lucide-react"
+import { TrendingDown, AlertCircle, CalendarDays, Info, Building2, FileText, Calendar } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ErrorBoundary } from "@/components/error-boundary"
 import {
@@ -77,6 +77,9 @@ export default function TaxesPage() {
       {
         id: "harvest",
         label: "Loss harvesting cutoff",
+        icon: Calendar,
+        iconColor: "text-purple-600 dark:text-purple-400",
+        iconBg: "bg-purple-100 dark:bg-purple-950",
         month: 11,
         day: 31,
         description: "Realize losses before year-end to offset gains.",
@@ -89,6 +92,9 @@ export default function TaxesPage() {
       {
         id: "estimate",
         label: "Q4 estimated payment due",
+        icon: Building2,
+        iconColor: "text-blue-600 dark:text-blue-400",
+        iconBg: "bg-blue-100 dark:bg-blue-950",
         month: 0,
         day: 15,
         yearOffset: 1,
@@ -102,6 +108,9 @@ export default function TaxesPage() {
       {
         id: "documents",
         label: "1099 delivery window",
+        icon: FileText,
+        iconColor: "text-green-600 dark:text-green-400",
+        iconBg: "bg-green-100 dark:bg-green-950",
         month: 1,
         day: 15,
         yearOffset: 1,
@@ -219,23 +228,30 @@ export default function TaxesPage() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {deadlineItems.map((deadline) => (
-                <div
-                  key={deadline.id}
-                  className="flex flex-col rounded-lg border border-border bg-card p-4 shadow-sm transition hover:border-primary/50 hover:shadow"
-                >
-                  <div className="mb-3 flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-semibold text-foreground">{deadline.label}</h3>
-                      <p className="mt-1 text-xs text-orange-600 dark:text-orange-400 font-medium">
-                        {format(deadline.targetDate, "MMM d, yyyy")}
-                      </p>
+              {deadlineItems.map((deadline) => {
+                const DeadlineIcon = deadline.icon
+                return (
+                  <div
+                    key={deadline.id}
+                    className="flex flex-col rounded-lg border border-border bg-card p-4 shadow-sm transition hover:border-primary/50 hover:shadow"
+                  >
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${deadline.iconBg}`}>
+                          <DeadlineIcon className={`h-4 w-4 ${deadline.iconColor}`} aria-hidden="true" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-semibold text-foreground">{deadline.label}</h3>
+                          <p className="mt-1 text-xs text-orange-600 dark:text-orange-400 font-medium">
+                            {format(deadline.targetDate, "MMM d, yyyy")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 rounded bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400">
+                        {deadline.daysRemaining}d
+                      </div>
                     </div>
-                    <div className="shrink-0 rounded bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400">
-                      {deadline.daysRemaining}d
-                    </div>
-                  </div>
-                  <p className="mb-4 flex-1 text-xs leading-relaxed text-muted-foreground">{deadline.description}</p>
+                    <p className="mb-4 flex-1 text-xs leading-relaxed text-muted-foreground">{deadline.description}</p>
                   {deadline.action.type === "button" ? (
                     <div>
                       <Button
@@ -264,7 +280,8 @@ export default function TaxesPage() {
                     </Button>
                   )}
                 </div>
-              ))}
+                )
+              })}
             </div>
 
             {/* Help Link */}
