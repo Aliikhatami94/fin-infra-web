@@ -14,6 +14,7 @@ import {
   RecentActivitySkeleton,
 } from "@/components/dashboard-skeletons"
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
+import { DashboardShell } from "@/components/dashboard/shell"
 
 const AllocationChart = dynamic<AllocationChartProps>(
   () => import("@/components/allocation-chart").then((mod) => mod.AllocationChart),
@@ -74,65 +75,115 @@ const AIInsights = dynamic(
 export default function OverviewPage() {
   const [allocationFilter, setAllocationFilter] = useState<string | null>(null)
 
+  const bands = [
+    {
+      content: (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18 }}
+          className="space-y-4"
+        >
+          <h2 className="text-lg font-semibold text-foreground">Portfolio Health</h2>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <AllocationChart onFilterChange={setAllocationFilter} activeFilter={allocationFilter} />
+            <PerformanceTimeline />
+          </div>
+        </motion.div>
+      ),
+      span: "full" as const,
+    },
+    {
+      content: (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, delay: 0.05 }}
+          className="space-y-4"
+        >
+          <h2 className="text-lg font-semibold text-foreground">Cash &amp; Liabilities</h2>
+          <CashFlow />
+        </motion.div>
+      ),
+      span: "full" as const,
+    },
+    {
+      content: (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, delay: 0.1 }}
+          className="space-y-4"
+        >
+          <h2 className="text-lg font-semibold text-foreground">Holdings</h2>
+          {allocationFilter ? (
+            <p className="text-sm text-muted-foreground">
+              Showing holdings for: <span className="font-medium text-foreground">{allocationFilter}</span>
+            </p>
+          ) : null}
+          <Portfolio filter={allocationFilter} />
+        </motion.div>
+      ),
+      span: "full" as const,
+    },
+    {
+      content: (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, delay: 0.15 }}
+          className="space-y-4"
+        >
+          <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
+          <RecentActivity />
+        </motion.div>
+      ),
+      span: "half" as const,
+    },
+    {
+      content: (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, delay: 0.2 }}
+          className="space-y-4"
+        >
+          <h2 className="text-lg font-semibold text-foreground">Accountability</h2>
+          <AccountabilityChecklist surface="overview" />
+        </motion.div>
+      ),
+      span: "half" as const,
+    },
+  ]
+
+  const insights = (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18, delay: 0.25 }}
+      className="space-y-4"
+    >
+      <h2 className="text-lg font-semibold text-foreground">Insights</h2>
+      <ErrorBoundary feature="AI Insights">
+        <AIInsights />
+      </ErrorBoundary>
+    </motion.div>
+  )
+
   return (
-    <>
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
-          <h1 className="text-xl md:text-2xl font-semibold text-foreground">Overview</h1>
-        </div>
-      </div>
-
-      {/* Body */}
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.18 }}
-        className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6"
-      >
-        <section>
+    <DashboardShell
+      title="Overview"
+      kpis={
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18 }}
+        >
           <KPICards />
-        </section>
-
-      <section>
-        <AccountabilityChecklist surface="overview" />
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Portfolio Health</h2>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <AllocationChart onFilterChange={setAllocationFilter} activeFilter={allocationFilter} />
-          <PerformanceTimeline />
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Cash & Liabilities</h2>
-        <CashFlow />
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Holdings</h2>
-        {allocationFilter && (
-          <p className="text-sm text-muted-foreground mb-3">
-            Showing holdings for: <span className="font-medium text-foreground">{allocationFilter}</span>
-          </p>
-        )}
-        <Portfolio filter={allocationFilter} />
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Recent Activity</h2>
-        <RecentActivity />
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Insights</h2>
-        <ErrorBoundary feature="AI Insights">
-          <AIInsights />
-        </ErrorBoundary>
-      </section>
-      </motion.div>
-    </>
+        </motion.div>
+      }
+      bands={bands}
+      insights={insights}
+    />
   )
 }

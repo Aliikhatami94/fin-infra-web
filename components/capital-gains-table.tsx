@@ -198,44 +198,44 @@ export function CapitalGainsTable({ initialFilter }: CapitalGainsTableProps) {
               }`}
             >
               <tr className="text-left text-sm text-muted-foreground">
-                <th className="pb-3 pt-2 pl-6 font-medium w-[120px]">
+                <th className="pb-2.5 pt-2 pl-6 font-medium w-[120px]">
                   <Button variant="ghost" size="sm" className="h-8 px-2 -ml-2" onClick={() => handleSort("asset")}>
                     Asset
                     <ArrowUpDown className="ml-2 h-3 w-3" />
                   </Button>
                 </th>
-                <th className="pb-3 pt-2 font-medium w-[180px]">Type</th>
-                <th className="pb-3 pt-2 font-medium text-right w-[140px]">
+                <th className="pb-2.5 pt-2 font-medium w-[180px]">Type</th>
+                <th className="pb-2.5 pt-2 font-medium text-right w-[140px]">
                   <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleSort("gain")}>
                     Gain/Loss
                     <ArrowUpDown className="ml-2 h-3 w-3" />
                   </Button>
                 </th>
-                <th className="pb-3 pt-2 font-medium w-[140px]">
+                <th className="pb-2.5 pt-2 font-medium w-[140px]">
                   <Button variant="ghost" size="sm" className="h-8 px-2 -ml-2" onClick={() => handleSort("dateSold")}>
                     Date Sold
                     <ArrowUpDown className="ml-2 h-3 w-3" />
                   </Button>
                 </th>
-                <th className="pb-3 pt-2 font-medium w-[140px]">Holding Period</th>
-                <th className="pb-3 pt-2 pr-6 font-medium w-[120px] text-right">Action</th>
+                <th className="pb-2.5 pt-2 font-medium w-[140px]">Holding Period</th>
+                <th className="pb-2.5 pt-2 pr-6 font-medium w-[120px] text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {sortedGains.map((gain, index) => (
                 <tr
                   key={index}
-                  className="border-b border-border/30 last:border-0 hover:bg-muted/40 transition-smooth"
+                  className="border-b border-border/30 last:border-0 hover:bg-muted/40 transition-smooth odd:bg-muted/20"
                   onMouseEnter={() => setHoveredRow(index)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
-                  <td className="py-4 pl-6 w-[120px]">
+                  <td className="py-3 pl-6 w-[120px]">
                     <p className="text-sm font-semibold text-foreground">{gain.asset}</p>
                   </td>
-                  <td className="py-4 w-[180px]">{getHoldingPeriodBadge(gain.type, gain.monthsHeld)}</td>
-                  <td className="py-4 text-right w-[140px]">
+                  <td className="py-3 w-[180px]">{getHoldingPeriodBadge(gain.type, gain.monthsHeld)}</td>
+                  <td className="py-3 text-right w-[140px]">
                     <p
-                      className={`text-sm font-bold tabular-nums ${
+                      className={`text-sm font-bold font-mono tabular-nums ${
                         gain.gain > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                       }`}
                     >
@@ -246,13 +246,13 @@ export function CapitalGainsTable({ initialFilter }: CapitalGainsTableProps) {
                       })}
                     </p>
                   </td>
-                  <td className="py-4 w-[140px]">
+                  <td className="py-3 w-[140px]">
                     <p className="text-sm text-muted-foreground">{gain.dateSold}</p>
                   </td>
-                  <td className="py-4 w-[140px]">
+                  <td className="py-3 w-[140px]">
                     <p className="text-sm text-muted-foreground">{gain.holdingPeriod}</p>
                   </td>
-                  <td className="py-4 pr-6 text-right w-[120px]">
+                  <td className="py-3 pr-6 text-right w-[120px]">
                     {gain.gain < 0 && (
                       <Button
                         variant="ghost"
@@ -287,7 +287,7 @@ export function CapitalGainsTable({ initialFilter }: CapitalGainsTableProps) {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Gain/Loss</p>
                   <p
-                    className={`text-base font-bold tabular-nums ${gain.gain > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                    className={`text-base font-bold font-mono tabular-nums ${gain.gain > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                   >
                     {gain.gain > 0 ? "+" : ""}$
                     {Math.abs(gain.gain).toLocaleString("en-US", {

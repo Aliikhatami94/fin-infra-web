@@ -89,20 +89,20 @@ export function GoalsSummaryKPIs() {
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground">{primaryLabel}</p>
+                  <p className="text-label-sm text-muted-foreground">{primaryLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+                  <div className="flex items-baseline justify-between text-label-sm text-muted-foreground font-normal">
                     <span>
-                      Saved <span className="font-medium text-foreground">${totalSaved.toLocaleString()}</span>
+                      Saved <span className="font-medium text-foreground font-tabular">${totalSaved.toLocaleString()}</span>
                     </span>
-                    <span>Target ${totalTarget.toLocaleString()}</span>
+                    <span className="font-tabular">Target ${totalTarget.toLocaleString()}</span>
                   </div>
                   <Progress value={percentComplete} aria-label={`${percentComplete}% of goal funded`} />
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold">{percentComplete}%</span>
-                    <span className="text-xs text-muted-foreground">complete</span>
+                    <span className="text-kpi font-semibold font-tabular">{percentComplete}%</span>
+                    <span className="text-label-xs text-muted-foreground font-normal">complete</span>
                   </div>
                 </div>
               </div>
@@ -114,15 +114,15 @@ export function GoalsSummaryKPIs() {
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      className="inline-flex items-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-sm font-medium text-[var(--color-positive)]"
+                      className="inline-flex items-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-label-sm text-[var(--color-positive)]"
                       aria-label="Goal progress in the last 6 months"
                     >
                       Last 6 months
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-xs">Previous balance: $54,000</p>
-                    <p className="text-xs">Current balance: ${totalSaved.toLocaleString()}</p>
+                    <p className="text-label-xs font-normal">Previous balance: $54,000</p>
+                    <p className="text-label-xs font-normal">Current balance: ${totalSaved.toLocaleString()}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -140,12 +140,12 @@ export function GoalsSummaryKPIs() {
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground">{monthlyLabel}</p>
+                  <p className="text-label-sm text-muted-foreground">{monthlyLabel}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
                 </div>
-                <p className="text-2xl font-bold tabular-nums">
+                <p className="text-kpi font-semibold font-tabular">
                   ${monthlyContribution.toLocaleString()}
-                  <span className="text-base font-normal text-muted-foreground">/mo</span>
+                  <span className="text-body-sm font-normal text-muted-foreground">/mo</span>
                 </p>
               </div>
               <KPIIcon icon={DollarSign} tone="positive" shape="circle" className="shrink-0" />
@@ -157,19 +157,19 @@ export function GoalsSummaryKPIs() {
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        className="inline-flex items-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                        className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
                         aria-label={`${contributionRate}% of target contribution`}
                       >
-                        <span className="text-sm font-medium text-[var(--color-warning)]">{contributionRate}%</span>
+                        <span className="text-label-sm text-[var(--color-warning)]">{contributionRate}%</span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="text-xs">Target: ${targetContribution.toLocaleString()}/mo</p>
-                      <p className="text-xs">Current: ${monthlyContribution.toLocaleString()}/mo</p>
+                      <p className="text-label-xs font-normal">Target: ${targetContribution.toLocaleString()}/mo</p>
+                      <p className="text-label-xs font-normal">Current: ${monthlyContribution.toLocaleString()}/mo</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <span className="text-xs text-muted-foreground">of target</span>
+                <span className="text-label-xs text-muted-foreground font-normal">of target</span>
               </div>
               <div className="shrink-0">
                 <MiniSparkline data={contributionData} color="var(--color-positive)" />
@@ -185,21 +185,21 @@ export function GoalsSummaryKPIs() {
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground">{fundingHeadline}</p>
+                  <p className="text-label-sm text-muted-foreground">{fundingHeadline}</p>
                   <LastSyncBadge timestamp="5 min ago" source="Manual" />
                 </div>
-                <p className="text-2xl font-bold">On Track</p>
+                <p className="text-title-sm font-semibold text-foreground">On Track</p>
               </div>
               <KPIIcon icon={TrendingUp} tone="positive" shape="circle" className="shrink-0" />
             </div>
             <div className="space-y-1 mt-auto">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Emergency Fund</span>
-                <span className="font-medium">$500/mo</span>
+              <div className="flex items-center justify-between text-label-xs text-muted-foreground font-normal">
+                <span>Emergency Fund</span>
+                <span className="font-medium text-foreground font-tabular">$500/mo</span>
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">House Down Payment</span>
-                <span className="font-medium">$600/mo</span>
+              <div className="flex items-center justify-between text-label-xs text-muted-foreground font-normal">
+                <span>House Down Payment</span>
+                <span className="font-medium text-foreground font-tabular">$600/mo</span>
               </div>
             </div>
           </CardContent>

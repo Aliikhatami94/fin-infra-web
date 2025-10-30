@@ -31,15 +31,7 @@ import { useDensity } from "@/app/providers/density-provider"
 
 import { cn } from "@/lib/utils"
 
-export function TopBar({ 
-  onMenuClick, 
-  sidebarCollapsed,
-  onHeaderVisibilityChange 
-}: { 
-  onMenuClick?: () => void; 
-  sidebarCollapsed?: boolean;
-  onHeaderVisibilityChange?: (visible: boolean) => void;
-}) {
+export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => void; sidebarCollapsed?: boolean }) {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
   const { dateRange, setDateRange } = useDateRange()
@@ -51,6 +43,7 @@ export function TopBar({
   
   // Scroll behavior for mobile: hide on scroll down, show on scroll up
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
+  const [isScrolled, setIsScrolled] = useState(false)
   const lastScrollY = useRef(0)
   const scrollThreshold = 10 // Minimum scroll distance to trigger hide/show
 
@@ -81,24 +74,20 @@ export function TopBar({
     // Only update if scroll difference exceeds threshold (prevents jitter)
     if (scrollDifference < scrollThreshold) return
 
-    let newVisibility = isHeaderVisible
-    
     // Show header when scrolling up or at top
     if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
-      newVisibility = true
+      setIsHeaderVisible(true)
     } 
     // Hide header when scrolling down (only on mobile/tablet)
     else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-      newVisibility = false
+      setIsHeaderVisible(false)
     }
 
-    if (newVisibility !== isHeaderVisible) {
-      setIsHeaderVisible(newVisibility)
-      onHeaderVisibilityChange?.(newVisibility)
-    }
+    // Track if scrolled past threshold for styling
+    setIsScrolled(currentScrollY > 10)
     
     lastScrollY.current = currentScrollY
-  }, [scrollThreshold, isHeaderVisible, onHeaderVisibilityChange])
+  }, [scrollThreshold])
 
   useEffect(() => {
     setMounted(true)
@@ -125,8 +114,10 @@ export function TopBar({
         sidebarCollapsed ? "lg:left-16" : "lg:left-64",
         // Mobile: slide up when hidden, down when visible
         isHeaderVisible ? "translate-y-0" : "-translate-y-full md:translate-y-0",
-        // Background with glass effect (no border or shadow)
-        "bg-background/80",
+        // Background with glass effect and shadow when scrolled
+        isScrolled 
+          ? "bg-background/95 shadow-sm border-b border-border/40" 
+          : "bg-background/80",
       )}
     >
       {/* Inner container: constrain width and center horizontally to match page content width */}
@@ -172,14 +163,13 @@ export function TopBar({
         </div>
 
         {/* Right section: Actions + Profile - Progressive disclosure on mobile */}
-        <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
-          {/* Workspace badge - desktop only */}
-          <Badge variant="secondary" className="hidden xl:flex items-center gap-1 rounded-full px-2 py-0.5">
-            <Building2 className="h-3 w-3" />
-            <span className="text-[10px] font-medium">{activeWorkspace.name}</span>
-          </Badge>
+        <div className="flex items-center gap-1 shrink-0">
 
-          {/* Privacy toggle - tablet+ */}
+        <div className="flex items-center gap-1 md:gap-2">
+          <Badge variant="secondary" className="hidden lg:flex items-center gap-1 rounded-full">
+            <Building2 className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">{activeWorkspace.name}</span>
+          </Badge>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -189,24 +179,21 @@ export function TopBar({
                   aria-pressed={!masked}
                   aria-label={maskLabel}
                   onClick={toggleMasked}
-                  className="hidden md:flex h-8 w-8"
+                  className="hidden sm:flex"
                 >
-                  <MaskIcon className="h-4 w-4" />
+                  <MaskIcon className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
+              <TooltipContent>
                 <p className="text-xs">{masked ? "Amounts hidden" : "Amounts visible"}</p>
+                <p className="text-xs text-muted-foreground">Click to {masked ? "show" : "hide"}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
-          {/* Date range selector - tablet+ */}
           <Select value={dateRange} onValueChange={handleDateRangeChange}>
-            <SelectTrigger 
-              className="w-[6.5rem] md:w-28 lg:w-32 rounded-full hidden md:flex h-8 text-xs" 
-              title={`Date range: ${dateRange}`}
-            >
-              <Calendar className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+            <SelectTrigger className="w-[7.5rem] md:w-36 rounded-full hidden sm:flex" title={`Date range: ${dateRange}`}>
+              <Calendar className="mr-2 h-4 w-4 shrink-0" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -220,29 +207,27 @@ export function TopBar({
             </SelectContent>
           </Select>
 
-          {/* Notifications - always visible */}
           <Button
             variant="ghost"
             size="icon"
-            className="relative h-8 w-8"
+            className="relative"
             aria-label={unreadCount ? `${unreadCount} unread notifications` : "Notifications"}
             onClick={() => setNotificationsOpen(true)}
           >
-            <Bell className="h-4 w-4" />
+            <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
-              <Badge className="absolute -right-0.5 -top-0.5 h-4 min-w-4 px-0.5 text-[10px] bg-primary text-primary-foreground border-2 border-background">
+              <Badge className="absolute -right-1 -top-1 h-5 min-w-5 px-1 text-xs bg-primary text-primary-foreground">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </Badge>
             )}
           </Button>
 
-          {/* User profile dropdown - always visible */}
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open account menu" className="h-8 w-8">
-                <Avatar className="h-7 w-7">
+              <Button variant="ghost" size="icon" aria-label="Open account menu">
+                <Avatar className="h-8 w-8">
                   <AvatarImage src={undefined} alt={activeMember.name} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                     {activeMember.avatarFallback}
                   </AvatarFallback>
                 </Avatar>

@@ -56,7 +56,7 @@ export default function GoalsPage() {
         <div className="mx-auto p-4 max-w-[1200px] px-4 sm:px-6 lg:px-10">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-foreground">Financial Goals</h1>
-            <Button onClick={() => setShowAddGoal(true)} className="hidden md:flex">
+            <Button onClick={() => setShowAddGoal(true)} className="flex">
               <Plus className="mr-2 h-4 w-4" />
               Add Goal
             </Button>
@@ -204,14 +204,7 @@ export default function GoalsPage() {
         </div>
       </motion.div>
 
-      <Button
-        size="lg"
-        className="fixed bottom-24 right-5 z-50 h-14 w-14 rounded-full p-0 shadow-lg md:hidden"
-        onClick={() => setShowAddGoal(true)}
-        aria-label="Add goal"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+      {/* Floating add goal button removed; Add Goal now visible in header on all sizes */}
     </>
   )
 }

@@ -75,6 +75,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [marketingAutoplay, setMarketingAutoplay] = useState<boolean>(false)
   const [marketingPrefill, setMarketingPrefill] = useState<string | null>(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -162,10 +163,20 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             <OfflineBanner />
             
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-              <header className="sticky inset-x-0 top-0 z-40 h-12 md:h-14">
+              {/* Compact, responsive header with auto-hide on mobile */}
+              <header 
+                className={cn(
+                  "sticky inset-x-0 top-0 z-40 transition-all duration-300",
+                  // Dynamic height based on visibility - when hidden on mobile, collapse to 0
+                  isHeaderVisible 
+                    ? "h-11 md:h-12 lg:h-14" 
+                    : "h-0 md:h-12 lg:h-14"
+                )}
+              >
                 <TopBar
                   onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   sidebarCollapsed={isSidebarCollapsed}
+                  onHeaderVisibilityChange={setIsHeaderVisible}
                 />
               </header>
 

@@ -15,7 +15,6 @@ import {
   MoreVertical,
   FileText,
   FileSpreadsheet,
-  Plus,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
@@ -225,13 +224,7 @@ export default function BudgetPage() {
         </div>
       </motion.div>
 
-      <Button
-        size="lg"
-        className="fixed bottom-6 right-6 rounded-full shadow-lg md:hidden z-50 h-14 w-14 p-0"
-        aria-label="Add budget category"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+      {/* Floating add budget category button removed */}
     </>
   )
 }

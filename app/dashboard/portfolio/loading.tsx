@@ -65,7 +65,7 @@ export default function PortfolioLoading() {
         <HoldingsTableSkeleton />
       </div>
 
-      <Skeleton className="fixed bottom-6 right-6 h-14 w-14 rounded-full md:hidden" />
+  {/* Floating add button skeleton removed */}
     </>
   )
 }

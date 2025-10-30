@@ -13,6 +13,8 @@ import {
   CommandShortcut,
 } from "@/components/ui/command"
 import { useMaskToggleDetails } from "@/components/privacy-provider"
+import { useDensity } from "@/app/providers/density-provider"
+import { SlidersHorizontal } from "lucide-react"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 
 interface CommandMenuProps {
@@ -27,6 +29,7 @@ export function CommandMenu({ open: controlledOpen, onOpenChange }: CommandMenuP
   const router = useRouter()
   const pathname = usePathname()
   const { toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
+  const { toggleDensity, density } = useDensity()
 
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
@@ -165,6 +168,17 @@ export function CommandMenu({ open: controlledOpen, onOpenChange }: CommandMenuP
             <MaskIcon className="h-4 w-4 text-muted-foreground/50" aria-hidden="true" />
             <span className="flex-1">{maskLabel}</span>
             <CommandShortcut>H</CommandShortcut>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => {
+              toggleDensity()
+              handleOpenChange(false)
+            }}
+          >
+            <SlidersHorizontal className="h-4 w-4 text-muted-foreground/50" aria-hidden="true" />
+            <span className="flex-1">
+              Switch to {density === "compact" ? "comfortable" : "compact"} density
+            </span>
           </CommandItem>
           {recent.length > 0 && (
             <CommandItem onSelect={clearRecent}>

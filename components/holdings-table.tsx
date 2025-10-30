@@ -206,7 +206,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
   }, [groupedRows])
 
   const tableHeight = useMemo(() => {
-    const estimatedRowHeight = 68
+    const estimatedRowHeight = 60
     const estimatedHeader = 48
     const totalHeight = estimatedHeader + virtualRows.length * estimatedRowHeight
     const maxHeight = 520
@@ -247,7 +247,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           "border-b last:border-0",
           item.type === "group"
             ? "bg-muted/30"
-            : "hover:bg-muted/50 transition-colors cursor-pointer",
+            : "hover:bg-muted/50 transition-colors cursor-pointer odd:bg-muted/20",
           className,
         )}
       />
@@ -435,7 +435,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     key={`${item.id}-weight`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
-                    <p className="text-sm tabular-nums whitespace-nowrap text-foreground">{holding.weight}%</p>
+                    <p className="text-sm font-mono tabular-nums whitespace-nowrap text-foreground">{holding.weight}%</p>
                   </td>,
                   <td
                     key={`${item.id}-account`}

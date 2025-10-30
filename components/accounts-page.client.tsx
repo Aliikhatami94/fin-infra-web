@@ -6,6 +6,7 @@ import dynamic from "next/dynamic"
 import { Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { CollapsibleSection } from "@/components/collapsible-section"
 
 const AccountsKPICards = dynamic(() => import("@/components/accounts-kpi-cards").then((m) => m.AccountsKPICards), {
   ssr: false,
@@ -116,11 +117,29 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
         )}
         <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
 
-        <AccountsCallouts />
+        <CollapsibleSection
+          title="Financial Health"
+          storageKey="accounts-callouts-expanded"
+          defaultExpanded={false}
+        >
+          <AccountsCallouts />
+        </CollapsibleSection>
 
-        <AIInsightsBanner />
+        <CollapsibleSection
+          title="AI Insights"
+          storageKey="accounts-ai-insights-expanded"
+          defaultExpanded={false}
+        >
+          <AIInsightsBanner />
+        </CollapsibleSection>
 
-        <AccountsTable onRequestLink={handleRequestLink} isLinking={isLinking} linkingInstitution={linkingInstitution} />
+        <CollapsibleSection
+          title="All Accounts"
+          storageKey="accounts-table-expanded"
+          defaultExpanded={true}
+        >
+          <AccountsTable onRequestLink={handleRequestLink} isLinking={isLinking} linkingInstitution={linkingInstitution} />
+        </CollapsibleSection>
 
         <PlaidLinkDialog
           open={isPlaidOpen}
