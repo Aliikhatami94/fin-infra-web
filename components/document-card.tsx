@@ -26,6 +26,8 @@ import { CollaborationDrawer } from "@/components/collaboration-drawer"
 import { useWorkspace } from "@/components/workspace-provider"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import { ConfirmDialog } from "@/components/confirm-dialog"
+import { ShieldCheck } from "lucide-react"
 
 interface DocumentCardProps {
   id: number
@@ -79,6 +81,7 @@ export function DocumentCard({
 }: DocumentCardProps) {
   const Icon = getDocumentIcon(type)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const [isDownloadConfirmOpen, setIsDownloadConfirmOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const { activeWorkspace, getThread } = useWorkspace()
   const thread = getThread("document", `document-${id}`)
@@ -90,6 +93,25 @@ export function DocumentCard({
     window.addEventListener("resize", checkMobile)
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
+
+  // Check if document type is sensitive
+  const isSensitiveDocument = (docType: string) => {
+    const sensitive = docType.toLowerCase()
+    return (
+      sensitive.includes("tax") ||
+      sensitive.includes("1099") ||
+      sensitive.includes("w-2") ||
+      sensitive.includes("statement") ||
+      sensitive.includes("form")
+    )
+  }
+
+  const handleDownload = () => {
+    // In a real app, this would trigger the actual download
+    console.log(`Downloading document: ${name}`)
+    // TODO: Implement actual download logic
+    // This could include 2FA verification in the future
+  }
 
   const activeCollaborators = (thread?.watchers ?? [])
     .map((watcherId) => activeWorkspace.members.find((member) => member.id === watcherId))
@@ -126,7 +148,13 @@ export function DocumentCard({
                 <Eye className="mr-2 h-4 w-4" />
                 View
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                if (isSensitiveDocument(type)) {
+                  setIsDownloadConfirmOpen(true)
+                } else {
+                  handleDownload()
+                }
+              }}>
                 <Download className="mr-2 h-4 w-4" />
                 Download
               </DropdownMenuItem>
@@ -194,7 +222,18 @@ export function DocumentCard({
                     <span>{date}</span>
                     <span>•</span>
                     <span>{size}</span>
-                    <Button size="sm" variant="outline" className="ml-auto">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="ml-auto"
+                      onClick={() => {
+                        if (isSensitiveDocument(type)) {
+                          setIsDownloadConfirmOpen(true)
+                        } else {
+                          handleDownload()
+                        }
+                      }}
+                    >
                       <Download className="mr-2 h-4 w-4" />
                       Download
                     </Button>
@@ -230,7 +269,18 @@ export function DocumentCard({
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2 hover:bg-primary/10 hover:text-primary">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-1 text-xs h-7 px-2 hover:bg-primary/10 hover:text-primary"
+              onClick={() => {
+                if (isSensitiveDocument(type)) {
+                  setIsDownloadConfirmOpen(true)
+                } else {
+                  handleDownload()
+                }
+              }}
+            >
               <Download className="h-3.5 w-3.5" />
               Download
             </Button>
@@ -265,6 +315,47 @@ export function DocumentCard({
             )}
           </div>
         )}
+
+      {/* Download Confirmation Dialog */}
+      <ConfirmDialog
+        open={isDownloadConfirmOpen}
+        onOpenChange={setIsDownloadConfirmOpen}
+        title="Confirm Sensitive Document Download"
+        description="You are about to download a sensitive financial document. This action will be logged for security purposes."
+        confirmLabel="Download"
+        cancelLabel="Cancel"
+        confirmVariant="default"
+        onConfirm={handleDownload}
+      >
+        <div className="space-y-3 py-2">
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <ShieldCheck className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-100">Security Notice</p>
+              <p className="text-xs text-amber-800 dark:text-amber-200">
+                This document contains sensitive financial information. Please ensure you're in a secure location before proceeding.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Document:</span>
+              <span className="font-medium text-foreground">{name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Type:</span>
+              <span className="font-medium text-foreground">{type}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Institution:</span>
+              <span className="font-medium text-foreground">{institution}</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground italic">
+            Note: In a production environment, this action may require two-factor authentication (2FA) for additional security.
+          </p>
+        </div>
+      </ConfirmDialog>
       </motion.div>
   )
 }
