@@ -567,6 +567,8 @@ export default function SettingsPage() {
                           section: "appearance",
                           value: option.value !== appearanceDefaults.fontScale,
                         })
+                        const nextSnapshot = computeSnapshot({ fontScale: option.value })
+                        handlePreferenceAutosave(`font-scale-${option.value}`, `Font scale ${option.label}`, nextSnapshot)
                       }}
                       aria-pressed={fontScale === option.value}
                     >
@@ -640,10 +642,26 @@ export default function SettingsPage() {
 
               <div
                 aria-live="polite"
-                className={`rounded-xl border border-dashed border-border/50 bg-card/70 p-4 transition-colors ${highContrastMode ? "ring-2 ring-primary/40" : ""}`}
+                className={cn(
+                  "rounded-xl border bg-gradient-to-br from-card to-muted/20 p-4 sm:p-5 transition-all duration-300",
+                  highContrastMode ? "border-primary ring-2 ring-primary/40" : "border-dashed border-border/50",
+                  dyslexiaMode && "font-['Atkinson_Hyperlegible',sans-serif] tracking-wide"
+                )}
               >
-                <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{previewCopy.heading}</p>
-                <p className={`mt-2 font-medium leading-relaxed ${previewTypography}`}>{previewCopy.body}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground font-semibold">
+                    Live Preview
+                  </p>
+                  <Badge variant="secondary" className="text-[0.6rem] px-2 py-0">
+                    {fontScale === "compact" ? "Compact" : fontScale === "comfort" ? "Comfort" : fontScale === "focus" ? "Focus" : "Balanced"}
+                  </Badge>
+                </div>
+                <p className={`font-medium leading-relaxed transition-all duration-200 ${previewTypography}`}>
+                  {previewCopy.body}
+                </p>
+                <p className={`mt-2 text-muted-foreground transition-all duration-200 ${previewTypography === "text-xs" ? "text-[0.65rem]" : previewTypography === "text-sm" ? "text-xs" : previewTypography === "text-base" ? "text-sm" : "text-[0.7rem]"}`}>
+                  Your changes are saved automatically as you adjust settings.
+                </p>
               </div>
             </div>
           </SettingsGroup>
@@ -840,7 +858,7 @@ export default function SettingsPage() {
               ))}
               <Button variant="outline" className="w-full justify-start sm:justify-start justify-center gap-2 bg-transparent">
                 <Link2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Connect New Account</span>
+                <span className="inline">Connect New Account</span>
               </Button>
             </div>
           </SettingsGroup>
