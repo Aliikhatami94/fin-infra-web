@@ -129,7 +129,7 @@ export function DocumentCard({
   return (
     <div
       ref={cardRef}
-      className="relative overflow-hidden rounded-xl"
+      className="relative overflow-hidden rounded-xl pt-2"
       data-document-id={id}
     >
       {/* Swipe Action Buttons (Mobile Only - Revealed on Swipe Left or 3-Dot Click) */}
@@ -210,86 +210,43 @@ export function DocumentCard({
             : undefined
         }
         className={cn(
-          "group relative flex flex-col p-5 border rounded-xl bg-card shadow-sm card-standard z-10",
-          "h-full min-h-[240px]",
+          "group relative flex flex-col p-4 border rounded-xl bg-card shadow-sm card-standard z-10",
+          "h-full min-h-[220px]",
           !isMobile && "card-lift",
           isSelected ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-border/60"
         )}
       >
-        {/* Top Row - Checkbox and More Menu */}
-        <div className="flex items-start justify-between mb-3 -mt-1">
+        {/* Checkbox - Top Left */}
+        <div>
           <Checkbox
             checked={isSelected}
             onCheckedChange={(checked) => onSelectionChange?.(checked === true)}
             className="bg-card border-2"
             onClick={(e) => e.stopPropagation()}
           />
-          
-          {/* More Menu (Desktop Only) */}
-          {!isMobile && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 -mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  aria-label={`More actions for ${name}`}
-                >
-                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsPreviewOpen(true)}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  View
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
         </div>
 
-        {/* 3-Dot Menu - Mobile Only (Triggers Swipe Left) */}
-        {isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsSwipedLeft(!isSwipedLeft)
-              setDragOffset(isSwipedLeft ? 0 : -160)
-            }}
-            aria-label={`Actions for ${name}`}
-          >
-            <MoreVertical className="h-4 w-4 text-muted-foreground" />
-          </Button>
-        )}
-
         {/* Header - Icon and Title */}
-        <div className="flex items-start gap-3 mb-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-            <Icon className="h-5 w-5 text-primary" />
+        <div className="flex items-start gap-2.5 mb-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Icon className="h-4.5 w-4.5 text-primary" />
           </div>
-          <div className="flex-1 min-w-0 pt-0.5">
-            <h3 className="text-base font-semibold text-foreground line-clamp-2 leading-tight mb-1">{name}</h3>
-            <p className="text-sm text-muted-foreground">{institution}</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug mb-0.5">{name}</h3>
+            <p className="text-xs text-muted-foreground truncate">{institution}</p>
           </div>
         </div>
 
         {/* Metadata Row */}
-        <div className="flex items-center gap-2 mb-4">
-          <Badge variant="outline" className={cn(getTypeColor(type), "text-xs px-2.5 py-0.5 font-medium")}>
+        <div className="flex items-center gap-2 mb-2">
+          <Badge variant="outline" className={cn(getTypeColor(type), "text-[11px] px-2 py-0.5 font-medium")}>
             {type}
           </Badge>
           <span className="text-xs text-muted-foreground truncate flex-1">{account}</span>
         </div>
 
         {/* Date and Size Row */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
           <span>{date}</span>
           <span>•</span>
           <span>{size}</span>
@@ -298,13 +255,13 @@ export function DocumentCard({
         {/* Divider */}
         <div className="border-t border-border/40 my-auto" />
 
-        {/* Actions Section - Desktop: Icon buttons, Mobile: Hidden (use sheet/swipe) */}
+        {/* Actions Section - Desktop Only */}
         {!isMobile && (
-          <div className="flex items-center gap-1 mt-4">
+          <div className="flex items-center gap-0.5">
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 px-3 hover:bg-primary/10 hover:text-primary">
-                  <Eye className="h-4 w-4" />
+                <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2 hover:bg-primary/10 hover:text-primary">
+                  <Eye className="h-3.5 w-3.5" />
                   View
                 </Button>
               </DialogTrigger>
@@ -356,8 +313,8 @@ export function DocumentCard({
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 px-3 hover:bg-primary/10 hover:text-primary">
-              <Download className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2 hover:bg-primary/10 hover:text-primary">
+              <Download className="h-3.5 w-3.5" />
               Download
             </Button>
             <CollaborationDrawer
@@ -376,16 +333,16 @@ export function DocumentCard({
             {activeCollaborators && activeCollaborators.length > 0 && (
               <div className="flex -space-x-2 ml-auto">
                 {activeCollaborators.slice(0, 2).map((member) => (
-                  <Avatar key={member!.id} className="h-6 w-6 border-2 border-background">
-                    <AvatarFallback className="text-[10px] font-medium">{member!.avatarFallback}</AvatarFallback>
+                  <Avatar key={member!.id} className="h-5 w-5 border-2 border-background">
+                    <AvatarFallback className="text-[9px] font-medium">{member!.avatarFallback}</AvatarFallback>
                   </Avatar>
                 ))}
                 {activeCollaborators.length > 2 && (
-                  <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center">
-                    <span className="text-[9px] font-semibold text-muted-foreground">
+                  <Avatar className="h-5 w-5 border-2 border-background">
+                    <AvatarFallback className="text-[9px] font-medium bg-muted">
                       +{activeCollaborators.length - 2}
-                    </span>
-                  </div>
+                    </AvatarFallback>
+                  </Avatar>
                 )}
               </div>
             )}
