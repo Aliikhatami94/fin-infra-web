@@ -19,7 +19,7 @@ import {
   FileCheck2,
   ReceiptText,
 } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,19 +39,8 @@ import { DocumentUploadZone } from "@/components/document-upload-zone"
 import { toast } from "@/components/ui/sonner"
 import { SuccessCelebrationDialog } from "@/components/success-celebration-dialog"
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
-import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
-
-const resolveDocumentTypeIcon = (type: string) => {
-  const normalized = type.toLowerCase()
-  if (normalized.includes("tax") || normalized.includes("1099") || normalized.includes("form")) return FileSpreadsheet
-  if (normalized.includes("statement")) return FileText
-  if (normalized.includes("report")) return FileBarChart
-  if (normalized.includes("confirmation")) return FileCheck2
-  if (normalized.includes("receipt")) return ReceiptText
-  return FileText
-}
 
 // Saved filter sets for quick access
 const SAVED_FILTER_SETS = [
@@ -124,7 +113,6 @@ export default function DocumentsPage() {
     toggleYear,
     clearAll,
   } = useDocumentFilters()
-  const chipListLabelId = useId()
 
   const isSortOption = (value: string): value is typeof sortBy => {
     return value === "date" || value === "name" || value === "size"
@@ -465,145 +453,9 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      {/* Body with filters moved out of header for a shorter header */}
+      {/* Main Content */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              {searchQuery && (
-                <Badge variant="secondary" className="gap-1">
-                  Search: {searchQuery}
-                  <button onClick={() => setSearchQuery("")} className="ml-1 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedTypes.map((type) => (
-                <Badge key={type} variant="secondary" className="gap-1">
-                  {type}
-                  <button onClick={() => toggleType(type)} className="ml-1 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {selectedAccounts.map((account) => (
-                <Badge key={account} variant="secondary" className="gap-1">
-                  {account}
-                  <button onClick={() => toggleAccount(account)} className="ml-1 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {selectedYears.map((year) => (
-                <Badge key={year} variant="secondary" className="gap-1">
-                  {year}
-                  <button onClick={() => toggleYear(year)} className="ml-1 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {(searchQuery || selectedTypes.length || selectedAccounts.length || selectedYears.length) && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs">
-                  Clear all
-                </Button>
-              )}
-            </div>
-
-            <div className="relative -mx-2">
-              <span id={chipListLabelId} className="sr-only">
-                Filter documents by type, account, or year
-              </span>
-              <div
-                className="flex items-center gap-2 overflow-x-auto px-2 pb-2 text-xs sm:text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                style={{ msOverflowStyle: "none" }}
-                role="listbox"
-                aria-labelledby={chipListLabelId}
-                aria-multiselectable="true"
-              >
-                {fileTypes.map((type) => {
-                  const selected = selectedTypes.includes(type)
-                  const TypeIcon = resolveDocumentTypeIcon(type)
-                  return (
-                    <Button
-                      key={type}
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      data-selected={selected}
-                      className={cn(
-                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                        selected
-                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
-                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
-                      )}
-                      onClick={() => toggleType(type)}
-                    >
-                      <TypeIcon className={cn("mr-2 h-3.5 w-3.5", selected ? "text-primary" : "text-muted-foreground")} aria-hidden />
-                      {type}
-                    </Button>
-                  )
-                })}
-                {accounts.map((account) => {
-                  const selected = selectedAccounts.includes(account)
-                  return (
-                    <Button
-                      key={account}
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      data-selected={selected}
-                      className={cn(
-                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                        selected
-                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
-                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
-                      )}
-                      onClick={() => toggleAccount(account)}
-                    >
-                      {account}
-                    </Button>
-                  )
-                })}
-                {years.map((year) => {
-                  const selected = selectedYears.includes(year)
-                  return (
-                    <Button
-                      key={year}
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      data-selected={selected}
-                      className={cn(
-                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                        selected
-                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
-                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
-                      )}
-                      onClick={() => toggleYear(year)}
-                    >
-                      {year}
-                    </Button>
-                  )
-                })}
-              </div>
-              <span className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background via-background to-transparent" aria-hidden />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>Filters follow your workspace—shared collaborators see the same context.</span>
-              <Button asChild variant="link" size="sm" className="h-auto px-0 text-xs font-semibold">
-                <Link href="/taxes" className="flex items-center gap-1">
-                  Review missing tax docs
-                </Link>
-              </Button>
-            </div>
-          </div>
-
           <AccountabilityChecklist surface="documents" />
           <DocumentUploadZone id="document-upload" onUploadComplete={handleUploadComplete} />
           <ErrorBoundary feature="Document insights">

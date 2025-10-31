@@ -112,20 +112,22 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     }
   }, [isSidebarCollapsed])
 
-  // Route gate: if no connected institutions, send users to the welcome screen before dashboard
+  // Route gate: if no connected institutions and onboarding not completed, send users to the welcome screen
   useEffect(() => {
     // Skip auth checks in marketing mode
     if (inMarketingMode) return
     
     if (!hydrated) return
     const hasConnected = state.linkedInstitutions.some((i) => i.status === "connected")
-    // Allow onboarding and the welcome page itself; everything else under the dashboard is gated
-  const allowPrefixes = ["/onboarding", "/welcome", "/auth", "/demo"]
+    const hasCompletedOnboarding = state.status === "completed" || state.status === "skipped"
+    // Allow onboarding, welcome page, auth, and demo pages
+    const allowPrefixes = ["/onboarding", "/welcome", "/auth", "/demo"]
     const allowed = allowPrefixes.some((p) => pathname?.startsWith(p))
-    if (!hasConnected && !allowed) {
+    // Redirect to welcome only if user has no connections AND hasn't completed onboarding
+    if (!hasConnected && !hasCompletedOnboarding && !allowed) {
       router.replace("/welcome")
     }
-  }, [hydrated, pathname, router, state.linkedInstitutions, inMarketingMode])
+  }, [hydrated, pathname, router, state.linkedInstitutions, state.status, inMarketingMode])
 
   // Marketing helpers: optionally auto-open chat and preload a transcript
   useEffect(() => {
