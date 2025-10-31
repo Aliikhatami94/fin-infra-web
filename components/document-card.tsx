@@ -18,10 +18,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState, useRef, useEffect } from "react"
-import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
+import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { AssignmentMenu } from "@/components/assignment-menu"
 import { CollaborationDrawer } from "@/components/collaboration-drawer"
 import { useWorkspace } from "@/components/workspace-provider"
@@ -80,7 +79,6 @@ export function DocumentCard({
 }: DocumentCardProps) {
   const Icon = getDocumentIcon(type)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
-  const [isActionsSheetOpen, setIsActionsSheetOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const { activeWorkspace, getThread } = useWorkspace()
   const thread = getThread("document", `document-${id}`)
@@ -105,7 +103,7 @@ export function DocumentCard({
     
     if (info.offset.x < swipeThreshold || velocity < -400) {
       setIsSwipedLeft(true)
-      setDragOffset(-100)
+      setDragOffset(-160)
     } else {
       setIsSwipedLeft(false)
       setDragOffset(0)
@@ -134,10 +132,10 @@ export function DocumentCard({
       className="relative overflow-hidden rounded-xl"
       data-document-id={id}
     >
-      {/* Swipe Action Buttons (Mobile Only - Revealed on Swipe Left) */}
+      {/* Swipe Action Buttons (Mobile Only - Revealed on Swipe Left or 3-Dot Click) */}
       {isMobile && (
         <div
-          className="absolute inset-y-0 right-0 flex items-center gap-2 px-3 bg-gradient-to-l from-primary/20 to-primary/10 z-0 transition-opacity duration-150"
+          className="absolute top-0 bottom-0 right-0 flex items-center gap-1.5 px-2 bg-gradient-to-l from-primary/20 to-primary/10 z-0 transition-opacity duration-150 rounded-xl"
           style={{
             opacity: isSwipedLeft ? 1 : 0,
             pointerEvents: isSwipedLeft ? "auto" : "none",
@@ -146,25 +144,49 @@ export function DocumentCard({
           <Button
             size="icon"
             variant="ghost"
-            className="h-10 w-10 text-primary hover:bg-primary/20 active:scale-95 transition-transform"
+            className="h-9 w-9 text-primary hover:bg-primary/30 active:scale-95 transition-transform"
             onClick={(e) => {
               e.stopPropagation()
               setIsPreviewOpen(true)
               setIsSwipedLeft(false)
               setDragOffset(0)
             }}
+            aria-label="View document"
           >
-            <Eye className="h-5 w-5" />
+            <Eye className="h-4.5 w-4.5" />
           </Button>
           <Button
             size="icon"
             variant="ghost"
-            className="h-10 w-10 text-primary hover:bg-primary/20 active:scale-95 transition-transform"
+            className="h-9 w-9 text-primary hover:bg-primary/20 active:scale-95 transition-transform"
             onClick={(e) => {
               e.stopPropagation()
             }}
+            aria-label="Download document"
           >
-            <Download className="h-5 w-5" />
+            <Download className="h-4.5 w-4.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-9 w-9 text-primary hover:bg-primary/20 active:scale-95 transition-transform"
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+            aria-label="Discuss document"
+          >
+            <MessageSquare className="h-4.5 w-4.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-9 w-9 text-primary hover:bg-primary/20 active:scale-95 transition-transform"
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+            aria-label="Assign document"
+          >
+            <UserPlus className="h-4.5 w-4.5" />
           </Button>
         </div>
       )}
@@ -172,9 +194,8 @@ export function DocumentCard({
       {/* Main Card Content (Swipeable on Mobile) */}
       <motion.div
         {...createStaggeredCardVariants(index, 0)}
-        {...(isMobile ? {} : cardHoverVariants)}
         drag={isMobile ? "x" : false}
-        dragConstraints={{ left: -100, right: 0 }}
+        dragConstraints={{ left: -160, right: 0 }}
         dragElastic={0.02}
         dragMomentum={false}
         dragTransition={{ power: 0, timeConstant: 200 }}
@@ -190,29 +211,28 @@ export function DocumentCard({
         }
         className={cn(
           "group relative flex flex-col p-5 border rounded-xl bg-card shadow-sm card-standard z-10",
-          !isMobile && "hover:shadow-md card-lift transition-all duration-300",
+          "h-full min-h-[240px]",
+          !isMobile && "card-lift",
           isSelected ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-border/60"
         )}
       >
-        {/* Checkbox - Top Left Corner */}
-        <div className="absolute top-4 left-4 z-10">
+        {/* Top Row - Checkbox and More Menu */}
+        <div className="flex items-start justify-between mb-3 -mt-1">
           <Checkbox
             checked={isSelected}
             onCheckedChange={(checked) => onSelectionChange?.(checked === true)}
             className="bg-card border-2"
             onClick={(e) => e.stopPropagation()}
           />
-        </div>
-
-        {/* More Menu - Top Right Corner (Desktop Only) */}
-        {!isMobile && (
-          <div className="absolute top-4 right-4 z-10">
+          
+          {/* More Menu (Desktop Only) */}
+          {!isMobile && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="h-8 w-8 -mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   aria-label={`More actions for ${name}`}
                 >
                   <MoreVertical className="h-4 w-4 text-muted-foreground" />
@@ -229,104 +249,62 @@ export function DocumentCard({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Actions Sheet Trigger - Mobile Only (Top Right) */}
+        {/* 3-Dot Menu - Mobile Only (Triggers Swipe Left) */}
         {isMobile && (
-          <div className="absolute top-4 right-4 z-10">
-            <Sheet open={isActionsSheetOpen} onOpenChange={setIsActionsSheetOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  aria-label={`More actions for ${name}`}
-                >
-                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-auto pb-safe">
-                <SheetHeader className="text-left pb-4">
-                  <SheetTitle className="flex items-center gap-2">
-                    <Icon className="h-5 w-5 text-primary" />
-                    <span className="line-clamp-1">{name}</span>
-                  </SheetTitle>
-                  <p className="text-sm text-muted-foreground">{institution} • {date}</p>
-                </SheetHeader>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start gap-3 h-12"
-                    onClick={() => {
-                      setIsPreviewOpen(true)
-                      setIsActionsSheetOpen(false)
-                    }}
-                  >
-                    <Eye className="h-5 w-5 text-primary" />
-                    <span>View Document</span>
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start gap-3 h-12">
-                    <Download className="h-5 w-5 text-primary" />
-                    <span>Download</span>
-                  </Button>
-                  <div className="[&>div>button]:w-full [&>div>button]:justify-start [&>div>button]:h-12 [&>div>button]:gap-3 [&>div>button]:rounded-md [&>div>button]:px-4">
-                    <AssignmentMenu
-                      entityId={`document-${id}`}
-                      entityType="document"
-                      size="default"
-                      variant="outline"
-                      showLabel={true}
-                    />
-                  </div>
-                  <div className="[&>div>button]:w-full [&>div>button]:justify-start [&>div>button]:h-12 [&>div>button]:gap-3 [&>div>button]:rounded-md [&>div>button]:px-4">
-                    <CollaborationDrawer
-                      entityId={`document-${id}`}
-                      entityType="document"
-                      entityName={name}
-                      triggerLabel="Discuss"
-                    />
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsSwipedLeft(!isSwipedLeft)
+              setDragOffset(isSwipedLeft ? 0 : -160)
+            }}
+            aria-label={`Actions for ${name}`}
+          >
+            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+          </Button>
         )}
 
-        {/* Main Content - Icon and Document Info */}
-        <div className="flex items-start gap-3 mb-4 pr-8 pl-8">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
+        {/* Header - Icon and Title */}
+        <div className="flex items-start gap-3 mb-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Icon className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0 pt-0.5">
+            <h3 className="text-base font-semibold text-foreground line-clamp-2 leading-tight mb-1">{name}</h3>
+            <p className="text-sm text-muted-foreground">{institution}</p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0 space-y-1">
-          <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">{name}</h3>
-          <p className="text-xs text-muted-foreground">{institution}</p>
-          <p className="text-xs text-muted-foreground/70">{account}</p>
-        </div>
-      </div>
 
-        {/* Document Metadata - Type Badge, Date, Size */}
-        <div className="flex items-center justify-between gap-3 mb-3 px-2">
-          <Badge variant="outline" className={getTypeColor(type)}>
+        {/* Metadata Row */}
+        <div className="flex items-center gap-2 mb-4">
+          <Badge variant="outline" className={cn(getTypeColor(type), "text-xs px-2.5 py-0.5 font-medium")}>
             {type}
           </Badge>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>{date}</span>
-            <span>•</span>
-            <span>{size}</span>
-          </div>
+          <span className="text-xs text-muted-foreground truncate flex-1">{account}</span>
+        </div>
+
+        {/* Date and Size Row */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+          <span>{date}</span>
+          <span>•</span>
+          <span>{size}</span>
         </div>
 
         {/* Divider */}
-        <div className="border-t border-border/40 mb-3" />
+        <div className="border-t border-border/40 my-auto" />
 
-        {/* Compact Actions Section - Desktop: Single row, Mobile: Hidden (use sheet/swipe) */}
+        {/* Actions Section - Desktop: Icon buttons, Mobile: Hidden (use sheet/swipe) */}
         {!isMobile && (
-          <div className="flex items-center gap-2 px-2">
+          <div className="flex items-center gap-1 mt-4">
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 px-2">
-                  <Eye className="h-3.5 w-3.5" />
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 px-3 hover:bg-primary/10 hover:text-primary">
+                  <Eye className="h-4 w-4" />
                   View
                 </Button>
               </DialogTrigger>
@@ -378,10 +356,16 @@ export function DocumentCard({
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 px-2">
-              <Download className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 px-3 hover:bg-primary/10 hover:text-primary">
+              <Download className="h-4 w-4" />
               Download
             </Button>
+            <CollaborationDrawer
+              entityId={`document-${id}`}
+              entityType="document"
+              entityName={name}
+              triggerLabel=""
+            />
             <AssignmentMenu
               entityId={`document-${id}`}
               entityType="document"
@@ -389,48 +373,22 @@ export function DocumentCard({
               variant="ghost"
               showLabel={false}
             />
-            <CollaborationDrawer
-              entityId={`document-${id}`}
-              entityType="document"
-              entityName={name}
-              triggerLabel=""
-            />
             {activeCollaborators && activeCollaborators.length > 0 && (
               <div className="flex -space-x-2 ml-auto">
                 {activeCollaborators.slice(0, 2).map((member) => (
                   <Avatar key={member!.id} className="h-6 w-6 border-2 border-background">
-                    <AvatarFallback className="text-[10px]">{member!.avatarFallback}</AvatarFallback>
+                    <AvatarFallback className="text-[10px] font-medium">{member!.avatarFallback}</AvatarFallback>
                   </Avatar>
                 ))}
                 {activeCollaborators.length > 2 && (
                   <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center">
-                    <span className="text-[9px] font-medium text-muted-foreground">
+                    <span className="text-[9px] font-semibold text-muted-foreground">
                       +{activeCollaborators.length - 2}
                     </span>
                   </div>
                 )}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Mobile: Show collaborators and hint */}
-        {isMobile && activeCollaborators && activeCollaborators.length > 0 && (
-          <div className="flex items-center gap-2 px-2">
-            <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <div className="flex -space-x-2">
-              {activeCollaborators.slice(0, 3).map((member) => (
-                <Avatar key={member!.id} className="h-6 w-6 border-2 border-background">
-                  <AvatarFallback className="text-[10px]">{member!.avatarFallback}</AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-            {activeCollaborators.length > 3 && (
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground/80">
-                +{activeCollaborators.length - 3}
-              </span>
-            )}
-            <span className="ml-auto text-[10px] text-muted-foreground/60 italic">Swipe left for actions</span>
           </div>
         )}
       </motion.div>
