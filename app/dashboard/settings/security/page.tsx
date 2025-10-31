@@ -14,6 +14,11 @@ import {
   MapPin,
   ArrowUpDown,
   Info,
+  Laptop,
+  Smartphone,
+  Tablet,
+  Monitor,
+  LogOut,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -55,7 +60,7 @@ import { AnimatedSwitch } from "@/components/animated-switch"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "@/components/ui/sonner"
 import { trackPreferenceToggle } from "@/lib/analytics/events"
-import { MaskedInput, maskEmail } from "@/components/ui/masked-input"
+import { MaskedInput, maskEmail, maskPhone } from "@/components/ui/masked-input"
 
 type SessionStatus = "Active" | "Signed out"
 type StatusFilter = "all" | SessionStatus
@@ -139,6 +144,21 @@ const HERO_BACKGROUNDS: Record<HeroLevel, { base: string; overlay: string }> = {
 
 type HighlightIntent = "neutral" | "positive" | "attention"
 
+// Helper function to get device icon based on device string
+const getDeviceIcon = (deviceStr: string) => {
+  const lower = deviceStr.toLowerCase()
+  if (lower.includes('iphone') || lower.includes('android') || lower.includes('mobile')) {
+    return Smartphone
+  }
+  if (lower.includes('ipad') || lower.includes('tablet')) {
+    return Tablet
+  }
+  if (lower.includes('macbook') || lower.includes('laptop')) {
+    return Laptop
+  }
+  return Monitor // desktop/unknown
+}
+
 export default function SecurityCenterPage() {
   const [loginAlerts, setLoginAlerts] = useState(true)
   const [maskSensitive, setMaskSensitive] = useState(true)
@@ -155,6 +175,11 @@ export default function SecurityCenterPage() {
   const [confirmEndAll, setConfirmEndAll] = useState(false)
   const [showBackupPhone, setShowBackupPhone] = useState(false)
   const [phoneRevealTimer, setPhoneRevealTimer] = useState<number | null>(null)
+  const [editEmailDialogOpen, setEditEmailDialogOpen] = useState(false)
+  const [editPhoneDialogOpen, setEditPhoneDialogOpen] = useState(false)
+  const [tempEmail, setTempEmail] = useState("")
+  const [tempPhone, setTempPhone] = useState("")
+  const [exportFormat, setExportFormat] = useState<"csv" | "pdf" | null>(null)
 
   const loginAlertsLabelId = useId()
   const loginAlertsDescriptionId = useId()
@@ -266,9 +291,16 @@ export default function SecurityCenterPage() {
   }
 
   const handleExportRequest = (format: "csv" | "pdf") => {
-    toast(`Preparing ${format.toUpperCase()} export`, {
-      description: "We\u2019ll send an in-app notification as soon as your encrypted file is ready.",
+    setExportFormat(format)
+  }
+
+  const handleConfirmExport = () => {
+    if (!exportFormat) return
+
+    toast(`Preparing ${exportFormat.toUpperCase()} export`, {
+      description: "We'll send an in-app notification as soon as your encrypted file is ready. Download link expires in 24 hours.",
     })
+    setExportFormat(null)
   }
 
   const handleEndSessionRequest = (sessionId: string) => {
@@ -379,7 +411,7 @@ export default function SecurityCenterPage() {
         className="mx-auto w-full max-w-[1200px] space-y-8 px-4 sm:px-6 lg:px-10 py-6"
       >
       <section
-        className="relative overflow-hidden rounded-3xl text-white shadow-[var(--shadow-bold)]"
+        className="relative overflow-hidden rounded-3xl shadow-[var(--shadow-bold)]"
         style={{ backgroundImage: heroBackground.base }}
       >
         <div
@@ -387,14 +419,14 @@ export default function SecurityCenterPage() {
           style={{ backgroundImage: heroBackground.overlay }}
           aria-hidden
         />
-        <div className="relative px-8 py-10 sm:px-12">
-          <div className="relative z-10 space-y-6">
-            <Badge variant="secondary" className="border-0 bg-white/20 text-xs font-semibold uppercase tracking-wide text-white">
+        <div className="relative px-6 py-6 sm:px-12 sm:py-10">
+          <div className="relative z-10 space-y-4 sm:space-y-6">
+            <Badge variant="secondary" className="border-0 bg-white/30 text-xs font-semibold uppercase tracking-wide text-white shadow-sm">
               {heroInsight.badge}
             </Badge>
-            <div className="max-w-2xl space-y-3">
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{heroInsight.headline}</h1>
-              <p className="text-sm text-white/80 sm:text-base">{heroInsight.description}</p>
+            <div className="max-w-2xl space-y-2 sm:space-y-3">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-4xl text-white drop-shadow-sm">{heroInsight.headline}</h1>
+              <p className="text-sm sm:text-base text-white drop-shadow-sm leading-relaxed">{heroInsight.description}</p>
             </div>
             <div className="flex flex-wrap gap-3 text-xs font-medium">
               {heroHighlights.map((highlight) => {
@@ -460,17 +492,20 @@ export default function SecurityCenterPage() {
         </div>
       </section>
 
-  <div className="space-y-6">
-        <Card className="card-standard">
+      <div className="space-y-6">
+        <Card className="card-standard gap-y-0">
           <CardHeader className="border-b border-border/30">
             <CardTitle className="flex flex-wrap items-center gap-2 text-base font-semibold">
               <ShieldCheck className="h-5 w-5 text-primary" />
-              Recent sessions
+              Active Sessions
             </CardTitle>
-            <CardDescription>End sessions you do not recognize. Locations are approximated from IP address.</CardDescription>
+            <CardDescription>
+              Active sessions represent devices and browsers currently signed into your account. Each session maintains its own security token. 
+              If you notice unfamiliar devices or locations, revoke access immediately to protect your account.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="px-0">
-            <div className="flex flex-col gap-4 px-6 pb-4 pt-6 sm:flex-row sm:items-end sm:justify-between">
+          <CardContent>
+            <div className="flex flex-col gap-4 pb-4 pt-6 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex w-full flex-col gap-2 sm:max-w-xs">
                 <Label htmlFor="device-filter" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Filter by device
@@ -546,7 +581,7 @@ export default function SecurityCenterPage() {
             </div>
             <TooltipProvider delayDuration={100}>
               <div className="divide-y divide-border/30" role="table" aria-label="Recent login history">
-                <div className="hidden px-6 py-3 text-xs uppercase tracking-wide text-muted-foreground md:grid md:grid-cols-[2fr_1.5fr_1fr_auto_auto] md:gap-4">
+                <div className="hidden py-3 text-xs uppercase tracking-wide text-muted-foreground md:grid md:grid-cols-[2fr_1.5fr_1fr_auto_auto] md:gap-4">
                   <span>Device</span>
                   <span>Location</span>
                   <span>Time</span>
@@ -554,24 +589,31 @@ export default function SecurityCenterPage() {
                   <span className="text-right">Action</span>
                 </div>
                 {filteredSessions.length === 0 ? (
-                  <div className="px-6 py-8 text-sm text-muted-foreground" role="row">
+                  <div className="py-8 text-sm text-muted-foreground" role="row">
                     {sessions.length === 0
                       ? "All clear — we’ll show new sign-ins here once they occur."
                       : "No sessions match your filters. Adjust filters to review more activity."}
                   </div>
                 ) : (
-                  filteredSessions.map((entry) => (
+                  filteredSessions.map((entry) => {
+                    const DeviceIcon = getDeviceIcon(entry.device)
+                    return (
                     <div
                       key={entry.id}
                       role="row"
-                      className="grid gap-4 px-6 py-4 md:grid-cols-[2fr_1.5fr_1fr_auto_auto] md:items-center"
+                      className="grid gap-4 py-4 md:grid-cols-[2fr_1.5fr_1fr_auto_auto] md:items-center"
                     >
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-foreground">{entry.device}</p>
-                        <p className="text-xs text-muted-foreground md:hidden">
-                          {entry.timeLabel} • {entry.status}
-                        </p>
-                        <p className="text-xs text-muted-foreground md:hidden">{entry.location}</p>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                          <DeviceIcon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">{entry.device}</p>
+                          <p className="text-xs text-muted-foreground md:hidden">
+                            {entry.timeLabel} • {entry.status}
+                          </p>
+                          <p className="text-xs text-muted-foreground md:hidden">{entry.location}</p>
+                        </div>
                       </div>
                       <div className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
                         <Tooltip>
@@ -608,7 +650,8 @@ export default function SecurityCenterPage() {
                           onClick={() => handleEndSessionRequest(entry.id)}
                           disabled={entry.status !== "Active"}
                         >
-                          End
+                          <LogOut className="h-3.5 w-3.5" />
+                          Revoke
                           <span className="sr-only"> session for {entry.device}</span>
                         </Button>
                       </div>
@@ -631,20 +674,19 @@ export default function SecurityCenterPage() {
                           onClick={() => handleEndSessionRequest(entry.id)}
                           disabled={entry.status !== "Active"}
                         >
-                          End
+                          <LogOut className="h-3.5 w-3.5" />
+                          Revoke
                           <span className="sr-only"> session for {entry.device}</span>
                         </Button>
                       </div>
                     </div>
-                  ))
+                    )
+                  })
                 )}
               </div>
             </TooltipProvider>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-muted-foreground">
-              Need to revoke a device? Visit <span className="font-medium text-foreground">Settings → Security</span> to manage sessions.
-            </p>
+          <CardFooter className="flex flex-col gap-3 items-start">
             <Button
               variant="outline"
               size="sm"
@@ -654,6 +696,9 @@ export default function SecurityCenterPage() {
             >
               <Activity className="h-4 w-4" /> End all other sessions
             </Button>
+            <p className="text-xs text-muted-foreground">
+              Need to revoke a device? Visit <span className="font-medium text-foreground">Settings → Security</span> to manage sessions.
+            </p>
           </CardFooter>
         </Card>
 
@@ -754,21 +799,54 @@ export default function SecurityCenterPage() {
                       }}
                     />
                   </div>
+                  
+                  {/* Masked Data Preview */}
+                  <div className="rounded-lg border border-border/50 bg-muted/20 p-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                      Preview: {maskSensitive ? "Masked" : "Unmasked"} Data
+                    </p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Account Number:</span>
+                        <span className="font-mono">{maskSensitive ? "****-****-0199" : "9876-5432-0199"}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Phone Number:</span>
+                        <span className="font-mono">{maskSensitive ? "****-0199" : "+1 (917) 555-0199"}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Email:</span>
+                        <span className="font-mono text-xs">{maskSensitive ? "s***@mail.com" : "security@mail.com"}</span>
+                      </div>
+                    </div>
+                  </div>
                 </TooltipProvider>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="alternate-email">Alternate email</Label>
-                    <MaskedInput
-                      id="alternate-email"
-                      type="email"
-                      autoComplete="email"
-                      value={alternateEmail}
-                      onChange={(event) => setAlternateEmail(event.target.value)}
-                      aria-describedby="alternate-email-help"
-                      status="verified"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="alternate-email"
+                        type="text"
+                        value={maskEmail(alternateEmail)}
+                        disabled
+                        className="flex-1"
+                        aria-describedby="alternate-email-help"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setTempEmail(alternateEmail)
+                          setEditEmailDialogOpen(true)
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </div>
                     <p id="alternate-email-help" className="text-xs text-muted-foreground">
-                      Used when we can’t reach your primary inbox. We’ll mask this address in notifications.
+                      Used when we can't reach your primary inbox. We'll mask this address in notifications.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -807,18 +885,23 @@ export default function SecurityCenterPage() {
                         <div className="flex items-center gap-2">
                           <Input
                             id="alternate-phone"
-                            type="tel"
-                            autoComplete="tel"
-                            value={alternatePhone}
-                            onChange={(event) => setAlternatePhone(event.target.value)}
-                            aria-describedby="alternate-phone-help"
+                            type="text"
+                            value={maskPhone(alternatePhone)}
+                            disabled
                             className="flex-1"
+                            aria-describedby="alternate-phone-help"
                           />
-                          {phoneRevealTimer && (
-                            <Badge variant="secondary" className="shrink-0">
-                              {phoneRevealTimer}s
-                            </Badge>
-                          )}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setTempPhone(alternatePhone)
+                              setEditPhoneDialogOpen(true)
+                            }}
+                          >
+                            Edit
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -828,14 +911,6 @@ export default function SecurityCenterPage() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-muted-foreground">
-                  Alternate contacts receive alerts after your primary channels fail.
-                </p>
-                <Button type="submit" variant="outline" size="sm" className="gap-2">
-                  Save alerting preferences
-                </Button>
-              </CardFooter>
             </form>
           </Card>
 
@@ -844,52 +919,59 @@ export default function SecurityCenterPage() {
               <CardTitle className="text-base font-semibold">Exports & backups</CardTitle>
               <CardDescription>Generate encrypted exports for compliance or record keeping.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <TooltipProvider delayDuration={100}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={() => handleExportRequest("csv")}
-                        disabled
-                      >
-                        <Download className="h-4 w-4" /> Export access log (CSV)
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs px-1.5 py-1">
-                    <p className="text-xs">Export functionality will be available once enterprise SSO controls are configured</p>
-                  </TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={() => handleExportRequest("pdf")}
-                        disabled
-                      >
-                        <Download className="h-4 w-4" /> Download masking report (PDF)
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs px-1.5 py-1">
-                    <p className="text-xs">Export functionality will be available once enterprise SSO controls are configured</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Access Logs
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto justify-start gap-2"
+                  onClick={() => handleExportRequest("csv")}
+                >
+                  <Download className="h-4 w-4" /> Export access log (CSV)
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Download a complete CSV file of all login activity, including timestamps, devices, and locations.
+                </p>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Security Reports
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto justify-start gap-2"
+                  onClick={() => handleExportRequest("pdf")}
+                >
+                  <Download className="h-4 w-4" /> Download masking report (PDF)
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Generate a PDF summary of data masking settings and privacy configurations.
+                </p>
+              </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex-col items-start gap-2">
+              <div className="flex items-start gap-2 rounded-md bg-amber-500/10 border border-amber-500/20 p-3 w-full">
+                <ShieldCheck className="h-4 w-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-amber-900 dark:text-amber-100">
+                    Sensitive data export
+                  </p>
+                  <p className="text-xs text-amber-800 dark:text-amber-200/90">
+                    Export links expire after 24 hours for security. Files are encrypted and can only be accessed once.
+                  </p>
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground">
-                Exports expire after 24 hours. For enterprise SSO controls, contact <Link className="underline" href="mailto:security@fin-infra.com">security@fin-infra.com</Link>.
+                For enterprise SSO controls, contact <Link className="underline" href="mailto:security@fin-infra.com">security@fin-infra.com</Link>.
               </p>
             </CardFooter>
           </Card>
@@ -921,6 +1003,105 @@ export default function SecurityCenterPage() {
         confirmLabel="End all sessions"
         confirmVariant="destructive"
         onConfirm={handleEndAllOtherSessions}
+      />
+
+      {/* Edit alternate email dialog */}
+      <Dialog open={editEmailDialogOpen} onOpenChange={setEditEmailDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Alternate Email</DialogTitle>
+            <DialogDescription>
+              Update your alternate email address for security notifications.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email address</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                autoComplete="email"
+                value={tempEmail}
+                onChange={(e) => setTempEmail(e.target.value)}
+                placeholder="alternate@example.com"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditEmailDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setAlternateEmail(tempEmail)
+                setEditEmailDialogOpen(false)
+                toast.success("Alternate email updated")
+              }}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit backup phone dialog */}
+      <Dialog open={editPhoneDialogOpen} onOpenChange={setEditPhoneDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Backup Phone</DialogTitle>
+            <DialogDescription>
+              Update your backup phone number for SMS security alerts.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Phone number</Label>
+              <Input
+                id="edit-phone"
+                type="tel"
+                autoComplete="tel"
+                value={tempPhone}
+                onChange={(e) => setTempPhone(e.target.value)}
+                placeholder="+1 (555) 000-0000"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditPhoneDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setAlternatePhone(tempPhone)
+                setEditPhoneDialogOpen(false)
+                toast.success("Backup phone updated")
+              }}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation dialog for exports */}
+      <ConfirmDialog
+        open={exportFormat !== null}
+        onOpenChange={(open) => !open && setExportFormat(null)}
+        title={`Export ${exportFormat === "csv" ? "access log" : "masking report"}?`}
+        description={
+          exportFormat === "csv"
+            ? "This will generate a CSV file containing all login activity with timestamps, devices, locations, and IP addresses. The download link will expire after 24 hours and can only be accessed once."
+            : "This will generate a PDF report of your data masking settings and privacy configurations. The download link will expire after 24 hours and can only be accessed once."
+        }
+        confirmLabel={`Export ${exportFormat?.toUpperCase()}`}
+        confirmVariant="default"
+        onConfirm={handleConfirmExport}
       />
     </>
   )
