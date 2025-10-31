@@ -822,25 +822,25 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {account.status === "connected" ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 hidden sm:block" />
                     ) : (
-                      <AlertCircle className="h-4 w-4 text-red-500" />
+                      <AlertCircle className="h-4 w-4 text-red-500 hidden sm:block" />
                     )}
                     <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                       <RefreshCw className="h-3 w-3" />
-                      Refresh
+                      <span className="hidden sm:inline">Refresh</span>
                     </Button>
                     {/* Disconnect button */}
                     <Button variant="ghost" size="sm" className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
                       <Trash2 className="h-3 w-3" />
-                      Disconnect
+                      <span className="hidden sm:inline">Disconnect</span>
                     </Button>
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+              <Button variant="outline" className="w-full justify-start sm:justify-start justify-center gap-2 bg-transparent">
                 <Link2 className="h-4 w-4" />
-                Connect New Account
+                <span className="hidden sm:inline">Connect New Account</span>
               </Button>
             </div>
           </SettingsGroup>
