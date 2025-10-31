@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion"
 import {
-  Eye,
   Download,
   MoreVertical,
   FileText,
@@ -13,11 +12,11 @@ import {
   ReceiptText,
   UserPlus,
   MessageSquare,
+  Check,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuPortal } from "@/components/ui/dropdown-menu"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState, useRef, useEffect } from "react"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
@@ -80,11 +79,12 @@ export function DocumentCard({
   onSelectionChange,
 }: DocumentCardProps) {
   const Icon = getDocumentIcon(type)
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [isDownloadConfirmOpen, setIsDownloadConfirmOpen] = useState(false)
+  const [showCollaboration, setShowCollaboration] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const { activeWorkspace, getThread } = useWorkspace()
+  const { activeWorkspace, getThread, assignEntity, getAssignee } = useWorkspace()
   const thread = getThread("document", `document-${id}`)
+  const assignee = getAssignee("document", `document-${id}`)
 
   // Detect mobile viewport
   useEffect(() => {
@@ -143,29 +143,57 @@ export function DocumentCard({
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsPreviewOpen(true)}>
-                <Eye className="mr-2 h-4 w-4" />
-                View
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem onClick={() => {
                 if (isSensitiveDocument(type)) {
                   setIsDownloadConfirmOpen(true)
                 } else {
                   handleDownload()
                 }
-              }}>
-                <Download className="mr-2 h-4 w-4" />
+              }} className="text-sm py-1.5">
+                <Download className="mr-2 h-3.5 w-3.5" />
                 Download
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MessageSquare className="mr-2 h-4 w-4" />
+              <DropdownMenuItem onClick={() => setShowCollaboration(true)} className="text-sm py-1.5">
+                <MessageSquare className="mr-2 h-3.5 w-3.5" />
                 Discuss
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Assign
-              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="text-sm py-1.5">
+                  <UserPlus className="mr-2 h-3.5 w-3.5" />
+                  <span>Assign</span>
+                  {assignee && <span className="ml-auto text-xs text-muted-foreground truncate max-w-[60px]">{assignee.name.split(" ")[0]}</span>}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent className="w-40">
+                    <DropdownMenuLabel className="text-xs py-1">Assign to</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {activeWorkspace.members.map((member) => (
+                      <DropdownMenuItem
+                        key={member.id}
+                        onClick={() => assignEntity("document", `document-${id}`, member.id)}
+                        className="text-sm py-1.5"
+                      >
+                        <Avatar className="h-5 w-5 mr-2">
+                          <AvatarFallback className="text-[10px]">{member.avatarFallback}</AvatarFallback>
+                        </Avatar>
+                        <span className="truncate">{member.name}</span>
+                        {assignee?.id === member.id && <Check className="ml-auto h-3.5 w-3.5 shrink-0" />}
+                      </DropdownMenuItem>
+                    ))}
+                    {assignee && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => assignEntity("document", `document-${id}`, null)} className="text-sm py-1.5">
+                          <UserPlus className="mr-2 h-3.5 w-3.5" />
+                          Unassign
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -203,72 +231,6 @@ export function DocumentCard({
         {/* Actions Section - Desktop Only */}
         {!isMobile && (
           <div className="flex items-center gap-0.5">
-            <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2 hover:bg-primary/10 hover:text-primary">
-                  <Eye className="h-3.5 w-3.5" />
-                  View
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl h-[85vh]">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Icon className="h-5 w-5 text-primary" />
-                    {name}
-                  </DialogTitle>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{institution}</span>
-                    <span>•</span>
-                    <span>{date}</span>
-                    <span>•</span>
-                    <span>{size}</span>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="ml-auto"
-                      onClick={() => {
-                        if (isSensitiveDocument(type)) {
-                          setIsDownloadConfirmOpen(true)
-                        } else {
-                          handleDownload()
-                        }
-                      }}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </Button>
-                  </div>
-                </DialogHeader>
-                <div className="flex-1 bg-muted/30 rounded-md flex items-center justify-center mt-4 overflow-hidden">
-                  <div className="text-center space-y-2 p-8">
-                    <FileText className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                    <p className="text-sm text-muted-foreground">Document Preview</p>
-                    <p className="text-xs text-muted-foreground/70 max-w-md">
-                      In a production environment, this would display the actual document content using a PDF viewer or
-                      image preview component.
-                    </p>
-                    <div className="pt-4 space-y-2 text-left max-w-md mx-auto">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Document Type:</span>
-                        <span className="font-medium">{type}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Institution:</span>
-                        <span className="font-medium">{institution}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Date:</span>
-                        <span className="font-medium">{date}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">File Size:</span>
-                        <span className="font-medium">{size}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -315,6 +277,17 @@ export function DocumentCard({
             )}
           </div>
         )}
+
+      {/* Collaboration Drawer - accessible from mobile dropdown */}
+      <CollaborationDrawer
+        entityId={`document-${id}`}
+        entityType="document"
+        entityName={name}
+        triggerLabel=""
+        open={showCollaboration}
+        onOpenChange={setShowCollaboration}
+        hideTrigger={true}
+      />
 
       {/* Download Confirmation Dialog */}
       <ConfirmDialog
