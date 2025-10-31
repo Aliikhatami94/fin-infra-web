@@ -129,13 +129,13 @@ export function DocumentCard({
   return (
     <div
       ref={cardRef}
-      className="relative overflow-hidden rounded-xl pt-2"
+      className="relative overflow-hidden rounded-xl"
       data-document-id={id}
     >
       {/* Swipe Action Buttons (Mobile Only - Revealed on Swipe Left or 3-Dot Click) */}
       {isMobile && (
         <div
-          className="absolute top-0 bottom-0 right-0 flex items-center gap-1.5 px-2 bg-gradient-to-l from-primary/20 to-primary/10 z-0 transition-opacity duration-150 rounded-xl"
+          className="absolute top-0 right-0 flex items-center gap-1.5 px-2 bg-gradient-to-l from-primary/20 to-primary/10 z-0 transition-opacity duration-150 rounded-xl h-full min-h-[220px]"
           style={{
             opacity: isSwipedLeft ? 1 : 0,
             pointerEvents: isSwipedLeft ? "auto" : "none",
