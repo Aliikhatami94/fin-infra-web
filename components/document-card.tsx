@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useMotionValue, useTransform, PanInfo, animate } from "framer-motion"
+import { motion, PanInfo } from "framer-motion"
 import {
   Eye,
   Download,
@@ -86,9 +86,9 @@ export function DocumentCard({
   const thread = getThread("document", `document-${id}`)
 
   // Swipe gesture state
-  const x = useMotionValue(0)
   const [isSwipedLeft, setIsSwipedLeft] = useState(false)
   const cardRef = useRef<HTMLDivElement | null>(null)
+  const [dragOffset, setDragOffset] = useState(0)
 
   // Detect mobile viewport
   useEffect(() => {
@@ -98,39 +98,26 @@ export function DocumentCard({
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
-  // Handle swipe gesture with fast, responsive detection
+  // Handle swipe gesture with instant detection
   const handleDragEnd = (_: any, info: PanInfo) => {
-    const swipeThreshold = -50 // Even lower threshold for instant activation
+    const swipeThreshold = -50
     const velocity = info.velocity.x
     
-    // Swipe left if dragged past threshold OR has leftward velocity
     if (info.offset.x < swipeThreshold || velocity < -400) {
       setIsSwipedLeft(true)
+      setDragOffset(-100)
     } else {
       setIsSwipedLeft(false)
+      setDragOffset(0)
     }
   }
-
-  // Animate x position based on swipe state with fast spring
-  useEffect(() => {
-    if (!isMobile) return
-    
-    // Use framer-motion's animate function with faster, snappier spring
-    const controls = animate(x, isSwipedLeft ? -100 : 0, {
-      type: "spring",
-      stiffness: 600,  // Much stiffer for faster response
-      damping: 40,     // Higher damping to prevent overshoot
-      mass: 0.5        // Lower mass for quicker movement
-    })
-    
-    return () => controls.stop()
-  }, [isSwipedLeft, x, isMobile])
 
   // Reset swipe when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(event.target as Node) && isSwipedLeft) {
         setIsSwipedLeft(false)
+        setDragOffset(0)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -149,16 +136,11 @@ export function DocumentCard({
     >
       {/* Swipe Action Buttons (Mobile Only - Revealed on Swipe Left) */}
       {isMobile && (
-        <motion.div
-          className="absolute inset-y-0 right-0 flex items-center gap-2 px-3 bg-gradient-to-l from-primary/20 to-primary/10 z-0"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ 
+        <div
+          className="absolute inset-y-0 right-0 flex items-center gap-2 px-3 bg-gradient-to-l from-primary/20 to-primary/10 z-0 transition-opacity duration-150"
+          style={{
             opacity: isSwipedLeft ? 1 : 0,
-            scale: isSwipedLeft ? 1 : 0.9
-          }}
-          transition={{ 
-            duration: 0.1,
-            ease: [0.4, 0, 0.2, 1]
+            pointerEvents: isSwipedLeft ? "auto" : "none",
           }}
         >
           <Button
@@ -169,6 +151,7 @@ export function DocumentCard({
               e.stopPropagation()
               setIsPreviewOpen(true)
               setIsSwipedLeft(false)
+              setDragOffset(0)
             }}
           >
             <Eye className="h-5 w-5" />
@@ -183,7 +166,7 @@ export function DocumentCard({
           >
             <Download className="h-5 w-5" />
           </Button>
-        </motion.div>
+        </div>
       )}
 
       {/* Main Card Content (Swipeable on Mobile) */}
@@ -192,11 +175,19 @@ export function DocumentCard({
         {...(isMobile ? {} : cardHoverVariants)}
         drag={isMobile ? "x" : false}
         dragConstraints={{ left: -100, right: 0 }}
-        dragElastic={0.05}
+        dragElastic={0.02}
         dragMomentum={false}
-        dragTransition={{ bounceStiffness: 600, bounceDamping: 40, power: 0 }}
+        dragTransition={{ power: 0, timeConstant: 200 }}
         onDragEnd={isMobile ? handleDragEnd : undefined}
-        style={isMobile ? { x, touchAction: "pan-y" } : undefined}
+        style={
+          isMobile
+            ? {
+                transform: `translateX(${dragOffset}px)`,
+                transition: "transform 0.15s ease-out",
+                touchAction: "pan-y",
+              }
+            : undefined
+        }
         className={cn(
           "group relative flex flex-col p-5 border rounded-xl bg-card shadow-sm card-standard z-10",
           !isMobile && "hover:shadow-md card-lift transition-all duration-300",
