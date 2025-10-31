@@ -295,7 +295,7 @@ export function TopBar({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/billing">
+                <Link href="/dashboard/billing">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Billing
                 </Link>
