@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, PanInfo } from "framer-motion"
+import { motion } from "framer-motion"
 import {
   Eye,
   Download,
@@ -83,11 +83,6 @@ export function DocumentCard({
   const { activeWorkspace, getThread } = useWorkspace()
   const thread = getThread("document", `document-${id}`)
 
-  // Swipe gesture state
-  const [isSwipedLeft, setIsSwipedLeft] = useState(false)
-  const cardRef = useRef<HTMLDivElement | null>(null)
-  const [dragOffset, setDragOffset] = useState(0)
-
   // Detect mobile viewport
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -96,135 +91,57 @@ export function DocumentCard({
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
-  // Handle swipe gesture with instant detection
-  const handleDragEnd = (_: any, info: PanInfo) => {
-    const swipeThreshold = -50
-    const velocity = info.velocity.x
-    
-    if (info.offset.x < swipeThreshold || velocity < -400) {
-      setIsSwipedLeft(true)
-      setDragOffset(-160)
-    } else {
-      setIsSwipedLeft(false)
-      setDragOffset(0)
-    }
-  }
-
-  // Reset swipe when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (cardRef.current && !cardRef.current.contains(event.target as Node) && isSwipedLeft) {
-        setIsSwipedLeft(false)
-        setDragOffset(0)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [isSwipedLeft])
-
   const activeCollaborators = (thread?.watchers ?? [])
     .map((watcherId) => activeWorkspace.members.find((member) => member.id === watcherId))
     .filter((member): member is typeof activeWorkspace.members[number] => Boolean(member))
 
   return (
-    <div
-      ref={cardRef}
-      className="relative overflow-hidden rounded-xl"
+    <motion.div
+      {...createStaggeredCardVariants(index, 0)}
+      className={cn(
+        "group relative flex flex-col p-4 border rounded-xl bg-card shadow-sm card-standard",
+        "h-full min-h-[220px]",
+        !isMobile && "card-lift",
+        isSelected ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-border/60"
+      )}
       data-document-id={id}
     >
-      {/* Swipe Action Buttons (Mobile Only - Revealed on Swipe Left or 3-Dot Click) */}
-      {isMobile && (
-        <div
-          className="absolute top-0 right-0 flex items-center gap-1.5 px-2 bg-gradient-to-l from-primary/20 to-primary/10 z-0 transition-opacity duration-150 rounded-xl h-full min-h-[220px]"
-          style={{
-            opacity: isSwipedLeft ? 1 : 0,
-            pointerEvents: isSwipedLeft ? "auto" : "none",
-          }}
-        >
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9 text-primary hover:bg-primary/30 active:scale-95 transition-transform"
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsPreviewOpen(true)
-              setIsSwipedLeft(false)
-              setDragOffset(0)
-            }}
-            aria-label="View document"
-          >
-            <Eye className="h-4.5 w-4.5" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9 text-primary hover:bg-primary/20 active:scale-95 transition-transform"
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
-            aria-label="Download document"
-          >
-            <Download className="h-4.5 w-4.5" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9 text-primary hover:bg-primary/20 active:scale-95 transition-transform"
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
-            aria-label="Discuss document"
-          >
-            <MessageSquare className="h-4.5 w-4.5" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9 text-primary hover:bg-primary/20 active:scale-95 transition-transform"
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
-            aria-label="Assign document"
-          >
-            <UserPlus className="h-4.5 w-4.5" />
-          </Button>
-        </div>
-      )}
-
-      {/* Main Card Content (Swipeable on Mobile) */}
-      <motion.div
-        {...createStaggeredCardVariants(index, 0)}
-        drag={isMobile ? "x" : false}
-        dragConstraints={{ left: -160, right: 0 }}
-        dragElastic={0.02}
-        dragMomentum={false}
-        dragTransition={{ power: 0, timeConstant: 200 }}
-        onDragEnd={isMobile ? handleDragEnd : undefined}
-        style={
-          isMobile
-            ? {
-                transform: `translateX(${dragOffset}px)`,
-                transition: "transform 0.15s ease-out",
-                touchAction: "pan-y",
-              }
-            : undefined
-        }
-        className={cn(
-          "group relative flex flex-col p-4 border rounded-xl bg-card shadow-sm card-standard z-10",
-          "h-full min-h-[220px]",
-          !isMobile && "card-lift",
-          isSelected ? "border-primary ring-2 ring-primary/20" : "border-border/30 hover:border-border/60"
+      {/* Top Row - Checkbox and Mobile Menu */}
+      <div className="flex items-start justify-between my-2">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelectionChange?.(checked === true)}
+          className="bg-card border-2"
+          onClick={(e) => e.stopPropagation()}
+        />
+        {isMobile && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsPreviewOpen(true)}>
+                <Eye className="mr-2 h-4 w-4" />
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Discuss
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Assign
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
-      >
-        {/* Checkbox - Top Left */}
-        <div>
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={(checked) => onSelectionChange?.(checked === true)}
-            className="bg-card border-2"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+      </div>
 
         {/* Header - Icon and Title */}
         <div className="flex items-start gap-2.5 mb-3">
@@ -252,8 +169,8 @@ export function DocumentCard({
           <span>{size}</span>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-border/40 my-auto" />
+        {/* Divider - Desktop Only */}
+        {!isMobile && <div className="border-t border-border/40 my-auto" />}
 
         {/* Actions Section - Desktop Only */}
         {!isMobile && (
@@ -349,6 +266,5 @@ export function DocumentCard({
           </div>
         )}
       </motion.div>
-    </div>
   )
 }
