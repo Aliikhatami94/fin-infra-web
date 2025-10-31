@@ -194,7 +194,7 @@ export default function ProfilePage() {
                 <p className="text-sm font-medium">Account Type</p>
                 <p className="text-sm text-muted-foreground">Premium Trader</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="md:border-muted-foreground/30 border-primary/50 text-primary md:text-foreground hover:bg-primary/5 md:hover:bg-accent">
                 Upgrade
               </Button>
             </div>
