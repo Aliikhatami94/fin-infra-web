@@ -78,7 +78,7 @@ export default function BudgetPage() {
               <Button
                 type="button"
                 variant="outline"
-                size="icon-sm"
+                size="sm"
                 aria-label="View previous month"
                 onClick={() => setDate((current) => startOfMonth(addMonths(current, -1)))}
               >
@@ -129,7 +129,7 @@ export default function BudgetPage() {
               <Button
                 type="button"
                 variant="outline"
-                size="icon-sm"
+                size="sm"
                 aria-label="View next month"
                 onClick={() => setDate((current) => startOfMonth(addMonths(current, 1)))}
               >
