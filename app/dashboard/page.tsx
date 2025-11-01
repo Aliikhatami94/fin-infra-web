@@ -4,7 +4,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 // Heavy widgets are dynamically loaded client-side with skeletons
-import { KPICards } from "@/components/kpi-cards"
+import { OverviewKPIs } from "@/components/overview-kpis"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import type { AllocationChartProps } from "@/components/allocation-chart"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -179,7 +179,7 @@ export default function OverviewPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18 }}
         >
-          <KPICards />
+          <OverviewKPIs />
         </motion.div>
       }
       bands={bands}

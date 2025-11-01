@@ -189,7 +189,7 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
   )
 }
 
-export function KPICards() {
+export function OverviewKPIs() {
   const { state, hydrated } = useOnboardingState()
   const router = useRouter()
   const kpis = useMemo(() => getDashboardKpis(hydrated ? state.persona : undefined), [hydrated, state.persona])
