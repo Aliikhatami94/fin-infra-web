@@ -49,47 +49,47 @@ const SAVED_FILTER_SETS = [
     name: "Tax Docs",
     icon: FileSpreadsheet,
     description: "Tax forms and related documents",
-    types: ["Tax Form", "1099", "W-2"],
-    accounts: [],
-    years: [],
+    types: ["Tax Form", "1099", "W-2"] as string[],
+    accounts: [] as string[],
+    years: [] as string[],
   },
   {
     id: "statements",
     name: "Statements",
     icon: FileText,
     description: "Account statements and summaries",
-    types: ["Statement", "Account Summary"],
-    accounts: [],
-    years: [],
+    types: ["Statement", "Account Summary"] as string[],
+    accounts: [] as string[],
+    years: [] as string[],
   },
   {
     id: "reports",
     name: "Reports",
     icon: FileBarChart,
     description: "Financial reports and analytics",
-    types: ["Report", "Performance Report"],
-    accounts: [],
-    years: [],
+    types: ["Report", "Performance Report"] as string[],
+    accounts: [] as string[],
+    years: [] as string[],
   },
   {
     id: "receipts",
     name: "Receipts",
     icon: ReceiptText,
     description: "Transaction receipts and confirmations",
-    types: ["Receipt", "Confirmation"],
-    accounts: [],
-    years: [],
+    types: ["Receipt", "Confirmation"] as string[],
+    accounts: [] as string[],
+    years: [] as string[],
   },
   {
     id: "current-year",
     name: "This Year",
     icon: FileCheck2,
     description: "Documents from current year",
-    types: [],
-    accounts: [],
-    years: [new Date().getFullYear().toString()],
+    types: [] as string[],
+    accounts: [] as string[],
+    years: [new Date().getFullYear().toString()] as string[],
   },
-] as const
+]
 
 export default function DocumentsPage() {
   const [sortBy, setSortBy] = useState<"date" | "name" | "size">("date")
@@ -200,11 +200,11 @@ export default function DocumentsPage() {
   const checkActiveFilterSet = useCallback(() => {
     for (const filterSet of SAVED_FILTER_SETS) {
       const typesMatch = filterSet.types.length === selectedTypes.length && 
-        filterSet.types.every(t => selectedTypes.includes(t as string))
+        filterSet.types.every(t => selectedTypes.includes(t))
       const accountsMatch = filterSet.accounts.length === selectedAccounts.length && 
-        filterSet.accounts.every(a => selectedAccounts.includes(a as string))
+        filterSet.accounts.every(a => selectedAccounts.includes(a))
       const yearsMatch = filterSet.years.length === selectedYears.length && 
-        filterSet.years.every(y => selectedYears.includes(y as string))
+        filterSet.years.every(y => selectedYears.includes(y))
       
       if (typesMatch && accountsMatch && yearsMatch) {
         setActiveFilterSet(filterSet.id)
