@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/sonner"
 import { trackPreferenceToggle } from "@/lib/analytics/events"
 import {
@@ -30,6 +31,7 @@ import {
   UserX,
   Trash2,
   Type,
+  Info,
 } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -349,6 +351,7 @@ export default function SettingsPage() {
         id: "email-notifications",
         label: "Email notifications",
         description: "Trade receipts, balance alerts, and weekly summaries.",
+        tooltip: "Receive notifications via email to your registered address. Useful for non-urgent updates and record-keeping.",
         value: emailNotifications,
         setter: setEmailNotifications,
         snapshotKey: "emailNotifications" as const,
@@ -357,6 +360,7 @@ export default function SettingsPage() {
         id: "push-notifications",
         label: "Push notifications",
         description: "Instant alerts on mobile and desktop apps.",
+        tooltip: "Real-time notifications delivered directly to your device. Requires app installation and permission.",
         value: pushNotifications,
         setter: setPushNotifications,
         snapshotKey: "pushNotifications" as const,
@@ -365,6 +369,7 @@ export default function SettingsPage() {
         id: "price-alerts",
         label: "Price alerts",
         description: "Notifies when equities cross your guardrails.",
+        tooltip: "Set custom price thresholds for your watchlist. You'll be notified when stocks hit your target prices.",
         value: priceAlerts,
         setter: setPriceAlerts,
         snapshotKey: "priceAlerts" as const,
@@ -373,6 +378,7 @@ export default function SettingsPage() {
         id: "trade-confirmations",
         label: "Trade confirmations",
         description: "Require one-tap approval before orders execute.",
+        tooltip: "Adds a final confirmation step before executing trades, preventing accidental orders.",
         value: tradeConfirmations,
         setter: setTradeConfirmations,
         snapshotKey: "tradeConfirmations" as const,
@@ -387,6 +393,7 @@ export default function SettingsPage() {
         id: "analytics-consent",
         label: "Analytics & performance",
         description: "Share anonymized usage data to improve reliability.",
+        tooltip: "Helps us understand how you use the platform to fix bugs and improve features. All data is anonymized and aggregated.",
         value: analyticsConsent,
         setter: setAnalyticsConsent,
         snapshotKey: "analyticsConsent" as const,
@@ -395,6 +402,7 @@ export default function SettingsPage() {
         id: "marketing-consent",
         label: "Product updates",
         description: "Receive curated product news and early feature access.",
+        tooltip: "Occasional emails about new features, platform updates, and exclusive beta program invitations.",
         value: marketingConsent,
         setter: setMarketingConsent,
         snapshotKey: "marketingConsent" as const,
@@ -403,6 +411,7 @@ export default function SettingsPage() {
         id: "data-sharing",
         label: "Partner data sharing",
         description: "Allow trusted institutions to pull aggregated insights.",
+        tooltip: "Share anonymized portfolio data with verified financial institutions for market research. Your identity remains private.",
         value: dataSharing,
         setter: setDataSharing,
         snapshotKey: "dataSharing" as const,
@@ -451,6 +460,7 @@ export default function SettingsPage() {
         : "outline"
 
   return (
+    <TooltipProvider delayDuration={300}>
     <div className="">
       <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
         <div className="mx-auto p-4 flex justify-between items-center max-w-[1200px] px-4 sm:px-6 lg:px-10 z-[99]">
@@ -485,8 +495,16 @@ export default function SettingsPage() {
                 return (
                   <div key={preference.id} className="flex items-start justify-between gap-6 rounded-xl border border-border/30 bg-muted/5 px-4 py-4">
                     <div className="space-y-1">
-                      <Label id={labelId} htmlFor={preference.id} className="font-medium">
+                      <Label id={labelId} htmlFor={preference.id} className="font-medium flex items-center gap-1.5">
                         {preference.label}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <p className="text-xs">{preference.tooltip}</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </Label>
                       <p id={descriptionId} className="text-xs text-muted-foreground max-w-sm">
                         {preference.description}
@@ -549,6 +567,8 @@ export default function SettingsPage() {
                           section: "appearance",
                           value: option.value !== appearanceDefaults.fontScale,
                         })
+                        const nextSnapshot = computeSnapshot({ fontScale: option.value })
+                        handlePreferenceAutosave(`font-scale-${option.value}`, `Font scale ${option.label}`, nextSnapshot)
                       }}
                       aria-pressed={fontScale === option.value}
                     >
@@ -622,10 +642,26 @@ export default function SettingsPage() {
 
               <div
                 aria-live="polite"
-                className={`rounded-xl border border-dashed border-border/50 bg-card/70 p-4 transition-colors ${highContrastMode ? "ring-2 ring-primary/40" : ""}`}
+                className={cn(
+                  "rounded-xl border bg-gradient-to-br from-card to-muted/20 p-4 sm:p-5 transition-all duration-300",
+                  highContrastMode ? "border-primary ring-2 ring-primary/40" : "border-dashed border-border/50",
+                  dyslexiaMode && "font-['Atkinson_Hyperlegible',sans-serif] tracking-wide"
+                )}
               >
-                <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{previewCopy.heading}</p>
-                <p className={`mt-2 font-medium leading-relaxed ${previewTypography}`}>{previewCopy.body}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground font-semibold">
+                    Live Preview
+                  </p>
+                  <Badge variant="secondary" className="text-[0.6rem] px-2 py-0">
+                    {fontScale === "compact" ? "Compact" : fontScale === "comfort" ? "Comfort" : fontScale === "focus" ? "Focus" : "Balanced"}
+                  </Badge>
+                </div>
+                <p className={`font-medium leading-relaxed transition-all duration-200 ${previewTypography}`}>
+                  {previewCopy.body}
+                </p>
+                <p className={`mt-2 text-muted-foreground transition-all duration-200 ${previewTypography === "text-xs" ? "text-[0.65rem]" : previewTypography === "text-sm" ? "text-xs" : previewTypography === "text-base" ? "text-sm" : "text-[0.7rem]"}`}>
+                  Your changes are saved automatically as you adjust settings.
+                </p>
               </div>
             </div>
           </SettingsGroup>
@@ -633,8 +669,16 @@ export default function SettingsPage() {
           <SettingsGroup title="Security" description="Manage your security settings" icon={<Lock className="h-5 w-5" />}> 
             <div className="flex items-center justify-between py-4">
               <div className="space-y-0.5">
-                <Label id="two-factor-label" htmlFor="two-factor" className="font-medium">
+                <Label id="two-factor-label" htmlFor="two-factor" className="font-medium flex items-center gap-1.5">
                   Two-Factor Authentication
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="text-xs">Requires a verification code from your phone or authenticator app in addition to your password when signing in.</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </Label>
                 <p id="two-factor-description" className="text-sm text-muted-foreground">
                   Add an extra layer of security before approving logins.
@@ -727,8 +771,16 @@ export default function SettingsPage() {
               return (
                 <div key={preference.id} className="flex items-start justify-between gap-6 rounded-xl border border-border/30 bg-muted/5 px-4 py-4">
                   <div className="space-y-1">
-                    <Label id={labelId} htmlFor={preference.id} className="font-medium capitalize">
+                    <Label id={labelId} htmlFor={preference.id} className="font-medium capitalize flex items-center gap-1.5">
                       {preference.label}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <p className="text-xs">{preference.tooltip}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </Label>
                     <p id={descriptionId} className="text-xs text-muted-foreground max-w-sm">
                       {preference.description}
@@ -788,52 +840,44 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {account.status === "connected" ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 hidden sm:block" />
                     ) : (
-                      <AlertCircle className="h-4 w-4 text-red-500" />
+                      <AlertCircle className="h-4 w-4 text-red-500 hidden sm:block" />
                     )}
                     <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                       <RefreshCw className="h-3 w-3" />
-                      Refresh
+                      <span className="hidden sm:inline">Refresh</span>
                     </Button>
                     {/* Disconnect button */}
                     <Button variant="ghost" size="sm" className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
                       <Trash2 className="h-3 w-3" />
-                      Disconnect
+                      <span className="hidden sm:inline">Disconnect</span>
                     </Button>
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
+              <Button variant="outline" className="w-full justify-start sm:justify-start justify-center gap-2 bg-transparent">
                 <Link2 className="h-4 w-4" />
-                Connect New Account
+                <span className="inline">Connect New Account</span>
               </Button>
             </div>
           </SettingsGroup>
         </div>
-      
+      </motion.div>
 
-        <div
-          className="sticky bottom-0 flex items-center justify-between border-t bg-card py-4 lg:left-64 px-4 sm:px-6 lg:px-10"
-        >
-          <Button variant="ghost" size="lg" onClick={() => setResetDialogOpen(true)}>
+      {/* Fixed footer aligned with content - auto-save enabled */}
+      <div className="sticky bottom-0 border-t bg-card py-3 z-10">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 flex items-center justify-start">
+          <Button 
+            variant="outline" 
+            size="default" 
+            onClick={() => setResetDialogOpen(true)}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
             Reset to Defaults
           </Button>
-          <div className="flex items-center gap-3">
-            <Badge variant={statusVariant} className="text-xs" aria-live="polite">
-              {statusLabel}
-            </Badge>
-            <Button
-              size="lg"
-              onClick={handleSave}
-              disabled={!baseline || !hasChanges || saveStatus === "saving"}
-              aria-disabled={!baseline || !hasChanges || saveStatus === "saving"}
-            >
-              Save All Settings
-            </Button>
-          </div>
         </div>
-      </motion.div>
+      </div>
 
       <ConfirmDialog
         open={resetDialogOpen}
@@ -854,5 +898,6 @@ export default function SettingsPage() {
         </ul>
       </ConfirmDialog>
     </div>
+    </TooltipProvider>
   )
 }

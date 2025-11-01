@@ -15,6 +15,7 @@ import {
   Shield,
   BarChart3,
   User,
+  CreditCard,
 } from "lucide-react"
 import { isFeatureEnabled, type FeatureFlagKey } from "@/lib/analytics/experiments"
 
@@ -50,6 +51,7 @@ const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
   { name: "Growth", href: "/dashboard/growth", icon: BarChart3, featureFlag: "growthDashboards" },
   { name: "Documents", href: "/dashboard/documents", icon: Folder },
   { name: "Profile", href: "/dashboard/profile", icon: User },
+  { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
   { name: "Settings", href: "/dashboard/settings", icon: Settings, exact: true },
   { name: "Security Center", href: "/dashboard/settings/security", icon: Shield },
 ]

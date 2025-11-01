@@ -1,13 +1,13 @@
 # agents.md
 
 ## What this repo is
-- A Next.js 15 + React 19 TypeScript application: a stock/finance trading dashboard with rich UI components (Radix UI, shadcn/ui style), charts, AI insights, and an app-router layout.
+- A Next.js 15 + React 19 TypeScript application: Autoclar - an automated financial clarity platform with rich UI components (Radix UI, shadcn/ui style), charts, AI insights, and an app-router layout.
 - Tailwind CSS v4 drives styling (via `@tailwindcss/postcss`) with design tokens defined in `app/globals.css`. Many reusable components live under `components/`.
 - Deployed on Vercel and synchronized with v0.app; changes made in v0 can auto-sync back to this repository.
 
 ## Product goal
-- Deliver a responsive, accessible financial dashboard that surfaces user finance data, charts, watchlists, and insights with a modern, fast UX.
-- Compete with existing finance dashboards like Quicken Simplifi, Monarch Money, and Personal Capital by focusing on clean design, performance, and AI-driven insights.
+- Automate financial clarity for users by providing intelligent insights, unified data visualization, and effortless financial oversight.
+- Deliver a responsive, accessible platform that automatically surfaces actionable finance insights, eliminates manual tracking, and provides real-time clarity with AI-driven automation.
 - Keep the codebase simple to extend: new pages/components should follow the existing app-router and UI patterns, with minimal boilerplate.
 - Maintain a cohesive design system via Tailwind tokens, utility classes, and shared UI primitives in `components/ui`.
 

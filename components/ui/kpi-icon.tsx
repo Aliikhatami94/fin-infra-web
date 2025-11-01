@@ -20,9 +20,9 @@ export interface KPIIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const sizeClasses: Record<KPIIconSize, string> = {
-  sm: "h-10 w-10",
-  md: "h-11 w-11",
-  lg: "h-12 w-12",
+  sm: "h-9 w-9 md:h-10 md:w-10",
+  md: "h-10 w-10 md:h-11 md:w-11",
+  lg: "h-11 w-11 md:h-12 md:w-12",
 }
 
 const shapeClasses: Record<KPIIconShape, string> = {
@@ -57,7 +57,7 @@ export function KPIIcon({
       )}
       {...rest}
     >
-      <Icon className={cn("h-5 w-5", iconClass, iconClassName)} aria-hidden="true" />
+      <Icon className={cn("h-4 w-4 md:h-5 md:w-5", iconClass, iconClassName)} aria-hidden="true" />
     </div>
   )
 }

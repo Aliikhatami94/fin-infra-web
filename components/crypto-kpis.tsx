@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
 import {
@@ -17,6 +18,13 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { KPIIcon } from "@/components/ui/kpi-icon"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel"
+import { cn } from "@/lib/utils"
 
 const kpis = [
   {
@@ -107,18 +115,34 @@ const Sparkline = ({ data, positive }: { data: number[]; positive: boolean }) =>
 
 export function CryptoKPIs() {
   const router = useRouter()
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0)
 
-  return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
-      {kpis.map((kpi, index) => {
-        const Icon = kpi.icon
-        return (
-          <motion.div key={index} {...createStaggeredCardVariants(index, 0)} className="h-full">
-            <Card
-              className={`card-standard card-lift h-full min-h-[280px] ${kpi.clickable ? "cursor-pointer" : ""}`}
-              onClick={() => kpi.clickable && router.push("/crypto/btc")}
-            >
-              <CardContent className="flex flex-col h-full gap-3 p-6">
+  // Handle carousel slide change
+  useEffect(() => {
+    if (!carouselApi) return
+
+    const onSelect = () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
+    }
+
+    carouselApi.on("select", onSelect)
+    onSelect()
+
+    return () => {
+      carouselApi.off("select", onSelect)
+    }
+  }, [carouselApi])
+
+  const renderKPICard = (kpi: typeof kpis[0], index: number) => {
+    const Icon = kpi.icon
+    return (
+      <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
+        <Card
+          className={`card-standard card-lift h-full min-h-[200px] md:min-h-[220px] ${kpi.clickable ? "cursor-pointer" : ""}`}
+          onClick={() => kpi.clickable && router.push("/crypto/btc")}
+        >
+          <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
                 <div className="flex items-start justify-between gap-2">
                   <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                 </div>
@@ -187,8 +211,56 @@ export function CryptoKPIs() {
               </CardContent>
             </Card>
           </motion.div>
-        )
-      })}
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Mobile: Horizontal carousel */}
+      <div className="md:hidden">
+        <Carousel
+          setApi={setCarouselApi}
+          opts={{
+            align: "center",
+            loop: false,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4 pt-2">
+            {kpis.map((kpi, index) => (
+              <CarouselItem key={index} className="pl-4 basis-[85%] sm:basis-[48%]">
+                {renderKPICard(kpi, index)}
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+
+        {/* Carousel indicators */}
+        <div className="flex justify-center gap-1.5 mt-3">
+          {kpis.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => carouselApi?.scrollTo(index)}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                currentSlide === index
+                  ? "w-6 bg-primary"
+                  : "w-1.5 bg-muted-foreground/30"
+              )}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Tablet/Desktop: Grid layout */}
+      <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+        {kpis.map((kpi, index) => (
+          <div key={index}>
+            {renderKPICard(kpi, index)}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

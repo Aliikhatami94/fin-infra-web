@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { AccessibleChart } from "@/components/accessible-chart"
 import { currencySummaryFormatter, describeTimeSeries } from "@/lib/a11y"
 import { formatCurrency } from "@/lib/format"
+import { LINE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
 
 type Timeframe = "1D" | "1W" | "1M" | "3M" | "1Y" | "ALL"
 
@@ -253,24 +254,33 @@ export function StockChart() {
             <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                  <stop offset="5%" stopColor={LINE_CHART_COLORS.secondary.fill} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={LINE_CHART_COLORS.secondary.fill} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
+              <CartesianGrid 
+                strokeDasharray={CHART_STYLES.grid.strokeDasharray}
+                stroke={CHART_STYLES.grid.stroke}
+                vertical={CHART_STYLES.grid.vertical}
+                opacity={CHART_STYLES.grid.opacity}
+              />
               <XAxis
                 dataKey="time"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
                 dy={10}
               />
               <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
                 domain={["dataMin - 2", "dataMax + 2"]}
                 tickFormatter={(value) => `$${value}`}
                 width={50}
@@ -282,8 +292,8 @@ export function StockChart() {
               <Area
                 type="monotone"
                 dataKey="price"
-                stroke="hsl(var(--chart-2))"
-                strokeWidth={2}
+                stroke={LINE_CHART_COLORS.secondary.stroke}
+                strokeWidth={CHART_STYLES.line.strokeWidth}
                 fill="url(#colorPrice)"
                 fillOpacity={1}
               />

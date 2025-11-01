@@ -584,10 +584,22 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                           <stop offset="95%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis
-                        stroke="hsl(var(--muted-foreground))"
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="hsl(var(--foreground))" 
                         fontSize={12}
+                        tick={{ fill: "hsl(var(--foreground))" }}
+                        tickLine={true}
+                        axisLine={true}
+                        tickMargin={8}
+                      />
+                      <YAxis
+                        stroke="hsl(var(--foreground))"
+                        fontSize={12}
+                        tick={{ fill: "hsl(var(--foreground))" }}
+                        tickLine={true}
+                        axisLine={true}
+                        tickMargin={8}
                         tickFormatter={(value) => `$${value.toFixed(0)}`}
                       />
                       <Area

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, type MouseEvent } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
-import { TrendingUp, TrendingDown, Info, DollarSign, TrendingUpIcon, Activity, Target, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react"
+import { TrendingUp, TrendingDown, Info, DollarSign, TrendingUpIcon, Activity, Target, ChevronDown, ChevronUp } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
@@ -112,23 +112,9 @@ const riskMetricLabelToKey: Record<string, RiskMetricKey> = {
 export function PortfolioKPIs() {
   const [selectedMetric, setSelectedMetric] = useState<RiskMetricKey | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set())
+  const [hiddenCards] = useState<Set<string>>(new Set())
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-
-  const toggleCardVisibility = (label: string, e: MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setHiddenCards(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(label)) {
-        newSet.delete(label)
-      } else {
-        newSet.add(label)
-      }
-      return newSet
-    })
-  }
 
   // Handle carousel slide change
   useEffect(() => {
@@ -155,30 +141,16 @@ export function PortfolioKPIs() {
     return (
       <motion.div {...cardHoverVariants} className="h-full">
         <Card
-          className={`card-standard card-lift h-full min-h-[260px] md:min-h-[280px] ${isRiskMetric ? "cursor-pointer" : ""}`}
+          className={`card-standard card-lift h-full min-h-[200px] md:min-h-[220px] ${isRiskMetric ? "cursor-pointer" : ""}`}
           onClick={() => {
             if (metricKey && !isHidden) {
               setSelectedMetric(metricKey)
             }
           }}
         >
-          <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+          <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
             <div className="flex items-start justify-between gap-2">
               <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
-              {/* Per-card visibility toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 -mr-1"
-                onClick={(e) => toggleCardVisibility(kpi.label, e)}
-                aria-label={isHidden ? "Show values" : "Hide values"}
-              >
-                {isHidden ? (
-                  <Eye className="h-3.5 w-3.5" />
-                ) : (
-                  <EyeOff className="h-3.5 w-3.5" />
-                )}
-              </Button>
             </div>
             <div className="space-y-2 flex-1">
               <div className="flex items-center justify-between gap-3">
@@ -295,7 +267,7 @@ export function PortfolioKPIs() {
                 >
                   <CarouselContent className="-ml-4">
                     {kpis.map((kpi, index) => (
-                      <CarouselItem key={kpi.label} className="pl-4 basis-[85%]">
+                      <CarouselItem key={kpi.label} className="pl-4 basis-[85%] sm:basis-[48%]">
                         <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
                           {renderKPICard(kpi)}
                         </motion.div>

@@ -44,17 +44,21 @@ export function NetWorthHistoryChart({ data, className }: NetWorthHistoryChartPr
           </defs>
           <XAxis
             dataKey="date"
-            stroke="hsl(var(--muted-foreground))"
+            stroke="hsl(var(--foreground))"
             fontSize={12}
-            tickLine={false}
-            axisLine={false}
+            tick={{ fill: "hsl(var(--foreground))" }}
+            tickLine={true}
+            axisLine={true}
+            tickMargin={8}
             interval={60}
           />
           <YAxis
-            stroke="hsl(var(--muted-foreground))"
+            stroke="hsl(var(--foreground))"
             fontSize={12}
-            tickLine={false}
-            axisLine={false}
+            tick={{ fill: "hsl(var(--foreground))" }}
+            tickLine={true}
+            axisLine={true}
+            tickMargin={8}
             tickFormatter={(value: number) => `$${(value / 1000).toFixed(0)}k`}
           />
           <Tooltip

@@ -68,16 +68,18 @@
   --surface-cashflow: linear-gradient(135deg, oklch(0.87 0.11 155) 0%, oklch(0.78 0.08 120) 100%);
   --surface-security: linear-gradient(135deg, oklch(0.88 0.05 230) 0%, oklch(0.78 0.12 260) 100%);
 
-  --type-12: 0.75rem;
-  --type-14: 0.875rem;
-  --type-16: 1rem;
-  --type-18: 1.125rem;
-  --type-24: 1.5rem;
-  --type-28: 1.75rem;
-  --type-32: 2rem;
-  --type-kpi: var(--type-32);
-
   --font-size-base: 1rem;
+  --font-scale-multiplier: 1;
+  
+  --type-12: calc(0.75rem * var(--font-scale-multiplier));
+  --type-14: calc(0.875rem * var(--font-scale-multiplier));
+  --type-16: calc(1rem * var(--font-scale-multiplier));
+  --type-18: calc(1.125rem * var(--font-scale-multiplier));
+  --type-24: calc(1.5rem * var(--font-scale-multiplier));
+  --type-28: calc(1.75rem * var(--font-scale-multiplier));
+  --type-32: calc(2rem * var(--font-scale-multiplier));
+  --type-kpi: var(--type-24);
+
   --line-height-base: 1.6;
   --letter-spacing-tight: -0.01em;
 
@@ -165,11 +167,12 @@
 
 [data-font-scale="compact"] {
   --font-size-base: 0.9375rem;
+  --font-scale-multiplier: 0.9375;
 }
 
 [data-density="compact"] {
   /* Density overrides: reduce KPI size, paddings, gaps, radius, and icon sizes */
-  --type-kpi: var(--type-28);
+  --type-kpi: var(--type-24);
   /* Card spacing (comfortable → compact):
      inline 20px → 16px, block ~16px → 14px, gap 16–24px → 16px */
   --space-card-inline: 1rem; /* 16px */
@@ -185,15 +188,29 @@
 
 [data-font-scale="comfort"] {
   --font-size-base: 1.0625rem;
+  --font-scale-multiplier: 1.0625;
 }
 
 [data-font-scale="focus"] {
   --font-size-base: 1.125rem;
+  --font-scale-multiplier: 1.125;
 }
 
 [data-dyslexia="true"] body {
   font-family: "Atkinson Hyperlegible", var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
   letter-spacing: 0.01em;
+}
+
+[data-contrast="high"] {
+  --border: oklch(0.7 0.02 255);
+  --muted: oklch(0.88 0.02 255);
+  --muted-foreground: oklch(0.35 0.04 250);
+}
+
+[data-contrast="high"] .dark {
+  --border: oklch(0.35 0.02 255);
+  --muted: oklch(0.22 0.02 255);
+  --muted-foreground: oklch(0.65 0.03 250);
 }
 
 @theme inline {
@@ -276,6 +293,16 @@
       "Liberation Mono", "Courier New", monospace;
     font-variant-numeric: tabular-nums;
   }
+
+  /* Override Tailwind text sizes with scalable versions */
+  .text-xs { font-size: var(--type-12) !important; }
+  .text-sm { font-size: var(--type-14) !important; }
+  .text-base { font-size: var(--type-16) !important; }
+  .text-lg { font-size: var(--type-18) !important; }
+  .text-xl { font-size: calc(1.25rem * var(--font-scale-multiplier)) !important; }
+  .text-2xl { font-size: var(--type-24) !important; }
+  .text-3xl { font-size: var(--type-28) !important; }
+  .text-4xl { font-size: var(--type-32) !important; }
 
   /* Added unified design system utilities */
   /* Standard card styling - use this for all card components */

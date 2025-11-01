@@ -68,6 +68,7 @@ export interface InsightDefinition {
   surfaces: InsightSurface[]
   icon: LucideIcon
   accent: InsightAccent
+  severity?: "low" | "medium" | "high"
   metrics?: InsightMetric[]
   actions: InsightAction[]
   explanation?: string

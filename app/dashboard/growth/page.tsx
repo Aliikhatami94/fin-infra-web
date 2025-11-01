@@ -203,8 +203,21 @@ export default function GrowthPage() {
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={adjustedActivation}>
                 <CartesianGrid strokeDasharray="3 3" className="text-border/40" />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))" }}
+                  tickLine={true} 
+                  axisLine={true}
+                  tickMargin={8}
+                />
+                <YAxis 
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))" }}
+                  tickLine={true} 
+                  axisLine={true}
+                  tickMargin={8}
+                />
                 <Tooltip cursor={{ fill: "hsl(var(--muted))" }} />
                 <Bar dataKey="started" fill="hsl(var(--chart-blue-500))" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="completed" fill="hsl(var(--chart-green-500))" radius={[4, 4, 0, 0]} />
@@ -223,8 +236,23 @@ export default function GrowthPage() {
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={retentionCohorts}>
                 <CartesianGrid strokeDasharray="3 3" className="text-border/40" />
-                <XAxis dataKey="cohort" tickLine={false} axisLine={false} />
-                <YAxis unit="%" tickLine={false} axisLine={false} domain={[60, 100]} />
+                <XAxis 
+                  dataKey="cohort" 
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))" }}
+                  tickLine={true} 
+                  axisLine={true}
+                  tickMargin={8}
+                />
+                <YAxis 
+                  unit="%" 
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))" }}
+                  tickLine={true} 
+                  axisLine={true}
+                  tickMargin={8}
+                  domain={[60, 100]} 
+                />
                 <Tooltip cursor={{ stroke: "hsl(var(--primary))" }} />
                 <Line type="monotone" dataKey="month1" stroke="hsl(var(--chart-blue-500))" strokeWidth={2} dot />
                 <Line type="monotone" dataKey="month3" stroke="hsl(var(--chart-green-500))" strokeWidth={2} dot />
@@ -258,8 +286,21 @@ export default function GrowthPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="text-border/40" />
-                <XAxis dataKey="week" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
+                <XAxis 
+                  dataKey="week" 
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))" }}
+                  tickLine={true} 
+                  axisLine={true}
+                  tickMargin={8}
+                />
+                <YAxis 
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))" }}
+                  tickLine={true} 
+                  axisLine={true}
+                  tickMargin={8}
+                />
                 <Tooltip cursor={{ stroke: "hsl(var(--primary))" }} />
                 <Area
                   type="monotone"

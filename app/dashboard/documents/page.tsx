@@ -19,7 +19,7 @@ import {
   FileCheck2,
   ReceiptText,
 } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,19 +39,57 @@ import { DocumentUploadZone } from "@/components/document-upload-zone"
 import { toast } from "@/components/ui/sonner"
 import { SuccessCelebrationDialog } from "@/components/success-celebration-dialog"
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
-import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 
-const resolveDocumentTypeIcon = (type: string) => {
-  const normalized = type.toLowerCase()
-  if (normalized.includes("tax") || normalized.includes("1099") || normalized.includes("form")) return FileSpreadsheet
-  if (normalized.includes("statement")) return FileText
-  if (normalized.includes("report")) return FileBarChart
-  if (normalized.includes("confirmation")) return FileCheck2
-  if (normalized.includes("receipt")) return ReceiptText
-  return FileText
-}
+// Saved filter sets for quick access
+const SAVED_FILTER_SETS = [
+  {
+    id: "tax-docs",
+    name: "Tax Docs",
+    icon: FileSpreadsheet,
+    description: "Tax forms and related documents",
+    types: ["Tax Form", "1099", "W-2"] as string[],
+    accounts: [] as string[],
+    years: [] as string[],
+  },
+  {
+    id: "statements",
+    name: "Statements",
+    icon: FileText,
+    description: "Account statements and summaries",
+    types: ["Statement", "Account Summary"] as string[],
+    accounts: [] as string[],
+    years: [] as string[],
+  },
+  {
+    id: "reports",
+    name: "Reports",
+    icon: FileBarChart,
+    description: "Financial reports and analytics",
+    types: ["Report", "Performance Report"] as string[],
+    accounts: [] as string[],
+    years: [] as string[],
+  },
+  {
+    id: "receipts",
+    name: "Receipts",
+    icon: ReceiptText,
+    description: "Transaction receipts and confirmations",
+    types: ["Receipt", "Confirmation"] as string[],
+    accounts: [] as string[],
+    years: [] as string[],
+  },
+  {
+    id: "current-year",
+    name: "This Year",
+    icon: FileCheck2,
+    description: "Documents from current year",
+    types: [] as string[],
+    accounts: [] as string[],
+    years: [new Date().getFullYear().toString()] as string[],
+  },
+]
 
 export default function DocumentsPage() {
   const [sortBy, setSortBy] = useState<"date" | "name" | "size">("date")
@@ -61,6 +99,7 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [celebration, setCelebration] = useState<{ count: number; firstName: string } | null>(null)
   const [celebrationOpen, setCelebrationOpen] = useState(false)
+  const [activeFilterSet, setActiveFilterSet] = useState<string | null>(null)
   const fetchTimer = useRef<NodeJS.Timeout | null>(null)
   const {
     isUpdating,
@@ -74,7 +113,6 @@ export default function DocumentsPage() {
     toggleYear,
     clearAll,
   } = useDocumentFilters()
-  const chipListLabelId = useId()
 
   const isSortOption = (value: string): value is typeof sortBy => {
     return value === "date" || value === "name" || value === "size"
@@ -127,7 +165,58 @@ export default function DocumentsPage() {
 
   const clearFilters = useCallback(() => {
     clearAll()
+    setActiveFilterSet(null)
   }, [clearAll])
+
+  const applySavedFilterSet = useCallback((filterId: string) => {
+    const filterSet = SAVED_FILTER_SETS.find(f => f.id === filterId)
+    if (!filterSet) return
+
+    // Clear existing filters first
+    clearAll()
+
+    // Apply the saved filter set
+    filterSet.types.forEach(type => {
+      if (fileTypes.includes(type) && !selectedTypes.includes(type)) {
+        toggleType(type)
+      }
+    })
+    filterSet.accounts.forEach(account => {
+      if (accounts.includes(account) && !selectedAccounts.includes(account)) {
+        toggleAccount(account)
+      }
+    })
+    filterSet.years.forEach(year => {
+      if (years.includes(year) && !selectedYears.includes(year)) {
+        toggleYear(year)
+      }
+    })
+
+    setActiveFilterSet(filterId)
+    toast.success(`Applied "${filterSet.name}" filter`)
+  }, [fileTypes, accounts, years, selectedTypes, selectedAccounts, selectedYears, toggleType, toggleAccount, toggleYear, clearAll])
+
+  // Check if current filters match a saved filter set
+  const checkActiveFilterSet = useCallback(() => {
+    for (const filterSet of SAVED_FILTER_SETS) {
+      const typesMatch = filterSet.types.length === selectedTypes.length && 
+        filterSet.types.every(t => selectedTypes.includes(t))
+      const accountsMatch = filterSet.accounts.length === selectedAccounts.length && 
+        filterSet.accounts.every(a => selectedAccounts.includes(a))
+      const yearsMatch = filterSet.years.length === selectedYears.length && 
+        filterSet.years.every(y => selectedYears.includes(y))
+      
+      if (typesMatch && accountsMatch && yearsMatch) {
+        setActiveFilterSet(filterSet.id)
+        return
+      }
+    }
+    setActiveFilterSet(null)
+  }, [selectedTypes, selectedAccounts, selectedYears])
+
+  useEffect(() => {
+    checkActiveFilterSet()
+  }, [checkActiveFilterSet])
 
   const describeActiveFilters = useMemo(() => {
     const segments: string[] = []
@@ -269,14 +358,53 @@ export default function DocumentsPage() {
                   <Button variant="outline" size="sm" className="gap-2">
                     <Filter className="h-4 w-4" />
                     <span className="hidden sm:inline">Filter</span>
-                    {selectedTypes.length > 0 && (
-                      <span className="ml-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs">{selectedTypes.length}</span>
+                    {(selectedTypes.length > 0 || activeFilterSet) && (
+                      <span className="ml-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs">
+                        {activeFilterSet ? '✓' : selectedTypes.length}
+                      </span>
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>File Type</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-72">
+                  {/* Quick Filters Section */}
+                  <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Quick Filters
+                  </DropdownMenuLabel>
+                  <div className="px-2 py-2 space-y-1">
+                    {SAVED_FILTER_SETS.map((filterSet) => {
+                      const isActive = activeFilterSet === filterSet.id
+                      const FilterIcon = filterSet.icon
+                      return (
+                        <button
+                          key={filterSet.id}
+                          onClick={() => applySavedFilterSet(filterSet.id)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                            isActive 
+                              ? "bg-primary text-primary-foreground" 
+                              : "hover:bg-muted"
+                          )}
+                        >
+                          <FilterIcon className="h-4 w-4 shrink-0" />
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="font-medium">{filterSet.name}</div>
+                            <div className={cn(
+                              "text-xs truncate",
+                              isActive ? "text-primary-foreground/80" : "text-muted-foreground"
+                            )}>
+                              {filterSet.description}
+                            </div>
+                          </div>
+                          {isActive && <Badge variant="secondary" className="shrink-0 bg-primary-foreground/20 text-primary-foreground">Active</Badge>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  
                   <DropdownMenuSeparator />
+                  
+                  {/* Manual Filter Options */}
+                  <DropdownMenuLabel>File Type</DropdownMenuLabel>
                   {fileTypes.map((type) => (
                     <DropdownMenuCheckboxItem
                       key={type}
@@ -286,6 +414,23 @@ export default function DocumentsPage() {
                       {type}
                     </DropdownMenuCheckboxItem>
                   ))}
+                  
+                  {(selectedTypes.length > 0 || selectedAccounts.length > 0 || selectedYears.length > 0 || activeFilterSet) && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <div className="px-2 py-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={clearFilters}
+                          className="w-full justify-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                          Clear All Filters
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
               <TooltipProvider>
@@ -308,145 +453,9 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      {/* Body with filters moved out of header for a shorter header */}
+      {/* Main Content */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              {searchQuery && (
-                <Badge variant="secondary" className="gap-1">
-                  Search: {searchQuery}
-                  <button onClick={() => setSearchQuery("")} className="ml-1 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedTypes.map((type) => (
-                <Badge key={type} variant="secondary" className="gap-1">
-                  {type}
-                  <button onClick={() => toggleType(type)} className="ml-1 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {selectedAccounts.map((account) => (
-                <Badge key={account} variant="secondary" className="gap-1">
-                  {account}
-                  <button onClick={() => toggleAccount(account)} className="ml-1 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {selectedYears.map((year) => (
-                <Badge key={year} variant="secondary" className="gap-1">
-                  {year}
-                  <button onClick={() => toggleYear(year)} className="ml-1 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {(searchQuery || selectedTypes.length || selectedAccounts.length || selectedYears.length) && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs">
-                  Clear all
-                </Button>
-              )}
-            </div>
-
-            <div className="relative -mx-2">
-              <span id={chipListLabelId} className="sr-only">
-                Filter documents by type, account, or year
-              </span>
-              <div
-                className="flex items-center gap-2 overflow-x-auto px-2 pb-2 text-xs sm:text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                style={{ msOverflowStyle: "none" }}
-                role="listbox"
-                aria-labelledby={chipListLabelId}
-                aria-multiselectable="true"
-              >
-                {fileTypes.map((type) => {
-                  const selected = selectedTypes.includes(type)
-                  const TypeIcon = resolveDocumentTypeIcon(type)
-                  return (
-                    <Button
-                      key={type}
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      data-selected={selected}
-                      className={cn(
-                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                        selected
-                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
-                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
-                      )}
-                      onClick={() => toggleType(type)}
-                    >
-                      <TypeIcon className={cn("mr-2 h-3.5 w-3.5", selected ? "text-primary" : "text-muted-foreground")} aria-hidden />
-                      {type}
-                    </Button>
-                  )
-                })}
-                {accounts.map((account) => {
-                  const selected = selectedAccounts.includes(account)
-                  return (
-                    <Button
-                      key={account}
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      data-selected={selected}
-                      className={cn(
-                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                        selected
-                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
-                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
-                      )}
-                      onClick={() => toggleAccount(account)}
-                    >
-                      {account}
-                    </Button>
-                  )
-                })}
-                {years.map((year) => {
-                  const selected = selectedYears.includes(year)
-                  return (
-                    <Button
-                      key={year}
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      data-selected={selected}
-                      className={cn(
-                        "h-8 rounded-full border border-border/60 bg-card px-3 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                        selected
-                          ? "border-primary bg-primary/10 text-primary shadow-[var(--shadow-soft)]"
-                          : "text-muted-foreground hover:border-primary/50 hover:text-foreground",
-                      )}
-                      onClick={() => toggleYear(year)}
-                    >
-                      {year}
-                    </Button>
-                  )
-                })}
-              </div>
-              <span className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background via-background to-transparent" aria-hidden />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>Filters follow your workspace—shared collaborators see the same context.</span>
-              <Button asChild variant="link" size="sm" className="h-auto px-0 text-xs font-semibold">
-                <Link href="/taxes" className="flex items-center gap-1">
-                  Review missing tax docs
-                </Link>
-              </Button>
-            </div>
-          </div>
-
           <AccountabilityChecklist surface="documents" />
           <DocumentUploadZone id="document-upload" onUploadComplete={handleUploadComplete} />
           <ErrorBoundary feature="Document insights">

@@ -1,6 +1,6 @@
-# Fin Infra Web – Stock/Finance Trading Dashboard
+# Autoclar – Automated Financial Clarity
 
-A modern, responsive trading dashboard built with Next.js 15, React 19, and TypeScript. It surfaces portfolio data, watchlists, rich charts, documents/tax views, and AI insights with an accessible, fast UX.
+A modern financial clarity platform built with Next.js 15, React 19, and TypeScript. Autoclar automates financial oversight by intelligently surfacing insights, unifying data, and eliminating manual tracking with an accessible, fast UX.
 
 ## Overview
 
@@ -11,11 +11,11 @@ A modern, responsive trading dashboard built with Next.js 15, React 19, and Type
 
 ### Key features
 
-- Portfolio, accounts, holdings, and KPI cards
-- Charts: net worth, allocation, performance, cash flow, crypto
-- Watchlist and order book panels
-- AI insights panels (portfolio, documents, budget, crypto)
-- Documents and tax utilities (summaries, year comparison, scenarios)
+- Automated portfolio insights and real-time clarity
+- Intelligent charts: net worth, allocation, performance, cash flow, crypto
+- AI-powered insights that surface automatically
+- Budget automation and spending clarity
+- Documents and tax utilities with automated summaries
 - Responsive layout, theme switching, and accessible interactions
 
 ## Tech stack

@@ -22,7 +22,7 @@ import { useTheme } from "next-themes"
 import { Moon, Sun, Monitor, UserCircle, SettingsIcon, CreditCard, LogOut, SlidersHorizontal } from "lucide-react"
 import { useMaskToggleDetails } from "@/components/privacy-provider"
 import { CommandMenu } from "@/components/command-menu"
-import { useEffect, useState, useRef, useCallback } from "react"
+import { useEffect, useState } from "react"
 import { useDateRange } from "@/components/date-range-provider"
 // Brand title lives in the Sidebar header now; TopBar is embedded inside the content area.
 import { useWorkspace } from "@/components/workspace-provider"
@@ -33,12 +33,10 @@ import { cn } from "@/lib/utils"
 
 export function TopBar({ 
   onMenuClick, 
-  sidebarCollapsed,
-  onHeaderVisibilityChange 
+  sidebarCollapsed: _sidebarCollapsed,
 }: { 
   onMenuClick?: () => void; 
   sidebarCollapsed?: boolean;
-  onHeaderVisibilityChange?: (visible: boolean) => void;
 }) {
   const { setTheme, theme } = useTheme()
   const { masked, toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
@@ -48,11 +46,6 @@ export function TopBar({
   const { activeWorkspace, workspaces, selectWorkspace, unreadCount, activeMember } = useWorkspace()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { density, setDensity } = useDensity()
-  
-  // Scroll behavior for mobile: hide on scroll down, show on scroll up
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
-  const lastScrollY = useRef(0)
-  const scrollThreshold = 10 // Minimum scroll distance to trigger hide/show
 
   const isDateRangeValue = (value: string): value is typeof dateRange => {
     return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
@@ -70,70 +63,31 @@ export function TopBar({
     }
   }
 
-  // Handle scroll behavior for auto-hiding header on mobile
-  const handleScroll = useCallback(() => {
-    const mainContent = document.getElementById('main-content')
-    if (!mainContent) return
-
-    const currentScrollY = mainContent.scrollTop
-    const scrollDifference = Math.abs(currentScrollY - lastScrollY.current)
-
-    // Only update if scroll difference exceeds threshold (prevents jitter)
-    if (scrollDifference < scrollThreshold) return
-
-    let newVisibility = isHeaderVisible
-    
-    // Show header when scrolling up or at top
-    if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
-      newVisibility = true
-    } 
-    // Hide header when scrolling down (only on mobile/tablet)
-    else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-      newVisibility = false
-    }
-
-    if (newVisibility !== isHeaderVisible) {
-      setIsHeaderVisible(newVisibility)
-      onHeaderVisibilityChange?.(newVisibility)
-    }
-    
-    lastScrollY.current = currentScrollY
-  }, [scrollThreshold, isHeaderVisible, onHeaderVisibilityChange])
-
   useEffect(() => {
     setMounted(true)
-    
-    // Set up scroll listener on main content
-    const mainContent = document.getElementById('main-content')
-    if (!mainContent) return
-
-    mainContent.addEventListener('scroll', handleScroll, { passive: true })
-    
-    return () => {
-      mainContent.removeEventListener('scroll', handleScroll)
-    }
-  }, [handleScroll])
+  }, [])
 
   return (
     <div
       className={cn(
-        // Fixed top bar that adapts to sidebar width on large screens
-        "fixed top-0 right-0 z-40 backdrop-blur-md transition-all duration-300 ease-in-out",
-        // Mobile/tablet: full width with auto-hide behavior
-        "left-0 w-auto",
-        // Desktop: shift right based on sidebar state so it's visually centered with content
-        sidebarCollapsed ? "lg:left-16" : "lg:left-64",
-        // Mobile: slide up when hidden, down when visible
-        isHeaderVisible ? "translate-y-0" : "-translate-y-full md:translate-y-0",
-        // Background with glass effect (no border or shadow)
+        // Mobile: sticky top bar that stays with scroll
+        "sticky lg:fixed top-0 z-40 backdrop-blur-md transition-all duration-300 ease-in-out",
+        // Full width on mobile and tablet
+        "left-0 w-full right-0",
+        // Desktop: shift right based on sidebar state
+        _sidebarCollapsed ? "lg:left-16" : "lg:left-64",
+        "lg:w-auto",
+        // Background with glass effect
         "bg-background/80",
       )}
     >
-      {/* Inner container: constrain width and center horizontally to match page content width */}
+      {/* Inner container: full width, match page content padding */}
       <div className={cn(
-        "mx-auto flex w-full max-w-[1200px] items-center justify-between gap-2 px-3 transition-all duration-300 sm:gap-3 sm:px-4 lg:px-10",
+        "flex w-full items-center justify-between gap-2 transition-all duration-300 sm:gap-3",
         // Compact height on mobile for space efficiency
         "h-11 md:h-12 lg:h-14",
+        // Padding matches page content: pr-4 on mobile (burger flush left), then sm:px-6, lg:px-10
+        "pr-4 sm:px-6 lg:px-10",
       )}>
         {/* Left section: Menu + Search */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -343,7 +297,7 @@ export function TopBar({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/billing">
+                <Link href="/dashboard/billing">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Billing
                 </Link>

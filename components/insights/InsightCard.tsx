@@ -262,6 +262,7 @@ export function InsightCard({
   )
 
   return (
+    <>
     <motion.div
       ref={cardRef}
       variants={createStaggeredCardVariants(index, 0)}
@@ -273,14 +274,14 @@ export function InsightCard({
         aria-labelledby={headingId}
         aria-describedby={descriptionId}
         className={cn(
-          "card-standard card-lift relative h-full transition-shadow",
+          "card-standard card-lift relative h-full transition-shadow flex flex-col",
           "focus-within:ring-2 focus-within:ring-primary/40",
           unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/45)] focus-within:ring-primary",
           isResolved && "border-border/40 bg-muted/40 saturate-75",
         )}
         data-state={isResolved ? "resolved" : "active"}
       >
-        <CardContent className={cn("space-y-4 p-6", isResolved && "opacity-80 transition-opacity")}
+        <CardContent className={cn("flex flex-col flex-1 p-6", isResolved && "opacity-80 transition-opacity")}
           data-resolved={isResolved}
         >
           {unread && !isResolved && (
@@ -294,17 +295,29 @@ export function InsightCard({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    type="button"
-                    aria-pressed={isPinned}
-                    aria-label={isPinned ? "Unpin insight" : "Pin insight"}
-                    onClick={handlePinToggle}
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    animate={isPinned ? { rotate: [0, -15, 0] } : {}}
+                    transition={{ duration: 0.3 }}
                   >
-                    {isPinned ? <PinOff className="h-4 w-4 text-primary" /> : <Pin className="h-4 w-4" />}
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      type="button"
+                      aria-pressed={isPinned}
+                      aria-label={isPinned ? "Unpin insight" : "Pin insight"}
+                      onClick={handlePinToggle}
+                    >
+                      <motion.div
+                        initial={false}
+                        animate={isPinned ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {isPinned ? <PinOff className="h-4 w-4 text-primary" /> : <Pin className="h-4 w-4" />}
+                      </motion.div>
+                    </Button>
+                  </motion.div>
                 </TooltipTrigger>
                 <TooltipContent>{isPinned ? "Unpin from overview" : "Pin to overview"}</TooltipContent>
               </Tooltip>
@@ -330,11 +343,14 @@ export function InsightCard({
             </TooltipProvider>
           </div>
 
+          {/* Content Section - grows to push actions to bottom */}
+          <div className="flex-1">
+          <div className="space-y-4">
           <div className="flex items-start gap-3 pr-14">
             <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", styles.background)}>
               <insight.icon className={cn("h-5 w-5", styles.icon)} aria-hidden="true" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 id={headingId} className="text-sm font-semibold text-foreground">
                 {insight.title}
               </h3>
@@ -349,10 +365,30 @@ export function InsightCard({
                 <Badge variant="outline" className={cn("text-xs", styles.badge)}>
                   {insight.topic}
                 </Badge>
-                {isPinned && (
-                  <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
-                    Pinned
+                {insight.severity && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs font-medium",
+                      insight.severity === "high" && "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+                      insight.severity === "medium" && "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
+                      insight.severity === "low" && "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+                    )}
+                  >
+                    {insight.severity === "high" ? "🔴 High Priority" : insight.severity === "medium" ? "🟡 Medium" : "🟢 Low Priority"}
                   </Badge>
+                )}
+                {isPinned && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                      Pinned
+                    </Badge>
+                  </motion.div>
                 )}
                 {isResolved && (
                   <Badge
@@ -374,6 +410,7 @@ export function InsightCard({
                 )}
               </div>
             </div>
+          </div>
           </div>
 
           <p id={descriptionId} className="text-sm leading-relaxed text-muted-foreground">
@@ -465,8 +502,28 @@ export function InsightCard({
             </div>
           )}
 
+          {insight.progress && (
+            <div>
+              {insight.progress.label && (
+                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{insight.progress.label}</span>
+                  <span className="font-medium text-foreground">{insight.progress.value}%</span>
+                </div>
+              )}
+              <motion.div
+                className={cn("h-1.5 w-full rounded-full", styles.progress)}
+                initial={{ scaleX: 0, originX: 0 }}
+                animate={{ scaleX: Math.min(insight.progress.value, 100) / 100 }}
+                transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                role="presentation"
+              />
+            </div>
+          )}
+          </div>
+
+          {/* Sticky Actions Section at Bottom */}
           {insight.actions.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 border-t border-border/30 pt-4 mt-auto">
               {insight.actions.map((action, actionIndex) => {
                 const isPrimaryAction = actionIndex === primaryActionIndex
                 const effectiveVariant = action.variant ?? (isPrimaryAction ? "default" : "outline")
@@ -510,37 +567,19 @@ export function InsightCard({
               })}
             </div>
           )}
-
-          {insight.progress && (
-            <div className="pt-2">
-              {insight.progress.label && (
-                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{insight.progress.label}</span>
-                  <span className="font-medium text-foreground">{insight.progress.value}%</span>
-                </div>
-              )}
-              <motion.div
-                className={cn("h-1.5 w-full rounded-full", styles.progress)}
-                initial={{ scaleX: 0, originX: 0 }}
-                animate={{ scaleX: Math.min(insight.progress.value, 100) / 100 }}
-                transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-                role="presentation"
-              />
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {confirmAction && (
-        <ConfirmDialog
-          open={Boolean(confirmAction)}
-          onOpenChange={(open) => !open && setConfirmAction(null)}
-          title={getAutomationConfirmation(confirmAction).title}
-          description={getAutomationConfirmation(confirmAction).description}
-          confirmLabel="Continue"
-          onConfirm={handleConfirmAction}
-        />
-      )}
     </motion.div>
+
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction ? getAutomationConfirmation(confirmAction).title : ""}
+        description={confirmAction ? getAutomationConfirmation(confirmAction).description : ""}
+        confirmLabel="Continue"
+        onConfirm={handleConfirmAction}
+      />
+    </>
   )
 }

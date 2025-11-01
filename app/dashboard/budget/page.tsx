@@ -7,11 +7,8 @@ import { BudgetTable } from "@/components/budget-table"
 import { BudgetChart } from "@/components/budget-chart"
 import { BudgetAIInsights } from "@/components/budget-ai-insights"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
-  CalendarIcon,
   MoreVertical,
   FileText,
   FileSpreadsheet,
@@ -29,7 +26,6 @@ import { Label } from "@/components/ui/label"
 
 export default function BudgetPage() {
   const [date, setDate] = useState<Date>(new Date(2024, 0, 1))
-  const [monthPickerOpen, setMonthPickerOpen] = useState(false)
   const { enabled: shareExportsEnabled } = useFeatureFlag("shareExports", { defaultEnabled: true })
 
   const handleExport = (formatType: "csv" | "pdf") => {
@@ -58,7 +54,6 @@ export default function BudgetPage() {
   const formattedDate = format(date, "MMMM yyyy")
   const currentMonthValue = getMonth(date).toString()
   const currentYearValue = getYear(date).toString()
-  const calendarContentId = "budget-month-calendar"
 
   return (
     <>
@@ -79,7 +74,7 @@ export default function BudgetPage() {
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6 md:space-y-8">
           {/* Controls moved below header to reduce header height */}
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Select budget month">
+            <div className="flex items-center gap-1.5 md:gap-2" role="group" aria-label="Select budget month">
               <Button
                 type="button"
                 variant="outline"
@@ -87,9 +82,9 @@ export default function BudgetPage() {
                 aria-label="View previous month"
                 onClick={() => setDate((current) => startOfMonth(addMonths(current, -1)))}
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft />
               </Button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Label htmlFor="budget-month-select" className="sr-only">
                   Select month
                 </Label>
@@ -99,7 +94,7 @@ export default function BudgetPage() {
                     setDate((current) => startOfMonth(setMonth(current, Number.parseInt(value, 10))))
                   }
                 >
-                  <SelectTrigger id="budget-month-select" size="sm" aria-label="Select month">
+                  <SelectTrigger id="budget-month-select" size="sm" aria-label="Select month" className="min-w-[100px] md:min-w-[110px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent align="end">
@@ -119,7 +114,7 @@ export default function BudgetPage() {
                     setDate((current) => startOfMonth(setYear(current, Number.parseInt(value, 10))))
                   }
                 >
-                  <SelectTrigger id="budget-year-select" size="sm" className="w-[110px]" aria-label="Select year">
+                  <SelectTrigger id="budget-year-select" size="sm" className="w-[85px] md:w-[95px]" aria-label="Select year">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent align="end">
@@ -131,40 +126,6 @@ export default function BudgetPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    aria-haspopup="dialog"
-                    aria-expanded={monthPickerOpen}
-                    aria-controls={calendarContentId}
-                    aria-label="Open calendar month picker"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">{formattedDate}</span>
-                    <span className="sm:hidden">{format(date, "MMM yy")}</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    id={calendarContentId}
-                    mode="single"
-                    selected={date}
-                    onSelect={(selectedDate) => {
-                      if (selectedDate) {
-                        setDate(startOfMonth(selectedDate))
-                        setMonthPickerOpen(false)
-                      }
-                    }}
-                    initialFocus
-                    aria-label="Select budget month from calendar"
-                    captionLayout="dropdown"
-                    fromYear={Math.min(...derivedYears)}
-                    toYear={Math.max(...derivedYears)}
-                  />
-                </PopoverContent>
-              </Popover>
               <Button
                 type="button"
                 variant="outline"
@@ -172,7 +133,7 @@ export default function BudgetPage() {
                 aria-label="View next month"
                 onClick={() => setDate((current) => startOfMonth(addMonths(current, 1)))}
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight />
               </Button>
               <span className="sr-only" aria-live="polite" role="status">
                 {formattedDate} selected

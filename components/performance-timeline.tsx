@@ -10,11 +10,12 @@ import { summarizeTimelinePerformance } from "@/lib/insights/service"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Clock } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LINE_CHART_COLORS, CHART_STYLES, BAR_CHART_PRESETS } from "@/lib/chart-colors"
 
 const BENCHMARKS = {
-  SPY: { label: "S&P 500 (SPY)", drift: 280, volatility: 900, color: "hsl(210, 16%, 55%)" },
-  QQQ: { label: "Nasdaq 100 (QQQ)", drift: 340, volatility: 1100, color: "hsl(271, 91%, 65%)" },
-  VT: { label: "Global Market (VT)", drift: 230, volatility: 750, color: "hsl(25, 95%, 60%)" },
+  SPY: { label: "S&P 500 (SPY)", drift: 280, volatility: 900, color: BAR_CHART_PRESETS.performance.benchmark },
+  QQQ: { label: "Nasdaq 100 (QQQ)", drift: 340, volatility: 1100, color: LINE_CHART_COLORS.tertiary.stroke },
+  VT: { label: "Global Market (VT)", drift: 230, volatility: 750, color: LINE_CHART_COLORS.quaternary.stroke },
 } as const
 
 type BenchmarkKey = keyof typeof BENCHMARKS
@@ -177,23 +178,27 @@ export function PerformanceTimeline() {
             >
               <defs>
                 <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0} />
+                  <stop offset="5%" stopColor={LINE_CHART_COLORS.primary.fill} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={LINE_CHART_COLORS.primary.fill} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
                 dataKey="date"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
                 interval={Math.floor(data.length / 6)}
               />
               <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                 domain={['dataMin - 5000', 'dataMax + 5000']}
               />
@@ -231,15 +236,15 @@ export function PerformanceTimeline() {
               <Area
                 type="monotone"
                 dataKey="portfolio"
-                stroke="hsl(210, 100%, 60%)"
-                strokeWidth={2}
+                stroke={LINE_CHART_COLORS.primary.stroke}
+                strokeWidth={CHART_STYLES.line.strokeWidth}
                 fill="url(#portfolioGradient)"
                 activeDot={{ r: 6, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
               />
               <Line
                 type="monotone"
                 dataKey="planned"
-                stroke="hsl(210, 16%, 65%)"
+                stroke={BAR_CHART_PRESETS.performance.benchmark}
                 strokeWidth={1.5}
                 strokeDasharray="6 4"
                 dot={false}
@@ -251,7 +256,7 @@ export function PerformanceTimeline() {
                   x={milestone.point.date}
                   y={milestone.point.planned}
                   r={milestone.achieved ? 6 : 5}
-                  fill={milestone.achieved ? "hsl(142, 76%, 45%)" : "hsl(var(--muted-foreground))"}
+                  fill={milestone.achieved ? LINE_CHART_COLORS.secondary.stroke : "hsl(var(--muted-foreground))"}
                   stroke="hsl(var(--background))"
                   strokeWidth={2}
                 />

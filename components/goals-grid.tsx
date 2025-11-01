@@ -84,54 +84,53 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
   }, [filter, goals])
 
   const renderGoalCard = (goal: Goal, index: number) => (
-    <motion.div key={goal.id} {...createStaggeredCardVariants(index, 0)} className="px-4">
-      <Card className="card-standard card-lift cursor-pointer group" onClick={() => setSelectedGoal(goal)}>
-        <CardContent className="p-6">
-          <div className="flex gap-6">
-            <div className="relative shrink-0 flex flex-col items-center gap-3">
-              <div className="relative">
-                <CircularProgress percent={goal.percent} size={100} strokeWidth={6} />
+    <motion.div key={goal.id} {...createStaggeredCardVariants(index, 0)} className="w-full min-w-0">
+      <Card className="card-standard card-lift cursor-pointer group overflow-hidden w-full" onClick={() => setSelectedGoal(goal)}>
+        <CardContent className="p-2 sm:p-4 md:p-5 w-full min-w-0">
+          <div className="flex gap-2 sm:gap-3 md:gap-4">
+            <div className="relative shrink-0 flex flex-col items-center gap-1">
+              <div className="relative scale-[0.85] sm:scale-100 origin-center">
+                <CircularProgress percent={goal.percent} size={70} strokeWidth={5} />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div
-                    className={`flex h-16 w-16 items-center justify-center rounded-full border border-border/40 shadow-sm ${goal.bgColor}`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border border-border/40 shadow-sm ${goal.bgColor}`}
                   >
-                    <goal.icon className={`h-6 w-6 ${goal.color}`} />
+                    <goal.icon className={`h-4 w-4 ${goal.color}`} />
                   </div>
                 </div>
               </div>
-              <span className="pointer-events-none text-lg font-bold">{goal.percent}%</span>
+              <span className="pointer-events-none text-xs font-bold">{goal.percent}%</span>
             </div>
 
-            <div className="flex-1 space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-foreground">{goal.name}</h3>
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <h3 className="font-semibold text-foreground text-sm md:text-base truncate">{goal.name}</h3>
                     {goal.status === "completed" && (
-                      <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+                      <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200 shrink-0">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Complete
                       </Badge>
                     )}
                     {goal.status === "paused" && (
-                      <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-200">
+                      <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-200 shrink-0">
                         <Pause className="h-3 w-3 mr-1" />
                         Paused
                       </Badge>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>Saved</span>
-                      <span>{formatCurrency(goal.current)}</span>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2 text-xs md:text-sm">
+                      <span className="text-muted-foreground shrink-0">Saved</span>
+                      <span className="font-semibold truncate">{formatCurrency(goal.current)}</span>
                     </div>
-                    <Progress value={goal.percent} aria-label={`${goal.percent}% complete toward ${goal.name}`} />
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="font-medium text-foreground">{goal.percent}% funded</span>
-                      <span>Target {formatCurrency(goal.target)}</span>
+                    <Progress value={goal.percent} aria-label={`${goal.percent}% complete toward ${goal.name}`} className="h-1.5" />
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <span className="text-muted-foreground truncate">Target {formatCurrency(goal.target)}</span>
+                      <span className="text-muted-foreground shrink-0 whitespace-nowrap">ETA: {goal.eta}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">ETA: {goal.eta}</p>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -154,7 +153,7 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
 
               {goal.status === "active" && goal.acceleration !== 0 && (
                 <div
-                  className={`flex items-center gap-2 text-sm p-2 rounded-lg ${
+                  className={`flex items-center gap-2 text-sm p-2 rounded-lg min-w-0 ${
                     goal.acceleration > 0
                       ? "bg-green-500/10 text-green-700 dark:text-green-400"
                       : "bg-red-500/10 text-red-700 dark:text-red-400"
@@ -165,7 +164,7 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
                   ) : (
                     <TrendingDown className="h-4 w-4 shrink-0" />
                   )}
-                  <span className="text-xs">
+                  <span className="text-xs break-words flex-1">
                     {goal.acceleration > 0
                       ? `You're ahead of schedule by ${Math.abs(goal.acceleration)} months`
                       : `You're behind schedule by ${Math.abs(goal.acceleration)} months`}
@@ -174,7 +173,7 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
               )}
 
               {contributionBoost > 0 && goal.status === "active" && (
-                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground">
+                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground w-full min-w-0 overflow-hidden">
                   {(() => {
                     const remaining = Math.max(goal.target - goal.current, 0)
                     const baseMonthly = goal.monthlyTarget > 0 ? goal.monthlyTarget : Math.max(remaining / 12, 1)
@@ -188,7 +187,7 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
                     const boostedMonths = adjustedMonthly > 0 ? remaining / adjustedMonthly : baselineMonths
                     const monthsSaved = Math.max(0, baselineMonths - boostedMonths)
                     return (
-                      <span>
+                      <span className="break-words">
                         Boosting <span className="font-medium text-foreground">${Math.round(boostShare)}</span>/mo trims
                         approximately <span className="font-medium text-foreground">{monthsSaved.toFixed(1)}</span> months off
                         this goal.
@@ -198,32 +197,33 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
                 </div>
               )}
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 w-full min-w-0">
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex-1 bg-transparent"
+                  className="flex-1 bg-transparent h-7 sm:h-8 text-xs min-w-0 px-1.5 sm:px-2 overflow-hidden"
                   onClick={(e) => {
                     e.stopPropagation()
                   }}
                 >
-                  <Edit className="h-3 w-3 mr-1" />
-                  Edit Goal
+                  <Edit className="h-3 w-3 sm:mr-1 shrink-0" />
+                  <span className="truncate hidden sm:inline">Edit</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex-1 bg-transparent"
+                  className="flex-1 bg-transparent h-7 sm:h-8 text-xs min-w-0 px-1.5 sm:px-2 overflow-hidden"
                   onClick={(e) => {
                     e.stopPropagation()
                   }}
                 >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add Funds
+                  <Plus className="h-3 w-3 sm:mr-1 shrink-0" />
+                  <span className="truncate hidden sm:inline">Add</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 shrink-0 flex items-center justify-center"
                   onClick={(e) => {
                     e.stopPropagation()
                   }}
@@ -234,9 +234,9 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
 
               {/* Funding source info */}
               {goal.status === "active" && (
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
-                  <span>Funded by: {goal.fundingSource}</span>
-                  <span className="font-medium text-foreground">${goal.monthlyTarget}/mo</span>
+                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground pt-1.5 border-t">
+                  <span className="truncate">Funded by: {goal.fundingSource}</span>
+                  <span className="font-medium text-foreground shrink-0 whitespace-nowrap">${goal.monthlyTarget}/mo</span>
                 </div>
               )}
 
@@ -283,8 +283,8 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
               Active Goals ({activeGoals.length})
             </AccordionTrigger>
-            <AccordionContent>
-              <div className="grid gap-6 md:grid-cols-2 pt-4">
+            <AccordionContent className="px-0">
+              <div className="grid gap-4 md:gap-6 md:grid-cols-2 pt-4 w-full min-w-0">
                 {activeGoals.map((goal, index) => renderGoalCard(goal, index))}
               </div>
             </AccordionContent>
@@ -295,8 +295,8 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
               <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                 On Hold ({pausedGoals.length})
               </AccordionTrigger>
-              <AccordionContent>
-                <div className="grid gap-6 md:grid-cols-2 pt-4">
+              <AccordionContent className="px-0">
+                <div className="grid gap-4 md:gap-6 md:grid-cols-2 pt-4 w-full min-w-0">
                   {pausedGoals.map((goal, index) => renderGoalCard(goal, index))}
                 </div>
               </AccordionContent>
@@ -306,10 +306,10 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
           {completedGoals.length > 0 && (
             <AccordionItem value="completed" className="border-none">
               <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-                Fully Funded ({completedGoals.length})
+                Completed ({completedGoals.length})
               </AccordionTrigger>
-              <AccordionContent>
-                <div className="grid gap-6 md:grid-cols-2 pt-4">
+              <AccordionContent className="px-0">
+                <div className="grid gap-4 md:gap-6 md:grid-cols-2 pt-4 w-full min-w-0">
                   {completedGoals.map((goal, index) => renderGoalCard(goal, index))}
                 </div>
               </AccordionContent>
@@ -317,7 +317,7 @@ export function GoalsGrid({ goals, filter, contributionBoost, totalActiveContrib
           )}
         </Accordion>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 md:grid-cols-2 w-full min-w-0">
           {filteredGoals.map((goal, index) => renderGoalCard(goal, index))}
         </div>
       )}

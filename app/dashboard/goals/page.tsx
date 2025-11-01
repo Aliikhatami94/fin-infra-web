@@ -1,15 +1,16 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { GoalsSummaryKPIs } from "@/components/goals-summary-kpis"
 import { GoalsGrid } from "@/components/goals-grid"
 import { GoalsAIInsights } from "@/components/goals-ai-insights"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus } from "lucide-react"
+import { Plus, Target } from "lucide-react"
 import { GoalRecommendations } from "@/components/goal-recommendations"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { getGoals } from "@/lib/services/goals"
@@ -23,6 +24,17 @@ import { toast } from "@/components/ui/sonner"
 export default function GoalsPage() {
   const [showAddGoal, setShowAddGoal] = useState(false)
   const [filter, setFilter] = useState<"all" | "active" | "paused" | "completed">("all")
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
   const [contributionBoost, setContributionBoost] = useState(0)
   const [confirmCreateGoal, setConfirmCreateGoal] = useState(false)
   const goals = useMemo(() => getGoals(), [])
@@ -56,9 +68,10 @@ export default function GoalsPage() {
         <div className="mx-auto p-4 max-w-[1200px] px-4 sm:px-6 lg:px-10">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-foreground">Financial Goals</h1>
-            <Button onClick={() => setShowAddGoal(true)} className="flex">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Goal
+            <Button onClick={() => setShowAddGoal(true)} className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Goal</span>
+              <Plus className="h-4 w-4 sm:hidden" />
             </Button>
           </div>
         </div>
@@ -69,8 +82,9 @@ export default function GoalsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full min-w-0"
       >
-        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 space-y-6 min-w-0">
         <GoalsSummaryKPIs />
 
         <Card className="card-standard">
@@ -149,49 +163,104 @@ export default function GoalsPage() {
           totalActiveContribution={totalActiveContribution}
         />
 
-        <Dialog open={showAddGoal} onOpenChange={setShowAddGoal}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New Goal</DialogTitle>
-              <DialogDescription>Set up a new savings goal and track your progress</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="goal-name">Goal Name</Label>
-                <Input id="goal-name" placeholder="e.g., Emergency Fund" />
+        {/* Add Goal Form - Drawer on mobile, Dialog on desktop */}
+        {isMobile ? (
+          <Drawer open={showAddGoal} onOpenChange={setShowAddGoal}>
+            <DrawerContent className="max-h-[90vh]">
+              <DrawerHeader className="text-left">
+                <DrawerTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Create New Goal
+                </DrawerTitle>
+                <DrawerDescription>Set up a new savings goal and track your progress</DrawerDescription>
+              </DrawerHeader>
+              <div className="px-4 pb-6 space-y-4 overflow-y-auto">
+                <div className="space-y-2">
+                  <Label htmlFor="goal-name-mobile">Goal Name</Label>
+                  <Input id="goal-name-mobile" placeholder="e.g., Emergency Fund" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="goal-target-mobile">Target Amount</Label>
+                  <Input id="goal-target-mobile" type="number" inputMode="decimal" placeholder="30000" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="funding-source-mobile">Funding Source</Label>
+                  <Select>
+                    <SelectTrigger id="funding-source-mobile">
+                      <SelectValue placeholder="Select account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="checking">Checking Account</SelectItem>
+                      <SelectItem value="savings">High-Yield Savings</SelectItem>
+                      <SelectItem value="investment">Investment Account</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="monthly-target-mobile">Monthly Contribution</Label>
+                  <Input id="monthly-target-mobile" type="number" inputMode="decimal" placeholder="500" />
+                </div>
+                <div className="flex flex-col gap-2 pt-2">
+                  <Button className="w-full" onClick={() => setConfirmCreateGoal(true)}>
+                    <Target className="mr-2 h-4 w-4" />
+                    Create Goal
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={() => setShowAddGoal(false)}>
+                    Cancel
+                  </Button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="goal-target">Target Amount</Label>
-                <Input id="goal-target" type="number" placeholder="30000" />
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Dialog open={showAddGoal} onOpenChange={setShowAddGoal}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Create New Goal
+                </DialogTitle>
+                <DialogDescription>Set up a new savings goal and track your progress</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="goal-name">Goal Name</Label>
+                  <Input id="goal-name" placeholder="e.g., Emergency Fund" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="goal-target">Target Amount</Label>
+                  <Input id="goal-target" type="number" inputMode="decimal" placeholder="30000" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="funding-source">Funding Source</Label>
+                  <Select>
+                    <SelectTrigger id="funding-source">
+                      <SelectValue placeholder="Select account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="checking">Checking Account</SelectItem>
+                      <SelectItem value="savings">High-Yield Savings</SelectItem>
+                      <SelectItem value="investment">Investment Account</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="monthly-target">Monthly Contribution</Label>
+                  <Input id="monthly-target" type="number" inputMode="decimal" placeholder="500" />
+                </div>
+                <div className="flex gap-2">
+                  <Button className="flex-1" onClick={() => setConfirmCreateGoal(true)}>
+                    <Target className="mr-2 h-4 w-4" />
+                    Create Goal
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowAddGoal(false)}>
+                    Cancel
+                  </Button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="funding-source">Funding Source</Label>
-                <Select>
-                  <SelectTrigger id="funding-source">
-                    <SelectValue placeholder="Select account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="checking">Checking Account</SelectItem>
-                    <SelectItem value="savings">High-Yield Savings</SelectItem>
-                    <SelectItem value="investment">Investment Account</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="monthly-target">Monthly Contribution</Label>
-                <Input id="monthly-target" type="number" placeholder="500" />
-              </div>
-              <div className="flex gap-2">
-                <Button className="flex-1" onClick={() => setConfirmCreateGoal(true)}>
-                  Create Goal
-                </Button>
-                <Button variant="outline" onClick={() => setShowAddGoal(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        )}
 
         <ConfirmDialog
           open={confirmCreateGoal}

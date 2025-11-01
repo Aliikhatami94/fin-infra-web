@@ -20,9 +20,11 @@ interface CapitalGainSegment {
   color: string
 }
 
+import { SEMANTIC_COLORS, BAR_CHART_COLORS } from "@/lib/chart-colors"
+
 const capitalGainsData: CapitalGainSegment[] = [
-  { name: "ST", value: 4200, color: "hsl(25, 95%, 53%)" },
-  { name: "LT", value: 8140, color: "hsl(142, 76%, 36%)" },
+  { name: "ST", value: 4200, color: BAR_CHART_COLORS.tertiary },
+  { name: "LT", value: 8140, color: SEMANTIC_COLORS.positive },
 ]
 
 type ReadinessItem = {
@@ -107,8 +109,8 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
   {/* Responsive auto-fit grid so cards reflow instead of squishing; stretch items so heights match per row */}
   <div className="grid items-stretch gap-6 md:gap-8 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
       <motion.div {...createStaggeredCardVariants(0, 0)}>
-        <Card className="card-standard card-lift h-full min-h-[260px]">
-          <CardContent className="p-6 h-full flex flex-col">
+        <Card className="card-standard card-lift h-full min-h-[200px]">
+          <CardContent className="p-5 h-full flex flex-col">
             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground mb-2">Estimated Tax Liability</p>
@@ -141,8 +143,8 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
       </motion.div>
 
       <motion.div {...createStaggeredCardVariants(1, 0)}>
-        <Card className="card-standard card-lift h-full min-h-[260px]">
-          <CardContent className="p-6 h-full flex flex-col">
+        <Card className="card-standard card-lift h-full min-h-[200px]">
+          <CardContent className="p-5 h-full flex flex-col">
             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
@@ -216,8 +218,8 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
       </motion.div>
 
       <motion.div {...createStaggeredCardVariants(2, 0)}>
-        <Card className="card-standard card-lift h-full min-h-[260px]">
-          <CardContent className="p-6 h-full flex flex-col">
+        <Card className="card-standard card-lift h-full min-h-[200px]">
+          <CardContent className="p-5 h-full flex flex-col">
             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
@@ -252,8 +254,8 @@ export function TaxSummary({ onFilterChange }: TaxSummaryProps) {
       </motion.div>
 
       <motion.div {...createStaggeredCardVariants(3, 0)}>
-        <Card className="card-standard card-lift h-full min-h-[260px]">
-          <CardContent className="p-6 h-full flex flex-col">
+        <Card className="card-standard card-lift h-full min-h-[200px]">
+          <CardContent className="p-5 h-full flex flex-col">
             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">

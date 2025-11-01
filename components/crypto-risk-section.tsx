@@ -5,11 +5,12 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { Info, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { SEMANTIC_COLORS, CHART_STYLES } from "@/lib/chart-colors"
 
 const riskData = [
-  { name: "Low Risk (BTC, ETH, Stablecoins)", value: 42, color: "hsl(142, 76%, 36%)" },
-  { name: "Medium Risk (Large-cap Altcoins)", value: 35, color: "hsl(45, 93%, 47%)" },
-  { name: "High Risk (Small-cap/DeFi)", value: 23, color: "hsl(0, 84%, 60%)" },
+  { name: "Low Risk (BTC, ETH, Stablecoins)", value: 42, color: SEMANTIC_COLORS.positive },
+  { name: "Medium Risk (Large-cap Altcoins)", value: 35, color: SEMANTIC_COLORS.warning },
+  { name: "High Risk (Small-cap/DeFi)", value: 23, color: SEMANTIC_COLORS.negative },
 ]
 
 export function CryptoRiskSection() {
@@ -24,39 +25,56 @@ export function CryptoRiskSection() {
             <Info className="h-4 w-4 text-muted-foreground" />
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={riskData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value">
-                {riskData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-card border rounded-lg p-3 shadow-lg">
-                        <p className="text-sm font-semibold">{payload[0].name}</p>
-                        <p className="text-lg font-bold">{payload[0].value}%</p>
-                      </div>
-                    )
-                  }
-                  return null
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-4 space-y-2">
-            {riskData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-muted-foreground">{item.name}</span>
+        <CardContent className="flex items-center justify-center min-h-[320px]">
+          <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+            {/* Chart - centered and compact */}
+            <div className="h-48 w-48 shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie 
+                    data={riskData} 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={55} 
+                    outerRadius={75} 
+                    paddingAngle={CHART_STYLES.pie.paddingAngle} 
+                    dataKey="value"
+                    stroke="transparent"
+                    strokeWidth={CHART_STYLES.pie.strokeWidth}
+                  >
+                    {riskData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="rounded-lg border bg-card p-2 shadow-sm">
+                            <div className="text-sm font-medium">{payload[0].name}</div>
+                            <div className="text-xs text-muted-foreground">{payload[0].value}%</div>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Minimal, modern legend - always compact */}
+            <div className="w-full space-y-1.5">
+              {riskData.map((item) => (
+                <div key={item.name} className="flex items-center justify-between w-full rounded-md px-3 py-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                    <span className="text-sm text-muted-foreground">{item.name}</span>
+                  </div>
+                  <span className="text-sm font-medium tabular-nums">{item.value}%</span>
                 </div>
-                <span className="font-semibold">{item.value}%</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

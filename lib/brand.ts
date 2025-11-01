@@ -1,7 +1,7 @@
 export const BRAND = {
-  name: "ClarityLedger",
-  tagline: "Unified Financial Intelligence Platform",
-  description: "Holistic finance management and insights workspace",
+  name: "Autoclar",
+  tagline: "Automated Financial Clarity",
+  description: "Automate your financial clarity with intelligent insights, unified data, and effortless oversight",
 } as const
 
 type Brand = typeof BRAND
