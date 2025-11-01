@@ -13,10 +13,10 @@
 // ============================================================================
 
 export const SEMANTIC_COLORS = {
-  positive: "hsl(142, 76%, 45%)", // Green - use for gains, income, positive trends
-  negative: "hsl(0, 84%, 60%)",   // Red - use for losses, expenses, negative trends
-  neutral: "hsl(217, 91%, 60%)",  // Blue - use for neutral or informational data
-  warning: "hsl(45, 93%, 47%)",   // Amber - use for warnings or cautions
+  positive: "hsl(142, 71%, 45%)", // Muted green - use for gains, income, positive trends
+  negative: "hsl(0, 72%, 51%)",   // Muted red - use for losses, expenses, negative trends
+  neutral: "hsl(221, 83%, 53%)",  // Professional blue - use for neutral or informational data
+  warning: "hsl(38, 92%, 50%)",   // Muted amber - use for warnings or cautions
 } as const
 
 // ============================================================================
@@ -29,14 +29,14 @@ export const SEMANTIC_COLORS = {
  * Use this for: Asset allocation, sector breakdown, regional distribution
  */
 export const PIE_CHART_COLORS = [
-  "hsl(217, 91%, 60%)",  // Blue - Primary
-  "hsl(142, 76%, 45%)",  // Green - Secondary
-  "hsl(24, 95%, 53%)",   // Orange - Tertiary
-  "hsl(262, 83%, 58%)",  // Purple - Quaternary
-  "hsl(340, 82%, 52%)",  // Pink - Quinary
-  "hsl(45, 93%, 47%)",   // Amber - Senary
-  "hsl(186, 94%, 40%)",  // Cyan - Septenary
-  "hsl(0, 84%, 60%)",    // Red - Octonary
+  "hsl(221, 83%, 53%)",  // Professional blue - Primary
+  "hsl(142, 71%, 45%)",  // Muted green - Secondary
+  "hsl(262, 52%, 47%)",  // Muted purple - Tertiary
+  "hsl(204, 71%, 53%)",  // Sky blue - Quaternary
+  "hsl(24, 70%, 50%)",   // Muted orange - Quinary
+  "hsl(280, 61%, 50%)",  // Soft violet - Senary
+  "hsl(173, 58%, 39%)",  // Teal - Septenary
+  "hsl(14, 61%, 52%)",   // Coral - Octonary
 ] as const
 
 /**
@@ -44,12 +44,12 @@ export const PIE_CHART_COLORS = [
  * Lighter variants for secondary emphasis
  */
 export const PIE_CHART_COLORS_ALT = [
-  "hsl(217, 91%, 70%)",
-  "hsl(142, 76%, 55%)",
-  "hsl(24, 95%, 63%)",
-  "hsl(262, 83%, 68%)",
-  "hsl(340, 82%, 62%)",
-  "hsl(45, 93%, 57%)",
+  "hsl(221, 83%, 63%)",
+  "hsl(142, 71%, 55%)",
+  "hsl(262, 52%, 57%)",
+  "hsl(204, 71%, 63%)",
+  "hsl(24, 70%, 60%)",
+  "hsl(280, 61%, 60%)",
 ] as const
 
 // ============================================================================
@@ -62,23 +62,23 @@ export const PIE_CHART_COLORS_ALT = [
  */
 export const LINE_CHART_COLORS = {
   primary: {
-    stroke: "hsl(217, 91%, 60%)",    // Blue line
-    fill: "hsl(217, 91%, 60%)",      // For area fills
+    stroke: "hsl(221, 83%, 53%)",    // Professional blue line
+    fill: "hsl(221, 83%, 53%)",      // For area fills
     gradient: "colorPrimary",         // Gradient ID for AreaChart defs
   },
   secondary: {
-    stroke: "hsl(142, 76%, 45%)",    // Green line
-    fill: "hsl(142, 76%, 45%)",
+    stroke: "hsl(142, 71%, 45%)",    // Muted green line
+    fill: "hsl(142, 71%, 45%)",
     gradient: "colorSecondary",
   },
   tertiary: {
-    stroke: "hsl(24, 95%, 53%)",     // Orange line
-    fill: "hsl(24, 95%, 53%)",
+    stroke: "hsl(24, 70%, 50%)",     // Muted orange line
+    fill: "hsl(24, 70%, 50%)",
     gradient: "colorTertiary",
   },
   quaternary: {
-    stroke: "hsl(262, 83%, 58%)",    // Purple line
-    fill: "hsl(262, 83%, 58%)",
+    stroke: "hsl(262, 52%, 47%)",    // Muted purple line
+    fill: "hsl(262, 52%, 47%)",
     gradient: "colorQuaternary",
   },
 } as const
@@ -104,10 +104,10 @@ export const CHART_VAR_COLORS = {
  * Use for: Budget vs actual, period comparisons, category breakdowns
  */
 export const BAR_CHART_COLORS = {
-  primary: "hsl(217, 91%, 60%)",    // Blue - main data series
-  secondary: "hsl(142, 76%, 45%)",  // Green - comparison series
-  tertiary: "hsl(24, 95%, 53%)",    // Orange - tertiary series
-  quaternary: "hsl(262, 83%, 58%)", // Purple - quaternary series
+  primary: "hsl(221, 83%, 53%)",    // Professional blue - main data series
+  secondary: "hsl(142, 71%, 45%)",  // Muted green - comparison series
+  tertiary: "hsl(24, 70%, 50%)",    // Muted orange - tertiary series
+  quaternary: "hsl(262, 52%, 47%)", // Muted purple - quaternary series
 } as const
 
 /**
@@ -116,23 +116,23 @@ export const BAR_CHART_COLORS = {
 export const BAR_CHART_PRESETS = {
   // For cash flow charts: income vs expenses
   cashFlow: {
-    inflow: "hsl(142, 76%, 45%)",   // Green for income
-    outflow: "hsl(24, 95%, 53%)",   // Orange for expenses
-    net: "hsl(217, 91%, 60%)",      // Blue for net
+    inflow: "hsl(142, 71%, 45%)",   // Muted green for income
+    outflow: "hsl(24, 70%, 50%)",   // Muted orange for expenses
+    net: "hsl(221, 83%, 53%)",      // Professional blue for net
   },
   
   // For budget variance: under vs over budget
   budgetVariance: {
-    underBudget: "hsl(142, 76%, 45%)",  // Green for savings
-    overBudget: "hsl(0, 84%, 60%)",     // Red for overspend
-    onBudget: "hsl(217, 91%, 60%)",     // Blue for on-track
+    underBudget: "hsl(142, 71%, 45%)",  // Muted green for savings
+    overBudget: "hsl(0, 72%, 51%)",     // Muted red for overspend
+    onBudget: "hsl(221, 83%, 53%)",     // Professional blue for on-track
   },
   
   // For performance comparisons
   performance: {
-    portfolio: "hsl(217, 91%, 60%)",    // Blue
-    benchmark: "hsl(220, 13%, 55%)",    // Gray
-    target: "hsl(142, 76%, 45%)",       // Green
+    portfolio: "hsl(221, 83%, 53%)",    // Professional blue
+    benchmark: "hsl(215, 16%, 47%)",    // Muted gray
+    target: "hsl(142, 71%, 45%)",       // Muted green
   },
 } as const
 

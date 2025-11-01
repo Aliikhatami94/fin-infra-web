@@ -83,9 +83,11 @@ export function TopBar({
     >
       {/* Inner container: constrain width and center horizontally to match page content width */}
       <div className={cn(
-        "mx-auto flex w-full max-w-[1200px] items-center justify-between gap-2 px-3 transition-all duration-300 sm:gap-3 sm:px-4 lg:px-10",
+        "mx-auto flex w-full max-w-[1200px] items-center justify-between gap-2 transition-all duration-300 sm:gap-3",
         // Compact height on mobile for space efficiency
         "h-11 md:h-12 lg:h-14",
+        // Padding - no left padding on mobile/tablet for burger, right padding always, desktop padding
+        "pr-3 sm:pr-4 lg:px-10",
       )}>
         {/* Left section: Menu + Search */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
