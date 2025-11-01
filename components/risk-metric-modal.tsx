@@ -146,8 +146,23 @@ export function RiskMetricModal({ open, onOpenChange, metric }: RiskMetricModalP
                       <stop offset="95%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="hsl(var(--foreground))" 
+                    fontSize={12}
+                    tick={{ fill: "hsl(var(--foreground))" }}
+                    tickLine={true}
+                    axisLine={true}
+                    tickMargin={8}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--foreground))" 
+                    fontSize={12}
+                    tick={{ fill: "hsl(var(--foreground))" }}
+                    tickLine={true}
+                    axisLine={true}
+                    tickMargin={8}
+                  />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {

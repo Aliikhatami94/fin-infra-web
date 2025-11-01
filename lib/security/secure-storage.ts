@@ -1,16 +1,20 @@
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
-function getCrypto(): Crypto {
+function getCrypto(): Crypto | null {
   if (typeof globalThis.crypto !== "undefined") {
     return globalThis.crypto as Crypto
   }
+  return null
+}
 
-  throw new Error("Web Crypto API is not available in this environment")
+function getSubtle(): SubtleCrypto | null {
+  const crypto = getCrypto()
+  return crypto?.subtle ?? null
 }
 
 const cryptoRef = getCrypto()
-const subtle = cryptoRef.subtle
+const subtle = getSubtle()
 
 function base64ToArrayBuffer(base64: string) {
   const normalized = base64.replace(/\s+/g, "")
@@ -36,6 +40,9 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
 }
 
 async function importEncryptionKey(secret: string) {
+  if (!subtle) {
+    throw new Error("Web Crypto API not available - encryption requires HTTPS or localhost")
+  }
   // Derive a stable 256-bit key from the provided secret string to satisfy AES-GCM key length.
   // This allows arbitrary strings (including base64-like tokens) to be used as secrets in tests and dev.
   const secretBytes = encoder.encode(secret)
@@ -44,6 +51,12 @@ async function importEncryptionKey(secret: string) {
 }
 
 async function encryptValue(value: string, secret: string) {
+  // Fallback to base64 encoding when crypto is not available (mobile HTTP)
+  if (!subtle || !cryptoRef) {
+    console.warn("Web Crypto API not available - using fallback encoding (not secure)")
+    return `UNENCRYPTED:${btoa(value)}`
+  }
+  
   const key = await importEncryptionKey(secret)
   const iv = cryptoRef.getRandomValues(new Uint8Array(12))
   const encrypted = await subtle.encrypt({ name: "AES-GCM", iv }, key, encoder.encode(value))
@@ -51,8 +64,22 @@ async function encryptValue(value: string, secret: string) {
 }
 
 async function decryptValue(payload: string, secret: string) {
+  // Handle unencrypted fallback format
+  if (payload.startsWith("UNENCRYPTED:")) {
+    try {
+      return atob(payload.slice(12))
+    } catch {
+      return null
+    }
+  }
+  
   const [ivPart, cipherPart] = payload.split(".")
   if (!ivPart || !cipherPart) return null
+
+  if (!subtle) {
+    console.warn("Web Crypto API not available - cannot decrypt")
+    return null
+  }
 
   try {
     const key = await importEncryptionKey(secret)
@@ -99,24 +126,38 @@ export function createSecureStorage(options: SecureStorageOptions): SecureStorag
 
   return {
     async getItem(key) {
-      const stored = storage.getItem(namespacedKey(namespace, key))
-      if (!stored) return null
+      try {
+        const stored = storage.getItem(namespacedKey(namespace, key))
+        if (!stored) return null
 
-      for (const candidate of secrets) {
-        const decrypted = await decryptValue(stored, candidate)
-        if (decrypted != null) {
-          return decrypted
+        for (const candidate of secrets) {
+          const decrypted = await decryptValue(stored, candidate)
+          if (decrypted != null) {
+            return decrypted
+          }
         }
-      }
 
-      return null
+        return null
+      } catch (error) {
+        console.error("Secure storage getItem failed:", error)
+        return null
+      }
     },
     async setItem(key, value) {
-      const encrypted = await encryptValue(value, secret)
-      storage.setItem(namespacedKey(namespace, key), encrypted)
+      try {
+        const encrypted = await encryptValue(value, secret)
+        storage.setItem(namespacedKey(namespace, key), encrypted)
+      } catch (error) {
+        console.error("Secure storage setItem failed:", error)
+        throw error
+      }
     },
     async removeItem(key) {
-      storage.removeItem(namespacedKey(namespace, key))
+      try {
+        storage.removeItem(namespacedKey(namespace, key))
+      } catch (error) {
+        console.error("Secure storage removeItem failed:", error)
+      }
     },
   }
 }
@@ -124,6 +165,12 @@ export function createSecureStorage(options: SecureStorageOptions): SecureStorag
 export async function verifySecretsAvailable(secret?: string) {
   if (!secret) {
     throw new Error("NEXT_PUBLIC_STORAGE_ENCRYPTION_KEY must be defined")
+  }
+
+  // Skip verification if crypto API is not available (will use fallback)
+  if (!subtle || !cryptoRef) {
+    console.warn("Web Crypto API not available - storage will use fallback encoding")
+    return
   }
 
   const test = await encryptValue("test", secret)

@@ -31,7 +31,7 @@ export function ThemeSelector() {
       },
       {
         value: "system" as const,
-        label: "Match system",
+        label: "System",
         icon: <Monitor className="h-4 w-4" />,
         description: `Follows your OS preference (${resolvedTheme ?? "auto"}).`,
       },
@@ -40,7 +40,7 @@ export function ThemeSelector() {
   )
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-2 sm:gap-3 grid-cols-3">
       {themes.map((option) => (
         <motion.button
           key={option.value}
@@ -50,27 +50,23 @@ export function ThemeSelector() {
           onClick={() => setTheme(option.value)}
           aria-pressed={activeTheme === option.value}
           className={cn(
-            "relative flex h-full flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all",
+            "relative flex h-full flex-col items-start gap-2 rounded-lg border p-2 sm:p-3 text-left transition-all",
             activeTheme === option.value
-              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+              ? "border-primary bg-primary/5 ring-1 ring-primary/20"
               : "border-border/50 hover:border-border/80 hover:bg-muted/20",
           )}
         >
           <div
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-full text-primary",
-              option.value === "light"
-                ? "bg-[radial-gradient(circle_at_top_left,var(--primary)/35,transparent_55%)]"
-                : option.value === "dark"
-                  ? "bg-[radial-gradient(circle_at_bottom_right,rgba(15,23,42,0.75),transparent_60%)] text-white"
-                  : "bg-[radial-gradient(circle_at_center,var(--accent)/30,transparent_70%)]",
+              "flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-muted/50",
+              activeTheme === option.value && "bg-primary/10 text-primary",
             )}
           >
             {option.icon}
           </div>
-          <div className="space-y-1">
-            <span className="text-sm font-semibold text-foreground">{option.label}</span>
-            <p className="text-xs text-muted-foreground">{option.description}</p>
+          <div className="space-y-0 sm:space-y-0.5">
+            <span className="text-xs sm:text-sm font-medium text-foreground">{option.label}</span>
+            <p className="text-[0.65rem] sm:text-xs text-muted-foreground hidden sm:block leading-tight">{option.description}</p>
           </div>
         </motion.button>
       ))}

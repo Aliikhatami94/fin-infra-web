@@ -9,20 +9,15 @@ import {
   CartesianGrid,
   Line,
   ComposedChart,
-  ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
-  Legend,
   Cell,
 } from "recharts"
-import type { TooltipContentProps } from "recharts"
-import { Calendar, TrendingUp } from "lucide-react"
+import { TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { AccessibleChart } from "@/components/accessible-chart"
 import { currencySummaryFormatter, describeTimeSeries } from "@/lib/a11y"
-import { formatCurrency } from "@/lib/format"
-import { ChartContainer } from "@/components/chart-kit"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart"
 
 const monthlyData: CashFlowDatum[] = [
   { month: "Jan", inflow: 8500, outflow: 6200, net: 2300 },
@@ -34,52 +29,29 @@ const monthlyData: CashFlowDatum[] = [
   { month: "Jul", inflow: 8800, outflow: 6300, net: 2500, isProjection: true },
 ]
 
+import { BAR_CHART_PRESETS, CHART_STYLES } from "@/lib/chart-colors"
+
+const chartConfig = {
+  inflow: {
+    label: "Income",
+    color: BAR_CHART_PRESETS.cashFlow.inflow,
+  },
+  outflow: {
+    label: "Expenses",
+    color: BAR_CHART_PRESETS.cashFlow.outflow,
+  },
+  net: {
+    label: "Net",
+    color: BAR_CHART_PRESETS.cashFlow.net,
+  },
+}
+
 interface CashFlowDatum {
   month: string
   inflow: number
   outflow: number
   net: number
   isProjection?: boolean
-}
-
-type CashFlowTooltipProps = TooltipContentProps<number, string>
-
-const CustomTooltip = ({ active, payload }: CashFlowTooltipProps) => {
-  if (active && payload && payload.length) {
-    const inflowPayload = payload.find((p) => p.dataKey === "inflow")?.value
-    const outflowPayload = payload.find((p) => p.dataKey === "outflow")?.value
-    const netPayload = payload.find((p) => p.dataKey === "net")?.value
-    const inflow = typeof inflowPayload === "number" ? inflowPayload : Number(inflowPayload ?? 0)
-    const outflow = typeof outflowPayload === "number" ? outflowPayload : Number(outflowPayload ?? 0)
-    const net = typeof netPayload === "number" ? netPayload : Number(netPayload ?? 0)
-    const dataPoint = payload[0]?.payload as CashFlowDatum | undefined
-    const isProjection = dataPoint?.isProjection
-
-    return (
-      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <p className="text-sm font-medium">{dataPoint?.month}</p>
-          {isProjection && (
-            <Badge variant="secondary" className="text-xs">
-              Forecast
-            </Badge>
-          )}
-        </div>
-        <div className="space-y-1">
-          <p className="text-sm text-green-500">
-            Inflow: ${inflow.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
-          <p className="text-sm text-orange-500">
-            Outflow: ${outflow.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
-          <p className="text-sm font-semibold pt-1 border-t mt-2">
-            Net: ${net.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
-        </div>
-      </div>
-    )
-  }
-  return null
 }
 
 export interface CashFlowChartProps {
@@ -93,9 +65,9 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
   const [visibleSeries, setVisibleSeries] = useState<string[]>(["inflow", "outflow", "net"])
 
   const historicalData = monthlyData.filter((d) => !d.isProjection)
-  const avgNet = historicalData.reduce((sum, d) => sum + d.net, 0) / historicalData.length
+  const _avgNet = historicalData.reduce((sum, d) => sum + d.net, 0) / historicalData.length
   const projectionData = monthlyData.find((d) => d.isProjection)
-  const chartSummary = useMemo(() => {
+  const _chartSummary = useMemo(() => {
     const summary = describeTimeSeries({
       data: monthlyData,
       metric: "Monthly net cash flow",
@@ -122,138 +94,264 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <CardTitle>Cash Flow Overview</CardTitle>
-            <Select value={account} onValueChange={setAccount}>
-              <SelectTrigger className="w-[160px] h-8 text-xs">
-                <SelectValue placeholder="Select account" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Accounts</SelectItem>
-                <SelectItem value="checking">Checking Only</SelectItem>
-                <SelectItem value="chase">Chase Total Checking</SelectItem>
-                <SelectItem value="fidelity">Fidelity Cash</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-1 border rounded-md">
-            <Button variant={period === "month" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("month")}>
-              Month
-            </Button>
-            <Button variant={period === "quarter" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("quarter")}>
-              Quarter
-            </Button>
-            <Button variant={period === "year" ? "default" : "ghost"} size="sm" onClick={() => setPeriod("year")}>
-              Year
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Calendar className="h-4 w-4" />
-            </Button>
+    <Card className="card-standard overflow-hidden">
+      <CardHeader className="pb-2 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-base">Cash Flow</CardTitle>
+          
+          {/* Series Toggle - Checkbox Style */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <button
+              onClick={() => toggleSeries("inflow")}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <div className={`h-3.5 w-3.5 rounded border-2 flex items-center justify-center transition-colors ${
+                visibleSeries.includes("inflow") 
+                  ? "bg-emerald-500 border-emerald-500" 
+                  : "border-muted-foreground/30 bg-transparent"
+              }`}>
+                {visibleSeries.includes("inflow") && (
+                  <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className={`hidden sm:inline font-medium ${visibleSeries.includes("inflow") ? "text-foreground" : "text-muted-foreground"}`}>
+                Income
+              </span>
+            </button>
+            
+            <button
+              onClick={() => toggleSeries("outflow")}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <div className={`h-3.5 w-3.5 rounded border-2 flex items-center justify-center transition-colors ${
+                visibleSeries.includes("outflow") 
+                  ? "bg-red-500 border-red-500" 
+                  : "border-muted-foreground/30 bg-transparent"
+              }`}>
+                {visibleSeries.includes("outflow") && (
+                  <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className={`hidden sm:inline font-medium ${visibleSeries.includes("outflow") ? "text-foreground" : "text-muted-foreground"}`}>
+                Expenses
+              </span>
+            </button>
+            
+            <button
+              onClick={() => toggleSeries("net")}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <div className={`h-3.5 w-3.5 rounded border-2 flex items-center justify-center transition-colors ${
+                visibleSeries.includes("net") 
+                  ? "bg-blue-500 border-blue-500" 
+                  : "border-muted-foreground/30 bg-transparent"
+              }`}>
+                {visibleSeries.includes("net") && (
+                  <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className={`hidden sm:inline font-medium ${visibleSeries.includes("net") ? "text-foreground" : "text-muted-foreground"}`}>
+                Net
+              </span>
+            </button>
           </div>
         </div>
-        {projectionData && (
-          <div className="flex items-center gap-2 mt-2 p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">July Forecast:</span> Net flow of $
-              {projectionData.net.toLocaleString()} based on 6-month average
-            </p>
-          </div>
-        )}
-        {selectedMonth && (
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="secondary" className="text-xs">
-              Filtered: {selectedMonth}
-            </Badge>
-            <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => onMonthClick?.(null)}>
-              Clear
+        
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Period Toggle */}
+          <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-card/30 p-1">
+            <Button 
+              variant={period === "month" ? "secondary" : "ghost"} 
+              size="sm" 
+              onClick={() => setPeriod("month")}
+              className="h-7 px-2.5 text-xs"
+            >
+              Month
+            </Button>
+            <Button 
+              variant={period === "quarter" ? "secondary" : "ghost"} 
+              size="sm" 
+              onClick={() => setPeriod("quarter")}
+              className="h-7 px-2.5 text-xs"
+            >
+              Quarter
+            </Button>
+            <Button 
+              variant={period === "year" ? "secondary" : "ghost"} 
+              size="sm" 
+              onClick={() => setPeriod("year")}
+              className="h-7 px-2.5 text-xs"
+            >
+              Year
             </Button>
           </div>
-        )}
+
+          {/* Account Filter */}
+          <Select value={account} onValueChange={setAccount}>
+            <SelectTrigger className="w-[130px] h-7 text-xs border-border/60 bg-card/30">
+              <SelectValue placeholder="Account" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All Accounts</SelectItem>
+              <SelectItem value="checking" className="text-xs">Checking</SelectItem>
+              <SelectItem value="chase" className="text-xs">Chase</SelectItem>
+              <SelectItem value="fidelity" className="text-xs">Fidelity</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Projection Badge */}
+          {projectionData && (
+            <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 bg-blue-500/5 border-blue-500/20">
+              <TrendingUp className="h-3 w-3 text-blue-500" />
+              <span className="hidden sm:inline text-muted-foreground">Forecast</span>
+            </Badge>
+          )}
+
+          {/* Selected Month Badge */}
+          {selectedMonth && (
+            <>
+              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                {selectedMonth}
+              </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-xs" 
+                onClick={() => onMonthClick?.(null)}
+              >
+                Clear
+              </Button>
+            </>
+          )}
+        </div>
       </CardHeader>
-      <CardContent>
-        <ChartContainer
-          title="Cash flow by month"
-          description={`${chartSummary} Average historical net flow ${formatCurrency(avgNet, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-          })}.`}
-          comparisonOptions={[
-            { id: "inflow", label: "Inflow" },
-            { id: "outflow", label: "Outflow" },
-            { id: "net", label: "Net" },
-          ]}
-          selectedComparisons={visibleSeries}
-          onComparisonToggle={toggleSeries}
-        >
-          <AccessibleChart
-            title="Cash flow by month"
-            description={`${chartSummary} Average historical net flow ${formatCurrency(avgNet, {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            })}.`}
-            className="w-full h-[350px]"
-            contentClassName="h-full"
-          >
-            <ResponsiveContainer width="100%" height={350}>
-              <ComposedChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip content={CustomTooltip} cursor={{ fill: "transparent" }} />
-                <Legend />
-                {visibleSeries.includes("inflow") ? (
-                  <Bar
-                    dataKey="inflow"
-                    fill="hsl(142, 76%, 45%)"
-                    name="Inflow"
-                    radius={[4, 4, 0, 0]}
-                    onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
-                    cursor="pointer"
-                  >
-                    {monthlyData.map((entry, index) => {
-                      const dimmed = entry.isProjection ? 0.5 : selectedMonth && entry.month !== selectedMonth ? 0.3 : 1
-                      return <Cell key={`inflow-${index}`} opacity={dimmed} />
-                    })}
-                  </Bar>
-                ) : null}
-                {visibleSeries.includes("outflow") ? (
-                  <Bar
-                    dataKey="outflow"
-                    fill="hsl(24, 95%, 53%)"
-                    name="Outflow"
-                    radius={[4, 4, 0, 0]}
-                    onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
-                    cursor="pointer"
-                  >
-                    {monthlyData.map((entry, index) => {
-                      const dimmed = entry.isProjection ? 0.5 : selectedMonth && entry.month !== selectedMonth ? 0.3 : 0.8
-                      return <Cell key={`outflow-${index}`} opacity={dimmed} />
-                    })}
-                  </Bar>
-                ) : null}
-                {visibleSeries.includes("net") ? (
-                  <Line
-                    type="monotone"
-                    dataKey="net"
-                    stroke="hsl(210, 100%, 60%)"
-                    strokeWidth={3}
-                    name="Net Flow"
-                    dot={false}
+      <CardContent className="pt-0 pb-3">
+          {/* Chart - Ultra Compact */}
+          <ChartContainer config={chartConfig} className="h-[240px] w-full">
+            <ComposedChart data={monthlyData} margin={{ left: -10, right: 5, top: 5, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={BAR_CHART_PRESETS.cashFlow.inflow} stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor={BAR_CHART_PRESETS.cashFlow.inflow} stopOpacity={0.7}/>
+                </linearGradient>
+                <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={BAR_CHART_PRESETS.cashFlow.outflow} stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor={BAR_CHART_PRESETS.cashFlow.outflow} stopOpacity={0.7}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray={CHART_STYLES.grid.strokeDasharray}
+                stroke={CHART_STYLES.grid.stroke}
+                vertical={CHART_STYLES.grid.vertical}
+                opacity={CHART_STYLES.grid.opacity}
+              />
+              <XAxis
+                dataKey="month"
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
+              />
+              <YAxis
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                width={45}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    className="w-[180px]"
+                    labelFormatter={(value, payload) => {
+                      const dataPoint = (payload as Record<string, unknown>[])?.[0]?.payload as CashFlowDatum | undefined
+                      return (
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{String(value)}</span>
+                          {dataPoint?.isProjection && (
+                            <Badge variant="secondary" className="h-4 text-[10px] px-1">
+                              Forecast
+                            </Badge>
+                          )}
+                        </div>
+                      )
+                    }}
+                    formatter={(value, name) => {
+                      const displayName = name === "inflow" ? "Income" : name === "outflow" ? "Expenses" : "Net"
+                      return [
+                        <span key="value" className="font-medium">${Number(value).toLocaleString()}</span>,
+                        <span key="name" className="text-muted-foreground">{displayName}</span>
+                      ]
+                    }}
                   />
-                ) : null}
-              </ComposedChart>
-            </ResponsiveContainer>
-          </AccessibleChart>
-        </ChartContainer>
+                }
+                cursor={false}
+              />
+              
+              {visibleSeries.includes("inflow") && (
+                <Bar
+                  dataKey="inflow"
+                  fill="url(#colorInflow)"
+                  radius={[4, 4, 0, 0]}
+                  onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
+                  cursor="pointer"
+                  maxBarSize={28}
+                >
+                  {monthlyData.map((entry, index) => {
+                    const dimmed = entry.isProjection ? 0.4 : selectedMonth && entry.month !== selectedMonth ? 0.2 : 1
+                    return <Cell key={`inflow-${index}`} opacity={dimmed} />
+                  })}
+                </Bar>
+              )}
+              
+              {visibleSeries.includes("outflow") && (
+                <Bar
+                  dataKey="outflow"
+                  fill="url(#colorOutflow)"
+                  radius={[4, 4, 0, 0]}
+                  onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
+                  cursor="pointer"
+                  maxBarSize={28}
+                >
+                  {monthlyData.map((entry, index) => {
+                    const dimmed = entry.isProjection ? 0.4 : selectedMonth && entry.month !== selectedMonth ? 0.2 : 1
+                    return <Cell key={`outflow-${index}`} opacity={dimmed} />
+                  })}
+                </Bar>
+              )}
+              
+              {visibleSeries.includes("net") && (
+                <Line
+                  type="monotone"
+                  dataKey="net"
+                  stroke={BAR_CHART_PRESETS.cashFlow.net}
+                  strokeWidth={CHART_STYLES.line.strokeWidth}
+                  dot={{
+                    fill: BAR_CHART_PRESETS.cashFlow.net,
+                    strokeWidth: 0,
+                    r: CHART_STYLES.line.dot.r,
+                  }}
+                  activeDot={{
+                    r: CHART_STYLES.line.activeDot.r,
+                    strokeWidth: 2,
+                    stroke: "hsl(var(--background))",
+                    fill: BAR_CHART_PRESETS.cashFlow.net,
+                  }}
+                />
+              )}
+            </ComposedChart>
+          </ChartContainer>
       </CardContent>
     </Card>
   )

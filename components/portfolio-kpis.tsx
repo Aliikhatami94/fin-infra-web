@@ -1,15 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, Info, DollarSign, TrendingUpIcon, Activity, Target } from "lucide-react"
+import { MaskableValue } from "@/components/privacy-provider"
+import { TrendingUp, TrendingDown, Info, DollarSign, TrendingUpIcon, Activity, Target, ChevronDown, ChevronUp } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
-import { motion } from "framer-motion"
-import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { motion, AnimatePresence } from "framer-motion"
+import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { RiskMetricModal } from "@/components/risk-metric-modal"
 import { KPIIcon } from "@/components/ui/kpi-icon"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel"
 
 type RiskMetricKey = "sharpe" | "beta" | "volatility"
 
@@ -102,80 +111,207 @@ const riskMetricLabelToKey: Record<string, RiskMetricKey> = {
 
 export function PortfolioKPIs() {
   const [selectedMetric, setSelectedMetric] = useState<RiskMetricKey | null>(null)
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [hiddenCards] = useState<Set<string>>(new Set())
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0)
 
-  return (
-    <TooltipProvider>
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        {kpis.map((kpi, index) => {
-          const Icon = kpi.icon
-          const metricKey = riskMetricLabelToKey[kpi.label]
-          const isRiskMetric = metricKey !== undefined
+  // Handle carousel slide change
+  useEffect(() => {
+    if (!carouselApi) return
 
-          return (
-            <motion.div key={index} {...createStaggeredCardVariants(index, 0)}>
-              <Card
-                className={`card-standard card-lift h-full ${isRiskMetric ? "cursor-pointer" : ""}`}
-                onClick={() => {
-                  if (metricKey) {
-                    setSelectedMetric(metricKey)
-                  }
-                }}
-              >
-                <CardContent className="p-6 min-h-[140px] flex h-full flex-col justify-between">
-                  <div className="mb-2">
-                    <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs text-muted-foreground">{kpi.label}</p>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs max-w-xs">{kpi.tooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                      <KPIIcon icon={Icon} tone="info" />
-                    </div>
-                    <p className="text-2xl font-bold tabular-nums text-foreground">{kpi.value}</p>
+    const onSelect = () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
+    }
+
+    carouselApi.on("select", onSelect)
+    onSelect()
+
+    return () => {
+      carouselApi.off("select", onSelect)
+    }
+  }, [carouselApi])
+
+  const renderKPICard = (kpi: KPI) => {
+    const Icon = kpi.icon
+    const metricKey = riskMetricLabelToKey[kpi.label]
+    const isRiskMetric = metricKey !== undefined
+    const isHidden = hiddenCards.has(kpi.label)
+
+    return (
+      <motion.div {...cardHoverVariants} className="h-full">
+        <Card
+          className={`card-standard card-lift h-full min-h-[200px] md:min-h-[220px] ${isRiskMetric ? "cursor-pointer" : ""}`}
+          onClick={() => {
+            if (metricKey && !isHidden) {
+              setSelectedMetric(metricKey)
+            }
+          }}
+        >
+          <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
+            <div className="flex items-start justify-between gap-2">
+              <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
+            </div>
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
+                  <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1 cursor-help">
-                          {kpi.positive ? (
-                            <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
-                          ) : (
-                            <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
-                          )}
-                          <span
-                            className={`text-xs font-medium tabular-nums ${
-                              kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
-                            }`}
-                          >
-                            {kpi.change}
-                          </span>
-                        </div>
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
+                          aria-label={`More information about ${kpi.label}`}
+                        >
+                          <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="text-xs">
-                          vs. last month: <span className="font-mono">{kpi.baselineValue}</span>
-                        </p>
+                        <p className="text-label-xs font-normal max-w-xs">{kpi.tooltip}</p>
                       </TooltipContent>
                     </Tooltip>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )
-        })}
+                  </TooltipProvider>
+                </div>
+                <KPIIcon icon={Icon} tone="info" size="md" />
+              </div>
+              {isHidden ? (
+                <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+              ) : (
+                <p className="text-kpi font-semibold font-tabular text-foreground">
+                  <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
+                </p>
+              )}
+              {!isHidden && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                        aria-label={`${kpi.change} vs. last month`}
+                      >
+                        {kpi.positive ? (
+                          <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
+                        )}
+                        <span
+                          className={`text-delta font-medium font-tabular ${
+                            kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
+                          }`}
+                        >
+                          <MaskableValue value={kpi.change} className="font-tabular" />
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-label-xs font-normal">
+                        vs. last month: <span className="font-mono">{kpi.baselineValue}</span>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    )
+  }
+
+  return (
+    <div className="space-y-1">
+      {/* Collapse toggle button */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-medium text-muted-foreground">Portfolio Metrics</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="h-8 text-xs"
+        >
+          {isCollapsed ? (
+            <>
+              <ChevronDown className="mr-1 h-3.5 w-3.5" />
+              Show metrics
+            </>
+          ) : (
+            <>
+              <ChevronUp className="mr-1 h-3.5 w-3.5" />
+              Hide metrics
+            </>
+          )}
+        </Button>
       </div>
+
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden pt-4"
+          >
+            <TooltipProvider>
+              {/* Mobile: Horizontal carousel */}
+              <div className="md:hidden space-y-3">
+                <Carousel
+                  setApi={setCarouselApi}
+                  opts={{
+                    align: "center",
+                    loop: false,
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent className="-ml-4">
+                    {kpis.map((kpi, index) => (
+                      <CarouselItem key={kpi.label} className="pl-4 basis-[85%] sm:basis-[48%]">
+                        <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
+                          {renderKPICard(kpi)}
+                        </motion.div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+
+                {/* Carousel indicators */}
+                <div className="flex justify-center gap-1.5">
+                  {kpis.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => carouselApi?.scrollTo(index)}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all duration-300",
+                        currentSlide === index
+                          ? "w-6 bg-primary"
+                          : "w-1.5 bg-muted-foreground/30"
+                      )}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Tablet/Desktop: Grid layout */}
+              <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+                {kpis.map((kpi, index) => (
+                  <motion.div key={kpi.label} {...createStaggeredCardVariants(index, 0)} className="h-full">
+                    {renderKPICard(kpi)}
+                  </motion.div>
+                ))}
+              </div>
+            </TooltipProvider>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <RiskMetricModal
         open={!!selectedMetric}
         onOpenChange={(open) => !open && setSelectedMetric(null)}
         metric={selectedMetric}
       />
-    </TooltipProvider>
+    </div>
   )
 }

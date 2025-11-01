@@ -165,4 +165,21 @@ function maskEmail(value: string) {
   return `${maskedLocal}@${maskedDomain}`
 }
 
-export { MaskedInput, maskEmail }
+function maskPhone(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return ""
+  }
+
+  // Extract only digits
+  const digits = trimmed.replace(/\D/g, "")
+  if (digits.length === 0) {
+    return "••••"
+  }
+
+  // Show last 4 digits
+  const visiblePart = digits.slice(-4)
+  return `••••-${visiblePart}`
+}
+
+export { MaskedInput, maskEmail, maskPhone }

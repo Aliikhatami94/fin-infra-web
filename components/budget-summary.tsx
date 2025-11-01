@@ -1,31 +1,30 @@
 "use client"
 
-import { type ComponentType, type SVGProps, useMemo } from "react"
+import { type ComponentType, type SVGProps, useMemo, useState, useEffect } from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Plus, ArrowDown, ArrowUp, DollarSign, TrendingDown, Wallet } from "lucide-react"
+import { Plus, DollarSign, TrendingDown, Wallet } from "lucide-react"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
-
-const sparklineData = {
-  budgeted: [6200, 6300, 6400, 6500, 6500, 6500, 6500],
-  spent: [5200, 5400, 5600, 5700, 5800, 5820, 5840],
-  remaining: [1000, 900, 800, 800, 700, 680, 660],
-}
+import { KPIIcon } from "@/components/ui/kpi-icon"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel"
+import { cn } from "@/lib/utils"
 
 type SummaryItem = {
   label: string
   value: string
   icon: ComponentType<SVGProps<SVGSVGElement>>
-  color?: string
-  sparkline?: number[]
   subtext?: string
-  trend?: "up" | "down"
   progress?: number
   badge?: string
   actionable?: boolean
@@ -37,59 +36,37 @@ const baseSummary: SummaryItem[] = [
     value: "$6,500",
     icon: DollarSign,
     actionable: true,
-    color: "text-foreground",
-    sparkline: sparklineData.budgeted,
   },
   {
     label: "Actual Spent",
     value: "$5,840",
     icon: TrendingDown,
     subtext: "5% vs. Last Month",
-    trend: "down",
-    color: "text-foreground",
     progress: 90,
-    sparkline: sparklineData.spent,
   },
   {
     label: "Remaining",
     value: "$660",
     icon: Wallet,
     badge: "10% Remaining",
-    color: "text-green-600 dark:text-green-400",
-    sparkline: sparklineData.remaining,
   },
 ]
-
-function Sparkline({ data, color = "hsl(var(--primary))" }: { data: number[]; color?: string }) {
-  const max = Math.max(...data)
-  const min = Math.min(...data)
-  const range = max - min || 1
-
-  const points = data
-    .map((value, index) => {
-      const x = (index / (data.length - 1)) * 100
-      const y = 100 - ((value - min) / range) * 100
-      return `${x},${y}`
-    })
-    .join(" ")
-
-  return (
-    <svg width="80" height="24" className="opacity-60">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
 
 export function BudgetSummary() {
   const { state, hydrated } = useOnboardingState()
   const persona = hydrated ? state.persona : undefined
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0)
+
+  useEffect(() => {
+    if (!carouselApi) return
+
+    setCurrentSlide(carouselApi.selectedScrollSnap())
+
+    carouselApi.on("select", () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
+    })
+  }, [carouselApi])
 
   const summary: SummaryItem[] = useMemo(() => {
     if (!persona) {
@@ -109,7 +86,6 @@ export function BudgetSummary() {
       customized[1] = {
         ...customized[1],
         subtext: "$300 extra vs. plan",
-        trend: "down",
       }
     } else if (persona.goalsFocus === "financial_stability") {
       customized[2] = {
@@ -134,13 +110,10 @@ export function BudgetSummary() {
     return customized
   }, [persona])
 
-  return (
-    <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
-      {summary.map((item, index) => {
-        const TrendIcon = item.trend === "down" ? ArrowDown : ArrowUp
-        const Icon = item.icon
-        const progressValue = item.progress ?? 0
-        const progressState =
+  const renderCard = (item: SummaryItem, index: number) => {
+    const Icon = item.icon
+    const progressValue = item.progress ?? 0
+    const progressState =
           item.progress === undefined
             ? null
             : progressValue > 110
@@ -162,123 +135,162 @@ export function BudgetSummary() {
             : progressState === "near"
               ? "nearing budget limit"
               : "under budget"
-        return (
-          <motion.div key={index} className="h-full" {...createStaggeredCardVariants(index, 0)}>
-            <Card className="card-standard card-lift h-full">
-              <CardContent className="flex h-full flex-col gap-6 p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    {Icon && (
-                      <div className="rounded-lg bg-primary/10 p-2">
-                        <Icon className="h-4 w-4 text-primary" />
-                      </div>
-                    )}
-                    <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
+
+        const tone = item.progress !== undefined
+          ? progressState === "over" || progressState === "critical"
+            ? "negative"
+            : progressState === "near"
+              ? "warning"
+              : "positive"
+          : item.badge?.includes("Remaining")
+            ? "positive"
+            : "neutral"
+
+          return (
+            <motion.div key={index} className="h-full" {...createStaggeredCardVariants(index, 0)}>
+              <Card className="card-standard card-lift h-full min-h-[280px]">
+                <CardContent className="flex h-full flex-col gap-4 p-6">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="sr-only" aria-live="polite">{`Budget information for ${item.label}.`}</div>
+                    <LastSyncBadge timestamp="3 min ago" source="Plaid" />
                   </div>
-                  <LastSyncBadge timestamp="3 min ago" source="Plaid" className="flex-shrink-0" />
-                </div>
-                <div className="flex flex-1 flex-wrap items-end justify-between gap-4">
-                  <div className="space-y-3">
-                    <p className={`text-3xl font-bold tabular-nums tracking-tight ${item.color}`}>{item.value}</p>
-                    {item.subtext && (
-                      <div className="flex items-center gap-1.5 text-xs">
-                        {item.trend && (
-                          <TrendIcon
-                            className={`h-3.5 w-3.5 ${
-                              item.trend === "down"
-                                ? "text-[var(--color-positive)]"
-                                : "text-[var(--color-negative)]"
-                            }`}
-                          />
-                        )}
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <span
-                                className={`font-medium ${
-                                  item.trend === "down"
-                                    ? "text-[var(--color-positive)]"
-                                    : "text-[var(--color-negative)]"
-                                }`}
-                              >
-                                {item.subtext}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs">Last Month: $6,150</p>
-                              <p className="text-xs">This Month: $5,840</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    )}
-                    {item.badge && (
-                      <Badge variant="secondary" className="border-0 bg-green-500/10 text-[var(--color-positive)]">
-                        {item.badge}
-                      </Badge>
-                    )}
-                    {item.sparkline && (
-                      <div className="pt-2">
-                        <Sparkline
-                          data={item.sparkline}
-                          color={
-                            item.color?.includes("green")
-                              ? "var(--color-positive)"
-                              : item.color?.includes("red")
-                                ? "var(--color-negative)"
-                                : "hsl(var(--primary))"
-                          }
-                        />
-                      </div>
-                    )}
+
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <p className="text-label-xs text-muted-foreground">{item.label}</p>
+                      <p className="text-kpi font-semibold font-tabular break-words text-foreground">
+                        {item.value}
+                      </p>
+                    </div>
+                    <KPIIcon icon={Icon} tone={tone as "positive" | "negative" | "warning" | "neutral"} size="md" />
                   </div>
-                  <div className="flex min-w-[3rem] items-center justify-end">
-                    {item.actionable ? (
-                      <Button variant="outline" size="sm" className="h-9 w-9 bg-transparent p-0">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    ) : item.progress !== undefined ? (
-                      <div
-                        className="relative"
-                        role="img"
-                        aria-label={`${item.label} is ${progressValue}% complete, ${progressStatusLabel}.`}
-                        data-progress-state={progressState ?? undefined}
-                      >
-                        <svg className="h-14 w-14 -rotate-90" aria-hidden="true">
-                          <circle
-                            cx="28"
-                            cy="28"
-                            r="24"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                            className="text-muted/20"
-                          />
-                          <circle
-                            cx="28"
-                            cy="28"
-                            r="24"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                            strokeDasharray={`${2 * Math.PI * 24}`}
-                            strokeDashoffset={`${2 * Math.PI * 24 * (1 - item.progress / 100)}`}
-                            className={progressColorClass}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-bold tabular-nums">{item.progress}%</span>
+
+                  <div className="mt-auto flex items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {item.subtext && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="delta-chip text-delta font-medium text-muted-foreground inline-flex items-center rounded-md px-1.5 py-1 transition-colors hover:bg-muted/40 cursor-help">
+                              {item.subtext}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-label-xs font-normal">Last Month: $6,150</p>
+                            <p className="text-label-xs font-normal">This Month: $5,840</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      {item.badge && (
+                        <Badge variant="secondary" className="border-0 bg-green-500/10 text-[var(--color-positive)]">
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex-shrink-0">
+                      {item.actionable ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <Button variant="outline" size="sm" className="h-9 w-9 p-0" disabled>
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Coming soon - Auto-invest configuration</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : item.progress !== undefined ? (
+                        <div
+                          className="relative"
+                          role="img"
+                          aria-label={`${item.label} is ${progressValue}% complete, ${progressStatusLabel}.`}
+                          data-progress-state={progressState ?? undefined}
+                        >
+                          <svg className="h-16 w-16 -rotate-90" aria-hidden="true">
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              stroke="currentColor"
+                              strokeWidth="5"
+                              fill="none"
+                              className="text-muted/20"
+                            />
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              stroke="currentColor"
+                              strokeWidth="5"
+                              fill="none"
+                              strokeDasharray={`${2 * Math.PI * 28}`}
+                              strokeDashoffset={`${2 * Math.PI * 28 * (1 - item.progress / 100)}`}
+                              className={progressColorClass}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-sm font-bold tabular-nums">{item.progress}%</span>
+                          </div>
                         </div>
-                      </div>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )
-      })}
-    </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+    )
+  }
+
+  return (
+    <TooltipProvider>
+      {/* Mobile: Horizontal carousel */}
+      <div className="md:hidden space-y-3">
+        <Carousel
+          setApi={setCarouselApi}
+          opts={{
+            align: "center",
+            loop: false,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4">
+            {summary.map((item, index) => (
+              <CarouselItem key={item.label} className="pl-4 basis-[85%]">
+                {renderCard(item, index)}
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+
+        {/* Carousel indicators */}
+        <div className="flex justify-center gap-1.5">
+          {summary.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => carouselApi?.scrollTo(index)}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                currentSlide === index
+                  ? "w-6 bg-primary"
+                  : "w-1.5 bg-muted-foreground/30"
+              )}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Tablet/Desktop: Grid layout */}
+      <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+        {summary.map((item, index) => (
+          <div key={item.label}>
+            {renderCard(item, index)}
+          </div>
+        ))}
+      </div>
+    </TooltipProvider>
   )
 }

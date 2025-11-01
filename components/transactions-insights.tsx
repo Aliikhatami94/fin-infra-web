@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { InsightCard } from "@/components/insights/InsightCard"
 import { trackInsightAction } from "@/lib/analytics/events"
 import type { InsightAction, InsightDefinition } from "@/lib/insights/definitions"
@@ -8,6 +9,7 @@ import { Lightbulb, ShieldAlert, Inbox } from "lucide-react"
 import { useInsightDismissals } from "@/hooks/use-insight-dismissals"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 
 const insights: InsightDefinition[] = [
   {
@@ -19,12 +21,14 @@ const insights: InsightDefinition[] = [
     surfaces: ["overview", "insights"],
     icon: Lightbulb,
     accent: "emerald",
+    severity: "low",
     metrics: [
       { id: "eligible-spend", label: "Eligible spend", value: "$1,120", highlight: true },
       { id: "lost-rewards", label: "Lost rewards", value: "$28" },
     ],
     actions: [
-      { id: "enable-boosts", label: "Enable boosts", href: "/settings" },
+      { id: "enable-boosts", label: "Enable boosts" },
+      { id: "dismiss", label: "Dismiss" },
     ],
     explanation: "Dining and travel categories qualify for 3% cashback when boosts are active.",
   },
@@ -36,18 +40,50 @@ const insights: InsightDefinition[] = [
     topic: "Monitoring",
     surfaces: ["insights"],
     icon: ShieldAlert,
-    accent: "orange",
+    accent: "rose",
+    severity: "high",
     actions: [
-      { id: "review-charge", label: "Review ride", href: "/transactions" },
+      { id: "review-charge", label: "Review ride" },
+      { id: "mark-resolved", label: "Mark resolved" },
     ],
     explanation: "We noticed two identical charges within 5 minutes for the same merchant and amount.",
   },
 ]
 
 export function TransactionsInsights() {
+  const router = useRouter()
   const { dismiss, undismiss, reset, isDismissed, resolvedIds, hydrated } = useInsightDismissals({ surface: "transactions" })
+  const [confirmAction, setConfirmAction] = useState<{ insight: InsightDefinition; action: InsightAction } | null>(null)
+  
   const handleAction = (payload: { insight: InsightDefinition; action: InsightAction }) => {
-    trackInsightAction(payload)
+    // Handle dismiss and mark-resolved actions directly
+    if (payload.action.id === "dismiss" || payload.action.id === "mark-resolved") {
+      dismiss(payload.insight.id)
+      trackInsightAction(payload)
+      return
+    }
+    
+    // High-impact actions require confirmation
+    if (payload.insight.id === "transactions-cashback" || payload.insight.id === "transactions-duplicate") {
+      setConfirmAction(payload)
+    } else {
+      trackInsightAction(payload)
+    }
+  }
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      trackInsightAction(confirmAction)
+      
+      // Navigate after confirmation based on action
+      if (confirmAction.insight.id === "transactions-cashback") {
+        router.push("/settings")
+      } else if (confirmAction.insight.id === "transactions-duplicate") {
+        router.push("/transactions")
+      }
+      
+      setConfirmAction(null)
+    }
   }
 
   const visibleInsights = useMemo(() => insights.filter((insight) => !isDismissed(insight.id)), [isDismissed])
@@ -116,6 +152,20 @@ export function TransactionsInsights() {
           />
         ))}
       </div>
+      <ConfirmDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction?.action.label || "Confirm action"}
+        description={
+          confirmAction?.insight.id === "transactions-cashback"
+            ? "This will enable category boosts on your Sapphire Reserve card. You can disable this later in settings."
+            : confirmAction?.insight.id === "transactions-duplicate"
+              ? "This will mark the transaction for review and open the dispute process."
+              : "Are you sure you want to proceed with this action?"
+        }
+        confirmLabel="Continue"
+        onConfirm={handleConfirm}
+      />
     </div>
   )
 }

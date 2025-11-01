@@ -1,0 +1,349 @@
+"use client"
+
+import { Bell, Search, Calendar, Menu, Building2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Link from "next/link"
+import { useTheme } from "next-themes"
+import { Moon, Sun, Monitor, UserCircle, SettingsIcon, CreditCard, LogOut, SlidersHorizontal } from "lucide-react"
+import { useMaskToggleDetails } from "@/components/privacy-provider"
+import { CommandMenu } from "@/components/command-menu"
+import { useEffect, useState, useRef, useCallback } from "react"
+import { useDateRange } from "@/components/date-range-provider"
+// Brand title lives in the Sidebar header now; TopBar is embedded inside the content area.
+import { useWorkspace } from "@/components/workspace-provider"
+import { NotificationCenter } from "@/components/notification-center"
+import { useDensity } from "@/app/providers/density-provider"
+
+import { cn } from "@/lib/utils"
+
+export function TopBar({ onMenuClick, sidebarCollapsed }: { onMenuClick?: () => void; sidebarCollapsed?: boolean }) {
+  const { setTheme, theme } = useTheme()
+  const { masked, toggleMasked, label: maskLabel, Icon: MaskIcon } = useMaskToggleDetails()
+  const { dateRange, setDateRange } = useDateRange()
+  const [mounted, setMounted] = useState(false)
+  const [commandMenuOpen, setCommandMenuOpen] = useState(false)
+  const { activeWorkspace, workspaces, selectWorkspace, unreadCount, activeMember } = useWorkspace()
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const { density, setDensity } = useDensity()
+  
+  // Scroll behavior for mobile: hide on scroll down, show on scroll up
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const lastScrollY = useRef(0)
+  const scrollThreshold = 10 // Minimum scroll distance to trigger hide/show
+
+  const isDateRangeValue = (value: string): value is typeof dateRange => {
+    return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
+  }
+
+  const handleDateRangeChange = (value: string) => {
+    if (isDateRangeValue(value)) {
+      setDateRange(value)
+    }
+  }
+
+  const handleDensityChange = (value: string) => {
+    if (value === "comfortable" || value === "compact") {
+      setDensity(value)
+    }
+  }
+
+  // Handle scroll behavior for auto-hiding header on mobile
+  const handleScroll = useCallback(() => {
+    const mainContent = document.getElementById('main-content')
+    if (!mainContent) return
+
+    const currentScrollY = mainContent.scrollTop
+    const scrollDifference = Math.abs(currentScrollY - lastScrollY.current)
+
+    // Only update if scroll difference exceeds threshold (prevents jitter)
+    if (scrollDifference < scrollThreshold) return
+
+    // Show header when scrolling up or at top
+    if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
+      setIsHeaderVisible(true)
+    } 
+    // Hide header when scrolling down (only on mobile/tablet)
+    else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+      setIsHeaderVisible(false)
+    }
+
+    // Track if scrolled past threshold for styling
+    setIsScrolled(currentScrollY > 10)
+    
+    lastScrollY.current = currentScrollY
+  }, [scrollThreshold])
+
+  useEffect(() => {
+    setMounted(true)
+    
+    // Set up scroll listener on main content
+    const mainContent = document.getElementById('main-content')
+    if (!mainContent) return
+
+    mainContent.addEventListener('scroll', handleScroll, { passive: true })
+    
+    return () => {
+      mainContent.removeEventListener('scroll', handleScroll)
+    }
+  }, [handleScroll])
+
+  return (
+    <div
+      className={cn(
+        // Fixed top bar that adapts to sidebar width on large screens
+        "fixed top-0 right-0 z-40 backdrop-blur-md transition-all duration-300 ease-in-out",
+        // Mobile/tablet: full width with auto-hide behavior
+        "left-0 w-auto",
+        // Desktop: shift right based on sidebar state so it's visually centered with content
+        sidebarCollapsed ? "lg:left-16" : "lg:left-64",
+        // Mobile: slide up when hidden, down when visible
+        isHeaderVisible ? "translate-y-0" : "-translate-y-full md:translate-y-0",
+        // Background with glass effect and shadow when scrolled
+        isScrolled 
+          ? "bg-background/95 shadow-sm border-b border-border/40" 
+          : "bg-background/80",
+      )}
+    >
+      {/* Inner container: constrain width and center horizontally to match page content width */}
+      <div className={cn(
+        "mx-auto flex w-full max-w-[1200px] items-center justify-between gap-2 px-3 transition-all duration-300 sm:gap-3 sm:px-4 lg:px-10",
+        // Compact height on mobile for space efficiency
+        "h-11 md:h-12 lg:h-14",
+      )}>
+        {/* Left section: Menu + Search */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {/* Mobile hamburger menu */}
+          <div className="lg:hidden shrink-0">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onMenuClick} 
+              aria-label="Open menu"
+              className="h-8 w-8"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Search bar - adaptive width */}
+          <div className="flex-1 min-w-0 max-w-md">
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-muted-foreground hover:text-foreground transition-all",
+                "h-8 md:h-9 text-xs md:text-sm",
+                // More compact on mobile
+                "px-2 md:px-3",
+              )}
+              onClick={() => setCommandMenuOpen(true)}
+            >
+              <Search className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
+              <span className="ml-1.5 md:ml-2 truncate">Search…</span>
+              <kbd className="ml-auto hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </Button>
+          </div>
+        </div>
+
+        {/* Right section: Actions + Profile - Progressive disclosure on mobile */}
+        <div className="flex items-center gap-1 shrink-0">
+
+        <div className="flex items-center gap-1 md:gap-2">
+          <Badge variant="secondary" className="hidden lg:flex items-center gap-1 rounded-full">
+            <Building2 className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">{activeWorkspace.name}</span>
+          </Badge>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-pressed={!masked}
+                  aria-label={maskLabel}
+                  onClick={toggleMasked}
+                  className="hidden sm:flex"
+                >
+                  <MaskIcon className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{masked ? "Amounts hidden" : "Amounts visible"}</p>
+                <p className="text-xs text-muted-foreground">Click to {masked ? "show" : "hide"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <Select value={dateRange} onValueChange={handleDateRangeChange}>
+            <SelectTrigger className="w-[7.5rem] md:w-36 rounded-full hidden sm:flex" title={`Date range: ${dateRange}`}>
+              <Calendar className="mr-2 h-4 w-4 shrink-0" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1D">1 Day</SelectItem>
+              <SelectItem value="5D">5 Days</SelectItem>
+              <SelectItem value="1M">1 Month</SelectItem>
+              <SelectItem value="6M">6 Months</SelectItem>
+              <SelectItem value="YTD">YTD</SelectItem>
+              <SelectItem value="1Y">1 Year</SelectItem>
+              <SelectItem value="ALL">All Time</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            aria-label={unreadCount ? `${unreadCount} unread notifications` : "Notifications"}
+            onClick={() => setNotificationsOpen(true)}
+          >
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <Badge className="absolute -right-1 -top-1 h-5 min-w-5 px-1 text-xs bg-primary text-primary-foreground">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Badge>
+            )}
+          </Button>
+
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Open account menu">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={undefined} alt={activeMember.name} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {activeMember.avatarFallback}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium truncate">{activeMember.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{activeMember.email}</p>
+                </div>
+              </DropdownMenuLabel>
+              <div className="px-2 pb-2">
+                <div className="inline-flex rounded-md bg-muted p-0.5" role="group" aria-label="Theme selection">
+                  <button
+                    type="button"
+                    onClick={() => setTheme("light")}
+                    className={cn(
+                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      mounted && theme === "light"
+                        ? "bg-background text-foreground shadow-sm scale-105"
+                        : "text-muted-foreground hover:text-foreground hover:scale-105"
+                    )}
+                    aria-pressed={mounted && theme === "light"}
+                    aria-label="Light theme"
+                  >
+                    <Sun className="h-3.5 w-3.5 transition-transform duration-200" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("dark")}
+                    className={cn(
+                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      mounted && theme === "dark"
+                        ? "bg-background text-foreground shadow-sm scale-105"
+                        : "text-muted-foreground hover:text-foreground hover:scale-105"
+                    )}
+                    aria-pressed={mounted && theme === "dark"}
+                    aria-label="Dark theme"
+                  >
+                    <Moon className="h-3.5 w-3.5 transition-transform duration-200" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("system")}
+                    className={cn(
+                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      mounted && theme === "system"
+                        ? "bg-background text-foreground shadow-sm scale-105"
+                        : "text-muted-foreground hover:text-foreground hover:scale-105"
+                    )}
+                    aria-pressed={mounted && theme === "system"}
+                    aria-label="System theme"
+                  >
+                    <Monitor className="h-3.5 w-3.5 transition-transform duration-200" />
+                  </button>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Density</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuRadioGroup value={density} onValueChange={handleDensityChange}>
+                  <DropdownMenuRadioItem value="comfortable" className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                    Comfortable
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="compact" className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                    Compact
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Workspace</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuRadioGroup value={activeWorkspace.id} onValueChange={selectWorkspace}>
+                  {workspaces.map((workspace) => (
+                    <DropdownMenuRadioItem key={workspace.id} value={workspace.id} className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{workspace.name}</span>
+                      <Badge variant="secondary" className="ml-auto rounded-full text-[10px] uppercase tracking-wide">
+                        {workspace.role}
+                      </Badge>
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">
+                  <SettingsIcon className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/billing">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Billing
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      <CommandMenu open={commandMenuOpen} onOpenChange={setCommandMenuOpen} />
+      <NotificationCenter open={notificationsOpen} onOpenChange={setNotificationsOpen} />
+    </div>
+  )
+}

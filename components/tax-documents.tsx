@@ -3,7 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Download, CheckCircle2, AlertCircle, Clock, ExternalLink } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { FileText, CheckCircle2, AlertCircle, ArrowRight, TrendingDown } from "lucide-react"
 import Link from "next/link"
 
 const documents = [
@@ -15,93 +16,140 @@ const documents = [
 ]
 
 export function TaxDocuments() {
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "received":
-        return <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-      case "expected":
-        return <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-      case "missing":
-        return <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-      default:
-        return null
-    }
-  }
+  const totalDocuments = documents.length
+  const receivedDocuments = documents.filter(doc => doc.status === "received").length
+  const missingDocuments = documents.filter(doc => doc.status === "missing").length
+  const documentProgress = Math.round((receivedDocuments / totalDocuments) * 100)
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "received":
-        return (
-          <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
-            Received
-          </Badge>
-        )
-      case "expected":
-        return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400">
-            Expected
-          </Badge>
-        )
-      case "missing":
-        return (
-          <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400">
-            Missing - High Priority
-          </Badge>
-        )
-      default:
-        return null
-    }
-  }
+  // Calculate harvest readiness based on various factors
+  const harvestReadiness = 68 // Mock percentage - would be calculated from actual data
+  const unrealizedLosses = -12400 // Mock amount
+  const eligiblePositions = 8 // Mock count
 
   return (
-    <Card className="card-standard card-lift">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Tax Documents</CardTitle>
-          <Link href="/documents">
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-              <ExternalLink className="h-4 w-4" />
-              View All Documents
-            </Button>
-          </Link>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {documents.map((doc, index) => (
-            <div
-              key={index}
-              className={`flex items-center justify-between border-b pb-4 last:border-0 last:pb-0 ${
-                doc.status === "missing" ? "bg-red-50/50 dark:bg-red-950/20 -mx-4 px-4 py-3 rounded-lg" : ""
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="absolute -top-1 -right-1">{getStatusIcon(doc.status)}</div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{doc.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-muted-foreground">
-                      {doc.year} {doc.size !== "0 KB" && `• ${doc.size}`}
-                    </p>
-                    {getStatusBadge(doc.status)}
-                  </div>
-                </div>
-              </div>
-              {doc.status === "received" && (
-                <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  Download PDF
-                </Button>
-              )}
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Documents Summary Card */}
+      <Card className="card-standard card-lift">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <CardTitle>Tax Documents Status</CardTitle>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            {missingDocuments > 0 && (
+              <Badge variant="destructive" className="shrink-0">
+                {missingDocuments} Missing
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Document Collection</span>
+              <span className="font-medium">{receivedDocuments} of {totalDocuments} received</span>
+            </div>
+            <Progress value={documentProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              {documentProgress}% complete
+            </p>
+          </div>
+
+          {missingDocuments > 0 && (
+            <div className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/20 p-3 border border-red-200 dark:border-red-900">
+              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-red-900 dark:text-red-100">
+                  {missingDocuments} document{missingDocuments > 1 ? 's' : ''} still needed
+                </p>
+                <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                  Follow up with issuers to avoid filing delays
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="pt-2">
+            <Button asChild variant="outline" className="w-full gap-2">
+              <Link href="/dashboard/documents">
+                View All Documents
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="text-xs text-muted-foreground text-center pt-2">
+            See detailed status in{" "}
+            <Link href="#ai-insights" className="text-primary hover:underline font-medium">
+              AI Insights
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tax-Loss Harvesting Readiness Card */}
+      <Card className="card-standard card-lift">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <TrendingDown className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              <CardTitle>Harvest Readiness</CardTitle>
+            </div>
+            <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400 shrink-0">
+              {harvestReadiness}%
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Portfolio Analysis</span>
+              <span className="font-medium">{eligiblePositions} positions eligible</span>
+            </div>
+            <Progress value={harvestReadiness} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              {harvestReadiness >= 70 ? 'High' : harvestReadiness >= 40 ? 'Moderate' : 'Low'} harvest potential
+            </p>
+          </div>
+
+          <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-3 border border-border">
+            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                ${Math.abs(unrealizedLosses).toLocaleString()} in unrealized losses
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Could offset capital gains or reduce taxable income
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Wash sale compliance</span>
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Year-end timing optimized</span>
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button variant="default" className="w-full gap-2 bg-orange-600 hover:bg-orange-700">
+              <TrendingDown className="h-4 w-4" />
+              Review Positions
+            </Button>
+          </div>
+
+          <div className="text-xs text-muted-foreground text-center pt-2">
+            Detailed opportunities in{" "}
+            <Link href="#ai-insights" className="text-primary hover:underline font-medium">
+              AI Insights
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

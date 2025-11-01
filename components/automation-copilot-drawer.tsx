@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState, type ComponentType } from "react"
+import { usePathname } from "next/navigation"
 import { Sparkles, ShieldAlert, ShieldCheck, ShieldQuestion, Undo2 } from "lucide-react"
 import { AIChatSidebar, type AIChatMessage } from "@/components/ai-chat-sidebar"
 import { Badge } from "@/components/ui/badge"
@@ -67,6 +68,7 @@ export function AutomationCopilotDrawer({
 }: AutomationCopilotDrawerProps) {
   const storage = useSecureStorage({ namespace: "automation-copilot" })
   const { isOffline } = useConnectivity()
+  const pathname = usePathname()
   const suggestions = useMemo(() => getAutomationSuggestions(surface), [surface])
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSuggestionId ?? suggestions[0]?.id)
   const selectedSuggestion = useMemo(
@@ -81,6 +83,15 @@ export function AutomationCopilotDrawer({
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [feedbackContext, setFeedbackContext] = useState<string | null>(null)
   const [feedbackRating, setFeedbackRating] = useState<number | undefined>(undefined)
+  
+  // Auto-dismiss on navigation
+  useEffect(() => {
+    if (isOpen) {
+      onClose()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
+  
   const handleFeedbackOpenChange = (open: boolean) => {
     setFeedbackOpen(open)
     if (!open) {
@@ -196,7 +207,7 @@ export function AutomationCopilotDrawer({
                 "w-full rounded-lg border px-3 py-2 text-left transition-colors",
                 isActive
                   ? "border-primary bg-primary/10"
-                  : "border-border/40 bg-background/80 hover:border-border/80",
+                  : "border-border/40 bg-card/80 hover:border-border/80",
               )}
             >
               <div className="flex items-start justify-between gap-2">

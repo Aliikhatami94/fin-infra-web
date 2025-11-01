@@ -11,8 +11,13 @@ const activities = getRecentActivities()
 
 export function RecentActivity() {
   const [selectedActivity, setSelectedActivity] = useState<(typeof activities)[0] | null>(null)
+  const [showAll, setShowAll] = useState(false)
+  
+  const displayLimit = 5 // Show first 5 activities by default
+  const displayActivities = showAll ? activities : activities.slice(0, displayLimit)
+  const hasMore = activities.length > displayLimit
 
-  const groupedActivities = activities.reduce(
+  const groupedActivities = displayActivities.reduce(
     (acc, activity) => {
       if (!acc[activity.dateGroup]) {
         acc[activity.dateGroup] = []
@@ -20,14 +25,22 @@ export function RecentActivity() {
       acc[activity.dateGroup].push(activity)
       return acc
     },
-    {} as Record<string, typeof activities>,
+    {} as Record<string, typeof displayActivities>,
   )
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <Card className="card-standard">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Recent Activity</CardTitle>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-xs h-8"
+            asChild
+          >
+            <a href="/dashboard/transactions">View all →</a>
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -39,72 +52,78 @@ export function RecentActivity() {
                   <div className="h-px flex-1 bg-border" />
                 </div>
 
-                <div className="relative space-y-4">
-                  {/* Timeline line */}
-                  <div className="absolute left-5 top-2 bottom-2 w-0.5 bg-border" />
-
-                  {groupActivities.map((activity) => (
+                <div className="space-y-4">
+                  {groupActivities.map((activity, idx) => (
                     <div
                       key={activity.id}
-                      onClick={() => setSelectedActivity(activity)}
-                      className="relative flex items-start gap-4 cursor-pointer hover:bg-muted/50 -mx-2 px-2 py-2 rounded-lg transition-colors group"
+                      className="relative"
                     >
-                      {/* Timeline dot with icon */}
+                      {/* Connecting line from center of this icon to center of next icon */}
+                      {idx !== groupActivities.length - 1 && (
+                        <div className="absolute left-[1.25rem] top-[2.5rem] bottom-0 w-px bg-border translate-y-4" />
+                      )}
+                      
                       <div
-                        className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                          activity.type === "sync"
-                            ? "bg-gray-100 dark:bg-gray-800"
-                            : activity.amount && activity.amount > 0
-                              ? "bg-green-100 dark:bg-green-900/30"
-                              : "bg-red-100 dark:bg-red-900/30"
-                        }`}
+                        onClick={() => setSelectedActivity(activity)}
+                        className="relative flex items-start gap-4 cursor-pointer hover:bg-muted/50 px-2 py-2 rounded-lg transition-colors group sm:-mx-2"
                       >
-                        <activity.icon
-                          className={`h-5 w-5 ${
+                        {/* Timeline dot with icon */}
+                        <div
+                          className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
                             activity.type === "sync"
-                              ? "text-gray-500"
+                              ? "bg-gray-100 dark:bg-gray-800"
                               : activity.amount && activity.amount > 0
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
+                                ? "bg-green-100 dark:bg-green-900/30"
+                                : "bg-red-100 dark:bg-red-900/30"
                           }`}
-                        />
-                      </div>
-
-                      <div className="flex-1 min-w-0 pt-1">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                              {activity.description}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{activity.date}</p>
-                            <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {activity.actions.map((action, idx) => (
-                                <Button
-                                  key={idx}
-                                  size="sm"
-                                  variant={action.variant}
-                                  className="h-7 text-xs"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    console.log(`[v0] Action clicked: ${action.label}`)
-                                  }}
-                                >
-                                  {action.label}
-                                </Button>
-                              ))}
-                            </div>
-                          </div>
-                          {activity.amount !== null && (
-                            <p
-                              className={`text-sm font-semibold tabular-nums shrink-0 ${
-                                activity.amount > 0
+                        >
+                          <activity.icon
+                            className={`h-5 w-5 ${
+                              activity.type === "sync"
+                                ? "text-gray-500"
+                                : activity.amount && activity.amount > 0
                                   ? "text-green-600 dark:text-green-400"
                                   : "text-red-600 dark:text-red-400"
-                              }`}
-                            >
-                              {formatCurrency(activity.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
-                            </p>
-                          )}
+                            }`}
+                          />
+                        </div>
+
+                        <div className="flex-1 min-w-0 pt-1">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                                {activity.description}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{activity.date}</p>
+                              <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {activity.actions.map((action, idx) => (
+                                  <Button
+                                    key={idx}
+                                    size="sm"
+                                    variant={action.variant}
+                                    className="h-7 text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      console.log(`[v0] Action clicked: ${action.label}`)
+                                    }}
+                                  >
+                                    {action.label}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+                            {activity.amount !== null && (
+                              <p
+                                className={`text-sm font-semibold tabular-nums shrink-0 ${
+                                  activity.amount > 0
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-red-600 dark:text-red-400"
+                                }`}
+                              >
+                                {formatCurrency(activity.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -112,6 +131,24 @@ export function RecentActivity() {
                 </div>
               </div>
             ))}
+            
+            {/* Show more/less button */}
+            {hasMore && (
+              <div className="pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setShowAll(!showAll)}
+                >
+                  {showAll ? (
+                    <>Show less</>
+                  ) : (
+                    <>Show {activities.length - displayLimit} more activities</>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

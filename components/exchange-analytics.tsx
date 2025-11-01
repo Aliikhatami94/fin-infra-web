@@ -1,11 +1,18 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { TrendingUp, TrendingDown, Plus, ExternalLink } from "lucide-react"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { TrendingUp, TrendingDown, Plus, ExternalLink, ChevronDown } from "lucide-react"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { cn } from "@/lib/utils"
 
 const exchangeData = [
   {
@@ -44,20 +51,125 @@ interface ExchangeAnalyticsProps {
 export function ExchangeAnalytics({ selectedExchange }: ExchangeAnalyticsProps) {
   const filteredExchanges =
     selectedExchange === "All" ? exchangeData : exchangeData.filter((e) => e.name === selectedExchange)
+  const [expandedExchanges, setExpandedExchanges] = useState<Record<string, boolean>>({})
+
+  const toggleExchange = (name: string) => {
+    setExpandedExchanges((prev) => ({ ...prev, [name]: !prev[name] }))
+  }
 
   return (
     <Card className="card-standard">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Exchange Analytics</CardTitle>
-          <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+          <Button variant="outline" size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
             Link Exchange
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {/* Mobile: Collapsible list */}
+        <div className="md:hidden space-y-2">
+          {filteredExchanges.map((exchange, index) => {
+            const isExpanded = expandedExchanges[exchange.name]
+            return (
+              <motion.div key={exchange.name} {...createStaggeredCardVariants(index, 0)}>
+                <Card className="card-standard">
+                  <Collapsible open={isExpanded}>
+                    <div className="p-3 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-sm text-foreground">{exchange.name}</h3>
+                          <Badge variant={exchange.connected ? "default" : "outline"} className="text-xs px-1.5 py-0">
+                            {exchange.connected ? "Connected" : "Not Connected"}
+                          </Badge>
+                        </div>
+                        {exchange.connected && (
+                          <div className="flex items-baseline gap-2 mt-1">
+                            <p className="text-lg font-bold tabular-nums">${exchange.totalValue.toLocaleString()}</p>
+                            <span
+                              className={cn(
+                                "text-xs font-medium tabular-nums",
+                                exchange.pl >= 0 ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
+                              )}
+                            >
+                              {exchange.pl >= 0 ? "+" : ""}
+                              {exchange.plPercent}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {exchange.connected && (
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => toggleExchange(exchange.name)}
+                          >
+                            <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
+                          </Button>
+                        </CollapsibleTrigger>
+                      )}
+                    </div>
+
+                    {exchange.connected ? (
+                      <CollapsibleContent>
+                        <div className="px-3 pb-3 space-y-3 border-t pt-3">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="space-y-0.5">
+                              <p className="text-muted-foreground">P/L</p>
+                              <div className="flex items-center gap-1">
+                                {exchange.pl >= 0 ? (
+                                  <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
+                                ) : (
+                                  <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
+                                )}
+                                <span
+                                  className={cn(
+                                    "text-sm font-semibold tabular-nums",
+                                    exchange.pl >= 0 ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
+                                  )}
+                                >
+                                  {exchange.pl >= 0 ? "+" : ""}${Math.abs(exchange.pl).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-0.5 text-right">
+                              <p className="text-muted-foreground">Assets</p>
+                              <p className="text-sm font-medium">{exchange.assets}</p>
+                            </div>
+                            <div className="space-y-0.5 text-right">
+                              <p className="text-muted-foreground">Last Sync</p>
+                              <p className="text-sm font-medium">{exchange.lastSync}</p>
+                            </div>
+                          </div>
+
+                          <Button variant="outline" size="sm" className="w-full gap-2">
+                            View on {exchange.name}
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </CollapsibleContent>
+                    ) : (
+                      <div className="px-3 pb-3 pt-2 text-center border-t">
+                        <p className="text-sm text-muted-foreground mb-2">Connect your {exchange.name} account</p>
+                        <Button size="sm" className="gap-2">
+                          <Plus className="h-4 w-4" />
+                          Connect
+                        </Button>
+                      </div>
+                    )}
+                  </Collapsible>
+                </Card>
+              </motion.div>
+            )
+          })}
+        </div>
+
+        {/* Desktop: Grid layout */}
+        <div className="hidden md:grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredExchanges.map((exchange, index) => (
             <motion.div key={exchange.name} {...createStaggeredCardVariants(index, 0)}>
               <Card className="card-standard card-lift">

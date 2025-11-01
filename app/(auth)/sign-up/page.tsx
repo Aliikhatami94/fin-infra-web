@@ -8,110 +8,122 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useState } from "react"
 import { BRAND } from "@/lib/brand"
-import { PasswordInput } from "@/components/ui/password-input"
 import { ComingSoon } from "@/components/coming-soon"
+import { toast } from "sonner"
+import { AlertCircle, Check, X, Loader2 } from "lucide-react"
+
+// Password strength calculation
+function calculatePasswordStrength(password: string): {
+  score: number
+  label: "Weak" | "Fair" | "Good" | "Strong"
+  color: string
+} {
+  let score = 0
+
+  // Length
+  if (password.length >= 8) score += 1
+  if (password.length >= 12) score += 1
+
+  // Character variety
+  if (/[a-z]/.test(password)) score += 1
+  if (/[A-Z]/.test(password)) score += 1
+  if (/[0-9]/.test(password)) score += 1
+  if (/[^a-zA-Z0-9]/.test(password)) score += 1
+
+  // Map score to strength
+  if (score <= 2) return { score, label: "Weak", color: "text-red-500" }
+  if (score <= 3) return { score, label: "Fair", color: "text-orange-500" }
+  if (score <= 4) return { score, label: "Good", color: "text-yellow-500" }
+  return { score, label: "Strong", color: "text-green-500" }
+}
 
 export default function SignUpPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [touched, setTouched] = useState({
     name: false,
     email: false,
     password: false,
     confirmPassword: false,
   })
-  const [errors, setErrors] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  })
-  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const nameErrorId = "sign-up-name-error"
-  const emailErrorId = "sign-up-email-error"
-  const passwordErrorId = "sign-up-password-error"
-  const confirmPasswordErrorId = "sign-up-confirm-password-error"
-  const passwordStrengthId = "sign-up-password-strength"
-  const submitErrorId = "sign-up-submit-error"
+  const strength = calculatePasswordStrength(password)
 
-  const validateField = (
-    field: "name" | "email" | "password" | "confirmPassword",
-    value: string,
-    options?: { passwordValue?: string },
-  ) => {
-    const passwordValue = options?.passwordValue ?? password
+  // Validation criteria
+  const hasMinLength = password.length >= 8
+  const hasUpperCase = /[A-Z]/.test(password)
+  const hasLowerCase = /[a-z]/.test(password)
+  const hasNumber = /[0-9]/.test(password)
+  const hasSpecialChar = /[^a-zA-Z0-9]/.test(password)
+  const passwordsMatch = password === confirmPassword && confirmPassword.length > 0
 
-    switch (field) {
-      case "name":
-        if (!value.trim()) {
-          return "Full name is required."
-        }
-        if (value.trim().length < 2) {
-          return "Enter at least 2 characters."
-        }
-        return ""
-      case "email":
-        if (!value.trim()) {
-          return "Email is required."
-        }
-        if (!/.+@.+\..+/.test(value)) {
-          return "Enter a valid email address."
-        }
-        return ""
-      case "password":
-        if (!value.trim()) {
-          return "Password is required."
-        }
-        if (value.length < 8) {
-          return "Use at least 8 characters with a mix of letters, numbers, and symbols."
-        }
-        return ""
-      case "confirmPassword":
-        if (!value.trim()) {
-          return "Confirm your password."
-        }
-        if (value !== passwordValue) {
-          return "Passwords do not match. Make sure both fields are identical."
-        }
-        return ""
-      default:
-        return ""
-    }
-  }
-
-  const runValidation = (
-    field: "name" | "email" | "password" | "confirmPassword",
-    value: string,
-    options?: { passwordValue?: string },
-  ) => {
-    const nextError = validateField(field, value, options)
-    setErrors((prev) => ({ ...prev, [field]: nextError }))
-    return nextError
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setTouched({ name: true, email: true, password: true, confirmPassword: true })
 
-    const nextErrors = {
-      name: validateField("name", name),
-      email: validateField("email", email),
-      password: validateField("password", password),
-      confirmPassword: validateField("confirmPassword", confirmPassword),
+    // Validate name
+    if (!name.trim()) {
+      toast.error("Full name is required")
+      return
     }
-
-    setErrors(nextErrors)
-
-    if (Object.values(nextErrors).some(Boolean)) {
-      setSubmitError("Please correct the highlighted fields before continuing.")
+    if (name.trim().length < 2) {
+      toast.error("Full name must be at least 2 characters")
       return
     }
 
-    setSubmitError(null)
-    // TODO: Implement registration logic
+    // Validate email
+    if (!email.trim()) {
+      toast.error("Email is required")
+      return
+    }
+    if (!/.+@.+\..+/.test(email)) {
+      toast.error("Please enter a valid email address")
+      return
+    }
+
+    // Validate password strength
+    if (!hasMinLength) {
+      toast.error("Password must be at least 8 characters long")
+      return
+    }
+    if (!hasUpperCase) {
+      toast.error("Password must contain at least one uppercase letter")
+      return
+    }
+    if (!hasLowerCase) {
+      toast.error("Password must contain at least one lowercase letter")
+      return
+    }
+    if (!hasNumber) {
+      toast.error("Password must contain at least one number")
+      return
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match")
+      return
+    }
+    if (strength.label === "Weak") {
+      toast.error("Please choose a stronger password")
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      toast.success("Account created successfully! Redirecting...")
+      // TODO: Implement registration logic and redirect
+    } catch (error) {
+      toast.error("Failed to create account. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleOAuthSignUp = (_provider: "google" | "github") => {
@@ -125,13 +137,13 @@ export default function SignUpPage() {
         <div className="text-center">
           <Link href="/" className="inline-block">
             <div className="flex items-center justify-center gap-2">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center border border-primary/20">
                 <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
                   />
                 </svg>
               </div>
@@ -139,7 +151,7 @@ export default function SignUpPage() {
             </div>
           </Link>
           <h1 className="mt-8 text-3xl font-semibold tracking-tight">Create your account</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Get started with your financial journey</p>
+          <p className="mt-2 text-sm text-muted-foreground">Start automating your financial clarity today</p>
         </div>
 
         {/* OAuth Buttons */}
@@ -213,35 +225,14 @@ export default function SignUpPage() {
             <Input
               id="name"
               type="text"
-              placeholder="John Doe"
+              placeholder="Enter your full name"
               value={name}
-              onChange={(e) => {
-                const nextValue = e.target.value
-                setName(nextValue)
-                if (!touched.name) {
-                  setTouched((prev) => ({ ...prev, name: true }))
-                }
-                runValidation("name", nextValue)
-              }}
-              onBlur={() => {
-                setTouched((prev) => ({ ...prev, name: true }))
-                runValidation("name", name)
-              }}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
               required
               className="h-11"
-              aria-invalid={Boolean(errors.name)}
-              aria-describedby={errors.name ? nameErrorId : undefined}
               autoComplete="name"
             />
-            {errors.name ? (
-              <p
-                id={nameErrorId}
-                className="text-xs text-destructive"
-                aria-live="polite"
-              >
-                {errors.name}
-              </p>
-            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -253,135 +244,201 @@ export default function SignUpPage() {
               type="email"
               placeholder="name@example.com"
               value={email}
-              onChange={(e) => {
-                const nextValue = e.target.value
-                setEmail(nextValue)
-                if (!touched.email) {
-                  setTouched((prev) => ({ ...prev, email: true }))
-                }
-                runValidation("email", nextValue)
-              }}
-              onBlur={() => {
-                setTouched((prev) => ({ ...prev, email: true }))
-                runValidation("email", email)
-              }}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
               required
               className="h-11"
-              aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? emailErrorId : undefined}
               autoComplete="email"
             />
-            {errors.email ? (
-              <p
-                id={emailErrorId}
-                className="text-xs text-destructive"
-                aria-live="polite"
-              >
-                {errors.email}
-              </p>
-            ) : null}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium">
               Password
             </Label>
-            <PasswordInput
-              id="password"
-              placeholder="Create a password"
-              value={password}
-              onChange={(e) => {
-                const nextValue = e.target.value
-                setPassword(nextValue)
-                if (!touched.password) {
-                  setTouched((prev) => ({ ...prev, password: true }))
-                }
-                runValidation("password", nextValue)
-                if (confirmPassword) {
-                  runValidation("confirmPassword", confirmPassword, {
-                    passwordValue: nextValue,
-                  })
-                }
-              }}
-              onBlur={() => {
-                setTouched((prev) => ({ ...prev, password: true }))
-                runValidation("password", password)
-              }}
-              required
-              className="h-11"
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={[errors.password ? passwordErrorId : null, passwordStrengthId]
-                .filter(Boolean)
-                .join(" ") || undefined}
-              autoComplete="new-password"
-              showStrength
-              strengthHintId={passwordStrengthId}
-            />
-            {errors.password ? (
-              <p
-                id={passwordErrorId}
-                className="text-xs text-destructive"
-                aria-live="polite"
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (!touched.password) {
+                    setTouched((prev) => ({ ...prev, password: true }))
+                  }
+                }}
+                onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+                required
+                className="h-11 pr-10"
+                aria-describedby="password-requirements"
+                aria-invalid={touched.password && !hasMinLength}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {errors.password}
-              </p>
-            ) : null}
+                {showPassword ? (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                    />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Password Strength Indicator */}
+            {password.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Password strength:</span>
+                  <span className={`font-medium ${strength.color}`}>{strength.label}</span>
+                </div>
+                <div className="flex gap-1">
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-colors ${
+                        i < strength.score ? strength.color.replace("text-", "bg-") : "bg-muted"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Password Requirements */}
+            <div id="password-requirements" className="space-y-1.5 rounded-lg bg-muted/30 p-3 text-xs">
+              <p className="font-medium text-muted-foreground mb-2">Password must contain:</p>
+              <div className="space-y-1">
+                <div className={`flex items-center gap-2 ${hasMinLength ? "text-green-600" : "text-muted-foreground"}`}>
+                  {hasMinLength ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                  <span>At least 8 characters</span>
+                </div>
+                <div className={`flex items-center gap-2 ${hasUpperCase ? "text-green-600" : "text-muted-foreground"}`}>
+                  {hasUpperCase ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                  <span>One uppercase letter</span>
+                </div>
+                <div className={`flex items-center gap-2 ${hasLowerCase ? "text-green-600" : "text-muted-foreground"}`}>
+                  {hasLowerCase ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                  <span>One lowercase letter</span>
+                </div>
+                <div className={`flex items-center gap-2 ${hasNumber ? "text-green-600" : "text-muted-foreground"}`}>
+                  {hasNumber ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                  <span>One number</span>
+                </div>
+                <div className={`flex items-center gap-2 ${hasSpecialChar ? "text-green-600" : "text-muted-foreground"}`}>
+                  {hasSpecialChar ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                  <span>One special character (recommended)</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword" className="text-sm font-medium">
               Confirm Password
             </Label>
-            <PasswordInput
-              id="confirmPassword"
-              placeholder="Confirm your password"
-              value={confirmPassword}
-              onChange={(e) => {
-                const nextValue = e.target.value
-                setConfirmPassword(nextValue)
-                if (!touched.confirmPassword) {
-                  setTouched((prev) => ({ ...prev, confirmPassword: true }))
-                }
-                runValidation("confirmPassword", nextValue, { passwordValue: password })
-              }}
-              onBlur={() => {
-                setTouched((prev) => ({ ...prev, confirmPassword: true }))
-                runValidation("confirmPassword", confirmPassword, { passwordValue: password })
-              }}
-              required
-              className="h-11"
-              aria-invalid={Boolean(errors.confirmPassword)}
-              aria-describedby={errors.confirmPassword ? confirmPasswordErrorId : undefined}
-              autoComplete="new-password"
-            />
-            {errors.confirmPassword ? (
-              <p
-                id={confirmPasswordErrorId}
-                className="text-xs text-destructive"
-                aria-live="polite"
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value)
+                  if (!touched.confirmPassword) {
+                    setTouched((prev) => ({ ...prev, confirmPassword: true }))
+                  }
+                }}
+                onBlur={() => setTouched((prev) => ({ ...prev, confirmPassword: true }))}
+                required
+                className="h-11 pr-10"
+                aria-invalid={touched.confirmPassword && !passwordsMatch && confirmPassword.length > 0}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
               >
-                {errors.confirmPassword}
-              </p>
-            ) : null}
+                {showConfirmPassword ? (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                    />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Password Match Validation */}
+            {touched.confirmPassword && confirmPassword.length > 0 && (
+              <div
+                className={`flex items-center gap-2 text-xs ${passwordsMatch ? "text-green-600" : "text-red-500"}`}
+              >
+                {passwordsMatch ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" />
+                    <span>Passwords match</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    <span>Passwords do not match</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
-          <ComingSoon>
-            <Button type="submit" className="w-full h-11 text-sm font-medium">
-              Create account
-            </Button>
-          </ComingSoon>
-        </form>
-
-        {submitError ? (
-          <div
-            id={submitErrorId}
-            role="alert"
-            aria-live="assertive"
-            className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          <Button
+            type="submit"
+            className="w-full h-11 text-sm font-medium"
+            disabled={isSubmitting || !name.trim() || !email.trim() || password.length === 0 || confirmPassword.length === 0}
+            aria-busy={isSubmitting}
           >
-            {submitError}
-          </div>
-        ) : null}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                Creating account…
+              </>
+            ) : (
+              "Create account"
+            )}
+          </Button>
+        </form>
 
         {/* Sign In Link */}
         <p className="text-center text-sm text-muted-foreground">
@@ -394,11 +451,11 @@ export default function SignUpPage() {
         {/* Terms */}
         <p className="text-center text-xs text-muted-foreground">
           By continuing, you agree to our{" "}
-          <Link href="/terms" className="underline hover:text-foreground">
+          <Link href="/terms" className="underline hover:text-foreground" target="_blank" rel="noopener noreferrer">
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link href="/privacy" className="underline hover:text-foreground">
+          <Link href="/privacy" className="underline hover:text-foreground" target="_blank" rel="noopener noreferrer">
             Privacy Policy
           </Link>
         </p>

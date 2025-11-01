@@ -10,16 +10,18 @@ import { summarizeTimelinePerformance } from "@/lib/insights/service"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Clock } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LINE_CHART_COLORS, CHART_STYLES, BAR_CHART_PRESETS } from "@/lib/chart-colors"
 
 const BENCHMARKS = {
-  SPY: { label: "S&P 500 (SPY)", drift: 280, volatility: 900, color: "hsl(210, 16%, 55%)" },
-  QQQ: { label: "Nasdaq 100 (QQQ)", drift: 340, volatility: 1100, color: "hsl(271, 91%, 65%)" },
-  VT: { label: "Global Market (VT)", drift: 230, volatility: 750, color: "hsl(25, 95%, 60%)" },
+  SPY: { label: "S&P 500 (SPY)", drift: 280, volatility: 900, color: BAR_CHART_PRESETS.performance.benchmark },
+  QQQ: { label: "Nasdaq 100 (QQQ)", drift: 340, volatility: 1100, color: LINE_CHART_COLORS.tertiary.stroke },
+  VT: { label: "Global Market (VT)", drift: 230, volatility: 750, color: LINE_CHART_COLORS.quaternary.stroke },
 } as const
 
 type BenchmarkKey = keyof typeof BENCHMARKS
 
 type TimelinePoint = {
+  index: number
   date: string
   portfolio: number
   planned: number
@@ -33,11 +35,19 @@ const generateData = (days: number): TimelinePoint[] => {
     (Object.keys(BENCHMARKS) as BenchmarkKey[]).map((key) => [key, 100000]),
   ) as Record<BenchmarkKey, number>
 
+  const now = Date.now()
+  
   for (let i = 0; i < days; i++) {
     actual += (Math.random() - 0.45) * 1000
     planned += 320
+    
+    // Calculate date going backwards from now
+    const dateMs = now - (days - i - 1) * 24 * 60 * 60 * 1000
+    const date = new Date(dateMs)
+    
     const point: TimelinePoint = {
-      date: new Date(Date.now() - (days - i - 1) * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
+      index: i,
+      date: date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       }),
@@ -126,7 +136,7 @@ export function PerformanceTimeline() {
   const planDelta = latestPoint ? latestPoint.portfolio - latestPoint.planned : 0
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Performance Timeline</CardTitle>
@@ -162,72 +172,83 @@ export function PerformanceTimeline() {
       <CardContent>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data}>
+            <AreaChart 
+              data={data} 
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(210, 100%, 60%)" stopOpacity={0} />
+                  <stop offset="5%" stopColor={LINE_CHART_COLORS.primary.fill} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={LINE_CHART_COLORS.primary.fill} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
                 dataKey="date"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
                 interval={Math.floor(data.length / 6)}
               />
               <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                domain={['dataMin - 5000', 'dataMax + 5000']}
               />
               <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const portfolioValue = payload.find((item) => item.dataKey === "portfolio")?.value
-                    const plannedValue = payload.find((item) => item.dataKey === "planned")?.value
-                    const benchmarkValue = benchmark
-                      ? payload.find((item) => item.dataKey === benchmark)?.value
-                      : null
-                    return (
-                      <div className="rounded-lg border bg-card p-3 shadow-sm">
-                        <p className="text-xs text-muted-foreground mb-1">{payload[0].payload.date}</p>
-                        <p className="text-sm font-medium">
-                          Portfolio: ${Number(portfolioValue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Plan: ${Number(plannedValue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </p>
-                        {benchmark && benchmarkValue != null && (
-                          <p className="text-sm text-muted-foreground">
-                            {BENCHMARKS[benchmark].label}: ${Number(benchmarkValue).toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                            })}
-                          </p>
-                        )}
-                      </div>
-                    )
+                cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '3 3' }}
+                animationDuration={150}
+                content={({ active, payload, label: _label }) => {
+                  if (!active || !payload || !payload.length) {
+                    return null
                   }
-                  return null
+                  
+                  // Get the data directly from the payload
+                  const dataPoint = payload[0].payload as TimelinePoint
+                  
+                  return (
+                    <div className="rounded-lg border bg-card p-3 shadow-sm">
+                      <p className="text-xs text-muted-foreground mb-1">{dataPoint.date}</p>
+                      <p className="text-sm font-medium">
+                        Portfolio: ${Number(dataPoint.portfolio).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Plan: ${Number(dataPoint.planned).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      {benchmark && dataPoint[benchmark] != null && (
+                        <p className="text-sm text-muted-foreground">
+                          {BENCHMARKS[benchmark].label}: ${Number(dataPoint[benchmark]).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  )
                 }}
               />
               <Area
                 type="monotone"
                 dataKey="portfolio"
-                stroke="hsl(210, 100%, 60%)"
-                strokeWidth={2}
+                stroke={LINE_CHART_COLORS.primary.stroke}
+                strokeWidth={CHART_STYLES.line.strokeWidth}
                 fill="url(#portfolioGradient)"
+                activeDot={{ r: 6, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
               />
               <Line
                 type="monotone"
                 dataKey="planned"
-                stroke="hsl(210, 16%, 65%)"
+                stroke={BAR_CHART_PRESETS.performance.benchmark}
                 strokeWidth={1.5}
                 strokeDasharray="6 4"
                 dot={false}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
               />
               {milestones.map((milestone) => (
                 <ReferenceDot
@@ -235,7 +256,7 @@ export function PerformanceTimeline() {
                   x={milestone.point.date}
                   y={milestone.point.planned}
                   r={milestone.achieved ? 6 : 5}
-                  fill={milestone.achieved ? "hsl(142, 76%, 45%)" : "hsl(var(--muted-foreground))"}
+                  fill={milestone.achieved ? LINE_CHART_COLORS.secondary.stroke : "hsl(var(--muted-foreground))"}
                   stroke="hsl(var(--background))"
                   strokeWidth={2}
                 />
@@ -248,6 +269,7 @@ export function PerformanceTimeline() {
                   strokeWidth={1.5}
                   strokeDasharray="5 5"
                   dot={false}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
                 />
               )}
             </AreaChart>

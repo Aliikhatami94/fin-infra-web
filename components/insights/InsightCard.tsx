@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import {
   ArrowDownUp,
   Check,
@@ -137,6 +138,7 @@ export function InsightCard({
   const [isPinned, setIsPinned] = useState(Boolean(insight.pinned))
   const [isResolved, setIsResolved] = useState(Boolean(resolved))
   const [showExplanation, setShowExplanation] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<InsightAction | null>(null)
   const explanationId = useId()
   const headingId = useId()
   const descriptionId = useId()
@@ -202,8 +204,49 @@ export function InsightCard({
 
   const handleAction = (action: InsightAction) => {
     registerRead()
+    
+    // Check if this is an automation action that requires confirmation
+    if (action.id.startsWith('automation:')) {
+      setConfirmAction(action)
+      return
+    }
+    
     trackInsightAction({ insight, action })
     onAction?.({ insight, action })
+  }
+
+  const handleConfirmAction = () => {
+    if (confirmAction) {
+      trackInsightAction({ insight, action: confirmAction })
+      onAction?.({ insight, action: confirmAction })
+      setConfirmAction(null)
+    }
+  }
+
+  const getAutomationConfirmation = (action: InsightAction) => {
+    const confirmations: Record<string, { title: string; description: string }> = {
+      'automation:tax-harvest': {
+        title: 'Start automated tax-loss harvesting?',
+        description: 'This will analyze your portfolio for tax-loss harvesting opportunities and execute trades to offset capital gains. The Copilot will review wash sale rules and provide a detailed plan before executing.'
+      },
+      'automation:budget-sweep': {
+        title: 'Automate budget sweep?',
+        description: 'This will automatically transfer excess funds from your checking account to savings based on your budget rules. You can review and adjust the automation rules at any time.'
+      },
+      'automation:portfolio-rebalance': {
+        title: 'Start automated rebalancing?',
+        description: 'This will automatically rebalance your portfolio to match your target allocation. The Copilot will calculate required trades and execute them across your accounts.'
+      },
+      'automation:crypto-diversify': {
+        title: 'Diversify crypto holdings now?',
+        description: 'This will automatically diversify your crypto portfolio by selling overweight positions and buying underweight assets according to your target allocation.'
+      }
+    }
+    
+    return confirmations[action.id] || {
+      title: 'Confirm automation action?',
+      description: 'This automated action will make changes to your accounts. Review the details before proceeding.'
+    }
   }
 
   const toggleExplanation = () => {
@@ -219,6 +262,7 @@ export function InsightCard({
   )
 
   return (
+    <>
     <motion.div
       ref={cardRef}
       variants={createStaggeredCardVariants(index, 0)}
@@ -230,15 +274,14 @@ export function InsightCard({
         aria-labelledby={headingId}
         aria-describedby={descriptionId}
         className={cn(
-          "relative h-full border border-border/40 bg-background/95 backdrop-blur-sm transition-shadow",
-          "hover:shadow-lg",
+          "card-standard card-lift relative h-full transition-shadow flex flex-col",
           "focus-within:ring-2 focus-within:ring-primary/40",
-          unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/50)] focus-within:ring-primary",
-          isResolved && "border-border/30 bg-muted/40 saturate-75",
+          unread && "border-primary/60 shadow-[0_0_0_1px_theme(colors.primary/45)] focus-within:ring-primary",
+          isResolved && "border-border/40 bg-muted/40 saturate-75",
         )}
         data-state={isResolved ? "resolved" : "active"}
       >
-        <CardContent className={cn("space-y-4 p-6", isResolved && "opacity-80 transition-opacity")}
+        <CardContent className={cn("flex flex-col flex-1 p-6", isResolved && "opacity-80 transition-opacity")}
           data-resolved={isResolved}
         >
           {unread && !isResolved && (
@@ -252,17 +295,29 @@ export function InsightCard({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    type="button"
-                    aria-pressed={isPinned}
-                    aria-label={isPinned ? "Unpin insight" : "Pin insight"}
-                    onClick={handlePinToggle}
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    animate={isPinned ? { rotate: [0, -15, 0] } : {}}
+                    transition={{ duration: 0.3 }}
                   >
-                    {isPinned ? <PinOff className="h-4 w-4 text-primary" /> : <Pin className="h-4 w-4" />}
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      type="button"
+                      aria-pressed={isPinned}
+                      aria-label={isPinned ? "Unpin insight" : "Pin insight"}
+                      onClick={handlePinToggle}
+                    >
+                      <motion.div
+                        initial={false}
+                        animate={isPinned ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {isPinned ? <PinOff className="h-4 w-4 text-primary" /> : <Pin className="h-4 w-4" />}
+                      </motion.div>
+                    </Button>
+                  </motion.div>
                 </TooltipTrigger>
                 <TooltipContent>{isPinned ? "Unpin from overview" : "Pin to overview"}</TooltipContent>
               </Tooltip>
@@ -288,18 +343,21 @@ export function InsightCard({
             </TooltipProvider>
           </div>
 
+          {/* Content Section - grows to push actions to bottom */}
+          <div className="flex-1">
+          <div className="space-y-4">
           <div className="flex items-start gap-3 pr-14">
             <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", styles.background)}>
               <insight.icon className={cn("h-5 w-5", styles.icon)} aria-hidden="true" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 id={headingId} className="text-sm font-semibold text-foreground">
                 {insight.title}
               </h3>
               <div className="mt-2 flex flex-wrap gap-2">
                 <Badge
                   variant="outline"
-                  className="flex items-center gap-1 text-xs border-border/40 bg-background/80 text-muted-foreground"
+                  className="flex items-center gap-1 text-xs border-border/40 bg-card/80 text-muted-foreground"
                 >
                   <CategoryIcon className="h-3.5 w-3.5" aria-hidden="true" />
                   {categoryLabel}
@@ -307,10 +365,30 @@ export function InsightCard({
                 <Badge variant="outline" className={cn("text-xs", styles.badge)}>
                   {insight.topic}
                 </Badge>
-                {isPinned && (
-                  <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
-                    Pinned
+                {insight.severity && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs font-medium",
+                      insight.severity === "high" && "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+                      insight.severity === "medium" && "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
+                      insight.severity === "low" && "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+                    )}
+                  >
+                    {insight.severity === "high" ? "🔴 High Priority" : insight.severity === "medium" ? "🟡 Medium" : "🟢 Low Priority"}
                   </Badge>
+                )}
+                {isPinned && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                      Pinned
+                    </Badge>
+                  </motion.div>
                 )}
                 {isResolved && (
                   <Badge
@@ -332,6 +410,7 @@ export function InsightCard({
                 )}
               </div>
             </div>
+          </div>
           </div>
 
           <p id={descriptionId} className="text-sm leading-relaxed text-muted-foreground">
@@ -398,7 +477,7 @@ export function InsightCard({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 gap-1.5 px-1.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40"
                 aria-expanded={showExplanation}
                 aria-controls={explanationId}
                 onClick={() => {
@@ -423,22 +502,35 @@ export function InsightCard({
             </div>
           )}
 
+          {insight.progress && (
+            <div>
+              {insight.progress.label && (
+                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{insight.progress.label}</span>
+                  <span className="font-medium text-foreground">{insight.progress.value}%</span>
+                </div>
+              )}
+              <motion.div
+                className={cn("h-1.5 w-full rounded-full", styles.progress)}
+                initial={{ scaleX: 0, originX: 0 }}
+                animate={{ scaleX: Math.min(insight.progress.value, 100) / 100 }}
+                transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                role="presentation"
+              />
+            </div>
+          )}
+          </div>
+
+          {/* Sticky Actions Section at Bottom */}
           {insight.actions.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 border-t border-border/30 pt-4 mt-auto">
               {insight.actions.map((action, actionIndex) => {
                 const isPrimaryAction = actionIndex === primaryActionIndex
                 const effectiveVariant = action.variant ?? (isPrimaryAction ? "default" : "outline")
-                const intent = isPrimaryAction && effectiveVariant === "default" ? "primary" : "secondary"
                 const commonProps = {
                   variant: effectiveVariant,
                   size: "sm" as const,
-                  className: cn(
-                    "text-xs transition-all data-[intent=primary]:shadow-sm data-[intent=primary]:shadow-primary/20",
-                    "data-[intent=secondary]:border-border/50 data-[intent=secondary]:text-muted-foreground",
-                    "data-[intent=secondary]:hover:text-foreground",
-                    isResolved && "opacity-80",
-                  ),
-                  "data-intent": intent,
+                  className: isResolved ? "opacity-80" : undefined,
                   onClick: () => handleAction(action),
                   "aria-label": action.ariaLabel ?? action.label,
                 }
@@ -475,26 +567,19 @@ export function InsightCard({
               })}
             </div>
           )}
-
-          {insight.progress && (
-            <div className="pt-2">
-              {insight.progress.label && (
-                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{insight.progress.label}</span>
-                  <span className="font-medium text-foreground">{insight.progress.value}%</span>
-                </div>
-              )}
-              <motion.div
-                className={cn("h-1.5 w-full rounded-full", styles.progress)}
-                initial={{ scaleX: 0, originX: 0 }}
-                animate={{ scaleX: Math.min(insight.progress.value, 100) / 100 }}
-                transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-                role="presentation"
-              />
-            </div>
-          )}
         </CardContent>
       </Card>
+
     </motion.div>
+
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction ? getAutomationConfirmation(confirmAction).title : ""}
+        description={confirmAction ? getAutomationConfirmation(confirmAction).description : ""}
+        confirmLabel="Continue"
+        onConfirm={handleConfirmAction}
+      />
+    </>
   )
 }

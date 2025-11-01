@@ -15,7 +15,7 @@ interface TooltipContextValue {
 const TooltipContext = React.createContext<TooltipContextValue | null>(null)
 
 function TooltipProvider({
-  delayDuration = 0,
+  delayDuration = 150,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
   return (
@@ -68,7 +68,7 @@ function Tooltip({
 const TooltipTrigger = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>
->(({ ...props }, forwardedRef) => {
+>(({ onClick, ...props }, forwardedRef) => {
   const context = React.useContext(TooltipContext)
 
   const setRefs = React.useCallback(
@@ -86,10 +86,32 @@ const TooltipTrigger = React.forwardRef<
     [context, forwardedRef],
   )
 
+  // Click-to-open fallback for keyboard/touch users
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      onClick?.(e)
+      // Toggle tooltip on click
+      if (context) {
+        const currentOpen = context.open
+        // Dispatch a synthetic hover event to toggle
+        const trigger = context.triggerRef.current
+        if (trigger) {
+          if (!currentOpen) {
+            trigger.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
+          } else {
+            trigger.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+          }
+        }
+      }
+    },
+    [onClick, context],
+  )
+
   return (
     <TooltipPrimitive.Trigger
       ref={setRefs}
       data-slot="tooltip-trigger"
+      onClick={handleClick}
       {...props}
     />
   )
@@ -99,9 +121,10 @@ TooltipTrigger.displayName = TooltipPrimitive.Trigger.displayName
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, side, sideOffset = 0, children, ...props }, ref) => {
+>(({ className, side, sideOffset = 8, children, collisionPadding, ...props }, ref) => {
   const context = React.useContext(TooltipContext)
   const [autoSide, setAutoSide] = React.useState<TooltipSide>('top')
+  const contentId = React.useId()
 
   const triggerRef = context?.triggerRef
 
@@ -123,15 +146,33 @@ const TooltipContent = React.forwardRef<
     setAutoSide(spaceBelow < spaceAbove ? 'top' : 'bottom')
   }, [context?.open, side, triggerRef])
 
+  // Set aria-describedby on trigger when tooltip is shown
+  React.useLayoutEffect(() => {
+    const trigger = triggerRef?.current
+    if (!trigger) return
+
+    if (context?.open) {
+      trigger.setAttribute('aria-describedby', contentId)
+    } else {
+      trigger.removeAttribute('aria-describedby')
+    }
+
+    return () => {
+      trigger.removeAttribute('aria-describedby')
+    }
+  }, [context?.open, triggerRef, contentId])
+
   const resolvedSide = side ?? autoSide
 
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         ref={ref}
+        id={contentId}
         data-slot="tooltip-content"
         side={resolvedSide}
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding ?? 8}
         className={cn(
           'bg-foreground text-background animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-center text-xs text-balance',
           className,

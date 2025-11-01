@@ -7,6 +7,7 @@ import type { TooltipProps } from "recharts"
 import { ChartContainer, ChartGrid, ThemedAxis, TooltipCard } from "@/components/chart-kit"
 import { SwitchField } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
+import { LINE_CHART_COLORS } from "@/lib/chart-colors"
 
 interface CryptoDatum {
   date: string
@@ -31,10 +32,10 @@ const timeRanges = ["1D", "7D", "30D", "6M", "1Y", "All"] as const
 type TimeRange = (typeof timeRanges)[number]
 
 const series = [
-  { key: "btc", name: "BTC", color: "var(--chart-1)" },
-  { key: "eth", name: "ETH", color: "var(--chart-2)" },
-  { key: "other", name: "Other", color: "var(--chart-3)" },
-  { key: "stablecoins", name: "Stablecoins", color: "var(--chart-4)" },
+  { key: "btc", name: "BTC", color: LINE_CHART_COLORS.primary.stroke },
+  { key: "eth", name: "ETH", color: LINE_CHART_COLORS.secondary.stroke },
+  { key: "other", name: "Other", color: LINE_CHART_COLORS.tertiary.stroke },
+  { key: "stablecoins", name: "Stablecoins", color: LINE_CHART_COLORS.quaternary.stroke },
 ] as const
 
 export interface CryptoChartProps {
@@ -76,8 +77,8 @@ export function CryptoChart({ showStablecoins, onToggleStablecoins }: CryptoChar
             <defs>
               {series.map((entry) => (
                 <linearGradient key={entry.key} id={`crypto-${entry.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={`hsl(${entry.color})`} stopOpacity={0.24} />
-                  <stop offset="95%" stopColor={`hsl(${entry.color})`} stopOpacity={0.05} />
+                  <stop offset="5%" stopColor={entry.color} stopOpacity={0.24} />
+                  <stop offset="95%" stopColor={entry.color} stopOpacity={0.05} />
                 </linearGradient>
               ))}
             </defs>
@@ -118,7 +119,7 @@ export function CryptoChart({ showStablecoins, onToggleStablecoins }: CryptoChar
                 type="monotone"
                 dataKey={entry.key}
                 stackId="1"
-                stroke={`hsl(${entry.color})`}
+                stroke={entry.color}
                 fill={`url(#crypto-${entry.key})`}
                 fillOpacity={1}
                 name={entry.name}

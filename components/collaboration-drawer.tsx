@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { MessageSquare, Send, AtSign, Users } from "lucide-react"
 
 import { useWorkspace } from "@/components/workspace-provider"
@@ -26,6 +27,7 @@ interface CollaborationDrawerProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   hideTrigger?: boolean
+  disabled?: boolean
 }
 
 export function CollaborationDrawer({
@@ -36,11 +38,13 @@ export function CollaborationDrawer({
   open,
   onOpenChange,
   hideTrigger = false,
+  disabled = false,
 }: CollaborationDrawerProps) {
   const { activeWorkspace, getThread, addComment } = useWorkspace()
   const [internalOpen, setInternalOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [mentionIds, setMentionIds] = useState<string[]>([])
+  const pathname = usePathname()
 
   const thread = getThread(entityType, entityId)
 
@@ -53,6 +57,14 @@ export function CollaborationDrawer({
     }
     onOpenChange?.(value)
   }
+
+  // Auto-dismiss on navigation
+  useEffect(() => {
+    if (dialogOpen) {
+      handleOpenChange(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
 
   const availableMembers = useMemo(() => activeWorkspace.members, [activeWorkspace.members])
 
@@ -73,7 +85,7 @@ export function CollaborationDrawer({
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       {!hideTrigger && (
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2 rounded-full">
+          <Button variant="ghost" size="sm" className="gap-2 rounded-full" disabled={disabled}>
             <MessageSquare className="h-4 w-4" />
             {triggerLabel}
           </Button>

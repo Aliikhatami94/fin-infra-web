@@ -1,10 +1,11 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts"
-import type { TooltipContentProps } from "recharts"
+import { Bar, XAxis, YAxis, CartesianGrid, Line, ComposedChart } from "recharts"
 import { useDateRange } from "@/components/date-range-provider"
 import { useMemo } from "react"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart"
 
 interface CashFlowPoint {
   month: string
@@ -31,39 +32,29 @@ const generateCashFlowData = (months: number): CashFlowPoint[] => {
   return data
 }
 
-type CashFlowTooltipProps = TooltipContentProps<number, string>
-
-const CustomTooltip = ({ active, payload }: CashFlowTooltipProps) => {
-  if (active && payload && payload.length) {
-    const incomePayload = payload.find((item) => item.dataKey === "income")?.value
-    const expensePayload = payload.find((item) => item.dataKey === "expenses")?.value
-    const income = typeof incomePayload === "number" ? incomePayload : Number(incomePayload ?? 0)
-    const expenses = typeof expensePayload === "number" ? expensePayload : Number(expensePayload ?? 0)
-    const dataPoint = payload[0]?.payload as CashFlowPoint | undefined
-    if (!dataPoint) {
-      return null
-    }
-    const net = income - expenses
-
-    return (
-      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <p className="text-sm font-medium mb-2">{dataPoint.month}</p>
-        <div className="space-y-1">
-          <p className="text-sm" style={{ color: "hsl(142, 76%, 45%)" }}>
-            Income: ${income.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Expenses: ${expenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
-          <p className="text-sm font-semibold pt-1 border-t mt-2">
-            Net: ${net.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
-        </div>
-      </div>
-    )
-  }
-  return null
-}
+const chartConfig = {
+  income: {
+    label: "Income",
+    theme: {
+      light: "hsl(142, 71%, 45%)",
+      dark: "hsl(142, 76%, 55%)",
+    },
+  },
+  expenses: {
+    label: "Expenses",
+    theme: {
+      light: "hsl(0, 72%, 51%)",
+      dark: "hsl(0, 72%, 60%)",
+    },
+  },
+  net: {
+    label: "Net",
+    theme: {
+      light: "hsl(221, 83%, 53%)",
+      dark: "hsl(221, 83%, 65%)",
+    },
+  },
+} satisfies ChartConfig
 
 export function CashFlow() {
   const { dateRange } = useDateRange()
@@ -82,35 +73,86 @@ export function CashFlow() {
   }, [dateRange])
 
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <CardTitle>Cash Flow</CardTitle>
         <CardDescription>Income vs expenses with net cash flow trend</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={280}>
-          <ComposedChart data={cashFlowData} barGap={4}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+        <ChartContainer config={chartConfig} className="h-[280px] w-full">
+          <ComposedChart data={cashFlowData} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-income)" stopOpacity={0.8}/>
+                <stop offset="95%" stopColor="var(--color-income)" stopOpacity={0.6}/>
+              </linearGradient>
+              <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-expenses)" stopOpacity={0.8}/>
+                <stop offset="95%" stopColor="var(--color-expenses)" stopOpacity={0.6}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="currentColor"
+              className="stroke-muted/20"
+            />
             <XAxis
               dataKey="month"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
+              tickLine={true}
+              axisLine={true}
+              tickMargin={12}
+              className="text-[11px]"
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))" }}
             />
-            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-            <Tooltip content={CustomTooltip} cursor={{ fill: "transparent" }} />
-            <Bar dataKey="income" fill="hsl(142, 76%, 45%)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expenses" fill="hsl(24, 95%, 53%)" radius={[4, 4, 0, 0]} opacity={0.7} />
+            <YAxis
+              tickLine={true}
+              axisLine={true}
+              tickMargin={12}
+              className="text-[11px]"
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))" }}
+              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+              width={45}
+            />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  className="w-[160px]"
+                  formatter={(value, name) => {
+                    const displayName = name === "income" ? "Income" : name === "expenses" ? "Expenses" : "Net"
+                    return [
+                      <span key="value" className="font-medium">${Number(value).toLocaleString()}</span>,
+                      <span key="name" className="text-muted-foreground">{displayName}</span>
+                    ]
+                  }}
+                />
+              }
+              cursor={false}
+            />
+            <ChartLegend content={<ChartLegendContent />} />
+            <Bar dataKey="income" fill="url(#colorIncome)" radius={[8, 8, 0, 0]} maxBarSize={40} />
+            <Bar dataKey="expenses" fill="url(#colorExpenses)" radius={[8, 8, 0, 0]} maxBarSize={40} />
             <Line
               type="monotone"
               dataKey="net"
-              stroke="hsl(217, 91%, 60%)"
+              stroke="var(--color-net)"
               strokeWidth={2}
-              dot={{ fill: "hsl(217, 91%, 60%)", r: 4 }}
-              activeDot={{ r: 6 }}
+              dot={{
+                fill: "var(--color-net)",
+                strokeWidth: 0,
+                r: 3,
+              }}
+              activeDot={{
+                r: 5,
+                strokeWidth: 2,
+                stroke: "hsl(var(--background))",
+                fill: "var(--color-net)",
+              }}
             />
           </ComposedChart>
-        </ResponsiveContainer>
+        </ChartContainer>
       </CardContent>
     </Card>
   )

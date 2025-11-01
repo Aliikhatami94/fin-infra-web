@@ -139,7 +139,7 @@ export function DocumentsGrid({
               </Button>
             )}
             <Button asChild variant="link" size="sm" className="text-xs">
-              <Link href="/taxes" className="inline-flex items-center gap-1">
+              <Link href="/dashboard/taxes" className="inline-flex items-center gap-1">
                 Missing a 1099? Go to Taxes
               </Link>
             </Button>
@@ -164,7 +164,7 @@ export function DocumentsGrid({
           {allSelected ? "Deselect all" : someSelected ? `${selectedDocuments.length} selected` : "Select all"}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         {filteredAndSortedDocuments.map((doc, index) => (
           <DocumentCard
             key={doc.id}

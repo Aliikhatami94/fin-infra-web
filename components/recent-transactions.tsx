@@ -111,58 +111,66 @@ export function RecentTransactions({ selectedCategory, selectedMonth }: RecentTr
 
   return (
     <Card className="card-standard">
-      <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
-        {(selectedCategory || selectedMonth) && (
-          <div className="flex items-center gap-2 mt-1">
-            {selectedCategory && (
-              <Badge variant="secondary" className="text-xs">
-                Category: {selectedCategory}
-              </Badge>
-            )}
-            {selectedMonth && (
-              <Badge variant="secondary" className="text-xs">
-                Month: {selectedMonth}
-              </Badge>
-            )}
-          </div>
-        )}
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base">Recent Transactions</CardTitle>
+          {(selectedCategory || selectedMonth) && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {selectedCategory && (
+                <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
+                  {selectedCategory}
+                </Badge>
+              )}
+              {selectedMonth && (
+                <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
+                  {selectedMonth}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-0.5">
+      <CardContent className="pb-3 pt-0">
+        <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
           {filteredTransactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No transactions match the selected filters</p>
+            <p className="text-xs text-muted-foreground text-center py-8">No transactions match the selected filters</p>
           ) : (
             filteredTransactions.map((transaction, index) => {
               const Icon = transaction.icon
               return (
                 <div
                   key={index}
-                  className="grid grid-cols-[auto_1fr_auto_auto] gap-3 items-center py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                  className="py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden"
                 >
-                  <div
-                    className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      transaction.type === "income" ? "bg-emerald-500/10" : "bg-orange-500/10"
-                    }`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 ${transaction.type === "income" ? "text-emerald-500" : "text-orange-500"}`}
-                    />
+                  <div className="flex items-start gap-2.5">
+                    <div
+                      className={`h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        transaction.type === "income" ? "bg-emerald-500/10" : "bg-orange-500/10"
+                      }`}
+                    >
+                      <Icon
+                        className={`h-3.5 w-3.5 ${transaction.type === "income" ? "text-emerald-500" : "text-orange-500"}`}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-0.5">
+                        <p className="text-xs font-medium text-foreground truncate flex-1">{transaction.merchant}</p>
+                        <p
+                          className={`text-xs font-semibold tabular-nums flex-shrink-0 ${
+                            transaction.type === "income" ? "text-emerald-500" : "text-foreground"
+                          }`}
+                        >
+                          {transaction.type === "income" ? "+" : "-"}${Math.abs(transaction.amount).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-muted-foreground">{transaction.date}</span>
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                          {transaction.category}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{transaction.merchant}</p>
-                    <span className="text-xs text-muted-foreground">{transaction.date}</span>
-                  </div>
-                  <Badge variant="outline" className="text-xs px-2 py-0 whitespace-nowrap">
-                    {transaction.category}
-                  </Badge>
-                  <p
-                    className={`text-sm font-semibold tabular-nums text-right ${
-                      transaction.type === "income" ? "text-emerald-500" : "text-foreground"
-                    }`}
-                  >
-                    {transaction.type === "income" ? "+" : "-"}${Math.abs(transaction.amount).toFixed(2)}
-                  </p>
                 </div>
               )
             })

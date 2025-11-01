@@ -56,7 +56,7 @@ export function ConnectedAccounts() {
 
   return (
     <>
-      <Card>
+      <Card className="card-standard">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

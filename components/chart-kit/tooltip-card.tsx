@@ -39,7 +39,7 @@ export function TooltipCard<TValue extends number | string, TName extends string
   return (
     <div
       className={cn(
-        "min-w-[12rem] rounded-xl border border-border/50 bg-background/95 p-3 text-xs shadow-lg backdrop-blur",
+        "min-w-[12rem] rounded-xl border border-border/50 bg-card/95 p-3 text-xs shadow-lg backdrop-blur",
         className,
       )}
     >

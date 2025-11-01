@@ -18,6 +18,7 @@ import {
   trackOnboardingStepCompleted,
   trackOnboardingStepViewed,
 } from "@/lib/analytics/events"
+
 import { toast } from "@/components/ui/sonner"
 import type {
   InstitutionConnectionStatus,
@@ -294,7 +295,7 @@ export default function OnboardingPage() {
     markStatus("completed")
     setCompleted(true)
     setFeedbackOpen(true)
-    setPendingRedirect("/overview")
+    setPendingRedirect("/dashboard")
   }
 
   const handleSkip = () => {
@@ -306,7 +307,7 @@ export default function OnboardingPage() {
       status: "skipped",
     })
     markStatus("skipped")
-    router.push("/overview")
+    router.push("/dashboard")
   }
 
   const currentStepDefinition = steps.find((step) => step.id === currentStep) ?? steps[0]
@@ -560,10 +561,10 @@ export default function OnboardingPage() {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
-        <header className="border-b border-border/60 bg-background/95 backdrop-blur">
+        <header className="sticky top-0 z-40 border-b border-border/20 bg-card/90 backdrop-blur-md">
           <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => router.push("/overview")} aria-label="Exit onboarding">
+              <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")} aria-label="Exit onboarding">
                 <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>

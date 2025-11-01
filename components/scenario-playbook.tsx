@@ -107,7 +107,7 @@ function MetricComparison({
           const definition = caseLookup.get(scenarioCase.caseId)
           const percentage = Math.min(100, Math.round((scenarioCase.value / maxValue) * 100))
           return (
-            <div key={scenarioCase.caseId} className="rounded-lg border border-border/30 bg-background/60 p-3">
+            <div key={scenarioCase.caseId} className="rounded-lg border border-border/30 bg-card/60 p-3">
               <p className="text-xs font-medium text-muted-foreground">
                 {definition?.title ?? scenarioCase.caseId}
               </p>

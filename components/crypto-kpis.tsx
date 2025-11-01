@@ -1,6 +1,8 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
+import { MaskableValue } from "@/components/privacy-provider"
 import {
   TrendingUp,
   TrendingDown,
@@ -16,6 +18,13 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { KPIIcon } from "@/components/ui/kpi-icon"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel"
+import { cn } from "@/lib/utils"
 
 const kpis = [
   {
@@ -106,32 +115,54 @@ const Sparkline = ({ data, positive }: { data: number[]; positive: boolean }) =>
 
 export function CryptoKPIs() {
   const router = useRouter()
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0)
 
-  return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {kpis.map((kpi, index) => {
-        const Icon = kpi.icon
-        return (
-          <motion.div key={index} {...createStaggeredCardVariants(index, 0)} className="h-full">
-            <Card
-              className={`card-standard card-lift h-full ${kpi.clickable ? "cursor-pointer" : ""}`}
-              onClick={() => kpi.clickable && router.push("/crypto/btc")}
-            >
-              <CardContent className="p-6 min-h-[140px] flex h-full flex-col justify-between">
-                <div className="mb-2">
+  // Handle carousel slide change
+  useEffect(() => {
+    if (!carouselApi) return
+
+    const onSelect = () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
+    }
+
+    carouselApi.on("select", onSelect)
+    onSelect()
+
+    return () => {
+      carouselApi.off("select", onSelect)
+    }
+  }, [carouselApi])
+
+  const renderKPICard = (kpi: typeof kpis[0], index: number) => {
+    const Icon = kpi.icon
+    return (
+      <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
+        <Card
+          className={`card-standard card-lift h-full min-h-[200px] md:min-h-[220px] ${kpi.clickable ? "cursor-pointer" : ""}`}
+          onClick={() => kpi.clickable && router.push("/crypto/btc")}
+        >
+          <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
+                <div className="flex items-start justify-between gap-2">
                   <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                      <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-3 w-3 text-muted-foreground" />
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
+                              aria-label={`More information about ${kpi.label}`}
+                            >
+                              <Info className="h-3 w-3 text-muted-foreground" />
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="text-xs">{kpi.tooltip}</p>
+                            <p className="text-label-xs font-normal">{kpi.tooltip}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -139,32 +170,36 @@ export function CryptoKPIs() {
                     <KPIIcon icon={Icon} tone="info" />
                   </div>
                   <p
-                    className="text-2xl font-bold tabular-nums text-foreground"
+                    className="text-kpi font-semibold font-tabular text-foreground"
                     aria-label={`${kpi.label} ${kpi.value}`}
                   >
-                    {kpi.value}
+                    <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
                   </p>
                   <div className="flex items-center justify-between gap-3">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1 cursor-help">
+                          <button
+                            type="button"
+                            className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
+                            aria-label={`${kpi.change} vs. yesterday`}
+                          >
                             {kpi.positive ? (
                               <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
                             ) : (
                               <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
                             )}
                             <span
-                              className={`text-xs font-medium tabular-nums ${
+                              className={`text-delta font-medium font-tabular ${
                                 kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
                               }`}
                             >
-                              {kpi.change}
+                              <MaskableValue value={kpi.change} className="font-tabular" />
                             </span>
-                          </div>
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="text-xs">
+                          <p className="text-label-xs font-normal">
                             vs. yesterday: <span className="font-mono">{kpi.baselineValue}</span>
                           </p>
                         </TooltipContent>
@@ -176,8 +211,56 @@ export function CryptoKPIs() {
               </CardContent>
             </Card>
           </motion.div>
-        )
-      })}
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Mobile: Horizontal carousel */}
+      <div className="md:hidden">
+        <Carousel
+          setApi={setCarouselApi}
+          opts={{
+            align: "center",
+            loop: false,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4 pt-2">
+            {kpis.map((kpi, index) => (
+              <CarouselItem key={index} className="pl-4 basis-[85%] sm:basis-[48%]">
+                {renderKPICard(kpi, index)}
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+
+        {/* Carousel indicators */}
+        <div className="flex justify-center gap-1.5 mt-3">
+          {kpis.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => carouselApi?.scrollTo(index)}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                currentSlide === index
+                  ? "w-6 bg-primary"
+                  : "w-1.5 bg-muted-foreground/30"
+              )}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Tablet/Desktop: Grid layout */}
+      <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+        {kpis.map((kpi, index) => (
+          <div key={index}>
+            {renderKPICard(kpi, index)}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

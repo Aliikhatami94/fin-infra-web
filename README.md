@@ -1,6 +1,6 @@
-# Fin Infra Web – Stock/Finance Trading Dashboard
+# Autoclar – Automated Financial Clarity
 
-A modern, responsive trading dashboard built with Next.js 15, React 19, and TypeScript. It surfaces portfolio data, watchlists, rich charts, documents/tax views, and AI insights with an accessible, fast UX.
+A modern financial clarity platform built with Next.js 15, React 19, and TypeScript. Autoclar automates financial oversight by intelligently surfacing insights, unifying data, and eliminating manual tracking with an accessible, fast UX.
 
 ## Overview
 
@@ -11,11 +11,11 @@ A modern, responsive trading dashboard built with Next.js 15, React 19, and Type
 
 ### Key features
 
-- Portfolio, accounts, holdings, and KPI cards
-- Charts: net worth, allocation, performance, cash flow, crypto
-- Watchlist and order book panels
-- AI insights panels (portfolio, documents, budget, crypto)
-- Documents and tax utilities (summaries, year comparison, scenarios)
+- Automated portfolio insights and real-time clarity
+- Intelligent charts: net worth, allocation, performance, cash flow, crypto
+- AI-powered insights that surface automatically
+- Budget automation and spending clarity
+- Documents and tax utilities with automated summaries
 - Responsive layout, theme switching, and accessible interactions
 
 ## Tech stack
@@ -34,11 +34,11 @@ A modern, responsive trading dashboard built with Next.js 15, React 19, and Type
 
 ## Quick start
 
-```bash
+\`\`\`bash
 pnpm install
 pnpm dev
 # App will be available at http://localhost:3000
-```
+\`\`\`
 
 ## Environment variables
 
@@ -70,7 +70,7 @@ CI and `next build` will fail if the required environment variables are missing.
 
 ## Project structure
 
-```
+\`\`\`
 app/                 # App Router: layouts, pages, and route groups
 	globals.css        # Design tokens and global styles (Tailwind v4)
 	layout.tsx         # Providers and global layout shell
@@ -91,7 +91,7 @@ lib/                 # Utilities and helpers
 public/              # Static assets
 styles/              # (Legacy/alternate globals if present)
 types/               # Ambient type declarations
-```
+\`\`\`
 
 ## Conventions
 
@@ -107,9 +107,9 @@ types/               # Ambient type declarations
 
 Vitest is configured for unit tests.
 
-```bash
+\`\`\`bash
 pnpm test
-```
+\`\`\`
 
 ## Quality assurance
 
@@ -130,10 +130,10 @@ GitHub Actions workflow runs on pushes/PRs to main/dev to:
 
 This is a standard Next.js application. To create a production build and run it locally:
 
-```bash
+\`\`\`bash
 pnpm build
 pnpm start
-```
+\`\`\`
 
 You can deploy the compiled app to any Node-compatible environment or hosting platform that supports Next.js.
 
@@ -144,8 +144,8 @@ You can deploy the compiled app to any Node-compatible environment or hosting pl
 - Maintain TypeScript strictness and update or add types in `types/` when needed.
 - Before committing, run:
 
-```bash
+\`\`\`bash
 pnpm exec tsc -p tsconfig.json --noEmit
 pnpm lint
 pnpm test
-```
+\`\`\`

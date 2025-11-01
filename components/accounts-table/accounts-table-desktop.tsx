@@ -43,21 +43,21 @@ const statusStyles: Record<
     label: "Active",
     description: "Connection is healthy and syncing automatically.",
     className:
-      "border-emerald-500/40 text-emerald-600 dark:text-emerald-300 bg-emerald-500/10", 
+      "border-emerald-200/60 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 bg-transparent", 
     indicatorClass: "bg-emerald-500",
   },
   needs_update: {
     label: "Update required",
     description: "Authentication expired. Refresh to resume automatic syncs.",
     className:
-      "border-amber-500/50 text-amber-700 dark:text-amber-300 bg-amber-500/10",
+      "border-amber-200/60 dark:border-amber-800/40 text-amber-700 dark:text-amber-400 bg-transparent",
     indicatorClass: "bg-amber-500",
   },
   disconnected: {
     label: "Disconnected",
     description: "We can't reach this institution. Reconnect to restore data.",
     className:
-      "border-slate-500/40 text-slate-600 dark:text-slate-300 bg-slate-500/10",
+      "border-slate-200/60 dark:border-slate-700/40 text-slate-600 dark:text-slate-400 bg-transparent",
     indicatorClass: "bg-slate-400",
   },
 }
@@ -135,7 +135,7 @@ export function AccountsTableDesktop({
   }, [groupedAccounts, collapsedGroups, groupBy, ignoredAccounts, expandedAccount])
 
   const tableHeight = useMemo(() => {
-    const estimatedRowHeight = 72
+    const estimatedRowHeight = 64
     const estimatedDetailHeight = 220
     const detailCount = virtualRows.filter((row) => row.type === "detail").length
     const baseRows = virtualRows.length - detailCount
@@ -161,12 +161,12 @@ export function AccountsTableDesktop({
       return (
         <table {...props} ref={ref} className={cn("w-full text-sm table-auto", className)}>
           <colgroup>
-            <col className="w-[30%]" />
+            <col className="w-[28%]" />
             <col className="w-[12%]" />
             <col className="w-[16%]" />
+            <col className="w-[16%]" />
+            <col className="w-[10%]" />
             <col className="w-[14%]" />
-            <col className="w-[12%]" />
-            <col className="w-[12%]" />
             <col className="w-[4%]" />
           </colgroup>
           {children}
@@ -182,10 +182,7 @@ export function AccountsTableDesktop({
         <thead
           {...props}
           ref={ref}
-          className={cn(
-            "sticky top-0 z-10 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80",
-            className,
-          )}
+          className={cn("sticky top-0 z-20", className)}
         />
       )
     })
@@ -217,7 +214,7 @@ export function AccountsTableDesktop({
             item.type === "group"
               ? "bg-muted/40"
               : item.type === "account"
-                ? "hover:bg-muted/50 transition-colors cursor-pointer"
+                ? "hover:bg-muted/50 transition-colors cursor-pointer odd:bg-muted/25"
                 : "bg-muted/20",
             item.type === "account" && item.isIgnored && "opacity-50",
             className,
@@ -239,7 +236,7 @@ export function AccountsTableDesktop({
       <div className="table-surface">
         <TableVirtuoso
           data={virtualRows}
-          style={{ height: tableHeight }}
+          style={{ height: tableHeight, scrollbarGutter: "stable" }}
           components={tableComponents}
           className="min-w-full"
         fixedHeaderContent={() => (
@@ -342,8 +339,8 @@ export function AccountsTableDesktop({
               className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-                  <BankIcon className="h-4 w-4 text-muted-foreground" />
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-border/50">
+                  <BankIcon className="h-5 w-5 text-foreground" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -354,7 +351,7 @@ export function AccountsTableDesktop({
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">{account.institution}</p>
+                  <p className="text-xs text-muted-foreground truncate font-medium">{account.institution}</p>
                 </div>
               </div>
             </td>,
@@ -397,7 +394,7 @@ export function AccountsTableDesktop({
                 )}
                 <span
                   className={cn(
-                    "text-sm font-medium tabular-nums",
+                    "text-sm font-medium font-mono tabular-nums",
                     account.change > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400",
                   )}
                 >
@@ -426,12 +423,12 @@ export function AccountsTableDesktop({
                       <Badge
                         variant="outline"
                         className={cn(
-                          "flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium",
+                          "gap-1.5 rounded-md px-2 py-0.5 text-xs font-normal",
                           statusStyles[account.status].className,
                         )}
                       >
                         <span
-                          className={cn("h-2 w-2 rounded-full", statusStyles[account.status].indicatorClass)}
+                          className={cn("h-1.5 w-1.5 rounded-full", statusStyles[account.status].indicatorClass)}
                           aria-hidden
                         />
                         {statusStyles[account.status].label}
@@ -446,18 +443,26 @@ export function AccountsTableDesktop({
                 </TooltipProvider>
 
                 {account.status === "needs_update" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    aria-label={`Reconnect ${account.name}`}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      onUpdateConnection(account.id)
-                    }}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onUpdateConnection(account.id)
+                          }}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Update now</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </div>
             </td>,

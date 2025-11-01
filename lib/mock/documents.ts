@@ -74,4 +74,3 @@ export const documents: Document[] = [
     year: 2024,
   },
 ]
-

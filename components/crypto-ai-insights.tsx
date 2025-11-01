@@ -2,23 +2,35 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowUpRight, PieChart, Sparkles } from "lucide-react"
+import { ArrowUpRight, ChevronDown, PieChart, Sparkles } from "lucide-react"
 
 import { createStaggeredCardVariants } from "@/lib/motion-variants"
 import { InsightCard } from "@/components/insights/InsightCard"
 import { getInsights } from "@/lib/insights/service"
 import type { InsightAction } from "@/lib/insights/definitions"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { AutomationCopilotDrawer } from "@/components/automation-copilot-drawer"
+import { cn } from "@/lib/utils"
 
 export function CryptoAIInsights() {
   const insights = getInsights({ surface: "crypto" })
   const [copilotOpen, setCopilotOpen] = useState(false)
+  const [expandedSuggestions, setExpandedSuggestions] = useState<Record<string, boolean>>({})
 
   const handleAction = ({ action }: { action: InsightAction }) => {
     if (action.id === "automation:crypto-diversify") {
       setCopilotOpen(true)
     }
+  }
+
+  const toggleSuggestion = (id: string) => {
+    setExpandedSuggestions((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
   const showDiversificationCta = insights.some((insight) => insight.id === "crypto-concentration-risk")
@@ -98,50 +110,109 @@ export function CryptoAIInsights() {
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            {diversificationSuggestions.map((suggestion) => (
-              <div
-                key={suggestion.id}
-                className="flex flex-col justify-between gap-4 rounded-xl border border-border/60 bg-card/70 p-4 shadow-sm"
-              >
-                <div className="flex items-start gap-4">
-                  <div
-                    className="h-16 w-16 shrink-0 rounded-full border border-border/60"
-                    style={{ backgroundImage: `conic-gradient(${getPieGradient(suggestion.weights)})` }}
-                    role="img"
-                    aria-label={`${suggestion.title} allocation pie`}
-                  />
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{suggestion.title}</p>
-                      <p className="text-xs text-muted-foreground leading-snug">{suggestion.description}</p>
+            {diversificationSuggestions.map((suggestion) => {
+              const isExpanded = expandedSuggestions[suggestion.id]
+              return (
+                <Card key={suggestion.id} className="card-standard card-lift">
+                  {/* Mobile: Compact with View details */}
+                  <div className="md:hidden">
+                    <div className="flex items-start gap-3 p-4">
+                      <div
+                        className="h-12 w-12 shrink-0 rounded-full border border-border/60"
+                        style={{ backgroundImage: `conic-gradient(${getPieGradient(suggestion.weights)})` }}
+                        role="img"
+                        aria-label={`${suggestion.title} allocation pie`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground">{suggestion.title}</p>
+                        <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
+                          {suggestion.description}
+                        </p>
+                      </div>
                     </div>
-                    <ul className="space-y-1 text-xs">
-                      {suggestion.weights.map((weight, index) => (
-                        <li key={`${suggestion.id}-${weight.label}`} className="flex items-center gap-2">
-                          <span
-                            className="h-2.5 w-2.5 rounded-full"
-                            style={{ backgroundColor: `hsl(var(--chart-${index + 1}))` }}
-                            aria-hidden="true"
-                          />
-                          <span className="font-medium text-foreground">{weight.label}</span>
-                          <span className="tabular-nums text-muted-foreground">{weight.weight}%</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <Collapsible open={isExpanded}>
+                      <CollapsibleContent className="px-4 pb-3">
+                        <ul className="space-y-1.5 text-xs mb-3">
+                          {suggestion.weights.map((weight, index) => (
+                            <li key={`${suggestion.id}-${weight.label}`} className="flex items-center gap-2">
+                              <span
+                                className="h-2.5 w-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: `hsl(var(--chart-${index + 1}))` }}
+                                aria-hidden="true"
+                              />
+                              <span className="font-medium text-foreground">{weight.label}</span>
+                              <span className="ml-auto tabular-nums text-muted-foreground">{weight.weight}%</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex flex-col gap-2">
+                          <Button size="sm" className="gap-1 w-full" onClick={() => setCopilotOpen(true)}>
+                            {suggestion.actionLabel}
+                            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="gap-1 w-full" onClick={() => setCopilotOpen(true)}>
+                            Compare scenarios
+                            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                          </Button>
+                        </div>
+                      </CollapsibleContent>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full gap-1 rounded-t-none border-t"
+                          onClick={() => toggleSuggestion(suggestion.id)}
+                        >
+                          {isExpanded ? "Hide details" : "View details"}
+                          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isExpanded && "rotate-180")} />
+                        </Button>
+                      </CollapsibleTrigger>
+                    </Collapsible>
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button size="sm" className="gap-1" onClick={() => setCopilotOpen(true)}>
-                    {suggestion.actionLabel}
-                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Button>
-                  <Button size="sm" variant="outline" className="gap-1" onClick={() => setCopilotOpen(true)}>
-                    Compare scenarios
-                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+
+                  {/* Desktop: Full view */}
+                  <div className="hidden md:block space-y-4 p-4">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="h-16 w-16 shrink-0 rounded-full border border-border/60"
+                        style={{ backgroundImage: `conic-gradient(${getPieGradient(suggestion.weights)})` }}
+                        role="img"
+                        aria-label={`${suggestion.title} allocation pie`}
+                      />
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{suggestion.title}</p>
+                          <p className="text-xs text-muted-foreground leading-snug">{suggestion.description}</p>
+                        </div>
+                        <ul className="space-y-1 text-xs">
+                          {suggestion.weights.map((weight, index) => (
+                            <li key={`${suggestion.id}-${weight.label}`} className="flex items-center gap-2">
+                              <span
+                                className="h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: `hsl(var(--chart-${index + 1}))` }}
+                                aria-hidden="true"
+                              />
+                              <span className="font-medium text-foreground">{weight.label}</span>
+                              <span className="tabular-nums text-muted-foreground">{weight.weight}%</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button size="sm" className="gap-1" onClick={() => setCopilotOpen(true)}>
+                        {suggestion.actionLabel}
+                        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Button>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => setCopilotOpen(true)}>
+                        Compare scenarios
+                        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )
+            })}
           </div>
         </section>
 

@@ -11,6 +11,11 @@ import {
   Clock,
   MessageSquare,
   MoreHorizontal,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  ListTodo,
+  AlertTriangle,
 } from "lucide-react"
 
 import { useWorkspace } from "@/components/workspace-provider"
@@ -31,6 +36,7 @@ import { toast } from "@/components/ui/sonner"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { TaskRescheduleDialog } from "@/components/task-reschedule-dialog"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { formatDueDateWithRelative, formatDate } from "@/lib/format"
 import type { AccountabilityTask } from "@/types/domain"
 
@@ -80,6 +86,17 @@ export function AccountabilityChecklist({ surface }: AccountabilityChecklistProp
   const [confirmation, setConfirmation] = useState<ConfirmationState | null>(null)
   const [rescheduleTask, setRescheduleTask] = useState<ChecklistTask | null>(null)
   const [openDiscussionTaskId, setOpenDiscussionTaskId] = useState<string | null>(null)
+  const [overdueExpanded, setOverdueExpanded] = useState(true)
+  const [upcomingExpanded, setUpcomingExpanded] = useState(true)
+  const [tasksExpanded, setTasksExpanded] = useState(true)
+  const [documentsExpanded, setDocumentsExpanded] = useState(true)
+
+  // Categorize tasks by type
+  const tasksByType = useMemo(() => {
+    const taskItems = relevantTasks.filter(t => t.entityType !== "document")
+    const documentItems = relevantTasks.filter(t => t.entityType === "document")
+    return { taskItems, documentItems }
+  }, [relevantTasks])
 
   const overdueTasks = relevantTasks
     .filter((task) => task.dueInDays < 0 || task.status === "overdue")
@@ -88,6 +105,46 @@ export function AccountabilityChecklist({ surface }: AccountabilityChecklistProp
   const upcomingTasks = relevantTasks
     .filter((task) => !overdueTasks.includes(task))
     .sort((a, b) => a.effectiveDueDate.getTime() - b.effectiveDueDate.getTime())
+
+  // Get badge styling based on due date
+  const getDueDateBadge = (task: ChecklistTask) => {
+    const overdue = task.dueInDays < 0 || task.status === "overdue"
+    const dueSoon = task.dueInDays >= 0 && task.dueInDays <= 2
+    const dueThisWeek = task.dueInDays > 2 && task.dueInDays <= 7
+    
+    if (task.status === "completed") {
+      return {
+        label: "Completed",
+        className: "border-green-400 bg-green-100 text-green-800 dark:border-green-500/60 dark:bg-green-900/40 dark:text-green-200"
+      }
+    }
+    
+    if (overdue) {
+      return {
+        label: `Overdue by ${Math.abs(task.dueInDays)} day${Math.abs(task.dueInDays) !== 1 ? 's' : ''}`,
+        className: "border-red-400 bg-red-100 text-red-800 dark:border-red-500/60 dark:bg-red-900/40 dark:text-red-200"
+      }
+    }
+    
+    if (dueSoon) {
+      return {
+        label: `Due in ${task.dueInDays} day${task.dueInDays !== 1 ? 's' : ''}`,
+        className: "border-amber-400 bg-amber-100 text-amber-800 dark:border-amber-500/60 dark:bg-amber-900/40 dark:text-amber-200"
+      }
+    }
+    
+    if (dueThisWeek) {
+      return {
+        label: `Due in ${task.dueInDays} days`,
+        className: "border-blue-400 bg-blue-100 text-blue-800 dark:border-blue-500/60 dark:bg-blue-900/40 dark:text-blue-200"
+      }
+    }
+    
+    return {
+      label: `Due in ${task.dueInDays} days`,
+      className: "border-muted-foreground/30 bg-muted text-muted-foreground"
+    }
+  }
 
   const handleSnooze = (taskId: string, days: number) => {
     const target = new Date()
@@ -153,26 +210,30 @@ export function AccountabilityChecklist({ surface }: AccountabilityChecklistProp
         onConfirm: () => setOpenDiscussionTaskId(task.id),
       })
 
+    const dueDateBadge = getDueDateBadge(task)
+    
     return (
       <div
         key={task.id}
         className={cn(
           "flex flex-col gap-3 rounded-xl border border-border/40 bg-muted/10 p-4 transition-colors md:flex-row md:items-center md:gap-4",
-          overdue && "border-amber-400/40 bg-amber-50/60 dark:border-amber-500/30 dark:bg-amber-900/20",
-          isCompleted && "border-primary/30 bg-primary/5",
+          overdue && "border-red-400/40 bg-red-50/60 dark:border-red-500/30 dark:bg-red-900/20",
+          dueSoon && !overdue && "border-amber-400/40 bg-amber-50/60 dark:border-amber-500/30 dark:bg-amber-900/20",
+          isCompleted && "border-green-400/30 bg-green-50/60 dark:border-green-500/30 dark:bg-green-900/20",
         )}
       >
         <div className="flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
             {task.label}
-            {overdue && (
-              <Badge className="border border-amber-400 bg-amber-100 text-amber-800 dark:border-amber-500/60 dark:bg-amber-900/40 dark:text-amber-200">
-                Overdue
+            <Badge className={cn("border", dueDateBadge.className)}>
+              {dueDateBadge.label}
+            </Badge>
+            {task.isSnoozed && !isCompleted && (
+              <Badge variant="outline" className="gap-1">
+                <Clock className="h-3 w-3" />
+                Snoozed
               </Badge>
             )}
-            {dueSoon && !overdue && <Badge variant="secondary">Due soon</Badge>}
-            {task.isSnoozed && !overdue && <Badge variant="outline">Snoozed</Badge>}
-            {isCompleted && <Badge variant="outline" className="border-primary text-primary">Completed</Badge>}
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <TooltipProvider>
@@ -352,24 +413,107 @@ export function AccountabilityChecklist({ surface }: AccountabilityChecklistProp
             <ClipboardList className="h-5 w-5 text-muted-foreground" aria-hidden />
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {overdueTasks.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Overdue</p>
-                <span className="text-xs text-muted-foreground">{overdueTasks.length} task(s)</span>
-              </div>
-              <div className="space-y-3">{overdueTasks.map(renderTask)}</div>
-            </div>
+        <CardContent className="space-y-4">
+          {/* Tasks Section */}
+          {tasksByType.taskItems.length > 0 && (
+            <Collapsible defaultOpen={true} open={tasksExpanded} onOpenChange={setTasksExpanded}>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3 hover:bg-muted/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <ListTodo className="h-4 w-4 text-muted-foreground" />
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-foreground">Tasks</p>
+                    <p className="text-xs text-muted-foreground">
+                      {tasksByType.taskItems.filter(t => t.status === "completed").length} of {tasksByType.taskItems.length} completed
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {tasksByType.taskItems.length}
+                  </Badge>
+                  {tasksExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-6">
+                {tasksByType.taskItems.filter(t => overdueTasks.includes(t)).length > 0 && (
+                  <Collapsible defaultOpen={true} open={overdueExpanded} onOpenChange={setOverdueExpanded}>
+                    <CollapsibleTrigger className="flex w-full items-center justify-between px-1 py-2 hover:bg-muted/20 rounded transition-colors">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <p className="text-sm font-semibold text-red-700 dark:text-red-300">Overdue</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {tasksByType.taskItems.filter(t => overdueTasks.includes(t)).length} task(s)
+                        </span>
+                        {overdueExpanded ? (
+                          <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-3 space-y-3">
+                      {tasksByType.taskItems.filter(t => overdueTasks.includes(t)).map(renderTask)}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+                {tasksByType.taskItems.filter(t => !overdueTasks.includes(t)).length > 0 && (
+                  <Collapsible defaultOpen={true} open={upcomingExpanded} onOpenChange={setUpcomingExpanded}>
+                    <CollapsibleTrigger className="flex w-full items-center justify-between px-1 py-2 hover:bg-muted/20 rounded transition-colors">
+                      <p className="text-sm font-semibold text-foreground">On deck</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {tasksByType.taskItems.filter(t => !overdueTasks.includes(t)).length} task(s)
+                        </span>
+                        {upcomingExpanded ? (
+                          <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-3 space-y-3">
+                      {tasksByType.taskItems.filter(t => !overdueTasks.includes(t)).map(renderTask)}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
           )}
-          {upcomingTasks.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-foreground">On deck</p>
-                <span className="text-xs text-muted-foreground">{upcomingTasks.length} task(s)</span>
-              </div>
-              <div className="space-y-3">{upcomingTasks.map(renderTask)}</div>
-            </div>
+
+          {/* Documents Section */}
+          {tasksByType.documentItems.length > 0 && (
+            <Collapsible defaultOpen={true} open={documentsExpanded} onOpenChange={setDocumentsExpanded}>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3 hover:bg-muted/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-foreground">Documents</p>
+                    <p className="text-xs text-muted-foreground">
+                      {tasksByType.documentItems.filter(t => t.status === "completed").length} of {tasksByType.documentItems.length} uploaded
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {tasksByType.documentItems.length}
+                  </Badge>
+                  {documentsExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-3">
+                {tasksByType.documentItems.map(renderTask)}
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </CardContent>
       </Card>

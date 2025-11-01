@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AnimatePresence, motion } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 import { bankLogos, defaultBankIcon, sharedIcons, typeColors } from "@/lib/mock"
 import { MiniSparkline } from "./mini-sparkline"
@@ -91,8 +92,8 @@ export function AccountsListMobile({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-                          <BankIcon className="h-5 w-5 text-muted-foreground" />
+                        <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-border/50">
+                          <BankIcon className="h-6 w-6 text-foreground" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -103,7 +104,7 @@ export function AccountsListMobile({
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground truncate">{account.institution}</p>
+                          <p className="text-xs text-muted-foreground truncate font-medium">{account.institution}</p>
                         </div>
                       </div>
                       <Badge variant="outline" className={`whitespace-nowrap ml-2 ${typeColors[account.type] || ""}`}>
@@ -148,17 +149,43 @@ export function AccountsListMobile({
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-border/30">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs">
                         {account.status === "needs_update" ? (
                           <>
-                            <div className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-                            <span className="text-destructive font-medium">Update Required</span>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "gap-1.5 rounded-md px-2 py-0.5 text-xs font-normal",
+                                "border-amber-200/60 dark:border-amber-800/40 text-amber-700 dark:text-amber-400 bg-transparent"
+                              )}
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden />
+                              Update required
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                              aria-label={`Update connection for ${account.name}`}
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                onUpdateConnection(account.id)
+                              }}
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                            </Button>
                           </>
                         ) : (
-                          <>
-                            <div className="h-2 w-2 rounded-full bg-green-500" />
-                            <span>Synced {account.lastSync}</span>
-                          </>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "gap-1.5 rounded-md px-2 py-0.5 text-xs font-normal",
+                              "border-emerald-200/60 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 bg-transparent"
+                            )}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+                            Synced {account.lastSync}
+                          </Badge>
                         )}
                       </div>
                       <DropdownMenu>
@@ -258,7 +285,7 @@ export function AccountsListMobile({
                             </div>
                           </div>
 
-                          <Button variant="outline" size="sm" className="w-full bg-transparent">
+                          <Button variant="outline" size="sm" className="w-full">
                             View All Transactions
                           </Button>
                         </motion.div>

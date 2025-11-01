@@ -18,3 +18,5 @@ export function getAccounts(): Account[] {
 export function getRecentTransactions(): Transaction[] {
   return transactionsResponseSchema.parse(mockTransactions)
 }
+
+// Additional functions or updates can be added here if necessary

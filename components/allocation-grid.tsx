@@ -1,10 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
 import type { TooltipContentProps } from "recharts"
+import { Landmark, Building2, Globe2 } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { PIE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
+
+type AllocationView = "assetClass" | "sector" | "region"
 
 interface AllocationSlice extends Record<string, unknown> {
   name: string
@@ -13,36 +18,63 @@ interface AllocationSlice extends Record<string, unknown> {
   color: string
 }
 
-const assetClassData: AllocationSlice[] = [
-  { name: "US Stocks", value: 48, amount: 89000, color: "hsl(217, 91%, 60%)" },
-  { name: "International", value: 22, amount: 41000, color: "hsl(142, 76%, 45%)" },
-  { name: "Bonds", value: 18, amount: 33500, color: "hsl(24, 95%, 53%)" },
-  { name: "Cash", value: 8, amount: 15000, color: "hsl(262, 83%, 58%)" },
-  { name: "Crypto", value: 4, amount: 7500, color: "hsl(340, 82%, 52%)" },
-]
-
-const sectorData: AllocationSlice[] = [
-  { name: "Technology", value: 35, amount: 65000, color: "hsl(217, 91%, 60%)" },
-  { name: "Healthcare", value: 18, amount: 33500, color: "hsl(142, 76%, 45%)" },
-  { name: "Finance", value: 15, amount: 28000, color: "hsl(24, 95%, 53%)" },
-  { name: "Consumer", value: 12, amount: 22500, color: "hsl(262, 83%, 58%)" },
-  { name: "Energy", value: 10, amount: 18500, color: "hsl(340, 82%, 52%)" },
-  { name: "Other", value: 10, amount: 18500, color: "hsl(45, 93%, 47%)" },
-]
-
-const regionData: AllocationSlice[] = [
-  { name: "North America", value: 60, amount: 112000, color: "hsl(217, 91%, 60%)" },
-  { name: "Europe", value: 20, amount: 37500, color: "hsl(142, 76%, 45%)" },
-  { name: "Asia Pacific", value: 15, amount: 28000, color: "hsl(24, 95%, 53%)" },
-  { name: "Emerging", value: 5, amount: 9500, color: "hsl(262, 83%, 58%)" },
-]
+const allocationData: Record<AllocationView, AllocationSlice[]> = {
+  assetClass: [
+    { name: "US Stocks", value: 48, amount: 89000, color: PIE_CHART_COLORS[0] },
+    { name: "International", value: 22, amount: 41000, color: PIE_CHART_COLORS[1] },
+    { name: "Bonds", value: 18, amount: 33500, color: PIE_CHART_COLORS[2] },
+    { name: "Cash", value: 8, amount: 15000, color: PIE_CHART_COLORS[3] },
+    { name: "Crypto", value: 4, amount: 7500, color: PIE_CHART_COLORS[4] },
+  ],
+  sector: [
+    { name: "Technology", value: 35, amount: 65000, color: PIE_CHART_COLORS[0] },
+    { name: "Healthcare", value: 18, amount: 33500, color: PIE_CHART_COLORS[1] },
+    { name: "Finance", value: 15, amount: 28000, color: PIE_CHART_COLORS[2] },
+    { name: "Consumer", value: 12, amount: 22500, color: PIE_CHART_COLORS[3] },
+    { name: "Energy", value: 10, amount: 18500, color: PIE_CHART_COLORS[4] },
+    { name: "Other", value: 10, amount: 18500, color: PIE_CHART_COLORS[5] },
+  ],
+  region: [
+    { name: "North America", value: 60, amount: 112000, color: PIE_CHART_COLORS[0] },
+    { name: "Europe", value: 20, amount: 37500, color: PIE_CHART_COLORS[1] },
+    { name: "Asia Pacific", value: 15, amount: 28000, color: PIE_CHART_COLORS[2] },
+    { name: "Emerging", value: 5, amount: 9500, color: PIE_CHART_COLORS[3] },
+  ],
+}
 
 export interface AllocationGridProps {
   onFilterChange?: (filter: string | null) => void
 }
 
+const isAllocationView = (value: string): value is AllocationView => {
+  return value === "assetClass" || value === "sector" || value === "region"
+}
+
+const renderTooltip = ({ active, payload }: TooltipContentProps<number, string>) => {
+  if (active && payload && payload.length) {
+    const data = payload[0]?.payload as AllocationSlice | undefined
+    if (!data) {
+      return null
+    }
+
+    return (
+      <div className="rounded-lg border bg-card p-2 shadow-sm">
+        <div className="text-sm font-medium">{data.name}</div>
+        <div className="text-lg font-semibold font-mono tabular-nums">${data.amount.toLocaleString()}</div>
+        <div className="text-xs text-muted-foreground">{data.value}% of portfolio</div>
+        <div className="text-xs text-muted-foreground mt-1">Click to filter</div>
+      </div>
+    )
+  }
+  return null
+}
+
 export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
+  const [view, setView] = useState<AllocationView>("assetClass")
   const [selectedSlice, setSelectedSlice] = useState<string | null>(null)
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const data = allocationData[view]
 
   const handleSliceClick = (slice: AllocationSlice) => {
     if (selectedSlice === slice.name) {
@@ -54,128 +86,145 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
     }
   }
 
-  const CustomTooltip = ({ active, payload }: TooltipContentProps<number, string>) => {
-    if (active && payload && payload.length) {
-      const data = payload[0]?.payload as AllocationSlice | undefined
-      if (!data) {
-        return null
-      }
-      return (
-        <div className="rounded-lg border bg-card p-3 shadow-lg">
-          <p className="text-sm font-medium text-foreground">{data.name}</p>
-          <p className="text-lg font-bold text-foreground tabular-nums">${data.amount.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground">{data.value}% of portfolio</p>
-        </div>
-      )
+  const handleViewChange = (value: string) => {
+    if (isAllocationView(value)) {
+      setView(value)
+      setSelectedSlice(null)
+      onFilterChange?.(null)
     }
-    return null
   }
 
-  const handleTabChange = (_value: string) => {
-    setSelectedSlice(null)
-    onFilterChange?.(null)
-  }
+  // Debounced hover handlers to prevent glitchy transitions
+  const handleMouseEnter = useCallback((name: string) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredItem(name)
+    }, 50)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredItem(null)
+    }, 100)
+  }, [])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Allocation</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="asset-class" className="w-full" onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="asset-class">Asset Class</TabsTrigger>
-            <TabsTrigger value="sector">Sector</TabsTrigger>
-            <TabsTrigger value="region">Region</TabsTrigger>
+    <Card className="card-standard">
+      <CardHeader className="space-y-4">
+        <CardTitle className="text-base sm:text-lg">Portfolio Allocation</CardTitle>
+        
+        {/* Tabs below title, above chart */}
+        <Tabs value={view} onValueChange={handleViewChange} className="sm:flex sm:justify-center">
+          <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+            <TabsTrigger value="assetClass">
+              <Landmark className="h-4 w-4" />
+              <span className="hidden sm:inline">Assets</span>
+            </TabsTrigger>
+            <TabsTrigger value="sector">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Sector</span>
+            </TabsTrigger>
+            <TabsTrigger value="region">
+              <Globe2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Region</span>
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="asset-class" className="mt-6">
-            <div className="flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={assetClassData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    dataKey="value"
-                    label
-                    onClick={(_, index) => handleSliceClick(assetClassData[index])}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {assetClassData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        opacity={selectedSlice && selectedSlice !== entry.name ? 0.4 : 1}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={CustomTooltip} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-          <TabsContent value="sector" className="mt-6">
-            <div className="flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={sectorData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    dataKey="value"
-                    label
-                    onClick={(_, index) => handleSliceClick(sectorData[index])}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {sectorData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        opacity={selectedSlice && selectedSlice !== entry.name ? 0.4 : 1}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={CustomTooltip} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-          <TabsContent value="region" className="mt-6">
-            <div className="flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={regionData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    dataKey="value"
-                    label
-                    onClick={(_, index) => handleSliceClick(regionData[index])}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {regionData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        opacity={selectedSlice && selectedSlice !== entry.name ? 0.4 : 1}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={CustomTooltip} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
         </Tabs>
+
+        {selectedSlice && (
+          <p className="text-xs text-muted-foreground">
+            Filtering by: <span className="font-medium text-foreground">{selectedSlice}</span>
+            <button 
+              onClick={() => {
+                setSelectedSlice(null)
+                onFilterChange?.(null)
+              }} 
+              className="ml-2 text-primary hover:underline"
+            >
+              Clear
+            </button>
+          </p>
+        )}
+      </CardHeader>
+      <CardContent className="flex items-center justify-center min-h-[320px]">
+        <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+          {/* Chart - centered and compact */}
+          <div className="h-48 w-48 shrink-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={75}
+                  paddingAngle={CHART_STYLES.pie.paddingAngle}
+                  dataKey="value"
+                  stroke="transparent"
+                  strokeWidth={CHART_STYLES.pie.strokeWidth}
+                  onClick={(_, index) => handleSliceClick(data[index])}
+                  className="cursor-pointer"
+                  onMouseEnter={(_, index) => handleMouseEnter(data[index].name)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {data.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      opacity={
+                        (selectedSlice && selectedSlice !== entry.name) ||
+                        (hoveredItem && hoveredItem !== entry.name)
+                          ? 0.3
+                          : 1
+                      }
+                      className="transition-opacity duration-200"
+                    />
+                  ))}
+                </Pie>
+                <Tooltip content={renderTooltip} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Minimal, modern legend - always compact */}
+          <div className="w-full space-y-1.5">
+            {data.map((item) => (
+              <button
+                key={item.name}
+                onClick={() => handleSliceClick(item)}
+                onMouseEnter={() => handleMouseEnter(item.name)}
+                onMouseLeave={handleMouseLeave}
+                className={cn(
+                  "flex items-center justify-between w-full rounded-md px-3 py-2 text-left transition-all duration-200",
+                  "hover:bg-accent/50",
+                  selectedSlice === item.name && "bg-accent",
+                  (selectedSlice && selectedSlice !== item.name) && "opacity-50",
+                )}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-sm font-medium">{item.name}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-semibold font-mono tabular-nums">
+                    {item.value}%
+                  </span>
+                  <span className="text-xs text-muted-foreground font-mono tabular-nums">
+                    ${item.amount.toLocaleString()}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
       </CardContent>
     </Card>
   )

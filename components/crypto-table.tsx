@@ -256,7 +256,9 @@ export function CryptoTable({ selectedExchange, showStablecoins, groupBy }: Cryp
                     <div className="grid grid-cols-[1.5fr_0.7fr_0.8fr_0.8fr_0.8fr] items-center gap-4 py-3 font-semibold text-sm text-foreground">
                       <span>{row.label}</span>
                       <span className="text-right text-xs text-muted-foreground">{row.count} assets</span>
-                      <span className="text-right">${row.totalValue.toLocaleString()}</span>
+                      <span className="text-right font-mono text-sm tabular-nums">
+                        ${row.totalValue.toLocaleString()}
+                      </span>
                       <span />
                       <span />
                     </div>
@@ -271,7 +273,7 @@ export function CryptoTable({ selectedExchange, showStablecoins, groupBy }: Cryp
                   <button
                     type="button"
                     onClick={() => router.push(`/crypto/${asset.coin.toLowerCase()}`)}
-                    className="grid w-full grid-cols-[1.5fr_0.7fr_0.8fr_0.8fr_0.8fr] items-center gap-4 rounded-lg px-2 py-3 text-left transition-colors hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="grid w-full grid-cols-[1.5fr_0.7fr_0.8fr_0.8fr_0.8fr] items-center gap-4 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary odd:bg-muted/15"
                     aria-label={`View ${asset.name} details`}
                   >
                     <div className="flex items-center gap-3">
@@ -295,14 +297,20 @@ export function CryptoTable({ selectedExchange, showStablecoins, groupBy }: Cryp
                         <p className="text-xs text-muted-foreground">{asset.exchange}</p>
                       </div>
                     </div>
-                    <span className="text-right text-sm text-muted-foreground">{asset.amount.toLocaleString()}</span>
-                    <span className="text-right text-sm font-semibold">${asset.value.toLocaleString()}</span>
-                    <span className="text-right text-sm font-medium">
+                    <span className="text-right text-sm font-mono tabular-nums text-muted-foreground">
+                      {asset.amount.toLocaleString()}
+                    </span>
+                    <span className="text-right text-sm font-semibold font-mono tabular-nums">
+                      ${asset.value.toLocaleString()}
+                    </span>
+                    <span className="text-right text-sm font-mono tabular-nums font-medium">
                       <span className={profitLossPositive ? "text-emerald-500" : "text-red-500"}>
                         {profitLossPositive ? "+" : "-"}${Math.abs(profitLoss).toLocaleString()}
                       </span>
                     </span>
-                    <span className="text-right text-sm text-muted-foreground">{row.percent.toFixed(1)}%</span>
+                    <span className="text-right text-sm font-mono tabular-nums text-muted-foreground">
+                      {row.percent.toFixed(1)}%
+                    </span>
                   </button>
                 )
               }}

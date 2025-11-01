@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, ArrowRight, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const rebalancingSuggestions = [
   {
@@ -50,10 +51,21 @@ export function RebalancingPreview() {
               <p className="text-xs text-muted-foreground mt-0.5">Based on your target allocation</p>
             </div>
           </div>
-          <Button size="sm" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Execute Rebalance
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block">
+                  <Button size="sm" className="gap-2" disabled>
+                    <Sparkles className="h-4 w-4" />
+                    Execute Rebalance
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Coming soon - Manual rebalancing</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">

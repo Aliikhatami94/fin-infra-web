@@ -3,15 +3,15 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronLeft, X } from "lucide-react"
+import { ChevronLeft, X, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { isActiveRoute } from "@/lib/navigation"
 import { prefetchAppRoute, getBadgeTooltipCopy } from "@/lib/linking"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { BRAND } from "@/lib/brand"
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -72,9 +72,10 @@ export function Sidebar({
   return (
     <TooltipProvider delayDuration={200}>
       <>
+        {/* Mobile backdrop with blur and darken effect */}
         {mobileOpen && (
           <div
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={onMobileClose}
             aria-hidden="true"
           />
@@ -82,22 +83,35 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 z-50 h-screen bg-background transition-all duration-300 ease-in-out overflow-hidden",
           // Desktop: always visible with proper width
           "lg:translate-x-0",
-          // Mobile: slide in/out, full width when open
-          mobileOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
+          // Mobile: slide in/out, full width on very small screens (sm), partial on larger mobile
+          mobileOpen ? "translate-x-0 w-full sm:w-80" : "-translate-x-full w-full sm:w-80",
           // Desktop collapsed state
           collapsed && "lg:w-16",
           !collapsed && "lg:w-64",
         )}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b p-4 lg:hidden">
-            <h2 className="text-lg font-semibold">Menu</h2>
-            <Button variant="ghost" size="icon" onClick={onMobileClose} aria-label="Close navigation">
-              <X className="h-5 w-5" />
-            </Button>
+          {/* Brand header */}
+          <div className="flex items-center justify-between p-4">
+            {!collapsed ? (
+              <div className="flex items-center gap-2">
+                <span className="text-base font-semibold tracking-tight">{BRAND.name}</span>
+                <Badge variant="outline" className="font-mono text-[10px] leading-none">Live</Badge>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">CL</span>
+              </div>
+            )}
+            {/* Close button on mobile */}
+            <div className="lg:hidden">
+              <Button variant="ghost" size="icon" onClick={onMobileClose} aria-label="Close navigation">
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto py-4">
@@ -106,6 +120,35 @@ export function Sidebar({
                 const active = isActiveRoute(pathname, item.href, { exact: item.exact })
                 const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
                 const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
+                const linkClasses = cn(
+                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )
+
+                // On mobile (when mobileOpen is true), always show expanded view
+                // On desktop (lg), respect collapsed state
+                if (collapsed && !mobileOpen) {
+                  return (
+                    <Tooltip key={item.name}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          href={item.href}
+                          onClick={onMobileClose}
+                          onMouseEnter={() => handlePrefetch(item.href)}
+                          onFocus={() => handlePrefetch(item.href)}
+                          className={linkClasses}
+                          aria-current={active ? "page" : undefined}
+                        >
+                          <item.icon className="h-5 w-5 shrink-0" />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>{item.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                }
+
                 return (
                   <Link
                     key={item.name}
@@ -113,36 +156,29 @@ export function Sidebar({
                     onClick={onMobileClose}
                     onMouseEnter={() => handlePrefetch(item.href)}
                     onFocus={() => handlePrefetch(item.href)}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
+                    className={linkClasses}
                     aria-current={active ? "page" : undefined}
                   >
                     <item.icon className="h-5 w-5 shrink-0" />
-                    {!collapsed && (
-                      <>
-                        <span className="flex-1">{item.name}</span>
-                        {item.badge && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="destructive"
-                                className="h-5 min-w-5 px-1 text-xs"
-                                aria-label={fallbackTooltip}
-                              >
-                                {item.badge}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">
-                              <p>{fallbackTooltip}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </>
-                    )}
+                    <>
+                      <span className="flex-1">{item.name}</span>
+                      {item.badge && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="destructive"
+                              className="h-5 min-w-5 px-1 text-xs"
+                              aria-label={fallbackTooltip}
+                            >
+                              {item.badge}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{fallbackTooltip}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </>
                   </Link>
                 )
               })}
@@ -150,18 +186,41 @@ export function Sidebar({
           </div>
 
           <div className="border-t">
-            {!collapsed && (
-              <div className="flex items-center gap-3 p-4">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User avatar" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-medium truncate">John Doe</p>
-                  <p className="text-xs text-muted-foreground truncate">john@example.com</p>
-                </div>
-              </div>
-            )}
+            <div className="p-2">
+              {/* On mobile, always show expanded button. On desktop, respect collapsed state */}
+              {collapsed && !mobileOpen ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-full"
+                      onClick={() => {
+                        window.dispatchEvent(new Event('openFeedbackDialog'))
+                      }}
+                      aria-label="Give feedback"
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Give feedback</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    window.dispatchEvent(new Event('openFeedbackDialog'))
+                  }}
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  <span className="ml-2">Give feedback</span>
+                </Button>
+              )}
+            </div>
             <div className="p-2 hidden lg:block">
               <Button
                 variant="ghost"

@@ -15,7 +15,7 @@ const spendingCategories = [
 
 export function SpendingBreakdown() {
   return (
-    <Card>
+    <Card className="card-standard">
       <CardHeader>
         <CardTitle>Spending Breakdown</CardTitle>
         <CardDescription>Current month spending by category</CardDescription>

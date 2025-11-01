@@ -10,7 +10,7 @@ export function RiskSection() {
   return (
     <TooltipProvider>
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="card-standard">
           <CardHeader>
             <CardTitle>Risk Metrics</CardTitle>
           </CardHeader>
@@ -78,7 +78,7 @@ export function RiskSection() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-standard">
           <CardHeader>
             <CardTitle>Diversification Score</CardTitle>
           </CardHeader>

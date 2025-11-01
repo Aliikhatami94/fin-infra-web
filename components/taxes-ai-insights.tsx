@@ -100,7 +100,7 @@ export function TaxesAIInsights({ onLaunchCopilot }: TaxesAIInsightsProps) {
                   </Badge>
                   {showDocumentsLink && (
                     <Button asChild variant="link" size="sm" className="px-0 text-xs">
-                      <Link href="/documents">View missing documents</Link>
+                      <Link href="/dashboard/documents">View missing documents</Link>
                     </Button>
                   )}
                 </div>
