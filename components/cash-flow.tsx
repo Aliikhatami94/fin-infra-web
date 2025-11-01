@@ -99,18 +99,20 @@ export function CashFlow() {
             />
             <XAxis
               dataKey="month"
-              tickLine={false}
-              axisLine={false}
+              tickLine={true}
+              axisLine={true}
               tickMargin={12}
               className="text-[11px]"
-              stroke="currentColor"
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))" }}
             />
             <YAxis
-              tickLine={false}
-              axisLine={false}
+              tickLine={true}
+              axisLine={true}
               tickMargin={12}
               className="text-[11px]"
-              stroke="currentColor"
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))" }}
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
               width={45}
             />

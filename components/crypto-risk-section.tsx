@@ -5,11 +5,12 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { Info, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { SEMANTIC_COLORS, CHART_STYLES } from "@/lib/chart-colors"
 
 const riskData = [
-  { name: "Low Risk (BTC, ETH, Stablecoins)", value: 42, color: "hsl(142, 76%, 36%)" },
-  { name: "Medium Risk (Large-cap Altcoins)", value: 35, color: "hsl(45, 93%, 47%)" },
-  { name: "High Risk (Small-cap/DeFi)", value: 23, color: "hsl(0, 84%, 60%)" },
+  { name: "Low Risk (BTC, ETH, Stablecoins)", value: 42, color: SEMANTIC_COLORS.positive },
+  { name: "Medium Risk (Large-cap Altcoins)", value: 35, color: SEMANTIC_COLORS.warning },
+  { name: "High Risk (Small-cap/DeFi)", value: 23, color: SEMANTIC_COLORS.negative },
 ]
 
 export function CryptoRiskSection() {
@@ -27,7 +28,17 @@ export function CryptoRiskSection() {
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie data={riskData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value">
+              <Pie 
+                data={riskData} 
+                cx="50%" 
+                cy="50%" 
+                innerRadius={60} 
+                outerRadius={90} 
+                paddingAngle={CHART_STYLES.pie.paddingAngle} 
+                dataKey="value"
+                stroke="transparent"
+                strokeWidth={CHART_STYLES.pie.strokeWidth}
+              >
                 {riskData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}

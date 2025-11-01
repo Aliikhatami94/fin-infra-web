@@ -7,6 +7,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
 import type { TooltipContentProps } from "recharts"
 import { Landmark, Building2, Globe2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PIE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
 
 type AllocationView = "assetClass" | "sector" | "region"
 
@@ -19,25 +20,25 @@ interface AllocationSlice extends Record<string, unknown> {
 
 const allocationData: Record<AllocationView, AllocationSlice[]> = {
   assetClass: [
-    { name: "US Stocks", value: 48, amount: 89000, color: "hsl(217, 91%, 60%)" },
-    { name: "International", value: 22, amount: 41000, color: "hsl(142, 76%, 45%)" },
-    { name: "Bonds", value: 18, amount: 33500, color: "hsl(24, 95%, 53%)" },
-    { name: "Cash", value: 8, amount: 15000, color: "hsl(262, 83%, 58%)" },
-    { name: "Crypto", value: 4, amount: 7500, color: "hsl(340, 82%, 52%)" },
+    { name: "US Stocks", value: 48, amount: 89000, color: PIE_CHART_COLORS[0] },
+    { name: "International", value: 22, amount: 41000, color: PIE_CHART_COLORS[1] },
+    { name: "Bonds", value: 18, amount: 33500, color: PIE_CHART_COLORS[2] },
+    { name: "Cash", value: 8, amount: 15000, color: PIE_CHART_COLORS[3] },
+    { name: "Crypto", value: 4, amount: 7500, color: PIE_CHART_COLORS[4] },
   ],
   sector: [
-    { name: "Technology", value: 35, amount: 65000, color: "hsl(217, 91%, 60%)" },
-    { name: "Healthcare", value: 18, amount: 33500, color: "hsl(142, 76%, 45%)" },
-    { name: "Finance", value: 15, amount: 28000, color: "hsl(24, 95%, 53%)" },
-    { name: "Consumer", value: 12, amount: 22500, color: "hsl(262, 83%, 58%)" },
-    { name: "Energy", value: 10, amount: 18500, color: "hsl(340, 82%, 52%)" },
-    { name: "Other", value: 10, amount: 18500, color: "hsl(45, 93%, 47%)" },
+    { name: "Technology", value: 35, amount: 65000, color: PIE_CHART_COLORS[0] },
+    { name: "Healthcare", value: 18, amount: 33500, color: PIE_CHART_COLORS[1] },
+    { name: "Finance", value: 15, amount: 28000, color: PIE_CHART_COLORS[2] },
+    { name: "Consumer", value: 12, amount: 22500, color: PIE_CHART_COLORS[3] },
+    { name: "Energy", value: 10, amount: 18500, color: PIE_CHART_COLORS[4] },
+    { name: "Other", value: 10, amount: 18500, color: PIE_CHART_COLORS[5] },
   ],
   region: [
-    { name: "North America", value: 60, amount: 112000, color: "hsl(217, 91%, 60%)" },
-    { name: "Europe", value: 20, amount: 37500, color: "hsl(142, 76%, 45%)" },
-    { name: "Asia Pacific", value: 15, amount: 28000, color: "hsl(24, 95%, 53%)" },
-    { name: "Emerging", value: 5, amount: 9500, color: "hsl(262, 83%, 58%)" },
+    { name: "North America", value: 60, amount: 112000, color: PIE_CHART_COLORS[0] },
+    { name: "Europe", value: 20, amount: 37500, color: PIE_CHART_COLORS[1] },
+    { name: "Asia Pacific", value: 15, amount: 28000, color: PIE_CHART_COLORS[2] },
+    { name: "Emerging", value: 5, amount: 9500, color: PIE_CHART_COLORS[3] },
   ],
 }
 
@@ -162,8 +163,10 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
                   cy="50%"
                   innerRadius={55}
                   outerRadius={75}
-                  paddingAngle={2}
+                  paddingAngle={CHART_STYLES.pie.paddingAngle}
                   dataKey="value"
+                  stroke="transparent"
+                  strokeWidth={CHART_STYLES.pie.strokeWidth}
                   onClick={(_, index) => handleSliceClick(data[index])}
                   className="cursor-pointer"
                   onMouseEnter={(_, index) => handleMouseEnter(data[index].name)}

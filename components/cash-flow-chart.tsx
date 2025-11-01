@@ -29,29 +29,22 @@ const monthlyData: CashFlowDatum[] = [
   { month: "Jul", inflow: 8800, outflow: 6300, net: 2500, isProjection: true },
 ]
 
+import { BAR_CHART_PRESETS, CHART_STYLES } from "@/lib/chart-colors"
+
 const chartConfig = {
   inflow: {
     label: "Income",
-    theme: {
-      light: "hsl(142, 71%, 45%)",
-      dark: "hsl(142, 76%, 55%)",
-    },
+    color: BAR_CHART_PRESETS.cashFlow.inflow,
   },
   outflow: {
     label: "Expenses",
-    theme: {
-      light: "hsl(0, 72%, 51%)",
-      dark: "hsl(0, 72%, 60%)",
-    },
+    color: BAR_CHART_PRESETS.cashFlow.outflow,
   },
   net: {
     label: "Net",
-    theme: {
-      light: "hsl(221, 83%, 53%)",
-      dark: "hsl(221, 83%, 65%)",
-    },
+    color: BAR_CHART_PRESETS.cashFlow.net,
   },
-} satisfies ChartConfig
+}
 
 interface CashFlowDatum {
   month: string
@@ -244,39 +237,38 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
             <ComposedChart data={monthlyData} margin={{ left: -10, right: 5, top: 5, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.7}/>
+                  <stop offset="5%" stopColor={BAR_CHART_PRESETS.cashFlow.inflow} stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor={BAR_CHART_PRESETS.cashFlow.inflow} stopOpacity={0.7}/>
                 </linearGradient>
                 <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.7}/>
+                  <stop offset="5%" stopColor={BAR_CHART_PRESETS.cashFlow.outflow} stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor={BAR_CHART_PRESETS.cashFlow.outflow} stopOpacity={0.7}/>
                 </linearGradient>
               </defs>
               <CartesianGrid
-                strokeDasharray="2 4"
-                vertical={false}
-                stroke="currentColor"
-                className="stroke-muted/5"
-                horizontal={true}
+                strokeDasharray={CHART_STYLES.grid.strokeDasharray}
+                stroke={CHART_STYLES.grid.stroke}
+                vertical={CHART_STYLES.grid.vertical}
+                opacity={CHART_STYLES.grid.opacity}
               />
               <XAxis
                 dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={6}
-                className="text-[10px] text-muted-foreground"
-                stroke="currentColor"
-                tick={{ fontSize: 10 }}
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
               />
               <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={4}
-                className="text-[10px] text-muted-foreground"
-                stroke="currentColor"
+                stroke={CHART_STYLES.axis.stroke}
+                fontSize={CHART_STYLES.axis.fontSize}
+                tick={{ fill: CHART_STYLES.axis.fill }}
+                tickLine={CHART_STYLES.axis.tickLine}
+                axisLine={CHART_STYLES.axis.axisLine}
+                tickMargin={CHART_STYLES.axis.tickMargin}
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                width={35}
-                tick={{ fontSize: 10 }}
+                width={45}
               />
               <ChartTooltip
                 content={
@@ -343,18 +335,18 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                 <Line
                   type="monotone"
                   dataKey="net"
-                  stroke="hsl(221, 83%, 53%)"
-                  strokeWidth={2}
+                  stroke={BAR_CHART_PRESETS.cashFlow.net}
+                  strokeWidth={CHART_STYLES.line.strokeWidth}
                   dot={{
-                    fill: "hsl(221, 83%, 53%)",
+                    fill: BAR_CHART_PRESETS.cashFlow.net,
                     strokeWidth: 0,
-                    r: 3,
+                    r: CHART_STYLES.line.dot.r,
                   }}
                   activeDot={{
-                    r: 5,
+                    r: CHART_STYLES.line.activeDot.r,
                     strokeWidth: 2,
                     stroke: "hsl(var(--background))",
-                    fill: "hsl(221, 83%, 53%)",
+                    fill: BAR_CHART_PRESETS.cashFlow.net,
                   }}
                 />
               )}

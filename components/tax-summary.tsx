@@ -20,9 +20,11 @@ interface CapitalGainSegment {
   color: string
 }
 
+import { SEMANTIC_COLORS, BAR_CHART_COLORS } from "@/lib/chart-colors"
+
 const capitalGainsData: CapitalGainSegment[] = [
-  { name: "ST", value: 4200, color: "hsl(25, 95%, 53%)" },
-  { name: "LT", value: 8140, color: "hsl(142, 76%, 36%)" },
+  { name: "ST", value: 4200, color: BAR_CHART_COLORS.tertiary },
+  { name: "LT", value: 8140, color: SEMANTIC_COLORS.positive },
 ]
 
 type ReadinessItem = {

@@ -284,10 +284,22 @@ export function GoalDetailModal({ goal, open, onOpenChange }: GoalDetailModalPro
               <div className="h-64 w-full rounded-lg border p-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={contributionData}>
-                    <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                    <XAxis 
+                      dataKey="month" 
+                      stroke="hsl(var(--foreground))" 
+                      fontSize={12} 
+                      tick={{ fill: "hsl(var(--foreground))" }}
+                      tickLine={true}
+                      axisLine={true}
+                      tickMargin={8}
+                    />
                     <YAxis
-                      stroke="hsl(var(--muted-foreground))"
+                      stroke="hsl(var(--foreground))"
                       fontSize={12}
+                      tick={{ fill: "hsl(var(--foreground))" }}
+                      tickLine={true}
+                      axisLine={true}
+                      tickMargin={8}
                       tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                     />
                     <Tooltip

@@ -14,11 +14,12 @@ type ThemedAxisProps = ThemedXAxisProps | ThemedYAxisProps
 
 export function ThemedAxis(props: ThemedAxisProps) {
   const sharedProps = {
-    tickLine: false,
-    axisLine: false,
-    stroke: "hsl(var(--muted-foreground))",
+    stroke: "#888888",
     fontSize: 12,
-    tick: { fill: "hsl(var(--muted-foreground))" },
+    tick: { fill: "#888888" },
+    tickLine: true,
+    axisLine: true,
+    tickMargin: 8,
   }
 
   if (props.axis === "x") {

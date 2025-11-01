@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { Landmark, Building2, Globe2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PIE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
 
 type AllocationView = "assetClass" | "sector" | "region"
 
@@ -18,23 +19,23 @@ interface AllocationDataPoint extends Record<string, unknown> {
 
 const allocationData: Record<AllocationView, AllocationDataPoint[]> = {
   assetClass: [
-    { name: "Stocks", value: 65, color: "hsl(217, 91%, 60%)" },
-    { name: "Bonds", value: 20, color: "hsl(142, 76%, 45%)" },
-    { name: "Cash", value: 10, color: "hsl(24, 95%, 53%)" },
-    { name: "Crypto", value: 5, color: "hsl(262, 83%, 58%)" },
+    { name: "Stocks", value: 65, color: PIE_CHART_COLORS[0] },
+    { name: "Bonds", value: 20, color: PIE_CHART_COLORS[1] },
+    { name: "Cash", value: 10, color: PIE_CHART_COLORS[2] },
+    { name: "Crypto", value: 5, color: PIE_CHART_COLORS[3] },
   ],
   sector: [
-    { name: "Technology", value: 35, color: "hsl(217, 91%, 60%)" },
-    { name: "Healthcare", value: 25, color: "hsl(142, 76%, 45%)" },
-    { name: "Finance", value: 20, color: "hsl(24, 95%, 53%)" },
-    { name: "Consumer", value: 15, color: "hsl(262, 83%, 58%)" },
-    { name: "Other", value: 5, color: "hsl(340, 82%, 52%)" },
+    { name: "Technology", value: 35, color: PIE_CHART_COLORS[0] },
+    { name: "Healthcare", value: 25, color: PIE_CHART_COLORS[1] },
+    { name: "Finance", value: 20, color: PIE_CHART_COLORS[2] },
+    { name: "Consumer", value: 15, color: PIE_CHART_COLORS[3] },
+    { name: "Other", value: 5, color: PIE_CHART_COLORS[4] },
   ],
   region: [
-    { name: "North America", value: 50, color: "hsl(217, 91%, 60%)" },
-    { name: "Europe", value: 25, color: "hsl(142, 76%, 45%)" },
-    { name: "Asia Pacific", value: 20, color: "hsl(24, 95%, 53%)" },
-    { name: "Emerging Markets", value: 5, color: "hsl(262, 83%, 58%)" },
+    { name: "North America", value: 50, color: PIE_CHART_COLORS[0] },
+    { name: "Europe", value: 25, color: PIE_CHART_COLORS[1] },
+    { name: "Asia Pacific", value: 20, color: PIE_CHART_COLORS[2] },
+    { name: "Emerging Markets", value: 5, color: PIE_CHART_COLORS[3] },
   ],
 }
 
@@ -149,8 +150,10 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
                   cy="50%"
                   innerRadius={55}
                   outerRadius={75}
-                  paddingAngle={2}
+                  paddingAngle={CHART_STYLES.pie.paddingAngle}
                   dataKey="value"
+                  stroke="transparent"
+                  strokeWidth={CHART_STYLES.pie.strokeWidth}
                   onClick={(_, index) => handleSegmentClick(data[index])}
                   className="cursor-pointer"
                   onMouseEnter={(_, index) => handleMouseEnter(data[index].name)}
