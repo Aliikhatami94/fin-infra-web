@@ -371,8 +371,8 @@ export function CashFlowKPIs() {
             {kpiCards.map((kpi, index) => (
               <CarouselItem key={kpi.id} className="pl-4 basis-[85%]">
                 <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
-                  <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
-                    <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+                  <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px]">
+                    <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
                       <div className="flex items-start justify-between gap-2">
                         <LastSyncBadge timestamp="2 min ago" source="Plaid" />
                       </div>
@@ -483,8 +483,8 @@ export function CashFlowKPIs() {
       <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
         {kpiCards.map((kpi, index) => (
           <motion.div key={kpi.id} {...createStaggeredCardVariants(index, 0)} className="h-full">
-            <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
-              <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+            <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px]">
+              <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
                 <div className="flex items-start justify-between gap-2">
                   <LastSyncBadge timestamp="2 min ago" source="Plaid" />
                 </div>

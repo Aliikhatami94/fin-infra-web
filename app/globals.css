@@ -78,7 +78,7 @@
   --type-24: calc(1.5rem * var(--font-scale-multiplier));
   --type-28: calc(1.75rem * var(--font-scale-multiplier));
   --type-32: calc(2rem * var(--font-scale-multiplier));
-  --type-kpi: var(--type-32);
+  --type-kpi: var(--type-24);
 
   --line-height-base: 1.6;
   --letter-spacing-tight: -0.01em;
@@ -172,7 +172,7 @@
 
 [data-density="compact"] {
   /* Density overrides: reduce KPI size, paddings, gaps, radius, and icon sizes */
-  --type-kpi: var(--type-28);
+  --type-kpi: var(--type-24);
   /* Card spacing (comfortable → compact):
      inline 20px → 16px, block ~16px → 14px, gap 16–24px → 16px */
   --space-card-inline: 1rem; /* 16px */

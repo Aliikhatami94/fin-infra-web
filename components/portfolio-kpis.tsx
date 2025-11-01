@@ -141,14 +141,14 @@ export function PortfolioKPIs() {
     return (
       <motion.div {...cardHoverVariants} className="h-full">
         <Card
-          className={`card-standard card-lift h-full min-h-[260px] md:min-h-[280px] ${isRiskMetric ? "cursor-pointer" : ""}`}
+          className={`card-standard card-lift h-full min-h-[200px] md:min-h-[220px] ${isRiskMetric ? "cursor-pointer" : ""}`}
           onClick={() => {
             if (metricKey && !isHidden) {
               setSelectedMetric(metricKey)
             }
           }}
         >
-          <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+          <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
             <div className="flex items-start justify-between gap-2">
               <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
             </div>

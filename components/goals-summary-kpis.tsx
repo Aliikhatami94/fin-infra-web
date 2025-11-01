@@ -108,8 +108,8 @@ export function GoalsSummaryKPIs() {
   const renderKPICard = (cardId: string, index: number) => {
     if (cardId === 'progress') {
       return (
-        <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px] overflow-hidden">
-          <CardContent className="flex h-full flex-col gap-3 p-4 md:p-6 w-full min-w-0">
+        <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px] overflow-hidden">
+          <CardContent className="flex h-full flex-col gap-2 p-4 md:p-5 w-full min-w-0">
             <div className="flex items-start justify-between gap-2 min-w-0">
               <div className="space-y-1 flex-1 min-w-0">
                 <div className="flex items-center flex-wrap gap-2 mb-1">
@@ -165,8 +165,8 @@ export function GoalsSummaryKPIs() {
     
     if (cardId === 'contribution') {
       return (
-        <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px] overflow-hidden">
-          <CardContent className="flex h-full flex-col gap-3 p-4 md:p-6 w-full min-w-0">
+        <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px] overflow-hidden">
+          <CardContent className="flex h-full flex-col gap-2 p-4 md:p-5 w-full min-w-0">
             <div className="flex items-start justify-between gap-2 min-w-0">
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center flex-wrap gap-2 mb-1">
@@ -212,8 +212,8 @@ export function GoalsSummaryKPIs() {
     
     // funding card
     return (
-      <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px] overflow-hidden">
-        <CardContent className="flex h-full flex-col gap-3 p-4 md:p-6 w-full min-w-0">
+      <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px] overflow-hidden">
+        <CardContent className="flex h-full flex-col gap-2 p-4 md:p-5 w-full min-w-0">
           <div className="flex items-start justify-between gap-2 min-w-0">
             <div className="space-y-1 flex-1 min-w-0">
               <div className="flex items-center flex-wrap gap-2 mb-1">

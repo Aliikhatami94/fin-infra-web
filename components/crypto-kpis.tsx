@@ -139,10 +139,10 @@ export function CryptoKPIs() {
     return (
       <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
         <Card
-          className={`card-standard card-lift h-full min-h-[260px] md:min-h-[280px] ${kpi.clickable ? "cursor-pointer" : ""}`}
+          className={`card-standard card-lift h-full min-h-[200px] md:min-h-[220px] ${kpi.clickable ? "cursor-pointer" : ""}`}
           onClick={() => kpi.clickable && router.push("/crypto/btc")}
         >
-          <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+          <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
                 <div className="flex items-start justify-between gap-2">
                   <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
                 </div>

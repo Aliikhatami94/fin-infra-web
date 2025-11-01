@@ -70,8 +70,8 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
     <TooltipProvider>
       <Link href={kpi.href} className="h-full block">
         <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants} className="h-full">
-          <Card className="cursor-pointer card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
-            <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
+          <Card className="cursor-pointer card-standard card-lift h-full min-h-[200px] md:min-h-[220px]">
+            <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
               <div className="flex items-start justify-between gap-2">
                 <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
               </div>
