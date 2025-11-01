@@ -115,7 +115,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
     const sparklineData = createSparklineSeries(kpi.value, kpi.baselineValue)
 
     return (
-      <motion.div {...cardHoverVariants} className="h-full">
+      <motion.div {...cardHoverVariants} className="h-full pt-2">
         <Card className="card-standard card-lift h-full min-h-[260px] md:min-h-[280px]">
           <CardContent className="flex flex-col h-full gap-3 p-4 md:p-6">
             <div className="flex items-start justify-between gap-2">

@@ -251,7 +251,7 @@ export function KPICards() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden pt-4"
+            className="overflow-hidden pt-2"
           >
             {/* Mobile: Horizontal carousel */}
             <div className="md:hidden space-y-3">
@@ -265,7 +265,7 @@ export function KPICards() {
               >
                 <CarouselContent className="-ml-4">
                   {kpis.map((kpi, index) => (
-                    <CarouselItem key={kpi.label} className="pl-4 basis-[85%]">
+                    <CarouselItem key={kpi.label} className="pl-4 pt-2 basis-[85%]">
                       <KPICardContent
                         kpi={kpi}
                         index={index}
