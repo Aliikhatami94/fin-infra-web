@@ -147,7 +147,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   
   return (
     <ConnectivityProvider>
-      <div className="fixed inset-0 flex overflow-hidden flex-col md:flex-row">
+      <div className="fixed inset-0 flex overflow-hidden flex-col lg:flex-row">
         <Sidebar
           mobileOpen={mobileMenuOpen}
           onMobileClose={() => setMobileMenuOpen(false)}
@@ -166,7 +166,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
               {/* Desktop: Header outside main content */}
-              <header className="hidden md:block">
+              <header className="hidden lg:block">
                 <TopBar
                   onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   sidebarCollapsed={isSidebarCollapsed}
@@ -175,10 +175,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
               <main
                 id="main-content"
-                className="relative flex-1 overflow-auto lg:rounded-xl bg-card lg:mr-2 lg:mb-2 border border-border/70 md:mt-12 lg:mt-14"
+                className="relative flex-1 overflow-auto lg:rounded-xl bg-card lg:mr-2 lg:mb-2 border border-border/70 lg:mt-14"
               >
                 {/* Mobile: TopBar inside main content for sticky behavior */}
-                <div className="md:hidden">
+                <div className="lg:hidden">
                   <TopBar
                     onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                     sidebarCollapsed={isSidebarCollapsed}

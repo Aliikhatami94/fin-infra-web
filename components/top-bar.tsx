@@ -71,23 +71,23 @@ export function TopBar({
     <div
       className={cn(
         // Mobile: sticky top bar that stays with scroll
-        "sticky md:fixed top-0 z-40 backdrop-blur-md transition-all duration-300 ease-in-out",
-        // Mobile: full width
-        "left-0 w-auto",
+        "sticky lg:fixed top-0 z-40 backdrop-blur-md transition-all duration-300 ease-in-out",
+        // Full width on mobile and tablet
+        "left-0 w-full right-0",
         // Desktop: shift right based on sidebar state
-        _sidebarCollapsed ? "md:left-16" : "md:left-64",
-        "right-0",
+        _sidebarCollapsed ? "lg:left-16" : "lg:left-64",
+        "lg:w-auto",
         // Background with glass effect
         "bg-background/80",
       )}
     >
-      {/* Inner container: constrain width and center horizontally to match page content width */}
+      {/* Inner container: full width, match page content padding */}
       <div className={cn(
-        "mx-auto flex w-full max-w-[1200px] items-center justify-between gap-2 transition-all duration-300 sm:gap-3",
+        "flex w-full items-center justify-between gap-2 transition-all duration-300 sm:gap-3",
         // Compact height on mobile for space efficiency
         "h-11 md:h-12 lg:h-14",
-        // Padding - no left padding on mobile/tablet for burger, right padding always, desktop padding
-        "pr-3 sm:pr-4 lg:px-10",
+        // Padding matches page content: pr-4 on mobile (burger flush left), then sm:px-6, lg:px-10
+        "pr-4 sm:px-6 lg:px-10",
       )}>
         {/* Left section: Menu + Search */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
