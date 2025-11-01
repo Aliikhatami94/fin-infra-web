@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { BRAND } from "@/lib/brand"
 import { AlertCircle, ExternalLink, Mail } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -48,10 +49,10 @@ export function DemoVideoPlayer({ videoSrc, posterSrc, captionsSrc }: DemoVideoP
           </Button>
           <Button asChild variant="default" className="gap-2 focus-visible:ring-offset-2">
             <a
-              href="https://youtube.com/@clarityledger"
+              href={`https://youtube.com/@${BRAND.name}`}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Watch ClarityLedger demo on YouTube (opens in new tab)"
+              aria-label={`Watch ${BRAND.name} demo on YouTube (opens in new tab)`}
             >
               Watch on YouTube
               <ExternalLink className="h-4 w-4" aria-hidden="true" />

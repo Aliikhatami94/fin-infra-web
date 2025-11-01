@@ -15,7 +15,7 @@ type ResolutionState = {
   values: Set<string>
 }
 
-const FALLBACK_STORAGE_NAMESPACE = "fin-infra-web"
+const FALLBACK_STORAGE_NAMESPACE = "autoclar"
 
 const isBrowser = typeof window !== "undefined"
 

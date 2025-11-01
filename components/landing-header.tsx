@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { TrendingUp } from "lucide-react"
+import { Sparkles } from "lucide-react"
 import { BRAND } from "@/lib/brand"
 
 export function LandingHeader() {
@@ -18,8 +18,8 @@ export function LandingHeader() {
               className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
               aria-label={`${BRAND.name} home`}
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/40 bg-card/80 text-primary shadow-sm">
-                <TrendingUp className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 text-primary shadow-sm">
+                <Sparkles className="h-5 w-5" strokeWidth={2.25} aria-hidden />
               </div>
               <span className="text-lg font-semibold tracking-tight text-foreground">
                 {BRAND.name}

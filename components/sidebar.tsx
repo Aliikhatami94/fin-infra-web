@@ -11,6 +11,7 @@ import { isActiveRoute } from "@/lib/navigation"
 import { prefetchAppRoute, getBadgeTooltipCopy } from "@/lib/linking"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { BRAND } from "@/lib/brand"
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -97,7 +98,7 @@ export function Sidebar({
           <div className="flex items-center justify-between p-4">
             {!collapsed ? (
               <div className="flex items-center gap-2">
-                <span className="text-base font-semibold tracking-tight">ClarityLedger</span>
+                <span className="text-base font-semibold tracking-tight">{BRAND.name}</span>
                 <Badge variant="outline" className="font-mono text-[10px] leading-none">Live</Badge>
               </div>
             ) : (
