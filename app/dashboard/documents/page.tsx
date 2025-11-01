@@ -200,11 +200,11 @@ export default function DocumentsPage() {
   const checkActiveFilterSet = useCallback(() => {
     for (const filterSet of SAVED_FILTER_SETS) {
       const typesMatch = filterSet.types.length === selectedTypes.length && 
-        filterSet.types.every(t => selectedTypes.includes(t))
+        filterSet.types.every(t => selectedTypes.includes(t as string))
       const accountsMatch = filterSet.accounts.length === selectedAccounts.length && 
-        filterSet.accounts.every(a => selectedAccounts.includes(a))
+        filterSet.accounts.every(a => selectedAccounts.includes(a as string))
       const yearsMatch = filterSet.years.length === selectedYears.length && 
-        filterSet.years.every(y => selectedYears.includes(y))
+        filterSet.years.every(y => selectedYears.includes(y as string))
       
       if (typesMatch && accountsMatch && yearsMatch) {
         setActiveFilterSet(filterSet.id)
