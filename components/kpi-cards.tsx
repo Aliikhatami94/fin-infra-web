@@ -265,7 +265,7 @@ export function KPICards() {
               >
                 <CarouselContent className="-ml-4">
                   {kpis.map((kpi, index) => (
-                    <CarouselItem key={kpi.label} className="pl-4 pt-2 basis-[85%]">
+                    <CarouselItem key={kpi.label} className="pl-4 pt-2 basis-[85%] sm:basis-[48%]">
                       <KPICardContent
                         kpi={kpi}
                         index={index}

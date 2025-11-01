@@ -369,7 +369,7 @@ export function CashFlowKPIs() {
         >
           <CarouselContent className="-ml-4 pt-4">
             {kpiCards.map((kpi, index) => (
-              <CarouselItem key={kpi.id} className="pl-4 basis-[85%]">
+              <CarouselItem key={kpi.id} className="pl-4 basis-[85%] sm:basis-[48%]">
                 <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
                   <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px]">
                     <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">

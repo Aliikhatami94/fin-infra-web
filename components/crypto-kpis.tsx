@@ -228,7 +228,7 @@ export function CryptoKPIs() {
         >
           <CarouselContent className="-ml-4 pt-2">
             {kpis.map((kpi, index) => (
-              <CarouselItem key={index} className="pl-4 basis-[85%]">
+              <CarouselItem key={index} className="pl-4 basis-[85%] sm:basis-[48%]">
                 {renderKPICard(kpi, index)}
               </CarouselItem>
             ))}
