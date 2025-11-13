@@ -1,4 +1,4 @@
-# agents.md
+# AGENTS.md
 
 ## What this repo is
 - A Next.js 15 + React 19 TypeScript application: Autoclar - an automated financial clarity platform with rich UI components (Radix UI, shadcn/ui style), charts, AI insights, and an app-router layout.
@@ -30,7 +30,6 @@
 - Install deps, run dev server, build, and lint using the existing scripts:
 	- Install: `pnpm install`
 	- Dev: `pnpm dev` (starts Next.js in development mode)
-	- Build: `pnpm build` (Next build; note ESLint/TS build errors are ignored during build per `next.config.mjs`)
 	- Start: `pnpm start` (serve the production build)
 	- Lint: `pnpm lint` (eslint .)
 - Optional typecheck during development (not a script): `pnpm exec tsc -p tsconfig.json --noEmit`.
@@ -56,20 +55,21 @@
 - Types (`types/`): ambient type declarations as needed.
 
 ## UI system and conventions
-- **shadcn/ui components are MANDATORY for all UI primitives**
-	- **ALWAYS check `components/ui/` for existing shadcn components before creating anything custom**
-	- Available shadcn components include: Button, Card, Dialog, Popover, Select, Tabs, Tooltip, Collapsible, Carousel, Accordion, Sheet, Drawer, and many more
-	- These components are built on Radix UI primitives and provide production-ready accessibility, animations, and cross-browser support
+- **shadcn/ui components MUST be used for all UI primitives**
+	- **ALWAYS check `components/ui/` directory before creating any custom UI component**
+	- Available shadcn components (non-exhaustive): Button, Card, CardHeader, CardContent, CardFooter, Dialog, DialogTrigger, DialogContent, Popover, Select, Tabs, TabsList, TabsTrigger, TabsContent, Tooltip, TooltipProvider, TooltipTrigger, TooltipContent, Collapsible, CollapsibleTrigger, CollapsibleContent, Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, Accordion, AccordionItem, AccordionTrigger, AccordionContent, Sheet, Drawer, and many more
+	- These components are production-ready, accessible (ARIA), keyboard-navigable, and built on battle-tested Radix UI primitives
 	- See `components.json` for style preset, aliases, and paths. Aliases include:
 		- `components` → `@/components`
 		- `ui` → `@/components/ui`
 		- `utils` → `@/lib/utils`
 		- `lib` → `@/lib`
 		- `hooks` → `@/hooks`
-- **Custom components should compose shadcn primitives**
-	- Only create custom components when shadcn doesn't provide the exact pattern needed
-	- Even in custom components, use shadcn/ui primitives as building blocks (e.g., use `Collapsible` for expand/collapse, `Carousel` for carousels, `Dialog` for modals)
-	- Never recreate functionality that shadcn already provides (collapsibles, carousels, accordions, dialogs, etc.)
+- **Custom components must compose shadcn primitives**
+	- Only create custom components for domain-specific patterns not covered by shadcn
+	- Even in custom components, always build on top of shadcn/ui primitives
+	- Examples: For collapsible sections, use `Collapsible` from shadcn. For carousels, use `Carousel` from shadcn. For modals, use `Dialog` from shadcn.
+	- Never manually implement features like scroll tracking, collapse animations, or modal overlays - shadcn handles these robustly
 - **Design implementation standards**
 	- Keep designs minimal: transparent backgrounds, subtle borders, avoid heavy fills
 	- Use proper spacing: 4px/8px grid system (gap-1, gap-2, gap-4, etc.)
@@ -91,7 +91,7 @@
 - Tailwind v4 usage
 	- Use design tokens from `:root` in `app/globals.css`. Prefer utility classes and pre-defined helpers like `.card-standard`, `.text-heading`, etc.
 	- Dark mode uses the `dark` class on `<html>` via the `ThemeProvider`.
-- Radix UI primitives power shadcn/ui and provide accessibility and composability (dialogs, popovers, menus, etc.).
+- Radix UI primitives power all shadcn/ui components and provide accessibility and composability.
 - Charts with Recharts; animations with framer-motion; icons via lucide-react.
 - Client vs Server Components
 	- Use Server Components by default in `app/` routes. Add `"use client"` only where interactivity, hooks, or browser APIs are needed.
@@ -114,7 +114,9 @@
 - Add a client component
 	- Create `components/my-widget.tsx` with `"use client"` if it uses state/effects or browser APIs.
 - Use a UI primitive
-	- Import from `@/components/ui/*` or compose your own using Radix primitives and Tailwind utilities.
+	- **ALWAYS import from `@/components/ui/*` first** - check for existing shadcn components before creating custom UI
+	- Available: Button, Card, Dialog, Collapsible, Carousel, Accordion, Tabs, Select, Popover, Tooltip, Sheet, Drawer, etc.
+	- Only compose custom patterns when shadcn doesn't provide the exact component needed
 - Typecheck and lint before commit
 	- `pnpm exec tsc -p tsconfig.json --noEmit`
 	- `pnpm lint`
@@ -141,7 +143,6 @@
 - **Quality over speed**: Take time to get spacing, sizing, colors, and animations right. A polished, minimal design is better than a feature-complete but cluttered one.
 
 ## Quality gates
-- Build: `pnpm build` must complete without runtime errors.
 - Lint/Typecheck: `pnpm lint` and `pnpm exec tsc -p tsconfig.json --noEmit` should pass locally.
 - Tests: if present, all test suites must pass before merging.
 
