@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { MaskableValue } from "@/components/privacy-provider"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,8 +24,18 @@ export function Portfolio({ filter }: PortfolioProps) {
   const [query, setQuery] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("value")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
+  const [holdings, setHoldings] = useState<Holding[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const holdings = useMemo(() => getPortfolioHoldings(), [])
+  useEffect(() => {
+    getPortfolioHoldings()
+      .then(setHoldings)
+      .catch(err => {
+        console.error('Failed to load holdings:', err)
+        setHoldings([])
+      })
+      .finally(() => setIsLoading(false))
+  }, [])
 
   const computed = useMemo(() => {
     const enriched = holdings.map((h: Holding) => {
@@ -83,6 +93,21 @@ export function Portfolio({ filter }: PortfolioProps) {
       setSortKey(key)
       setSortDir("desc")
     }
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="card-standard">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Portfolio</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8 text-muted-foreground">
+            Loading holdings...
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
