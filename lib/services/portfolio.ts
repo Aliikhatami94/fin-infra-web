@@ -11,9 +11,9 @@ import { holdingsResponseSchema } from "@/lib/schemas"
 import type { Holding } from "@/types/domain"
 import { isMarketingMode } from "@/lib/marketingMode"
 import { fetchPortfolioMetrics, fetchPortfolioHoldings, fetchPortfolioAllocation } from "@/lib/api/client"
+import { getCurrentUserId } from "@/lib/auth/token"
 
-const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL || process.env.NODE_ENV === 'development'
-const DEMO_USER_ID = "demo_user" // TODO: Get from auth context
+const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL
 
 export async function getPortfolioHoldings(): Promise<Holding[]> {
   // Marketing mode: Always use mock data
@@ -21,13 +21,14 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
 
-  // Use mock data if API not configured
-  if (USE_MOCK_DATA) {
+  // Use mock data if API not configured or user not authenticated
+  const userId = getCurrentUserId()
+  if (USE_MOCK_DATA || !userId) {
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
 
   try {
-    const data = await fetchPortfolioHoldings(DEMO_USER_ID)
+    const data = await fetchPortfolioHoldings(userId)
     // TODO: Transform API response to Holding[] format
     // For now, fall back to mock data
     return holdingsResponseSchema.parse(portfolioHoldings)

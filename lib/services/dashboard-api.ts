@@ -11,9 +11,9 @@ import { dashboardKpisResponseSchema, recentActivitiesResponseSchema } from "@/l
 import type { KPI, OnboardingPersona, RecentActivity } from "@/types/domain"
 import { fetchDashboardKpis } from "@/lib/api/client"
 import { isMarketingMode } from "@/lib/marketingMode"
+import { getCurrentUserId } from "@/lib/auth/token"
 
-const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL || process.env.NODE_ENV === 'development'
-const DEMO_USER_ID = "demo_user" // TODO: Get from auth context
+const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL
 
 /**
  * Get dashboard KPIs with optional persona filtering
@@ -24,14 +24,15 @@ export async function getDashboardKpis(persona?: OnboardingPersona): Promise<KPI
     return getDashboardKpisMock(persona)
   }
 
-  // Use mock data if API not configured
-  if (USE_MOCK_DATA) {
+  // Use mock data if API not configured or user not authenticated
+  const userId = getCurrentUserId()
+  if (USE_MOCK_DATA || !userId) {
     return getDashboardKpisMock(persona)
   }
 
   try {
     // Fetch real data from API
-    const data = await fetchDashboardKpis(DEMO_USER_ID)
+    const data = await fetchDashboardKpis(userId)
     
     // Transform API response to KPI format
     const apiKpis: KPI[] = [

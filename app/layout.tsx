@@ -13,6 +13,7 @@ import { Toaster } from "@/components/ui/sonner"
 import GlobalFeedbackTrigger from "@/components/global-feedback-trigger"
 import { DensityProvider } from "@/app/providers/density-provider"
 import { AppearanceProvider } from "@/components/appearance-provider"
+import { AuthProvider } from "@/lib/auth/context"
 
 const _inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -41,16 +42,18 @@ export default function RootLayout({
         <AppearanceProvider>
           <DensityProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-              <PrivacyProvider>
-                <PersonaProvider>
-                  <DateRangeProvider>
-                    <MarketingModeScript />
-                    {children}
-                    {/* Global feedback button available on all pages */}
-                    <GlobalFeedbackTrigger />
-                  </DateRangeProvider>
-                </PersonaProvider>
-              </PrivacyProvider>
+              <AuthProvider>
+                <PrivacyProvider>
+                  <PersonaProvider>
+                    <DateRangeProvider>
+                      <MarketingModeScript />
+                      {children}
+                      {/* Global feedback button available on all pages */}
+                      <GlobalFeedbackTrigger />
+                    </DateRangeProvider>
+                  </PersonaProvider>
+                </PrivacyProvider>
+              </AuthProvider>
             </ThemeProvider>
           </DensityProvider>
         </AppearanceProvider>

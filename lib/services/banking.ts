@@ -13,35 +13,37 @@ import {
   disconnectProvider,
 } from "@/lib/api/client"
 import { isMarketingMode } from "@/lib/marketingMode"
+import { getCurrentUserId } from "@/lib/auth/token"
 
-const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL || process.env.NODE_ENV === 'development'
-const DEMO_USER_ID = "demo_user" // TODO: Get from auth context
+const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL
 
 /**
  * Get banking connection status
  */
 export async function getBankingConnectionStatus() {
+  const userId = getCurrentUserId()
+  
   // Marketing mode: Always use mock data
   if (typeof window !== 'undefined' && isMarketingMode()) {
     return {
-      user_id: DEMO_USER_ID,
+      user_id: 'demo_user',
       connections: {},
     }
   }
 
-  if (USE_MOCK_DATA) {
+  if (USE_MOCK_DATA || !userId) {
     return {
-      user_id: DEMO_USER_ID,
+      user_id: userId || 'anonymous',
       connections: {},
     }
   }
 
   try {
-    return await fetchBankingConnectionStatus(DEMO_USER_ID)
+    return await fetchBankingConnectionStatus(userId)
   } catch (error) {
     console.error('Failed to fetch banking connection status:', error)
     return {
-      user_id: DEMO_USER_ID,
+      user_id: userId,
       connections: {},
     }
   }
@@ -51,7 +53,8 @@ export async function getBankingConnectionStatus() {
  * Connect Plaid account
  */
 export async function linkPlaidAccount(accessToken: string, itemId: string) {
-  if (USE_MOCK_DATA) {
+  const userId = getCurrentUserId()
+  if (USE_MOCK_DATA || !userId) {
     console.log('Mock: Would connect Plaid account')
     return {
       success: true,
@@ -72,7 +75,8 @@ export async function linkPlaidAccount(accessToken: string, itemId: string) {
  * Connect Teller account
  */
 export async function linkTellerAccount(accessToken: string, enrollmentId: string) {
-  if (USE_MOCK_DATA) {
+  const userId = getCurrentUserId()
+  if (USE_MOCK_DATA || !userId) {
     console.log('Mock: Would connect Teller account')
     return {
       success: true,
@@ -93,7 +97,8 @@ export async function linkTellerAccount(accessToken: string, enrollmentId: strin
  * Disconnect banking provider
  */
 export async function unlinkProvider(provider: 'plaid' | 'teller') {
-  if (USE_MOCK_DATA) {
+  const userId = getCurrentUserId()
+  if (USE_MOCK_DATA || !userId) {
     console.log(`Mock: Would disconnect ${provider}`)
     return {
       success: true,

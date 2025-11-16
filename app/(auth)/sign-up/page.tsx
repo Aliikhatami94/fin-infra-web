@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { BRAND } from "@/lib/brand"
 import { ComingSoon } from "@/components/coming-soon"
 import { toast } from "sonner"
 import { AlertCircle, Check, X, Loader2 } from "lucide-react"
+import { useAuth } from "@/lib/auth/context"
 
 // Password strength calculation
 function calculatePasswordStrength(password: string): {
@@ -38,6 +40,8 @@ function calculatePasswordStrength(password: string): {
 }
 
 export default function SignUpPage() {
+  const { register, user } = useAuth()
+  const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -51,6 +55,13 @@ export default function SignUpPage() {
     password: false,
     confirmPassword: false,
   })
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard")
+    }
+  }, [user, router])
 
   const strength = calculatePasswordStrength(password)
 
@@ -115,12 +126,12 @@ export default function SignUpPage() {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await register(email, password, name)
       toast.success("Account created successfully! Redirecting...")
-      // TODO: Implement registration logic and redirect
+      router.push("/dashboard")
     } catch (error) {
-      toast.error("Failed to create account. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "Failed to create account"
+      toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
     }

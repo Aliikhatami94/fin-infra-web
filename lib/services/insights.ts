@@ -23,9 +23,9 @@ import {
 import type { DocumentInsight, InsightFeedItem, OverviewInsight } from "@/types/domain"
 import { isMarketingMode } from "@/lib/marketingMode"
 import { fetchInsightsFeed, fetchInsightsSummary } from "@/lib/api/client"
+import { getCurrentUserId } from "@/lib/auth/token"
 
-const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL || process.env.NODE_ENV === 'development'
-const DEMO_USER_ID = "demo_user" // TODO: Get from auth context
+const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL
 
 export function getOverviewInsights(): OverviewInsight[] {
   return overviewInsightsResponseSchema.parse(overviewInsights)

@@ -9,11 +9,15 @@ import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import { BRAND } from "@/lib/brand"
 import { PasswordInput } from "@/components/ui/password-input"
+import { useAuth } from "@/lib/auth/context"
 
 export default function SignInPage() {
+  const { login, user } = useAuth()
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [touched, setTouched] = useState({ email: false, password: false })
@@ -22,6 +26,13 @@ export default function SignInPage() {
   const [providerError, setProviderError] = useState<string | null>(null)
   const [providerLoading, setProviderLoading] = useState<"google" | "github" | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard")
+    }
+  }, [user, router])
 
   const emailErrorId = "sign-in-email-error"
   const passwordErrorId = "sign-in-password-error"
@@ -95,19 +106,24 @@ export default function SignInPage() {
     setIsSubmitting(true)
 
     try {
-      // TODO: Replace with real authentication logic
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      await login(email, password)
       
-      // Simulate authentication failure
+      // Success! Redirect to dashboard
+      toast.success("Welcome back!", {
+        description: "You've been signed in successfully.",
+      })
+      router.push("/dashboard")
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Sign in failed"
+      
       setErrors((prev) => ({
         ...prev,
-        password: prev.password || "Those credentials didn't match our records.",
+        password: "Those credentials didn't match our records.",
       }))
       setSubmitError("We couldn't sign you in with those credentials. Double-check your email and password and try again.")
       
-      // Show toast notification for better visibility
       toast.error("Sign in failed", {
-        description: "Please check your email and password and try again.",
+        description: errorMessage,
       })
     } finally {
       setIsSubmitting(false)
