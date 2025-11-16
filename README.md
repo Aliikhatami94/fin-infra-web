@@ -113,7 +113,7 @@ pnpm test
 
 ## Quality assurance
 
-- Follow the [QA checklist](docs/qa-checklist.md) before shipping user-facing changes.
+- Test all user-facing changes across different viewports and themes before shipping.
 - Run automated accessibility checks with `pnpm qa:axe -- --baseUrl http://localhost:3000` while the app is
   running locally.
 - Capture Lighthouse baselines for landing and dashboard routes via `pnpm qa:lighthouse`.
