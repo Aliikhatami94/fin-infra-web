@@ -26,6 +26,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Documentation
+# Documentation (AI agent files - never commit)
 .github/AGENTS.md
 .github/PLAN.md
+.github/SETUP.md
+
+# Documentation at root (should be in docs/ directory)
+# Only README.md is allowed at root
+/*.md
+!README.md

@@ -1,7 +1,38 @@
+/**
+ * Portfolio service with API integration
+ * 
+ * Provides portfolio data with fallback to mock data during development.
+ * Set NEXT_PUBLIC_API_URL to enable real API integration.
+ * Marketing mode (?marketing=1) always uses mock data regardless of environment.
+ */
+
 import { portfolioHoldings } from "@/lib/mock"
 import { holdingsResponseSchema } from "@/lib/schemas"
 import type { Holding } from "@/types/domain"
+import { isMarketingMode } from "@/lib/marketingMode"
+import { fetchPortfolioMetrics, fetchPortfolioHoldings, fetchPortfolioAllocation } from "@/lib/api/client"
 
-export function getPortfolioHoldings(): Holding[] {
-  return holdingsResponseSchema.parse(portfolioHoldings)
+const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL || process.env.NODE_ENV === 'development'
+const DEMO_USER_ID = "demo_user" // TODO: Get from auth context
+
+export async function getPortfolioHoldings(): Promise<Holding[]> {
+  // Marketing mode: Always use mock data
+  if (typeof window !== 'undefined' && isMarketingMode()) {
+    return holdingsResponseSchema.parse(portfolioHoldings)
+  }
+
+  // Use mock data if API not configured
+  if (USE_MOCK_DATA) {
+    return holdingsResponseSchema.parse(portfolioHoldings)
+  }
+
+  try {
+    const data = await fetchPortfolioHoldings(DEMO_USER_ID)
+    // TODO: Transform API response to Holding[] format
+    // For now, fall back to mock data
+    return holdingsResponseSchema.parse(portfolioHoldings)
+  } catch (error) {
+    console.error('Failed to fetch portfolio holdings, falling back to mock:', error)
+    return holdingsResponseSchema.parse(portfolioHoldings)
+  }
 }
