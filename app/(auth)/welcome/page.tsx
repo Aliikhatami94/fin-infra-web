@@ -18,7 +18,7 @@ function WelcomeGatePageContent() {
   useEffect(() => {
     if (!user) return
     if (user.onboarding_completed) {
-      router.replace("/overview")
+      router.replace("/dashboard")
     }
   }, [user, router])
 

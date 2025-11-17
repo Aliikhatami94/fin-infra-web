@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useWorkspace } from "@/components/workspace-provider"
 import { useAuth } from "@/lib/auth/context"
 import { useState, useEffect } from "react"
-import { toast } from "@/components/ui/sonner"
+import { showErrorToast, showSuccessToast, formatError } from "@/lib/toast-utils"
 
 export default function ProfilePage() {
   const { activeMember } = useWorkspace()
@@ -65,14 +65,14 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!hydrated) {
-      toast.error("Please wait", {
+      showErrorToast("Please wait", {
         description: "The page is still loading."
       })
       return
     }
 
     if (!isEmailValid || !isPhoneValid) {
-      toast.error("Invalid input", {
+      showErrorToast("Invalid input", {
         description: "Please check your email and phone number format."
       })
       return
@@ -91,13 +91,14 @@ export default function ProfilePage() {
       setShowSavedMessage(true)
       setTimeout(() => setShowSavedMessage(false), 3000)
       
-      toast.success("Profile updated", {
+      showSuccessToast("Profile updated", {
         description: "Your changes have been saved successfully."
       })
     } catch (error) {
       console.error("Failed to update profile:", error)
-      toast.error("Update failed", {
-        description: "Could not save your changes. Please try again."
+      const { message, details } = formatError(error)
+      showErrorToast("Update failed", {
+        description: details || message
       })
     } finally {
       setIsSaving(false)
@@ -203,7 +204,11 @@ export default function ProfilePage() {
                     type="tel" 
                     className="pl-9 pr-9 h-9" 
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9+\-() ]/g, '')
+                      setPhone(value)
+                    }}
+                    placeholder="+1 (555) 123-4567"
                   />
                   {isPhoneValid && phone && (
                     <Check className="absolute right-3 top-2.5 h-4 w-4 text-emerald-600" />

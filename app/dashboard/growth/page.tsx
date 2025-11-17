@@ -30,6 +30,7 @@ import {
 } from "@/lib/mock"
 import { useFeatureFlag } from "@/lib/analytics/experiments"
 import { trackCohortView, trackExperimentExposure, trackShareExport } from "@/lib/analytics/events"
+import { showSuccessToast } from "@/lib/toast-utils"
 import { toast } from "@/components/ui/sonner"
 import { Download, Share2 } from "lucide-react"
 
@@ -124,12 +125,8 @@ export default function GrowthPage() {
 
   const handleExport = (format: "pdf" | "csv") => {
     trackShareExport({ surface: "growth", format, channel: "internal", items: adjustedActivation.length })
-    toast.success(`Preparing ${format.toUpperCase()} export`, {
+    showSuccessToast(`Preparing ${format.toUpperCase()} export`, {
       description: "A download link will appear in your notifications once generated.",
-      action: {
-        label: "View later",
-        onClick: () => undefined,
-      },
     })
   }
 

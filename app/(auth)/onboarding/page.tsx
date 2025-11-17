@@ -22,7 +22,7 @@ import {
   trackOnboardingStepViewed,
 } from "@/lib/analytics/events"
 
-import { toast } from "@/components/ui/sonner"
+import { showErrorToast, showSuccessToast, formatError } from "@/lib/toast-utils"
 import type {
   InstitutionConnectionStatus,
   LinkedInstitution,
@@ -148,6 +148,14 @@ function OnboardingPageContent() {
   const institutions = useMemo(() => listLinkableInstitutions(), [])
   const hasInitializedStep = useRef(false)
   const hasLoadedBankingConnections = useRef(false)
+
+  // Redirect to dashboard if onboarding is already completed
+  useEffect(() => {
+    if (!hydrated || !user) return
+    if (user.onboarding_completed && !shouldRestart) {
+      router.replace('/dashboard')
+    }
+  }, [hydrated, user, shouldRestart, router])
 
   // Load existing banking connections from user.banking_providers on initial load
   useEffect(() => {
@@ -397,7 +405,7 @@ function OnboardingPageContent() {
           errorMessage: "Couldn't fetch account details. Please try reconnecting.",
         })
         
-        toast.error("Connection incomplete", {
+        showErrorToast("Connection incomplete", {
           description: "Bank connected but couldn't retrieve account details.",
         })
       }
@@ -410,7 +418,7 @@ function OnboardingPageContent() {
         errorMessage: "Network error while fetching accounts. Please try again.",
       })
       
-      toast.error("Connection error", {
+      showErrorToast("Connection error", {
         description: "Couldn't complete the connection. Please try again.",
       })
     }
@@ -445,7 +453,7 @@ function OnboardingPageContent() {
         error instanceof Error ? error.message : "We couldn\u2019t connect this institution."
       upsertInstitution({ ...optimistic, status: "error", errorMessage: message })
       setLinkErrors((prev) => ({ ...prev, [institutionId]: message }))
-      toast.error(`Couldn\u2019t connect to ${definition.name}`, {
+      showErrorToast(`Couldn\u2019t connect to ${definition.name}`, {
         description: message,
       })
     } finally {
@@ -474,7 +482,7 @@ function OnboardingPageContent() {
       await updateUser({ onboarding_completed: true })
     } catch (error) {
       console.error("Failed to update onboarding status:", error)
-      toast.error("Failed to save onboarding status", {
+      showErrorToast("Failed to save onboarding status", {
         description: "Don't worry, you can continue anyway.",
       })
     }

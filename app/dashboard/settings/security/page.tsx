@@ -58,7 +58,7 @@ import {
 } from "@/components/ui/dialog"
 import { AnimatedSwitch } from "@/components/animated-switch"
 import { ConfirmDialog } from "@/components/confirm-dialog"
-import { toast } from "@/components/ui/sonner"
+import { showSuccessToast } from "@/lib/toast-utils"
 import { trackPreferenceToggle } from "@/lib/analytics/events"
 import { MaskedInput, maskEmail, maskPhone } from "@/components/ui/masked-input"
 
@@ -1038,7 +1038,7 @@ export default function SecurityCenterPage() {
               onClick={() => {
                 setAlternateEmail(tempEmail)
                 setEditEmailDialogOpen(false)
-                toast.success("Alternate email updated")
+                showSuccessToast("Alternate email updated")
               }}
             >
               Save
@@ -1080,7 +1080,7 @@ export default function SecurityCenterPage() {
               onClick={() => {
                 setAlternatePhone(tempPhone)
                 setEditPhoneDialogOpen(false)
-                toast.success("Backup phone updated")
+                showSuccessToast("Backup phone updated")
               }}
             >
               Save

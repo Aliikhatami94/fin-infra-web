@@ -19,7 +19,7 @@ import { addMonths, format, getMonth, getYear, setMonth, setYear, startOfMonth }
 import { ErrorBoundary } from "@/components/error-boundary"
 import { ScenarioPlaybook } from "@/components/scenario-playbook"
 import { trackShareExport } from "@/lib/analytics/events"
-import { toast } from "@/components/ui/sonner"
+import { showSuccessToast } from "@/lib/toast-utils"
 import { useFeatureFlag } from "@/lib/analytics/experiments"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
@@ -30,7 +30,7 @@ export default function BudgetPage() {
 
   const handleExport = (formatType: "csv" | "pdf") => {
     trackShareExport({ surface: "budget", format: formatType, channel: "member", items: 12 })
-    toast.success(`Budget ${formatType.toUpperCase()} export ready`, {
+    showSuccessToast(`Budget ${formatType.toUpperCase()} export ready`, {
       description: "Attribution recorded so you can follow up when it's shared.",
     })
   }

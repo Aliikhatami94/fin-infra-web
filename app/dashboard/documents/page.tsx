@@ -36,7 +36,7 @@ import { useDocumentFilters } from "@/lib/hooks"
 import { getDocuments } from "@/lib/services/documents"
 import type { Document } from "@/types/domain"
 import { DocumentUploadZone } from "@/components/document-upload-zone"
-import { toast } from "@/components/ui/sonner"
+import { showSuccessToast } from "@/lib/toast-utils"
 import { SuccessCelebrationDialog } from "@/components/success-celebration-dialog"
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
 import { cn } from "@/lib/utils"
@@ -193,7 +193,7 @@ export default function DocumentsPage() {
     })
 
     setActiveFilterSet(filterId)
-    toast.success(`Applied "${filterSet.name}" filter`)
+    showSuccessToast(`Applied "${filterSet.name}" filter`)
   }, [fileTypes, accounts, years, selectedTypes, selectedAccounts, selectedYears, toggleType, toggleAccount, toggleYear, clearAll])
 
   // Check if current filters match a saved filter set
@@ -265,7 +265,7 @@ export default function DocumentsPage() {
       const first = uploadedDocs[0]?.name ?? "document"
       setCelebration({ count: uploadedDocs.length, firstName: first })
       setCelebrationOpen(true)
-      toast.success(
+      showSuccessToast(
         uploadedDocs.length === 1
           ? `Uploaded ${first}`
           : `Uploaded ${uploadedDocs.length} documents`,
@@ -288,7 +288,7 @@ export default function DocumentsPage() {
     if (!selectedDocuments.length) return
     setDocuments((prev) => prev.filter((d) => !selectedDocuments.includes(d.id)))
     setSelectedDocuments([])
-    toast.success("Selected documents deleted")
+    showSuccessToast("Selected documents deleted")
   }, [selectedDocuments])
 
   return (

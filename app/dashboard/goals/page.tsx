@@ -19,7 +19,7 @@ import { Slider } from "@/components/ui/slider"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion"
 import { ConfirmDialog } from "@/components/confirm-dialog"
-import { toast } from "@/components/ui/sonner"
+import { showSuccessToast } from "@/lib/toast-utils"
 
 export default function GoalsPage() {
   const [showAddGoal, setShowAddGoal] = useState(false)
@@ -56,7 +56,7 @@ export default function GoalsPage() {
   const handleCreateGoal = () => {
     setConfirmCreateGoal(false)
     setShowAddGoal(false)
-    toast.success("Goal created successfully", {
+    showSuccessToast("Goal created successfully", {
       description: "Your new savings goal is now active and tracking."
     })
   }
