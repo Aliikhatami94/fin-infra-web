@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
+import { useAuth } from "@/lib/auth/context"
 // Heavy widgets are dynamically loaded client-side with skeletons
 import { OverviewKPIs } from "@/components/overview-kpis"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"

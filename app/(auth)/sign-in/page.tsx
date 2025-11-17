@@ -116,27 +116,11 @@ export default function SignInPage() {
     }
   }
 
-  const handleOAuthSignIn = async (provider: "google" | "github") => {
-    setProviderError(null)
-    setSubmitError(null)
-    setProviderLoading(provider)
-
-    try {
-      // TODO: Replace with real OAuth logic
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      
-      const providerName = provider === "google" ? "Google" : "GitHub"
-      setProviderError(
-        `We're unable to connect to ${providerName} right now. Please try again or continue with email.`,
-      )
-      
-      // Show toast notification
-      toast.error(`${providerName} sign-in unavailable`, {
-        description: "Please try again or use email to sign in.",
-      })
-    } finally {
-      setProviderLoading(null)
-    }
+  const handleOAuthSignIn = (provider: "google" | "github") => {
+    // Redirect to backend OAuth authorization endpoint
+    // Backend will handle the OAuth flow and redirect back with JWT token
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+    window.location.href = `${apiUrl}/auth/oauth/${provider}/login`
   }
 
   return (

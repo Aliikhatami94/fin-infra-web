@@ -28,6 +28,7 @@ next-env.d.ts
 
 # Documentation (AI agent files - never commit)
 .github/AGENTS.md
+.github/copilot-instructions.md
 .github/PLAN.md
 .github/SETUP.md
 

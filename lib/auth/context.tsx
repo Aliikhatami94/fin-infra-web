@@ -35,24 +35,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAuth() {
     try {
-      const token = localStorage.getItem("auth_token")
-      if (!token) {
-        setIsLoading(false)
-        return
+      // FIRST: Check if there's an OAuth token in the URL hash (from OAuth callback redirect)
+      const hash = window.location.hash
+      if (hash && hash.includes("access_token=")) {
+        const params = new URLSearchParams(hash.substring(1))
+        const hashToken = params.get("access_token")
+        
+        if (hashToken) {
+          console.log("[Auth] Found OAuth token in URL hash, storing")
+          localStorage.setItem("auth_token", hashToken)
+          // Clear hash from URL
+          window.history.replaceState(null, "", window.location.pathname + window.location.search)
+        }
       }
 
+      const token = localStorage.getItem("auth_token")
+      
+      // Try cookie-based auth first (for OAuth), then token-based auth
+      const headers: Record<string, string> = {}
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`
+      }
+
+      console.log("[Auth] Checking authentication, has token:", !!token)
+      
       const response = await fetch(`${API_URL}/users/me`, {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
+        headers,
+        credentials: "include", // Include cookies for OAuth authentication
       })
+
+      console.log("[Auth] /users/me response:", response.status, response.ok)
 
       if (response.ok) {
         const userData = await response.json()
+        console.log("[Auth] User authenticated:", userData.email)
         setUser(userData)
       } else {
-        // Token is invalid, clear it
-        localStorage.removeItem("auth_token")
+        // Auth failed, clear token if present
+        console.log("[Auth] Authentication failed, clearing state")
+        if (token) {
+          localStorage.removeItem("auth_token")
+        }
         setUser(null)
       }
     } catch (error) {
@@ -74,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
+      credentials: "include", // Include cookies
       body: formData.toString(),
     })
 
@@ -93,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: {
         "Authorization": `Bearer ${token}`,
       },
+      credentials: "include", // Include cookies
     })
 
     if (userResponse.ok) {
@@ -107,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // Include cookies
       body: JSON.stringify({
         email,
         password,
@@ -139,6 +165,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
+    // Call backend logout to clear cookies (for OAuth users)
+    try {
+      await fetch(`${API_URL}/users/logout`, {
+        method: "POST",
+        credentials: "include",
+      })
+    } catch (error) {
+      console.error("Logout request failed:", error)
+    }
+    
     localStorage.removeItem("auth_token")
     setUser(null)
     router.push("/sign-in")
