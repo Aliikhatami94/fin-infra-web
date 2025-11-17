@@ -220,7 +220,6 @@ export default function SignInPage() {
             id={providerErrorId}
             role="alert"
             aria-live="assertive"
-            ref={providerErrorRef}
             tabIndex={-1}
             className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
           >
