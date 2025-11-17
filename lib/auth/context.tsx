@@ -206,9 +206,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function updateUser(updates: Partial<User>) {
+    // Check if we're in a browser environment
+    if (typeof window === "undefined") {
+      throw new Error("Cannot update user on server")
+    }
+
     const token = localStorage.getItem("auth_token")
     if (!token) {
-      throw new Error("Not authenticated")
+      throw new Error("Missing credentials")
     }
 
     const response = await fetch(`${API_URL}/users/me`, {

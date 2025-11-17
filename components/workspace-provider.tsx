@@ -128,7 +128,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const realWorkspace: WorkspaceSummary = {
       id: user.id,
       name: user.full_name ? `${user.full_name}'s Workspace` : "My Workspace",
-      slug: `user-${user.id}`,
+      relationship: "Personal finances",
+      role: "owner" as const,
       members: [
         {
           id: user.id,
@@ -136,6 +137,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           email: user.email,
           avatarFallback: userInitials,
           role: "owner" as const,
+          presence: "online" as const,
         }
       ]
     }

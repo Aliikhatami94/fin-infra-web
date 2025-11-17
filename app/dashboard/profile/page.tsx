@@ -27,6 +27,12 @@ export default function ProfilePage() {
   const [isPhoneValid, setIsPhoneValid] = useState(true)
   const [showSavedMessage, setShowSavedMessage] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
+  
+  // Track hydration
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
   
   // Load user data when component mounts or user changes
   useEffect(() => {
@@ -58,6 +64,13 @@ export default function ProfilePage() {
   }, [phone])
 
   const handleSave = async () => {
+    if (!hydrated) {
+      toast.error("Please wait", {
+        description: "The page is still loading."
+      })
+      return
+    }
+
     if (!isEmailValid || !isPhoneValid) {
       toast.error("Invalid input", {
         description: "Please check your email and phone number format."
@@ -68,11 +81,11 @@ export default function ProfilePage() {
     setIsSaving(true)
     try {
       await updateUser({
-        full_name: fullName || undefined,
-        email: email || undefined,
-        phone_number: phone || undefined,
-        bio: bio || undefined,
-        location: location || undefined,
+        full_name: fullName || null,
+        email: email || undefined,  // Don't allow clearing email
+        phone_number: phone || null,
+        bio: bio || null,
+        location: location || null,
       })
       
       setShowSavedMessage(true)
