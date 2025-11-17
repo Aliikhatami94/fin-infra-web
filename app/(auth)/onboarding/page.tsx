@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { Check, ChevronLeft, Loader2, ShieldCheck, Sparkles, Wallet } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/lib/auth/context"
+import { ProtectedRoute } from "@/components/protected-route"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -117,9 +119,10 @@ function getNextStep(current: StepId): StepId | null {
   return stepOrder[index + 1] ?? null
 }
 
-export default function OnboardingPage() {
+function OnboardingPageContent() {
   const router = useRouter()
   const { masked } = usePrivacy()
+  const { updateUser } = useAuth()
   const { state, hydrated, markStatus, markStepComplete, upsertInstitution, updatePersona, progress } =
     useOnboardingState()
   const [currentStep, setCurrentStep] = useState<StepId>(steps[0].id)
@@ -135,6 +138,7 @@ export default function OnboardingPage() {
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
   const [skipped, setSkipped] = useState(false)
+  const [finishing, setFinishing] = useState(false)
   const totalSteps = steps.length
   const computeProgress = useCallback((count: number) => Math.min(100, Math.round((count / totalSteps) * 100)), [totalSteps])
   const institutions = useMemo(() => listLinkableInstitutions(), [])
@@ -287,15 +291,30 @@ export default function OnboardingPage() {
     }
   }
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
+    setFinishing(true)
+    
     if (!completedSteps.has("personalize")) {
       trackOnboardingStepCompleted({ stepId: "personalize", progress: computeProgress(completedSteps.size + 1) })
     }
     markStepComplete("personalize")
     markStatus("completed")
+    
+    // Mark onboarding as completed on the server
+    try {
+      await updateUser({ onboarding_completed: true })
+    } catch (error) {
+      console.error("Failed to update onboarding status:", error)
+      toast.error("Failed to save onboarding status", {
+        description: "Don't worry, you can continue anyway.",
+      })
+    } finally {
+      setFinishing(false)
+    }
+    
     setCompleted(true)
     setFeedbackOpen(true)
-    setPendingRedirect("/dashboard")
+    setPendingRedirect("/overview")
   }
 
   const handleSkip = () => {
@@ -539,9 +558,15 @@ export default function OnboardingPage() {
           Encryption by default. We never store credentials in plain text.
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" onClick={() => setCurrentStep("connect")}>Back</Button>
-          <Button onClick={handleFinish}>
-            Launch dashboard
+          <Button variant="ghost" onClick={() => setCurrentStep("connect")} disabled={finishing}>Back</Button>
+          <Button onClick={handleFinish} disabled={finishing}>
+            {finishing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Finishing...
+              </>
+            ) : (
+              "Launch dashboard"
+            )}
           </Button>
         </div>
       </CardFooter>
@@ -706,4 +731,12 @@ function StatusBadge({ status }: StatusBadgeProps) {
     default:
       return <Badge variant="outline">Pending</Badge>
   }
+}
+
+export default function OnboardingPage() {
+  return (
+    <ProtectedRoute requireOnboarding={false}>
+      <OnboardingPageContent />
+    </ProtectedRoute>
+  )
 }

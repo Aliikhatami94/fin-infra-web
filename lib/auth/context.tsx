@@ -8,6 +8,8 @@ interface User {
   email: string
   full_name?: string
   is_verified: boolean
+  onboarding_completed?: boolean
+  banking_providers?: Record<string, any>
 }
 
 interface AuthContextType {
@@ -17,6 +19,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   register: (email: string, password: string, fullName?: string) => Promise<void>
   refreshUser: () => Promise<void>
+  updateUser: (updates: Partial<User>) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -184,6 +187,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await checkAuth()
   }
 
+  async function updateUser(updates: Partial<User>) {
+    const token = localStorage.getItem("auth_token")
+    if (!token) {
+      throw new Error("Not authenticated")
+    }
+
+    const response = await fetch(`${API_URL}/users/me`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(updates),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail || "Failed to update user")
+    }
+
+    const updatedUser = await response.json()
+    setUser(updatedUser)
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -193,6 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         register,
         refreshUser,
+        updateUser,
       }}
     >
       {children}

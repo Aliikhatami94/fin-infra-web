@@ -14,6 +14,7 @@ import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { useAuth } from "@/lib/auth/context"
 import { isMarketingMode, parseMarketingOptions } from "@/lib/marketingMode"
 import { getMarketingChatPreset } from "@/lib/marketingPresets"
 import type { AIChatMessage } from "@/components/ai-chat-sidebar"
@@ -80,6 +81,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { state, hydrated } = useOnboardingState()
+  const { user } = useAuth()
   const SIDEBAR_STORAGE_KEY = "ui::sidebar-collapsed"
 
   // Check if in marketing mode
@@ -112,22 +114,23 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     }
   }, [isSidebarCollapsed])
 
-  // Route gate: if no connected institutions and onboarding not completed, send users to the welcome screen
+  // Route gate: redirect to welcome if onboarding not completed (server-side check)
   useEffect(() => {
     // Skip auth checks in marketing mode
     if (inMarketingMode) return
     
-    if (!hydrated) return
-    const hasConnected = state.linkedInstitutions.some((i) => i.status === "connected")
-    const hasCompletedOnboarding = state.status === "completed" || state.status === "skipped"
+    // Wait for user data to load
+    if (!user) return
+    
     // Allow onboarding, welcome page, auth, and demo pages
     const allowPrefixes = ["/onboarding", "/welcome", "/auth", "/demo"]
     const allowed = allowPrefixes.some((p) => pathname?.startsWith(p))
-    // Redirect to welcome only if user has no connections AND hasn't completed onboarding
-    if (!hasConnected && !hasCompletedOnboarding && !allowed) {
+    
+    // Redirect to welcome if onboarding not completed (server-side flag is source of truth)
+    if (!user.onboarding_completed && !allowed) {
       router.replace("/welcome")
     }
-  }, [hydrated, pathname, router, state.linkedInstitutions, state.status, inMarketingMode])
+  }, [user, pathname, router, inMarketingMode])
 
   // Marketing helpers: optionally auto-open chat and preload a transcript
   useEffect(() => {

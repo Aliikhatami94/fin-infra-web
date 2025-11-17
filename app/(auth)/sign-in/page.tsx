@@ -17,7 +17,7 @@ import { useAuth } from "@/lib/auth/context"
 import { showErrorToast, showSuccessToast, formatError } from "@/lib/toast-utils"
 
 export default function SignInPage() {
-  const { login, user } = useAuth()
+  const { login, user, isLoading } = useAuth()
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -31,9 +31,21 @@ export default function SignInPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      router.push("/dashboard")
+      router.push("/welcome")
     }
   }, [user, router])
+
+  // Show loading state while checking auth or if user exists (during redirect)
+  if (isLoading || user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   const emailErrorId = "sign-in-email-error"
   const passwordErrorId = "sign-in-password-error"

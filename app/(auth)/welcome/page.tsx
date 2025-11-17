@@ -7,20 +7,20 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ShieldCheck, Sparkles } from "lucide-react"
-import { useOnboardingState } from "@/hooks/use-onboarding-state"
+import { useAuth } from "@/lib/auth/context"
+import { ProtectedRoute } from "@/components/protected-route"
 
-export default function WelcomeGatePage() {
+function WelcomeGatePageContent() {
   const router = useRouter()
-  const { state, hydrated } = useOnboardingState()
+  const { user } = useAuth()
 
-  // If the user already has connected institutions, skip this gate
+  // If the user has completed onboarding (server-side flag), redirect to dashboard
   useEffect(() => {
-    if (!hydrated) return
-    const hasConnected = state.linkedInstitutions.some((i) => i.status === "connected")
-    if (hasConnected) {
+    if (!user) return
+    if (user.onboarding_completed) {
       router.replace("/overview")
     }
-  }, [hydrated, router, state.linkedInstitutions])
+  }, [user, router])
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
@@ -68,5 +68,13 @@ export default function WelcomeGatePage() {
         </Card>
       </main>
     </div>
+  )
+}
+
+export default function WelcomeGatePage() {
+  return (
+    <ProtectedRoute requireOnboarding={false}>
+      <WelcomeGatePageContent />
+    </ProtectedRoute>
   )
 }

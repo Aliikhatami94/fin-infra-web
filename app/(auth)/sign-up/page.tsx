@@ -40,7 +40,7 @@ function calculatePasswordStrength(password: string): {
 }
 
 export default function SignUpPage() {
-  const { register, user } = useAuth()
+  const { register, user, isLoading } = useAuth()
   const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -59,9 +59,21 @@ export default function SignUpPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      router.push("/dashboard")
+      router.push("/welcome")
     }
   }, [user, router])
+
+  // Show loading state while checking auth or if user exists (during redirect)
+  if (isLoading || user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   const strength = calculatePasswordStrength(password)
 
