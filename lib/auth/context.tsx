@@ -178,7 +178,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Logout request failed:", error)
     }
     
+    // Clear auth token
     localStorage.removeItem("auth_token")
+    
+    // Clear onboarding state from sessionStorage
+    try {
+      sessionStorage.removeItem("onboarding::state")
+      sessionStorage.removeItem("onboarding::user_id")
+    } catch (error) {
+      console.error("Failed to clear onboarding state:", error)
+    }
+    
     setUser(null)
     router.push("/sign-in")
   }

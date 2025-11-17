@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Check, ChevronLeft, Loader2, ShieldCheck, Sparkles, Wallet } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import { FeedbackPrompt } from "@/components/feedback-prompt"
 import { MaskableValue, usePrivacy } from "@/components/privacy-provider"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
 import { buildPersonaSummary, fetchMoneyGraph, listLinkableInstitutions, simulateInstitutionLink } from "@/lib/services"
+import { PlaidLinkButton } from "@/components/plaid-link-button"
 import {
   trackOnboardingDropoff,
   trackOnboardingStepCompleted,
@@ -122,9 +123,12 @@ function getNextStep(current: StepId): StepId | null {
 function OnboardingPageContent() {
   const router = useRouter()
   const { masked } = usePrivacy()
-  const { updateUser } = useAuth()
-  const { state, hydrated, markStatus, markStepComplete, upsertInstitution, updatePersona, progress } =
+  const { user, updateUser } = useAuth()
+  const { state, hydrated, markStatus, markStepComplete, upsertInstitution, updatePersona, resetState, progress } =
     useOnboardingState()
+  const searchParams = useSearchParams()
+  const shouldRestart = searchParams?.get('restart') === 'true'
+  const isMarketingMode = searchParams?.get('marketing') === '1'
   const [currentStep, setCurrentStep] = useState<StepId>(steps[0].id)
   const [personaDraft, setPersonaDraft] = useState<OnboardingPersona>(defaultPersona)
   const [graphLoading, setGraphLoading] = useState(false)
@@ -142,15 +146,42 @@ function OnboardingPageContent() {
   const totalSteps = steps.length
   const computeProgress = useCallback((count: number) => Math.min(100, Math.round((count / totalSteps) * 100)), [totalSteps])
   const institutions = useMemo(() => listLinkableInstitutions(), [])
+  const hasInitializedStep = useRef(false)
 
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated || !user) return
+    
+    // If restart param is set, clear all state and start fresh
+    if (shouldRestart) {
+      resetState()
+      setCurrentStep(steps[0].id)
+      setPersonaDraft(defaultPersona)
+      markStatus("in_progress")
+      hasInitializedStep.current = true
+      return
+    }
+
+    // If user hasn't completed onboarding but has a completed state in storage,
+    // it means they refreshed or returned - start fresh
+    if (!user.onboarding_completed && state.status === "completed") {
+      resetState()
+      setCurrentStep(steps[0].id)
+      setPersonaDraft(defaultPersona)
+      markStatus("in_progress")
+      hasInitializedStep.current = true
+      return
+    }
+
     setPersonaDraft(state.persona ?? defaultPersona)
 
-    const completedCount = state.completedSteps.length
-    if (completedCount > 0) {
-      const nextIndex = Math.min(completedCount, steps.length - 1)
-      setCurrentStep(steps[nextIndex].id)
+    // Only resume from where they left off on initial load, not when steps are completed during the session
+    if (!hasInitializedStep.current) {
+      const completedCount = state.completedSteps.length
+      if (completedCount > 0) {
+        const nextIndex = Math.min(completedCount, steps.length - 1)
+        setCurrentStep(steps[nextIndex].id)
+      }
+      hasInitializedStep.current = true
     }
 
     if (state.status === "not_started") {
@@ -160,7 +191,7 @@ function OnboardingPageContent() {
     } else if (state.status === "skipped") {
       setSkipped(true)
     }
-  }, [hydrated, markStatus, state.completedSteps.length, state.persona, state.status])
+  }, [hydrated, user, markStatus, shouldRestart, state.completedSteps.length, state.persona, state.status, resetState])
 
   const completedSteps = useMemo(() => new Set(state.completedSteps), [state.completedSteps])
 
@@ -248,6 +279,79 @@ function OnboardingPageContent() {
     }
   }
 
+  // Handle successful Plaid connection
+  const handlePlaidSuccess = async (accessToken: string, itemId: string, institutionName: string) => {
+    // Create a linked institution entry with fetching status
+    const institution: LinkedInstitution = {
+      id: itemId,
+      name: institutionName,
+      status: "linking", // Show as linking while we fetch accounts
+      accounts: [],
+      lastLinkedAt: new Date().toISOString(),
+    }
+    
+    upsertInstitution(institution)
+    
+    // Fetch and update actual accounts
+    try {
+      const token = localStorage.getItem("auth_token")
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const response = await fetch(`${API_URL}/v0/banking-connection/accounts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        const accounts = data.accounts || []
+        
+        // Update institution with real accounts
+        upsertInstitution({
+          ...institution,
+          status: "connected",
+          accounts: accounts.map((acc: any) => ({
+            id: acc.account_id,
+            name: acc.name,
+            type: acc.type,
+            mask: acc.mask || "0000",
+            balance: acc.balances?.current || 0,
+          })),
+        })
+        
+        toast.success(`${institutionName} connected`, {
+          description: `${accounts.length} account${accounts.length !== 1 ? 's' : ''} linked successfully.`,
+        })
+      } else {
+        // Failed to fetch accounts - mark as error
+        const errorText = await response.text()
+        console.error("Failed to fetch accounts:", response.status, errorText)
+        upsertInstitution({
+          ...institution,
+          status: "error",
+          errorMessage: "Couldn't fetch account details. Please try reconnecting.",
+        })
+        
+        toast.error("Connection incomplete", {
+          description: "Bank connected but couldn't retrieve account details.",
+        })
+      }
+    } catch (error) {
+      console.error("Failed to fetch accounts:", error)
+      // Network error - mark as error
+      upsertInstitution({
+        ...institution,
+        status: "error",
+        errorMessage: "Network error while fetching accounts. Please try again.",
+      })
+      
+      toast.error("Connection error", {
+        description: "Couldn't complete the connection. Please try again.",
+      })
+    }
+  }
+
+  // Mock institution linking for marketing mode
   const handleLinkInstitution = async (institutionId: string) => {
     const definition = institutions.find((item) => item.id === institutionId)
     if (!definition) return
@@ -412,18 +516,29 @@ function OnboardingPageContent() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={() => setLinkModalOpen(true)} disabled={linkingInstitution !== null}>
-              {linkingInstitution ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Linking…
-                </>
-              ) : (
-                "Link an institution"
-              )}
-            </Button>
+          <div className="flex flex-col items-start gap-3">
+            {isMarketingMode ? (
+              // Marketing mode: use mock institutions dialog
+              <Button onClick={() => setLinkModalOpen(true)} disabled={linkingInstitution !== null}>
+                {linkingInstitution ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Linking…
+                  </>
+                ) : (
+                  "Link an institution (Demo)"
+                )}
+              </Button>
+            ) : (
+              // Real mode: use Plaid Link
+              <PlaidLinkButton onSuccess={handlePlaidSuccess}>
+                <Wallet className="mr-2 h-4 w-4" />
+                Connect Your Bank
+              </PlaidLinkButton>
+            )}
             <p className="text-sm text-muted-foreground">
-              Connect at least one account to unlock dashboards populated with live balances.
+              {isMarketingMode 
+                ? "Demo mode: Connect mock institutions to preview features."
+                : "Connect at least one account to unlock dashboards populated with live balances."}
             </p>
           </div>
 
