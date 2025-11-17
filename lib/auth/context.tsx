@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      const response = await fetch(`${API_URL}/auth/me`, {
+      const response = await fetch(`${API_URL}/users/me`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     formData.append("username", email) // API expects 'username' field
     formData.append("password", password)
 
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${API_URL}/users/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("auth_token", token)
 
     // Get user info
-    const userResponse = await fetch(`${API_URL}/auth/me`, {
+    const userResponse = await fetch(`${API_URL}/users/me`, {
       headers: {
         "Authorization": `Bearer ${token}`,
       },
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function register(email: string, password: string, fullName?: string) {
-    const response = await fetch(`${API_URL}/auth/register`, {
+    const response = await fetch(`${API_URL}/users/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -115,12 +115,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || "Registration failed")
+      let errorDetail = "Registration failed"
+      try {
+        const error = await response.json()
+        errorDetail = error.detail || errorDetail
+        
+        // Handle specific error cases
+        if (response.status === 400 && errorDetail.toLowerCase().includes("already exists")) {
+          errorDetail = "An account with this email already exists"
+        } else if (response.status === 500) {
+          errorDetail = "Server error during registration. Please try again."
+        }
+      } catch (e) {
+        // If parsing fails, use generic message
+        errorDetail = `Registration failed (${response.status})`
+      }
+      
+      throw new Error(errorDetail)
     }
 
-    // After registration, log them in
-    await login(email, password)
+    // Registration successful - return without auto-login
+    // User will be redirected to login page
   }
 
   async function logout() {

@@ -13,6 +13,7 @@ import { ComingSoon } from "@/components/coming-soon"
 import { toast } from "sonner"
 import { AlertCircle, Check, X, Loader2 } from "lucide-react"
 import { useAuth } from "@/lib/auth/context"
+import { showErrorToast, showSuccessToast, formatError } from "@/lib/toast-utils"
 
 // Password strength calculation
 function calculatePasswordStrength(password: string): {
@@ -127,11 +128,15 @@ export default function SignUpPage() {
 
     try {
       await register(email, password, name)
-      toast.success("Account created successfully! Redirecting...")
-      router.push("/dashboard")
+      showSuccessToast("Account created! Please sign in.", {
+        description: "Redirecting to sign in page..."
+      })
+      router.push("/sign-in")
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to create account"
-      toast.error(errorMessage)
+      const { message, details } = formatError(error)
+      showErrorToast(message, {
+        description: details,
+      })
     } finally {
       setIsSubmitting(false)
     }

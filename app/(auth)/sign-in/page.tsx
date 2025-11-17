@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation"
 import { BRAND } from "@/lib/brand"
 import { PasswordInput } from "@/components/ui/password-input"
 import { useAuth } from "@/lib/auth/context"
+import { showErrorToast, showSuccessToast, formatError } from "@/lib/toast-utils"
 
 export default function SignInPage() {
   const { login, user } = useAuth()
@@ -38,21 +39,6 @@ export default function SignInPage() {
   const passwordErrorId = "sign-in-password-error"
   const submitErrorId = "sign-in-submit-error"
   const providerErrorId = "sign-in-provider-error"
-
-  const submitErrorRef = useRef<HTMLDivElement | null>(null)
-  const providerErrorRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    if (submitError) {
-      submitErrorRef.current?.focus()
-    }
-  }, [submitError])
-
-  useEffect(() => {
-    if (providerError) {
-      providerErrorRef.current?.focus()
-    }
-  }, [providerError])
 
   const validateField = (field: "email" | "password", value: string) => {
     if (field === "email") {
@@ -109,12 +95,12 @@ export default function SignInPage() {
       await login(email, password)
       
       // Success! Redirect to dashboard
-      toast.success("Welcome back!", {
+      showSuccessToast("Welcome back!", {
         description: "You've been signed in successfully.",
       })
       router.push("/dashboard")
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Sign in failed"
+      const { message, details } = formatError(error)
       
       setErrors((prev) => ({
         ...prev,
@@ -122,8 +108,8 @@ export default function SignInPage() {
       }))
       setSubmitError("We couldn't sign you in with those credentials. Double-check your email and password and try again.")
       
-      toast.error("Sign in failed", {
-        description: errorMessage,
+      showErrorToast("Sign in failed", {
+        description: details || message,
       })
     } finally {
       setIsSubmitting(false)
@@ -368,9 +354,7 @@ export default function SignInPage() {
           <div
             id={submitErrorId}
             role="alert"
-            aria-live="assertive"
-            ref={submitErrorRef}
-            tabIndex={-1}
+            aria-live="polite"
             className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
           >
             {submitError}

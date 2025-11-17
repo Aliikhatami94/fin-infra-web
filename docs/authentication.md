@@ -138,7 +138,7 @@ export async function getDashboardKpis() {
 
 The backend (`fin-api`) must provide these endpoints:
 
-### POST /auth/register
+### POST /users/register
 ```json
 Request:
 {
@@ -156,7 +156,7 @@ Response: 201 Created
 }
 ```
 
-### POST /auth/login
+### POST /users/login
 ```
 Request (form-urlencoded):
 username=user@example.com
@@ -169,7 +169,7 @@ Response: 200 OK
 }
 ```
 
-### GET /auth/me
+### GET /users/me
 ```
 Request Headers:
 Authorization: Bearer eyJhbGc...
@@ -256,7 +256,7 @@ This allows:
 // Test authentication flow
 describe('Authentication', () => {
   it('should register new user', async () => {
-    const response = await fetch('http://localhost:8000/auth/register', {
+    const response = await fetch('http://localhost:8000/users/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -273,7 +273,7 @@ describe('Authentication', () => {
     formData.append('username', 'test@example.com')
     formData.append('password', 'Test123!@#')
     
-    const response = await fetch('http://localhost:8000/auth/login', {
+    const response = await fetch('http://localhost:8000/users/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData.toString()

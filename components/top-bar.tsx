@@ -28,6 +28,8 @@ import { useDateRange } from "@/components/date-range-provider"
 import { useWorkspace } from "@/components/workspace-provider"
 import { NotificationCenter } from "@/components/notification-center"
 import { useDensity } from "@/app/providers/density-provider"
+import { useAuth } from "@/lib/auth/context"
+import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 
@@ -46,6 +48,8 @@ export function TopBar({
   const { activeWorkspace, workspaces, selectWorkspace, unreadCount, activeMember } = useWorkspace()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { density, setDensity } = useDensity()
+  const { logout } = useAuth()
+  const router = useRouter()
 
   const isDateRangeValue = (value: string): value is typeof dateRange => {
     return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
@@ -61,6 +65,11 @@ export function TopBar({
     if (value === "comfortable" || value === "compact") {
       setDensity(value)
     }
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/sign-in")
   }
 
   useEffect(() => {
@@ -303,7 +312,10 @@ export function TopBar({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive cursor-pointer"
+                onClick={handleLogout}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Log out
               </DropdownMenuItem>

@@ -27,13 +27,17 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
 
+  // For now, use mock data (portfolio endpoints not yet implemented in backend)
+  // TODO: Remove this and uncomment API call once backend endpoints are ready
+  return holdingsResponseSchema.parse(portfolioHoldings)
+
+  /* Uncomment when backend portfolio endpoints are implemented:
   try {
     const data = await fetchPortfolioHoldings(userId)
-    // TODO: Transform API response to Holding[] format
-    // For now, fall back to mock data
-    return holdingsResponseSchema.parse(portfolioHoldings)
+    return holdingsResponseSchema.parse(data.holdings)
   } catch (error) {
     console.error('Failed to fetch portfolio holdings, falling back to mock:', error)
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
+  */
 }

@@ -158,9 +158,9 @@ Authorization: Bearer eyJhbGc...
 
 The backend (`fin-api`) must be running and provide these endpoints:
 
-- `POST /auth/register` - Create new user
-- `POST /auth/login` - Authenticate user
-- `GET /auth/me` - Get current user info
+- `POST /users/register` - Create new user
+- `POST /users/login` - Authenticate user
+- `GET /users/me` - Get current user info
 - All `/v0/*` endpoints accept `Authorization: Bearer <token>`
 
 ✅ fin-api already has these endpoints implemented!
