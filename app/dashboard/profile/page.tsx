@@ -7,19 +7,37 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Camera, Mail, Phone, MapPin, Calendar, Check, CheckCircle2 } from "lucide-react"
+import { Camera, Mail, Phone, MapPin, Calendar, Check, CheckCircle2, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion, AnimatePresence } from "framer-motion"
 import { useWorkspace } from "@/components/workspace-provider"
+import { useAuth } from "@/lib/auth/context"
 import { useState, useEffect } from "react"
+import { toast } from "@/components/ui/sonner"
 
 export default function ProfilePage() {
   const { activeMember } = useWorkspace()
-  const [email, setEmail] = useState(activeMember.email)
-  const [phone, setPhone] = useState("+1 (555) 123-4567")
+  const { user, updateUser } = useAuth()
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [bio, setBio] = useState("")
+  const [location, setLocation] = useState("")
   const [isEmailValid, setIsEmailValid] = useState(true)
   const [isPhoneValid, setIsPhoneValid] = useState(true)
   const [showSavedMessage, setShowSavedMessage] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  
+  // Load user data when component mounts or user changes
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || "")
+      setEmail(user.email)
+      setPhone((user as any).phone_number || "")
+      setBio((user as any).bio || "")
+      setLocation((user as any).location || "")
+    }
+  }, [user])
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -36,12 +54,41 @@ export default function ProfilePage() {
   }, [email])
 
   useEffect(() => {
-    setIsPhoneValid(validatePhone(phone))
+    setIsPhoneValid(phone === "" || validatePhone(phone))
   }, [phone])
 
-  const handleSave = () => {
-    setShowSavedMessage(true)
-    setTimeout(() => setShowSavedMessage(false), 3000)
+  const handleSave = async () => {
+    if (!isEmailValid || !isPhoneValid) {
+      toast.error("Invalid input", {
+        description: "Please check your email and phone number format."
+      })
+      return
+    }
+    
+    setIsSaving(true)
+    try {
+      await updateUser({
+        full_name: fullName || undefined,
+        email: email || undefined,
+        phone_number: phone || undefined,
+        bio: bio || undefined,
+        location: location || undefined,
+      })
+      
+      setShowSavedMessage(true)
+      setTimeout(() => setShowSavedMessage(false), 3000)
+      
+      toast.success("Profile updated", {
+        description: "Your changes have been saved successfully."
+      })
+    } catch (error) {
+      console.error("Failed to update profile:", error)
+      toast.error("Update failed", {
+        description: "Could not save your changes. Please try again."
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
   
   return (
@@ -107,7 +154,12 @@ export default function ProfilePage() {
             {/* Name field */}
             <div className="space-y-1.5">
               <Label htmlFor="fullName" className="text-xs">Full Name</Label>
-              <Input id="fullName" defaultValue={activeMember.name} className="h-9" />
+              <Input 
+                id="fullName" 
+                value={fullName} 
+                onChange={(e) => setFullName(e.target.value)}
+                className="h-9" 
+              />
             </div>
 
             {/* Email and Phone in a grid */}
@@ -154,13 +206,23 @@ export default function ProfilePage() {
                 placeholder="Tell us about yourself"
                 rows={3}
                 className="resize-none"
-                defaultValue="Passionate trader with 5 years of experience in stock markets."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
               />
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
-              <Button variant="outline" size="sm">Cancel</Button>
-              <Button size="sm" onClick={handleSave}>Save Changes</Button>
+              <Button variant="outline" size="sm" disabled={isSaving}>Cancel</Button>
+              <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -176,7 +238,16 @@ export default function ProfilePage() {
                 <Calendar className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">Member Since</p>
-                  <p className="text-sm text-muted-foreground">January 15, 2023</p>
+                  <p className="text-sm text-muted-foreground">
+                    {user?.created_at 
+                      ? new Date(user.created_at).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })
+                      : "Recently joined"
+                    }
+                  </p>
                 </div>
               </div>
             </div>
@@ -185,18 +256,31 @@ export default function ProfilePage() {
                 <MapPin className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">Location</p>
-                  <p className="text-sm text-muted-foreground">New York, USA</p>
+                  <div className="relative">
+                    <Input 
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g. New York, USA"
+                      className="h-8 text-sm"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-between py-3">
               <div>
-                <p className="text-sm font-medium">Account Type</p>
-                <p className="text-sm text-muted-foreground">Premium Trader</p>
+                <p className="text-sm font-medium">Account Status</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant={user?.is_verified ? "default" : "secondary"} className="text-xs">
+                    {user?.is_verified ? "Verified" : "Unverified"}
+                  </Badge>
+                  {user?.onboarding_completed && (
+                    <Badge variant="outline" className="text-xs">
+                      Onboarding Complete
+                    </Badge>
+                  )}
+                </div>
               </div>
-              <Button variant="outline" size="sm" className="md:border-muted-foreground/30 border-primary/50 text-primary md:text-foreground hover:bg-primary/5 md:hover:bg-accent">
-                Upgrade
-              </Button>
             </div>
           </CardContent>
         </Card>

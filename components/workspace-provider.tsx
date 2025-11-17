@@ -24,6 +24,9 @@ import type {
   WorkspaceNotification,
   WorkspaceSummary,
 } from "@/types/domain"
+import { useAuth } from "@/lib/auth/context"
+import { useSearchParams } from "next/navigation"
+import { isMarketingMode } from "@/lib/marketingMode"
 
 type AssignmentMap = Record<string, string | null>
 
@@ -82,6 +85,10 @@ const getInitialTasks = (): AccountabilityTask[] => {
 }
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const inMarketingMode = isMarketingMode(searchParams)
+  
   const [workspaceId, setWorkspaceId] = useState<string>(() => {
     if (typeof window === "undefined") return mockWorkspaces[0]?.id ?? "default"
     return window.localStorage.getItem(STORAGE_KEYS.workspace) ?? mockWorkspaces[0]?.id ?? "default"
@@ -107,7 +114,34 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks))
   }, [tasks])
 
-  const workspaces = useMemo(() => mockWorkspaces, [])
+  // Generate real workspace from user data or use mock
+  const workspaces = useMemo(() => {
+    if (inMarketingMode || !user) {
+      return mockWorkspaces
+    }
+    
+    // Create real workspace from actual user data
+    const userInitials = user.full_name 
+      ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+      : user.email[0].toUpperCase()
+    
+    const realWorkspace: WorkspaceSummary = {
+      id: user.id,
+      name: user.full_name ? `${user.full_name}'s Workspace` : "My Workspace",
+      slug: `user-${user.id}`,
+      members: [
+        {
+          id: user.id,
+          name: user.full_name || user.email.split('@')[0],
+          email: user.email,
+          avatarFallback: userInitials,
+          role: "owner" as const,
+        }
+      ]
+    }
+    
+    return [realWorkspace]
+  }, [inMarketingMode, user])
 
   useEffect(() => {
     if (!workspaces.some((workspace) => workspace.id === workspaceId)) {

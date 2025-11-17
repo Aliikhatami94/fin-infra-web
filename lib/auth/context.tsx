@@ -10,6 +10,14 @@ interface User {
   is_verified: boolean
   onboarding_completed?: boolean
   banking_providers?: Record<string, any>
+  phone_number?: string
+  bio?: string
+  location?: string
+  timezone?: string
+  currency_preference?: string
+  avatar_url?: string
+  created_at?: string
+  updated_at?: string
 }
 
 interface AuthContextType {
