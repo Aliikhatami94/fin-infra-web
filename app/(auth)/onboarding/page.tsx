@@ -147,6 +147,62 @@ function OnboardingPageContent() {
   const computeProgress = useCallback((count: number) => Math.min(100, Math.round((count / totalSteps) * 100)), [totalSteps])
   const institutions = useMemo(() => listLinkableInstitutions(), [])
   const hasInitializedStep = useRef(false)
+  const hasLoadedBankingConnections = useRef(false)
+
+  // Load existing banking connections from user.banking_providers on initial load
+  useEffect(() => {
+    if (!hydrated || !user || hasLoadedBankingConnections.current) return
+    
+    const bankingProviders = user.banking_providers as Record<string, any> | null
+    if (!bankingProviders || Object.keys(bankingProviders).length === 0) {
+      hasLoadedBankingConnections.current = true
+      return
+    }
+
+    // Check if we already have these connections in state
+    const existingInstitutions = state.linkedInstitutions.map(inst => inst.id)
+    
+    // Load Plaid connections
+    if (bankingProviders.plaid && !existingInstitutions.includes('plaid')) {
+      const plaidData = bankingProviders.plaid
+      if (plaidData.access_token && plaidData.is_healthy) {
+        // Fetch accounts for this connection
+        const loadPlaidAccounts = async () => {
+          try {
+            const token = localStorage.getItem("auth_token")
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+            const response = await fetch(`${API_URL}/v0/banking-connection/accounts`, {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            
+            if (response.ok) {
+              const data = await response.json()
+              const accounts = data.accounts.map((acc: any) => ({
+                id: acc.account_id,
+                name: acc.name,
+                type: acc.type,
+                mask: acc.mask || "0000",
+                balance: acc.balances?.current || 0,
+              }))
+              
+              upsertInstitution({
+                id: 'plaid',
+                name: plaidData.institution_name || 'Plaid',
+                status: "connected",
+                accounts,
+                lastLinkedAt: plaidData.connected_at,
+              })
+            }
+          } catch (error) {
+            console.error("Failed to load existing Plaid accounts:", error)
+          }
+        }
+        loadPlaidAccounts()
+      }
+    }
+    
+    hasLoadedBankingConnections.current = true
+  }, [hydrated, user, state.linkedInstitutions, upsertInstitution])
 
   useEffect(() => {
     if (!hydrated || !user) return
@@ -158,17 +214,20 @@ function OnboardingPageContent() {
       setPersonaDraft(defaultPersona)
       markStatus("in_progress")
       hasInitializedStep.current = true
+      hasLoadedBankingConnections.current = false
       return
     }
 
     // If user hasn't completed onboarding but has a completed state in storage,
     // it means they refreshed or returned - start fresh
-    if (!user.onboarding_completed && state.status === "completed") {
+    // UNLESS we're in the process of completing (completed flag is true)
+    if (!user.onboarding_completed && state.status === "completed" && !completed) {
       resetState()
       setCurrentStep(steps[0].id)
       setPersonaDraft(defaultPersona)
       markStatus("in_progress")
       hasInitializedStep.current = true
+      hasLoadedBankingConnections.current = false
       return
     }
 
@@ -239,23 +298,29 @@ function OnboardingPageContent() {
     setGraphLoading(true)
     setGraphError(null)
 
+    console.log("[Onboarding] Fetching Money Graph...")
+
     fetchMoneyGraph()
       .then((graph) => {
+        console.log("[Onboarding] Money Graph received:", graph)
         if (cancelled) return
-        setMoneyGraphAccounts(
-          graph.accounts.map((account) => ({
-            name: account.name,
-            intentTags: account.intentTags,
-            supportsGoals: account.supportsGoals,
-          })),
-        )
+        const mappedAccounts = graph.accounts.map((account) => ({
+          name: account.name,
+          intentTags: account.intentTags,
+          supportsGoals: account.supportsGoals,
+        }))
+        console.log("[Onboarding] Setting moneyGraphAccounts:", mappedAccounts)
+        setMoneyGraphAccounts(mappedAccounts)
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("[Onboarding] Money Graph error:", error)
         if (cancelled) return
         setGraphError("We weren't able to load the Money Graph preview. You can finish onboarding and try again later.")
       })
       .finally(() => {
+        console.log("[Onboarding] Money Graph fetch complete, cancelled:", cancelled)
         if (!cancelled) {
+          console.log("[Onboarding] Setting graphLoading to false")
           setGraphLoading(false)
         }
       })
@@ -263,7 +328,7 @@ function OnboardingPageContent() {
     return () => {
       cancelled = true
     }
-  }, [currentStep, graphLoading, moneyGraphAccounts.length])
+  }, [currentStep, moneyGraphAccounts.length])
 
   const connectedInstitutions = [...state.linkedInstitutions].sort((a, b) => a.name.localeCompare(b.name))
 
@@ -397,12 +462,12 @@ function OnboardingPageContent() {
 
   const handleFinish = async () => {
     setFinishing(true)
+    setCompleted(true) // Set completed immediately to prevent useEffect from resetting
     
     if (!completedSteps.has("personalize")) {
       trackOnboardingStepCompleted({ stepId: "personalize", progress: computeProgress(completedSteps.size + 1) })
     }
     markStepComplete("personalize")
-    markStatus("completed")
     
     // Mark onboarding as completed on the server
     try {
@@ -412,13 +477,13 @@ function OnboardingPageContent() {
       toast.error("Failed to save onboarding status", {
         description: "Don't worry, you can continue anyway.",
       })
-    } finally {
-      setFinishing(false)
     }
     
-    setCompleted(true)
+    // Mark status as completed AFTER setting local state
+    markStatus("completed")
+    setFinishing(false)
     setFeedbackOpen(true)
-    setPendingRedirect("/overview")
+    setPendingRedirect("/dashboard")
   }
 
   const handleSkip = () => {
@@ -568,23 +633,23 @@ function OnboardingPageContent() {
                       institution.accounts.map((account) => (
                         <div
                           key={account.id}
-                          className="flex items-center justify-between rounded-md border border-border/60 bg-muted/30 px-3 py-2"
+                          className="rounded-md border border-border/60 bg-muted/30 p-4 space-y-2"
                         >
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{account.name}</p>
-                            <p className="text-xs text-muted-foreground">{account.type}</p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-foreground">{account.name}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{account.type}</p>
+                            </div>
+                            <span className="text-sm font-mono text-muted-foreground">
+                              •••• {account.mask}
+                            </span>
                           </div>
-                          <div className="text-right">
+                          <div className="flex items-baseline justify-between pt-1 border-t border-border/40">
+                            <span className="text-xs text-muted-foreground">Balance</span>
                             <MaskableValue
-                              className="text-sm font-mono"
-                              value={`•••• ${account.mask}`}
-                              maskedFallback={masked ? "••••" : `•••• ${account.mask}`}
-                              srLabel={`${account.name} account mask`}
-                            />
-                            <MaskableValue
-                              className="text-xs text-muted-foreground"
+                              className="text-base font-semibold text-foreground"
                               value={new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(account.balance)}
-                              maskedFallback="Hidden"
+                              maskedFallback="••••"
                               srLabel={`${account.name} balance`}
                             />
                           </div>
@@ -645,26 +710,29 @@ function OnboardingPageContent() {
           <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
             {graphError}
           </div>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-3">
-            {moneyGraphAccounts.map((account) => (
-              <div key={account.name} className="rounded-lg border border-border bg-card/40 p-4">
-                <h3 className="text-sm font-semibold text-foreground">{account.name}</h3>
-                <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">Intent signals</p>
-                <ul className="mt-1 space-y-1 text-sm text-muted-foreground">
-                  {account.intentTags.map((tag) => (
-                    <li key={tag}>• {tag.replace(/_/g, " ")}</li>
-                  ))}
-                </ul>
-                <p className="mt-3 text-xs uppercase tracking-wide text-muted-foreground">Supports goals</p>
-                <p className="text-sm text-muted-foreground">
-                  {account.supportsGoals.length > 0
-                    ? account.supportsGoals.map((goalId) => `Goal ${goalId}`).join(", ")
-                    : "No goal links yet"}
-                </p>
-              </div>
-            ))}
+        ) : moneyGraphAccounts.length > 0 ? (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              You've connected {moneyGraphAccounts.length} account{moneyGraphAccounts.length !== 1 ? 's' : ''}. 
+              Once you start using the app, we'll analyze your spending patterns and help you optimize toward your goals.
+            </p>
+            <div className="grid gap-3 md:grid-cols-3">
+              {connectedInstitutions.flatMap(institution => 
+                institution.accounts.map((account) => (
+                  <div key={account.id} className="rounded-lg border border-border bg-card/40 p-4">
+                    <h3 className="text-sm font-semibold text-foreground">{account.name}</h3>
+                    <p className="text-xs text-muted-foreground capitalize">{account.type}</p>
+                    <p className="mt-3 text-lg font-semibold text-foreground">
+                      {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(account.balance)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Current balance</p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No accounts connected yet.</p>
         )}
       </CardContent>
       <CardFooter className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -739,7 +807,7 @@ function OnboardingPageContent() {
               return (
                 <li key={step.id} className="flex items-center gap-3">
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm font-medium transition ${isComplete ? "bg-primary text-primary-foreground border-primary" : isActive ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border text-sm font-medium transition ${isComplete ? "bg-primary text-primary-foreground border-primary" : isActive ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
                   >
                     {isComplete ? <Check className="h-4 w-4" /> : index + 1}
                   </div>

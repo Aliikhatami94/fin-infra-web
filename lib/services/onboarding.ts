@@ -73,8 +73,78 @@ export async function simulateInstitutionLink(
 }
 
 export async function fetchMoneyGraph(): Promise<MoneyGraph> {
-  await delay(200)
-  return moneyGraph
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
+
+  if (!token) {
+    // Fallback to mock data if not authenticated
+    await delay(200)
+    return moneyGraph
+  }
+
+  try {
+    // Fetch real account data from connected Plaid accounts
+    const response = await fetch(`${API_URL}/v0/banking-connection/accounts`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      console.warn("[MoneyGraph] Failed to fetch accounts, using mock data")
+      await delay(200)
+      return moneyGraph
+    }
+
+    const data = await response.json()
+    const accounts = data.accounts || []
+
+    // Transform Plaid accounts into MoneyGraph format
+    const graphAccounts: MoneyGraph["accounts"] = accounts.map((acc: any, idx: number) => ({
+      id: `plaid-${acc.account_id}`,
+      accountId: idx + 1,
+      name: acc.name,
+      institution: acc.institution_name || "Bank",
+      type: acc.type || "depository",
+      balance: acc.balances?.current || 0,
+      intentTags: deriveIntentTags(acc.type, acc.subtype),
+      supportsGoals: [1], // Default to supporting goal 1
+    }))
+
+    // Return Money Graph with real accounts but mock goals/transactions for now
+    return {
+      accounts: graphAccounts,
+      transactions: [],
+      goals: moneyGraph.goals,
+      edges: [],
+      personaSignals: moneyGraph.personaSignals,
+      lastSynced: new Date().toISOString(),
+    }
+  } catch (error) {
+    console.error("[MoneyGraph] Error fetching real data:", error)
+    await delay(200)
+    return moneyGraph
+  }
+}
+
+function deriveIntentTags(type: string, subtype?: string): string[] {
+  const tags: string[] = []
+  
+  if (type === "depository") {
+    if (subtype === "checking") {
+      tags.push("daily_spend", "bill_pay")
+    } else if (subtype === "savings") {
+      tags.push("emergency_fund", "savings")
+    }
+  } else if (type === "credit") {
+    tags.push("credit", "spending")
+  } else if (type === "investment") {
+    tags.push("wealth_building", "retirement")
+  } else if (type === "loan") {
+    tags.push("debt_paydown")
+  }
+  
+  return tags.length > 0 ? tags : ["general"]
 }
 
 export function derivePersonaFromGraph(graph: MoneyGraph): OnboardingPersona {
