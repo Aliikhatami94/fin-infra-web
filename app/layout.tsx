@@ -35,7 +35,7 @@ export default function RootLayout({
         {/* Skip to content for keyboard users */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-3 focus:py-2 focus:bg-primary focus:text-primary-foreground rounded"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:text-sm focus:font-medium focus:border focus:border-border focus:rounded-md focus:shadow-md focus:outline-none"
         >
           Skip to main content
         </a>
