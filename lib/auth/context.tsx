@@ -28,6 +28,8 @@ interface AuthContextType {
   register: (email: string, password: string, fullName?: string) => Promise<void>
   refreshUser: () => Promise<void>
   updateUser: (updates: Partial<User>) => Promise<void>
+  uploadAvatar: (file: File) => Promise<void>
+  deleteAvatar: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -53,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const hashToken = params.get("access_token")
         
         if (hashToken) {
-          console.log("[Auth] Found OAuth token in URL hash, storing")
           localStorage.setItem("auth_token", hashToken)
           // Clear hash from URL
           window.history.replaceState(null, "", window.location.pathname + window.location.search)
@@ -68,22 +69,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers["Authorization"] = `Bearer ${token}`
       }
 
-      console.log("[Auth] Checking authentication, has token:", !!token)
-      
       const response = await fetch(`${API_URL}/users/me`, {
         headers,
         credentials: "include", // Include cookies for OAuth authentication
+        cache: "no-store",
       })
-
-      console.log("[Auth] /users/me response:", response.status, response.ok)
 
       if (response.ok) {
         const userData = await response.json()
-        console.log("[Auth] User authenticated:", userData.email)
         setUser(userData)
       } else {
         // Auth failed, clear token if present
-        console.log("[Auth] Authentication failed, clearing state")
         if (token) {
           localStorage.removeItem("auth_token")
         }
@@ -235,6 +231,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(updatedUser)
   }
 
+  async function uploadAvatar(file: File) {
+    if (typeof window === "undefined") {
+      throw new Error("Cannot upload avatar on server")
+    }
+
+    const token = localStorage.getItem("auth_token")
+    if (!token) {
+      throw new Error("Missing credentials")
+    }
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error("Invalid file type. Please upload JPG, PNG, GIF, or WebP")
+    }
+
+    // Validate file size (2MB max)
+    const maxSize = 2 * 1024 * 1024
+    if (file.size > maxSize) {
+      throw new Error("File too large. Maximum size is 2MB")
+    }
+
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await fetch(`${API_URL}/users/me/avatar`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail || "Failed to upload avatar")
+    }
+
+    const updatedUser = await response.json()
+    setUser(updatedUser)
+  }
+
+  async function deleteAvatar() {
+    if (typeof window === "undefined") {
+      throw new Error("Cannot delete avatar on server")
+    }
+
+    const token = localStorage.getItem("auth_token")
+    if (!token) {
+      throw new Error("Missing credentials")
+    }
+
+    const response = await fetch(`${API_URL}/users/me/avatar`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      credentials: "include",
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail || "Failed to delete avatar")
+    }
+
+    const updatedUser = await response.json()
+    setUser(updatedUser)
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -245,6 +311,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         refreshUser,
         updateUser,
+        uploadAvatar,
+        deleteAvatar,
       }}
     >
       {children}

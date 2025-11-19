@@ -17,7 +17,7 @@ import { showErrorToast, showSuccessToast, formatError } from "@/lib/toast-utils
 
 export default function ProfilePage() {
   const { activeMember } = useWorkspace()
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, uploadAvatar, deleteAvatar } = useAuth()
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -27,6 +27,7 @@ export default function ProfilePage() {
   const [isPhoneValid, setIsPhoneValid] = useState(true)
   const [showSavedMessage, setShowSavedMessage] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [hydrated, setHydrated] = useState(false)
   
   // Track hydration
@@ -104,6 +105,49 @@ export default function ProfilePage() {
       setIsSaving(false)
     }
   }
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingAvatar(true)
+    try {
+      await uploadAvatar(file)
+      showSuccessToast("Avatar updated", {
+        description: "Your profile picture has been updated successfully."
+      })
+    } catch (error) {
+      console.error("Failed to upload avatar:", error)
+      const { message, details } = formatError(error)
+      showErrorToast("Upload failed", {
+        description: details || message
+      })
+    } finally {
+      setIsUploadingAvatar(false)
+      // Reset file input
+      event.target.value = ""
+    }
+  }
+
+  const handleAvatarDelete = async () => {
+    if (!user?.avatar_url) return
+
+    setIsUploadingAvatar(true)
+    try {
+      await deleteAvatar()
+      showSuccessToast("Avatar removed", {
+        description: "Your profile picture has been removed."
+      })
+    } catch (error) {
+      console.error("Failed to delete avatar:", error)
+      const { message, details } = formatError(error)
+      showErrorToast("Delete failed", {
+        description: details || message
+      })
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
   
   return (
     <DashboardLayout>
@@ -151,17 +195,48 @@ export default function ProfilePage() {
             {/* Avatar and Change Photo button side by side */}
             <div className="flex gap-4 items-center">
               <Avatar className="h-20 w-20 shrink-0">
-                <AvatarImage src={undefined} alt={activeMember.name} />
+                <AvatarImage src={user?.avatar_url} alt={user?.full_name || activeMember.name} />
                 <AvatarFallback className="text-xl bg-primary/10 text-primary font-semibold">
                   {activeMember.avatarFallback}
                 </AvatarFallback>
               </Avatar>
               <div className="space-y-1.5">
-                <Button variant="outline" size="sm" className="gap-2 h-8">
-                  <Camera className="h-3.5 w-3.5" />
-                  Change Photo
-                </Button>
-                <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 2MB</p>
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  className="hidden"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleAvatarUpload}
+                  disabled={isUploadingAvatar}
+                />
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2 h-8"
+                    onClick={() => document.getElementById('avatar-upload')?.click()}
+                    disabled={isUploadingAvatar}
+                  >
+                    {isUploadingAvatar ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Camera className="h-3.5 w-3.5" />
+                    )}
+                    {isUploadingAvatar ? "Uploading..." : "Change Photo"}
+                  </Button>
+                  {user?.avatar_url && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 text-destructive hover:text-destructive"
+                      onClick={handleAvatarDelete}
+                      disabled={isUploadingAvatar}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">JPG, PNG, GIF or WebP. Max 2MB</p>
               </div>
             </div>
 

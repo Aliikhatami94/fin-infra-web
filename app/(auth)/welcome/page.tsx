@@ -17,7 +17,9 @@ function WelcomeGatePageContent() {
   // If the user has completed onboarding (server-side flag), redirect to dashboard
   useEffect(() => {
     if (!user) return
+    console.log("[WelcomePage] User:", JSON.stringify(user, null, 2))
     if (user.onboarding_completed) {
+      console.log("[WelcomePage] User has completed onboarding, redirecting to /dashboard")
       router.replace("/dashboard")
     }
   }, [user, router])

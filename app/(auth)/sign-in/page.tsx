@@ -27,15 +27,20 @@ export default function SignInPage() {
   const [providerError, setProviderError] = useState<string | null>(null)
   const [providerLoading, setProviderLoading] = useState<"google" | "github" | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Redirect if already logged in
+  // If user is already logged in, always redirect to dashboard
+  // Let ProtectedRoute in dashboard layout handle onboarding checks
   useEffect(() => {
-    if (user) {
-      router.push("/welcome")
+    if (!isLoading && user) {
+      // If user is already logged in, redirect to dashboard
+      // The ProtectedRoute will handle the onboarding check if needed,
+      // but generally if they are here and logged in, we want them in the app.
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 0);
     }
-  }, [user, router])
+  }, [user, isLoading, router]);
 
-  // Show loading state while checking auth or if user exists (during redirect)
+  // Show loading state while checking auth or if user exists (about to redirect)
   if (isLoading || user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -106,11 +111,11 @@ export default function SignInPage() {
     try {
       await login(email, password)
       
-      // Success! Redirect to dashboard
+      // Success! Redirect will happen automatically from useEffect when user is set
       showSuccessToast("Welcome back!", {
         description: "You've been signed in successfully.",
       })
-      router.push("/dashboard")
+      // Don't manually redirect - let the useEffect handle it to prevent flash
     } catch (error) {
       const { message, details } = formatError(error)
       

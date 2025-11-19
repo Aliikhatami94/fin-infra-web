@@ -48,7 +48,7 @@ export function TopBar({
   const { activeWorkspace, workspaces, selectWorkspace, unreadCount, activeMember } = useWorkspace()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { density, setDensity } = useDensity()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const router = useRouter()
 
   const isDateRangeValue = (value: string): value is typeof dateRange => {
@@ -204,7 +204,7 @@ export function TopBar({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open account menu" className="h-8 w-8">
                 <Avatar className="h-7 w-7">
-                  <AvatarImage src={undefined} alt={activeMember.name} />
+                  <AvatarImage src={user?.avatar_url} alt={activeMember.name} />
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
                     {activeMember.avatarFallback}
                   </AvatarFallback>
