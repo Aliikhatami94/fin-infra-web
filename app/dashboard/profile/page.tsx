@@ -82,11 +82,11 @@ export default function ProfilePage() {
     setIsSaving(true)
     try {
       await updateUser({
-        full_name: fullName || null,
+        full_name: fullName || undefined,
         email: email || undefined,  // Don't allow clearing email
-        phone_number: phone || null,
-        bio: bio || null,
-        location: location || null,
+        phone_number: phone || undefined,
+        bio: bio || undefined,
+        location: location || undefined,
       })
       
       setShowSavedMessage(true)

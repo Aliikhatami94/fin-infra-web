@@ -285,7 +285,7 @@ export default function SecurityCenterPage() {
 
   const handleAlertingSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    toast("Alerting preferences updated", {
+    showSuccessToast("Alerting preferences updated", {
       description: "We\u2019ll use your alternate contacts if we can\u2019t reach your primary inbox.",
     })
   }
@@ -297,7 +297,7 @@ export default function SecurityCenterPage() {
   const handleConfirmExport = () => {
     if (!exportFormat) return
 
-    toast(`Preparing ${exportFormat.toUpperCase()} export`, {
+    showSuccessToast(`Preparing ${exportFormat.toUpperCase()} export`, {
       description: "We'll send an in-app notification as soon as your encrypted file is ready. Download link expires in 24 hours.",
     })
     setExportFormat(null)
@@ -329,7 +329,7 @@ export default function SecurityCenterPage() {
     )
 
     const endedSession = sessions.find((session) => session.id === sessionId)
-    toast("Session ended", {
+    showSuccessToast("Session ended", {
       description:
         endedSession?.device
           ? `${endedSession.device} was signed out remotely. We’ll alert you if it attempts to reconnect.`
@@ -353,7 +353,7 @@ export default function SecurityCenterPage() {
       ),
     )
 
-    toast("Signed out of other devices", {
+    showSuccessToast("Signed out of other devices", {
       description: "All other active sessions were ended. Keep an eye on your alerts for any new sign-ins.",
     })
   }
@@ -375,7 +375,7 @@ export default function SecurityCenterPage() {
       })
     }, 1000)
     
-    toast("Phone number revealed temporarily", {
+    showSuccessToast("Phone number revealed temporarily", {
       description: "Number will be re-hidden after 30 seconds for security.",
     })
   }
@@ -383,7 +383,7 @@ export default function SecurityCenterPage() {
   const handleAuditConfirm = () => {
     setIsAuditScheduling(true)
     globalThis.setTimeout(() => {
-      toast("Audit log export scheduled", {
+      showSuccessToast("Audit log export scheduled", {
         description: `We’ll email an encrypted link to ${alternateEmail} and notify you in TradeHub when it’s ready.`,
       })
       setIsAuditScheduling(false)
@@ -747,7 +747,7 @@ export default function SecurityCenterPage() {
                           section: "security",
                           value,
                         })
-                        toast(value ? "Login alerts enabled" : "Login alerts disabled", {
+                        showSuccessToast(value ? "Login alerts enabled" : "Login alerts disabled", {
                           description: value
                             ? "You'll receive notifications for new device sign-ins."
                             : "You won't receive notifications for new sign-ins. Consider re-enabling for better security.",
@@ -791,7 +791,7 @@ export default function SecurityCenterPage() {
                           section: "security",
                           value,
                         })
-                        toast(value ? "Masking enabled" : "Masking disabled", {
+                        showSuccessToast(value ? "Masking enabled" : "Masking disabled", {
                           description: value
                             ? "Sensitive identifiers will be masked in exports and notifications."
                             : "Sensitive data will be visible. Consider re-enabling for privacy protection.",

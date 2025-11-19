@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { CreditCard, Download, Check } from "lucide-react"
 import { motion } from "framer-motion"
 
+// Disable static generation for this page (uses useSearchParams in child components)
+export const dynamic = 'force-dynamic'
+
 export default function BillingPage() {
   return (
     <div>

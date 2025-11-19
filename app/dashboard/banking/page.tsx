@@ -6,6 +6,9 @@ import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 import type { Account } from "@/types/domain"
 
+// Disable static generation for this page
+export const dynamic = 'force-dynamic'
+
 export default function BankingPage() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [isLoading, setIsLoading] = useState(true)
