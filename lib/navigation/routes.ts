@@ -44,7 +44,7 @@ const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
   { name: "Portfolio", href: "/dashboard/portfolio", icon: Wallet, comingSoon: true },
   { name: "Crypto", href: "/dashboard/crypto", icon: Bitcoin, comingSoon: true },
   { name: "Cash Flow", href: "/dashboard/cash-flow", icon: TrendingUp, comingSoon: true },
-  { name: "Transactions", href: "/dashboard/transactions", icon: ListTree, comingSoon: true },
+  { name: "Transactions", href: "/dashboard/transactions", icon: ListTree },
   { name: "Budget", href: "/dashboard/budget", icon: Receipt, comingSoon: true },
   { name: "Goals", href: "/dashboard/goals", icon: Target, comingSoon: true },
   { name: "Taxes", href: "/dashboard/taxes", icon: FileText, comingSoon: true },

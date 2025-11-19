@@ -39,6 +39,7 @@ interface AccountsListMobileProps {
   onToggleExpand: (accountId: number) => void
   onToggleIgnoreAccount: (accountId: number) => void
   onUpdateConnection: (accountId: number) => void
+  onDisconnectAccount: (institution: string) => void
 }
 
 export function AccountsListMobile({
@@ -51,6 +52,7 @@ export function AccountsListMobile({
   onToggleExpand,
   onToggleIgnoreAccount,
   onUpdateConnection,
+  onDisconnectAccount,
 }: AccountsListMobileProps) {
   return (
     <div className="md:hidden space-y-3">
@@ -219,7 +221,15 @@ export function AccountsListMobile({
                             {isIgnored ? <Eye className="h-4 w-4 mr-2" /> : <EyeOff className="h-4 w-4 mr-2" />}
                             {isIgnored ? "Include in Net Worth" : "Ignore in Net Worth"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Disconnect</DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              onDisconnectAccount(account.institution)
+                            }}
+                          >
+                            Disconnect {account.institution}
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>

@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FeedbackPrompt } from "@/components/feedback-prompt"
 import { MaskableValue, usePrivacy } from "@/components/privacy-provider"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
 import { buildPersonaSummary, fetchMoneyGraph, listLinkableInstitutions, simulateInstitutionLink } from "@/lib/services"
 import { PlaidLinkButton } from "@/components/plaid-link-button"
@@ -124,7 +125,7 @@ function OnboardingPageContent() {
   const router = useRouter()
   const { masked } = usePrivacy()
   const { user, updateUser } = useAuth()
-  const { state, hydrated, markStatus, markStepComplete, upsertInstitution, updatePersona, resetState, progress } =
+  const { state, hydrated, markStatus, markStepComplete, upsertInstitution, unlinkInstitution, updatePersona, resetState, progress } =
     useOnboardingState()
   const searchParams = useSearchParams()
   const shouldRestart = searchParams?.get('restart') === 'true'
@@ -137,6 +138,8 @@ function OnboardingPageContent() {
   const [personaDetail, setPersonaDetail] = useState(buildPersonaSummary(defaultPersona))
   const [linkModalOpen, setLinkModalOpen] = useState(false)
   const [linkingInstitution, setLinkingInstitution] = useState<string | null>(null)
+  const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
+  const [institutionToDisconnect, setInstitutionToDisconnect] = useState<{ id: string; name: string } | null>(null)
   const [linkErrors, setLinkErrors] = useState<Record<string, string>>({})
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
@@ -461,6 +464,50 @@ function OnboardingPageContent() {
     }
   }
 
+  const handleDisconnectInstitution = (institutionId: string, institutionName: string) => {
+    setInstitutionToDisconnect({ id: institutionId, name: institutionName })
+    setDisconnectDialogOpen(true)
+  }
+
+  const confirmDisconnect = async () => {
+    if (!institutionToDisconnect) return
+
+    try {
+      const token = localStorage.getItem("auth_token")
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      
+      // Determine provider from institution data
+      const institution = state.linkedInstitutions.find(inst => inst.id === institutionToDisconnect.id)
+      const provider = institution?.provider || "plaid"
+      
+      const response = await fetch(`${API_URL}/v0/banking-connection/${provider}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      
+      if (response.ok) {
+        unlinkInstitution(institutionToDisconnect.id)
+        showSuccessToast(`${institutionToDisconnect.name} disconnected`, {
+          description: "All accounts from this institution have been removed.",
+        })
+        setDisconnectDialogOpen(false)
+        setInstitutionToDisconnect(null)
+      } else {
+        const errorText = await response.text()
+        showErrorToast("Failed to disconnect", {
+          description: errorText || "Unable to disconnect institution. Please try again.",
+        })
+      }
+    } catch (error) {
+      console.error("Error disconnecting institution:", error)
+      showErrorToast("Failed to disconnect", {
+        description: "An unexpected error occurred.",
+      })
+    }
+  }
+
   const handleContinueFromConnect = () => {
     const next = getNextStep("connect")
     if (next) {
@@ -664,17 +711,26 @@ function OnboardingPageContent() {
                         </div>
                       ))
                     )}
-                    {institution.status === "error" ? (
+                    <div className="flex gap-2 mt-2">
+                      {institution.status === "error" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleLinkInstitution(institution.id)}
+                          isLoading={linkingInstitution === institution.id}
+                        >
+                          Retry
+                        </Button>
+                      ) : null}
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="mt-2"
-                        onClick={() => handleLinkInstitution(institution.id)}
-                        isLoading={linkingInstitution === institution.id}
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDisconnectInstitution(institution.id, institution.name)}
                       >
-                        Retry
+                        Disconnect
                       </Button>
-                    ) : null}
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -892,6 +948,16 @@ function OnboardingPageContent() {
         open={feedbackOpen}
         onOpenChange={setFeedbackOpen}
         context={state.persona?.goalsFocus ?? "First session"}
+      />
+
+      <ConfirmDialog
+        open={disconnectDialogOpen}
+        onOpenChange={setDisconnectDialogOpen}
+        title="Disconnect Institution?"
+        description={institutionToDisconnect ? `Are you sure you want to disconnect ${institutionToDisconnect.name}? All accounts from this institution will be removed.` : ""}
+        confirmLabel="Disconnect"
+        confirmVariant="destructive"
+        onConfirm={confirmDisconnect}
       />
     </>
   )

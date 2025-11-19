@@ -27,6 +27,7 @@ const { Filter, Plus } = sharedIcons
 interface BankingTableProps {
   accounts: Account[]
   onRequestLink: () => void
+  onDisconnect: (institution: string) => void
   isLinking?: boolean
   linkingInstitution?: string | null
 }
@@ -34,6 +35,7 @@ interface BankingTableProps {
 export function BankingTable({
   accounts: initialAccounts,
   onRequestLink,
+  onDisconnect,
   isLinking = false,
   linkingInstitution,
 }: BankingTableProps) {
@@ -257,6 +259,7 @@ export function BankingTable({
                   onToggleExpand={handleRowClick}
                   onToggleIgnoreAccount={toggleIgnoreAccount}
                   onUpdateConnection={handleUpdateConnection}
+                  onDisconnectAccount={onDisconnect}
                 />
 
                 <AccountsListMobile
@@ -269,6 +272,7 @@ export function BankingTable({
                   onToggleExpand={handleRowClick}
                   onToggleIgnoreAccount={toggleIgnoreAccount}
                   onUpdateConnection={handleUpdateConnection}
+                  onDisconnectAccount={onDisconnect}
                 />
               </>
             ) : (

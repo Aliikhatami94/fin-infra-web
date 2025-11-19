@@ -132,7 +132,8 @@ function formatDateRangeLabel(range: DateRange, presetId: SelectedRangeKind) {
 }
 
 export function TransactionsWorkspace() {
-  const [transactions] = useState(() => getTransactions())
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedAccount, setSelectedAccount] = useState<string>("All accounts")
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
@@ -143,6 +144,32 @@ export function TransactionsWorkspace() {
     range: createPresetRange("30d"),
   }))
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+
+  // Load transactions on mount and when date range changes
+  useEffect(() => {
+    const loadTransactions = async () => {
+      setIsLoading(true)
+      try {
+        const { from, to } = dateRangeState.range
+        const startDate = from ? format(from, "yyyy-MM-dd") : undefined
+        const endDate = to ? format(to, "yyyy-MM-dd") : undefined
+        
+        console.log('Loading transactions with date range:', startDate, 'to', endDate)
+        const fetchedTransactions = await getTransactions(startDate, endDate)
+        console.log('Setting transactions state:', fetchedTransactions.length, 'transactions')
+        console.log('First transaction:', fetchedTransactions[0])
+        setTransactions(fetchedTransactions)
+        setLiveMessage(`${fetchedTransactions.length} transactions loaded`)
+      } catch (error) {
+        console.error("Failed to load transactions:", error)
+        setTransactions([])
+        setLiveMessage("Failed to load transactions")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadTransactions()
+  }, [dateRangeState.range])
 
   const accounts = useMemo(() => ["All accounts", ...new Set(transactions.map((tx) => tx.account))], [transactions])
 
@@ -214,6 +241,12 @@ export function TransactionsWorkspace() {
       return matchesAccount && matchesSearch && matchesFilters && matchesDate
     })
   }, [transactions, selectedAccount, searchQuery, selectedFilters, selectedRange])
+
+  // Debug: Log filtered transactions
+  useEffect(() => {
+    console.log('Filtered transactions:', filteredTransactions.length, 'out of', transactions.length)
+    console.log('Filters:', { selectedAccount, searchQuery, selectedFilters, selectedRange })
+  }, [filteredTransactions, transactions, selectedAccount, searchQuery, selectedFilters, selectedRange])
 
   const toggleTransaction = useCallback((id: number) => {
     setSelectedTransactionIds((previous) =>
@@ -289,6 +322,21 @@ export function TransactionsWorkspace() {
     },
     [clearSelection, selectedFilters, selectedTransactionIds.length],
   )
+
+  console.log('Render check - isLoading:', isLoading, 'transactions:', transactions.length, 'filteredTransactions:', filteredTransactions.length)
+  
+  if (isLoading) {
+    return (
+      <Card className="card-standard overflow-hidden">
+        <CardContent className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+            <p className="text-sm text-muted-foreground">Loading transactions...</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card className="card-standard overflow-hidden">
@@ -584,7 +632,7 @@ export function TransactionsWorkspace() {
           )}
         </div>
 
-        <div className="hidden md:block max-h-[540px] overflow-hidden">
+        <div className="hidden md:block h-[540px] overflow-hidden">
           {filteredTransactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 text-center space-y-4">
               <div className="rounded-full bg-muted/50 p-4">

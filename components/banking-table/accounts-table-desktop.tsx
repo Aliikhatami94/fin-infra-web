@@ -78,6 +78,7 @@ interface AccountsTableDesktopProps {
   onToggleExpand: (accountId: number) => void
   onToggleIgnoreAccount: (accountId: number) => void
   onUpdateConnection: (accountId: number) => void
+  onDisconnectAccount: (institution: string) => void
 }
 
 export function AccountsTableDesktop({
@@ -91,6 +92,7 @@ export function AccountsTableDesktop({
   onToggleExpand,
   onToggleIgnoreAccount,
   onUpdateConnection,
+  onDisconnectAccount,
 }: AccountsTableDesktopProps) {
   const virtualRows = useMemo<VirtualRow[]>(() => {
     const rows: VirtualRow[] = []
@@ -496,7 +498,15 @@ export function AccountsTableDesktop({
                     {isIgnored ? <Eye className="h-4 w-4 mr-2" /> : <EyeOff className="h-4 w-4 mr-2" />}
                     {isIgnored ? "Include in Net Worth" : "Ignore in Net Worth"}
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive">Disconnect</DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="text-destructive"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onDisconnectAccount(account.institution)
+                    }}
+                  >
+                    Disconnect {account.institution}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </td>,
