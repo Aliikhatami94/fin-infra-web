@@ -281,7 +281,7 @@ export default function DocumentsPage() {
 
   const handleBulkDownload = useCallback(() => {
     if (!selectedDocuments.length) return
-    toast.info(`Preparing ${selectedDocuments.length} documents for download...`)
+    showSuccessToast(`Preparing ${selectedDocuments.length} documents for download...`)
   }, [selectedDocuments])
 
   const handleBulkDelete = useCallback(() => {
