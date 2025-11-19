@@ -392,7 +392,7 @@ function OnboardingPageContent() {
           })),
         })
         
-        toast.success(`${institutionName} connected`, {
+        showSuccessToast(`${institutionName} connected`, {
           description: `${accounts.length} account${accounts.length !== 1 ? 's' : ''} linked successfully.`,
         })
       } else {

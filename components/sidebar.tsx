@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeft, X, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +12,7 @@ import { prefetchAppRoute, getBadgeTooltipCopy } from "@/lib/linking"
 import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BRAND } from "@/lib/brand"
+import { isMarketingMode } from "@/lib/marketingMode"
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -42,6 +43,8 @@ export function Sidebar({
   }
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isMarketing = isMarketingMode(searchParams)
   const prefetchedRoutes = useRef(new Set<string>())
   const [envBadge, setEnvBadge] = useState<string>("Live")
 
@@ -149,9 +152,33 @@ export function Sidebar({
                   active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )
 
+                // Check if this is a coming soon item (check before collapsed rendering)
+                const isComingSoon = item.comingSoon && !isMarketing
+
                 // On mobile (when mobileOpen is true), always show expanded view
                 // On desktop (lg), respect collapsed state
                 if (collapsed && !mobileOpen) {
+                  if (isComingSoon) {
+                    return (
+                      <Tooltip key={item.name}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={cn(
+                              linkClasses,
+                              "cursor-not-allowed opacity-50"
+                            )}
+                            aria-disabled="true"
+                          >
+                            <item.icon className="h-5 w-5 shrink-0" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>Coming soon</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )
+                  }
+                  
                   return (
                     <Tooltip key={item.name}>
                       <TooltipTrigger asChild>
@@ -170,6 +197,23 @@ export function Sidebar({
                         <p>{item.name}</p>
                       </TooltipContent>
                     </Tooltip>
+                  )
+                }
+                
+                if (isComingSoon) {
+                  return (
+                    <div
+                      key={item.name}
+                      className={cn(
+                        linkClasses,
+                        "cursor-not-allowed opacity-50"
+                      )}
+                      aria-disabled="true"
+                    >
+                      <item.icon className="h-5 w-5 shrink-0" />
+                      <span className="flex-1">{item.name}</span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">Soon</Badge>
+                    </div>
                   )
                 }
 

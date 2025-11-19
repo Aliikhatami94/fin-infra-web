@@ -10,7 +10,7 @@ import { portfolioHoldings } from "@/lib/mock"
 import { holdingsResponseSchema } from "@/lib/schemas"
 import type { Holding } from "@/types/domain"
 import { isMarketingMode } from "@/lib/marketingMode"
-import { fetchPortfolioMetrics, fetchPortfolioHoldings, fetchPortfolioAllocation } from "@/lib/api/client"
+import { fetchPortfolioMetrics as _fetchPortfolioMetrics, fetchPortfolioHoldings as _fetchPortfolioHoldings, fetchPortfolioAllocation as _fetchPortfolioAllocation } from "@/lib/api/client"
 import { getCurrentUserId } from "@/lib/auth/token"
 
 const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL

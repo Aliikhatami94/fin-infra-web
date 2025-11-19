@@ -1,8 +1,10 @@
 "use client"
 
 import { useAuth } from "@/lib/auth/context"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useState, type ReactNode } from "react"
+import { DASHBOARD_NAVIGATION } from "@/lib/navigation/routes"
+import { isMarketingMode } from "@/lib/marketingMode"
 
 interface ProtectedRouteProps {
   children: ReactNode
@@ -18,24 +20,23 @@ export function ProtectedRoute({
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const isMarketing = isMarketingMode(searchParams)
   const [isRedirecting, setIsRedirecting] = useState(false)
 
   useEffect(() => {
     // Wait for auth to finish loading before any redirects
     if (isLoading) {
-      console.log("[ProtectedRoute] Still loading auth, waiting...")
       return
     }
 
     // Don't check again if we're already redirecting
     if (isRedirecting) {
-      console.log("[ProtectedRoute] Already redirecting, skipping")
       return
     }
 
     // First check: Must be authenticated
     if (!user) {
-      console.log("[ProtectedRoute] No user, redirecting to", redirectTo)
       setIsRedirecting(true)
       router.push(redirectTo)
       return
@@ -44,7 +45,6 @@ export function ProtectedRoute({
     // CRITICAL: Wait until onboarding_completed has a definitive value (true or false)
     // Don't make any decisions while it's null or undefined
     if (user.onboarding_completed === null || user.onboarding_completed === undefined) {
-      console.log("[ProtectedRoute] onboarding_completed is", user.onboarding_completed, "- waiting for definitive value")
       return
     }
 
@@ -58,9 +58,25 @@ export function ProtectedRoute({
       if (!isAllowedPath && user.onboarding_completed === false) {
         setIsRedirecting(true)
         router.push("/welcome")
+        return
       }
     }
-  }, [user, isLoading, router, redirectTo, requireOnboarding, pathname, isRedirecting])
+
+    // Third check: Block access to coming soon pages (unless in marketing mode)
+    if (!isMarketing && pathname) {
+      const currentRoute = DASHBOARD_NAVIGATION.find(route => {
+        if (route.exact) {
+          return pathname === route.href
+        }
+        return pathname.startsWith(route.href)
+      })
+
+      if (currentRoute?.comingSoon) {
+        setIsRedirecting(true)
+        router.push("/dashboard")
+      }
+    }
+  }, [user, isLoading, router, redirectTo, requireOnboarding, pathname, isRedirecting, isMarketing])
 
   // Show loading spinner while checking auth OR while onboarding_completed is null/undefined
   if (isLoading || (user && (user.onboarding_completed === null || user.onboarding_completed === undefined))) {

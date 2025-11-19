@@ -29,6 +29,7 @@ export interface NavigationItem {
   badgeTooltip?: string
   featureFlag?: FeatureFlagKey
   exact?: boolean
+  comingSoon?: boolean
 }
 
 const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
@@ -40,16 +41,16 @@ const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
     badge: 2,
     badgeTooltip: "Two accounts need your review",
   },
-  { name: "Portfolio", href: "/dashboard/portfolio", icon: Wallet },
-  { name: "Crypto", href: "/dashboard/crypto", icon: Bitcoin },
-  { name: "Cash Flow", href: "/dashboard/cash-flow", icon: TrendingUp },
-  { name: "Transactions", href: "/dashboard/transactions", icon: ListTree },
-  { name: "Budget", href: "/dashboard/budget", icon: Receipt },
-  { name: "Goals", href: "/dashboard/goals", icon: Target },
-  { name: "Taxes", href: "/dashboard/taxes", icon: FileText },
-  { name: "Insights", href: "/dashboard/insights", icon: Lightbulb },
-  { name: "Growth", href: "/dashboard/growth", icon: BarChart3, featureFlag: "growthDashboards" },
-  { name: "Documents", href: "/dashboard/documents", icon: Folder },
+  { name: "Portfolio", href: "/dashboard/portfolio", icon: Wallet, comingSoon: true },
+  { name: "Crypto", href: "/dashboard/crypto", icon: Bitcoin, comingSoon: true },
+  { name: "Cash Flow", href: "/dashboard/cash-flow", icon: TrendingUp, comingSoon: true },
+  { name: "Transactions", href: "/dashboard/transactions", icon: ListTree, comingSoon: true },
+  { name: "Budget", href: "/dashboard/budget", icon: Receipt, comingSoon: true },
+  { name: "Goals", href: "/dashboard/goals", icon: Target, comingSoon: true },
+  { name: "Taxes", href: "/dashboard/taxes", icon: FileText, comingSoon: true },
+  { name: "Insights", href: "/dashboard/insights", icon: Lightbulb, comingSoon: true },
+  { name: "Growth", href: "/dashboard/growth", icon: BarChart3, featureFlag: "growthDashboards", comingSoon: true },
+  { name: "Documents", href: "/dashboard/documents", icon: Folder, comingSoon: true },
   { name: "Profile", href: "/dashboard/profile", icon: User },
   { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
   { name: "Settings", href: "/dashboard/settings", icon: Settings, exact: true },
