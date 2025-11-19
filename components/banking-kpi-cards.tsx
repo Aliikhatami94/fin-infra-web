@@ -21,7 +21,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 
-interface AccountsKPICardsProps {
+interface BankingKPICardsProps {
   totalCash: number
   totalCreditDebt: number
   totalInvestments: number
@@ -41,7 +41,7 @@ const createSparklineSeries = (currentValue: number, baselineValue: number) => {
   })
 }
 
-export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments }: AccountsKPICardsProps) {
+export function BankingKPICards({ totalCash, totalCreditDebt, totalInvestments }: BankingKPICardsProps) {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isCollapsed, setIsCollapsed] = useState(false)

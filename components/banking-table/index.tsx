@@ -25,13 +25,13 @@ import type { Account } from "@/types/domain"
 
 const { Filter, Plus } = sharedIcons
 
-interface AccountsTableProps {
+interface BankingTableProps {
   onRequestLink: () => void
   isLinking?: boolean
   linkingInstitution?: string | null
 }
 
-export function AccountsTable({
+export function BankingTable({
   onRequestLink,
   isLinking = false,
   linkingInstitution,

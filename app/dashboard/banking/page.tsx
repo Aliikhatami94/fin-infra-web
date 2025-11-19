@@ -1,12 +1,12 @@
 "use client"
 
-import { AccountsPageClient } from "@/components/accounts-page.client"
+import { BankingPageClient } from "@/components/banking-page.client"
 import { getAccounts } from "@/lib/services/accounts"
 import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 import type { Account } from "@/types/domain"
 
-export default function AccountsPage() {
+export default function BankingPage() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -47,7 +47,7 @@ export default function AccountsPage() {
   }
 
   return (
-    <AccountsPageClient 
+    <BankingPageClient 
       totalCash={totalCash} 
       totalCreditDebt={totalCreditDebt} 
       totalInvestments={totalInvestments} 

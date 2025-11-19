@@ -55,8 +55,8 @@ const CALLOUTS: CalloutConfig[] = [
 
 const STORAGE_KEY = "dismissed-callouts"
 
-export function AccountsCallouts() {
-  const storage = useSecureStorage({ namespace: "accounts" })
+export function BankingCallouts() {
+  const storage = useSecureStorage({ namespace: "banking" })
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
 
   useEffect(() => {

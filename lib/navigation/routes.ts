@@ -35,8 +35,8 @@ export interface NavigationItem {
 const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard, exact: true },
   {
-    name: "Accounts",
-    href: "/dashboard/accounts",
+    name: "Banking",
+    href: "/dashboard/banking",
     icon: Building2,
     badge: 2,
     badgeTooltip: "Two accounts need your review",

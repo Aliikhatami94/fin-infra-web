@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { CollapsibleSection } from "@/components/collapsible-section"
 
-const AccountsKPICards = dynamic(() => import("@/components/accounts-kpi-cards").then((m) => m.AccountsKPICards), {
+const BankingKPICards = dynamic(() => import("@/components/banking-kpi-cards").then((m) => m.BankingKPICards), {
   ssr: false,
 })
 
-const AccountsCallouts = dynamic(() => import("@/components/accounts-callouts").then((m) => m.AccountsCallouts), {
+const BankingCallouts = dynamic(() => import("@/components/banking-callouts").then((m) => m.BankingCallouts), {
   ssr: false,
 })
 
@@ -20,19 +20,19 @@ const AIInsightsBanner = dynamic(() => import("@/components/ai-insights-banner")
   ssr: false,
 })
 
-const AccountsTable = dynamic(() => import("@/components/accounts-table").then((m) => m.AccountsTable), { ssr: false })
+const BankingTable = dynamic(() => import("@/components/banking-table").then((m) => m.BankingTable), { ssr: false })
 
 const PlaidLinkDialog = dynamic(() => import("@/components/plaid-link-dialog").then((m) => m.PlaidLinkDialog), {
   ssr: false,
 })
 
-interface AccountsPageClientProps {
+interface BankingPageClientProps {
   totalCash: number
   totalCreditDebt: number
   totalInvestments: number
 }
 
-export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestments }: AccountsPageClientProps) {
+export function BankingPageClient({ totalCash, totalCreditDebt, totalInvestments }: BankingPageClientProps) {
   const [isPlaidOpen, setIsPlaidOpen] = useState(false)
   const [isLinking, setIsLinking] = useState(false)
   const [linkingInstitution, setLinkingInstitution] = useState<string | null>(null)
@@ -71,7 +71,7 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h1 className="text-xl md:text-2xl font-semibold text-foreground">Accounts</h1>
+              <h1 className="text-xl md:text-2xl font-semibold text-foreground">Banking</h1>
               <p className="text-sm text-muted-foreground">Manage your linked bank accounts and credit cards</p>
             </div>
             <div className="flex items-center">
@@ -115,19 +115,19 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
             </span>
           </div>
         )}
-        <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
+        <BankingKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
 
         <CollapsibleSection
           title="Financial Health"
-          storageKey="accounts-callouts-expanded"
+          storageKey="banking-callouts-expanded"
           defaultExpanded={false}
         >
-          <AccountsCallouts />
+          <BankingCallouts />
         </CollapsibleSection>
 
         <CollapsibleSection
           title="AI Insights"
-          storageKey="accounts-ai-insights-expanded"
+          storageKey="banking-ai-insights-expanded"
           defaultExpanded={false}
         >
           <AIInsightsBanner />
@@ -135,10 +135,10 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
 
         <CollapsibleSection
           title="All Accounts"
-          storageKey="accounts-table-expanded"
+          storageKey="banking-table-expanded"
           defaultExpanded={true}
         >
-          <AccountsTable onRequestLink={handleRequestLink} isLinking={isLinking} linkingInstitution={linkingInstitution} />
+          <BankingTable onRequestLink={handleRequestLink} isLinking={isLinking} linkingInstitution={linkingInstitution} />
         </CollapsibleSection>
 
         <PlaidLinkDialog
@@ -152,4 +152,4 @@ export function AccountsPageClient({ totalCash, totalCreditDebt, totalInvestment
   )
 }
 
-export default AccountsPageClient
+export default BankingPageClient
