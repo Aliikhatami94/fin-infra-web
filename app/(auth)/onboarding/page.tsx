@@ -445,7 +445,7 @@ function OnboardingPageContent() {
       const result = await simulateInstitutionLink(definition.id)
       upsertInstitution(result)
       setLinkModalOpen(false)
-      showSuccessToast(`${definition.name} connected`, {
+      toast.success(`${definition.name} connected`, {
         description: "We\u2019ll refresh balances and transactions in the background.",
       })
     } catch (error) {

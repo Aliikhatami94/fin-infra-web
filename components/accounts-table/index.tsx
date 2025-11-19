@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { motion } from "framer-motion"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,6 +21,7 @@ import { filterAccounts, groupAccounts, sortAccounts } from "./utils"
 import type { GroupBy, SortDirection, SortField, AccountType } from "./types"
 import { getAccounts } from "@/lib/services/accounts"
 import { cn } from "@/lib/utils"
+import type { Account } from "@/types/domain"
 
 const { Filter, Plus } = sharedIcons
 
@@ -37,13 +38,31 @@ export function AccountsTable({
 }: AccountsTableProps) {
   const [sortField, setSortField] = useState<SortField>("balance")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
-  const [accounts, setAccounts] = useState(() => getAccounts())
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true)
   const [expandedAccount, setExpandedAccount] = useState<number | null>(null)
   const [hideZeroBalance, setHideZeroBalance] = useState(false)
   const [ignoredAccounts, setIgnoredAccounts] = useState<Set<number>>(new Set())
   const [groupBy, setGroupBy] = useState<GroupBy>("none")
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const [typeFilters, setTypeFilters] = useState<Set<AccountType>>(new Set())
+
+  // Load accounts on mount
+  useEffect(() => {
+    const loadAccounts = async () => {
+      setIsLoadingAccounts(true)
+      try {
+        const fetchedAccounts = await getAccounts()
+        setAccounts(fetchedAccounts)
+      } catch (error) {
+        console.error("Failed to load accounts:", error)
+        setAccounts([])
+      } finally {
+        setIsLoadingAccounts(false)
+      }
+    }
+    loadAccounts()
+  }, [])
 
   const accountTypes = useMemo(() => {
     const types = new Set<AccountType>()
@@ -132,10 +151,20 @@ export function AccountsTable({
           <CardHeader className="space-y-4">
             <div className="space-y-2">
               <CardTitle>All Accounts</CardTitle>
-              {!hasAccounts && (
+              {!hasAccounts && !isLoadingAccounts && (
                 <p className="text-sm text-muted-foreground">
                   Link your bank, credit, and investment accounts to see them here.
                 </p>
+              )}
+              {isLoadingAccounts && (
+                <div
+                  className="flex items-center gap-2 text-xs text-muted-foreground sm:text-sm"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  <span>Loading accounts&hellip;</span>
+                </div>
               )}
               {isLinking && (
                 <div
@@ -212,7 +241,12 @@ export function AccountsTable({
             )}
           </CardHeader>
           <CardContent>
-            {!hasAccounts ? (
+            {isLoadingAccounts ? (
+              <div className="flex items-center justify-center gap-3 py-12 text-center">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden="true" />
+                <span className="text-sm text-muted-foreground">Loading accounts&hellip;</span>
+              </div>
+            ) : !hasAccounts ? (
               <div className="flex flex-col items-center gap-4 py-12 text-center">
                 <div className="rounded-full bg-primary/10 p-4">
                   <Wallet className="h-6 w-6 text-primary" aria-hidden="true" />

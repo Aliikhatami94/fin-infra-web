@@ -239,6 +239,7 @@ export interface LinkedInstitutionAccount {
 export interface LinkedInstitution {
   id: string
   name: string
+  provider?: 'plaid' | 'teller'
   status: InstitutionConnectionStatus
   lastLinkedAt?: string
   accounts: LinkedInstitutionAccount[]
