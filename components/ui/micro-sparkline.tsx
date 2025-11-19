@@ -19,12 +19,12 @@ const normalize = (values: number[]) => {
 
   const max = Math.max(...values)
   const min = Math.min(...values)
-  const range = max - min || 1
+  const range = max - min
 
   return values
     .map((value, index) => {
       const x = (index / Math.max(1, values.length - 1)) * 100
-      const y = 100 - ((value - min) / range) * 100
+      const y = range === 0 ? 50 : 100 - ((value - min) / range) * 100
       return `${x},${y}`
     })
     .join(" ")

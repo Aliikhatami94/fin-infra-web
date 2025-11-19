@@ -7,6 +7,7 @@ import { Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { CollapsibleSection } from "@/components/collapsible-section"
+import type { Account } from "@/types/domain"
 
 const BankingKPICards = dynamic(() => import("@/components/banking-kpi-cards").then((m) => m.BankingKPICards), {
   ssr: false,
@@ -27,12 +28,13 @@ const PlaidLinkDialog = dynamic(() => import("@/components/plaid-link-dialog").t
 })
 
 interface BankingPageClientProps {
+  accounts: Account[]
   totalCash: number
   totalCreditDebt: number
   totalInvestments: number
 }
 
-export function BankingPageClient({ totalCash, totalCreditDebt, totalInvestments }: BankingPageClientProps) {
+export function BankingPageClient({ accounts, totalCash, totalCreditDebt, totalInvestments }: BankingPageClientProps) {
   const [isPlaidOpen, setIsPlaidOpen] = useState(false)
   const [isLinking, setIsLinking] = useState(false)
   const [linkingInstitution, setLinkingInstitution] = useState<string | null>(null)
@@ -138,7 +140,12 @@ export function BankingPageClient({ totalCash, totalCreditDebt, totalInvestments
           storageKey="banking-table-expanded"
           defaultExpanded={true}
         >
-          <BankingTable onRequestLink={handleRequestLink} isLinking={isLinking} linkingInstitution={linkingInstitution} />
+          <BankingTable
+            accounts={accounts}
+            onRequestLink={handleRequestLink}
+            isLinking={isLinking}
+            linkingInstitution={linkingInstitution}
+          />
         </CollapsibleSection>
 
         <PlaidLinkDialog

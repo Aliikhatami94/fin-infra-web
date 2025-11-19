@@ -134,9 +134,14 @@ export function AccountsListMobile({
                             label={`${account.name} 30d balance trend`}
                           />
                           <span
-                            className={`text-sm font-medium tabular-nums ${
-                              account.change > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                            }`}
+                            className={cn(
+                              "text-sm font-medium tabular-nums",
+                              account.change > 0
+                                ? "text-green-600 dark:text-green-400"
+                                : account.change < 0
+                                  ? "text-red-600 dark:text-red-400"
+                                  : "text-muted-foreground",
+                            )}
                           >
                             {formatNumber(account.change, {
                               minimumFractionDigits: 1,

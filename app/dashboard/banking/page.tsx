@@ -2,7 +2,7 @@
 
 import { BankingPageClient } from "@/components/banking-page.client"
 import { getAccounts } from "@/lib/services/accounts"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Loader2 } from "lucide-react"
 import type { Account } from "@/types/domain"
 
@@ -12,8 +12,13 @@ export const dynamic = 'force-dynamic'
 export default function BankingPage() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const hasFetchedRef = useRef(false)
 
   useEffect(() => {
+    // Prevent duplicate fetches in React Strict Mode
+    if (hasFetchedRef.current) return
+    hasFetchedRef.current = true
+
     const loadAccounts = async () => {
       try {
         const fetchedAccounts = await getAccounts()
@@ -50,10 +55,11 @@ export default function BankingPage() {
   }
 
   return (
-    <BankingPageClient 
-      totalCash={totalCash} 
-      totalCreditDebt={totalCreditDebt} 
-      totalInvestments={totalInvestments} 
+    <BankingPageClient
+      accounts={accounts}
+      totalCash={totalCash}
+      totalCreditDebt={totalCreditDebt}
+      totalInvestments={totalInvestments}
     />
   )
 }

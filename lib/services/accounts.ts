@@ -113,12 +113,8 @@ async function transformPlaidAccount(
     balanceHistory = history.snapshots.map((s) => s.balance)
     change = history.stats.change_percent
   } else {
-    // Fallback: generate simple balance history estimate
-    balanceHistory = Array.from({ length: 30 }, (_, i) => {
-      const variance = (Math.random() - 0.5) * balance * 0.02 // ±2% variance
-      return Number((balance + variance).toFixed(2))
-    })
-    balanceHistory[29] = balance // Current balance at end
+    // Fallback: use current balance for all points (flat line) to accurately reflect no history
+    balanceHistory = Array(30).fill(balance)
   }
   
   return {

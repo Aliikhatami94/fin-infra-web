@@ -31,8 +31,6 @@ const {
   EyeOff,
   MoreHorizontal,
   RefreshCw,
-  TrendingDown,
-  TrendingUp,
 } = sharedIcons
 
 const statusStyles: Record<
@@ -387,15 +385,14 @@ export function AccountsTableDesktop({
                   data={account.balanceHistory}
                   label={`${account.name} balance trend for the last 30 days`}
                 />
-                {account.change > 0 ? (
-                  <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
-                )}
                 <span
                   className={cn(
-                    "text-sm font-medium font-mono tabular-nums",
-                    account.change > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400",
+                    "text-sm font-medium font-mono tabular-nums ml-1",
+                    account.change > 0
+                      ? "text-green-600 dark:text-green-400"
+                      : account.change < 0
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-muted-foreground",
                   )}
                 >
                   {formatNumber(account.change, {
