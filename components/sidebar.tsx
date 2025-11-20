@@ -165,7 +165,7 @@ export function Sidebar({
                           <div
                             className={cn(
                               linkClasses,
-                              "cursor-not-allowed opacity-50"
+                              "cursor-not-allowed opacity-50 justify-center"
                             )}
                             aria-disabled="true"
                           >
@@ -187,7 +187,7 @@ export function Sidebar({
                           onClick={onMobileClose}
                           onMouseEnter={() => handlePrefetch(item.href)}
                           onFocus={() => handlePrefetch(item.href)}
-                          className={linkClasses}
+                          className={cn(linkClasses, "justify-center")}
                           aria-current={active ? "page" : undefined}
                         >
                           <item.icon className="h-5 w-5 shrink-0" />

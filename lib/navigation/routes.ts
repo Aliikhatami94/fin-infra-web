@@ -41,7 +41,7 @@ const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
     badge: 2,
     badgeTooltip: "Two accounts need your review",
   },
-  { name: "Portfolio", href: "/dashboard/portfolio", icon: Wallet, comingSoon: true },
+  { name: "Portfolio", href: "/dashboard/portfolio", icon: Wallet },
   { name: "Crypto", href: "/dashboard/crypto", icon: Bitcoin, comingSoon: true },
   { name: "Cash Flow", href: "/dashboard/cash-flow", icon: TrendingUp, comingSoon: true },
   { name: "Transactions", href: "/dashboard/transactions", icon: ListTree },
