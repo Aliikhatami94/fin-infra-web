@@ -119,6 +119,7 @@ async function transformPlaidAccount(
   
   return {
     id: index + 1,
+    account_id: acc.account_id, // Store Plaid account_id for API calls
     name: acc.name,
     type: accountType,
     institution: acc.institution_name || "Unknown",
@@ -157,10 +158,23 @@ async function fetchAccountsFromApi(): Promise<Account[]> {
 
   const data: AccountsApiResponse = await response.json()
   
+  console.log("📦 Raw API response accounts:", data.accounts.map(acc => ({
+    name: acc.name,
+    account_id: acc.account_id,
+    hasAccountId: !!acc.account_id
+  })))
+  
   // Transform accounts with balance history (in parallel for performance)
   const transformedAccounts = await Promise.all(
     data.accounts.map((acc, index) => transformPlaidAccount(acc, index, token))
   )
+  
+  console.log("✨ Transformed accounts:", transformedAccounts.map(acc => ({
+    id: acc.id,
+    name: acc.name,
+    account_id: acc.account_id,
+    hasAccountId: !!acc.account_id
+  })))
   
   return transformedAccounts
 }
@@ -185,11 +199,38 @@ export async function getAccounts(): Promise<Account[]> {
 }
 
 /**
- * Returns a limited set of recent transactions for account detail panes.
- * Validation keeps icon and numeric shapes consistent across consumers.
+ * Returns recent transactions for a specific account.
+ * Fetches from API in production, uses mock data in marketing mode.
+ * 
+ * @param accountId - Plaid account_id to filter transactions
+ * @param limit - Maximum number of transactions to return (default: 3)
  */
-export function getRecentTransactions(): Transaction[] {
-  return transactionsResponseSchema.parse(mockTransactions)
+export async function getRecentTransactions(accountId?: string, limit: number = 3): Promise<Transaction[]> {
+  console.log(`🔍 getRecentTransactions called with accountId=${accountId}, limit=${limit}`)
+  
+  if (isMarketingMode()) {
+    console.log("📸 Marketing mode - returning mock transactions")
+    return transactionsResponseSchema.parse(mockTransactions.slice(0, limit))
+  }
+
+  try {
+    const { getTransactions } = await import("@/lib/services/transactions")
+    
+    // Fetch last 30 days of transactions for the account
+    const endDate = new Date().toISOString().split("T")[0]
+    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    
+    console.log(`📅 Fetching transactions: ${startDate} to ${endDate}, accountId=${accountId}`)
+    const transactions = await getTransactions(startDate, endDate, accountId)
+    console.log(`✅ Fetched ${transactions.length} transactions, returning top ${limit}`)
+    
+    // Return most recent transactions (limited)
+    return transactions.slice(0, limit)
+  } catch (error) {
+    console.error(`❌ Failed to fetch recent transactions for account ${accountId}:`, error)
+    // Fallback to mock data on error
+    return transactionsResponseSchema.parse(mockTransactions.slice(0, limit))
+  }
 }
 
 // Additional functions or updates can be added here if necessary

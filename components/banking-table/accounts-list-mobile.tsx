@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,26 +9,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AnimatePresence, motion } from "framer-motion"
-import { cn } from "@/lib/utils"
-
-import { bankLogos, defaultBankIcon, sharedIcons, typeColors } from "@/lib/mock"
-import { MiniSparkline } from "./mini-sparkline"
-import type { GroupBy } from "./types"
-import type { Account, Transaction } from "@/types/domain"
-import { formatCurrency, formatNumber } from "@/lib/format"
-import { getRecentTransactions } from "@/lib/services/accounts"
-
-const {
+import { 
   Calendar,
   ChevronDown,
   ChevronRight,
   Eye,
   EyeOff,
+  Loader2,
   MoreHorizontal,
   RefreshCw,
-} = sharedIcons
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
-const recentTransactions: Transaction[] = getRecentTransactions()
+import { bankLogos, defaultBankIcon, typeColors } from "@/lib/mock"
+import { MiniSparkline } from "./mini-sparkline"
+import type { GroupBy } from "./types"
+import type { Account, Transaction } from "@/types/domain"
+import { formatCurrency, formatNumber } from "@/lib/format"
+import { getRecentTransactions } from "@/lib/services/accounts"
 
 interface AccountsListMobileProps {
   groupedAccounts: Record<string, Account[]>
@@ -54,6 +53,47 @@ export function AccountsListMobile({
   onUpdateConnection,
   onDisconnectAccount,
 }: AccountsListMobileProps) {
+  // Cache transactions per account to avoid refetching
+  const [transactionsCache, setTransactionsCache] = useState<Record<string, Transaction[]>>({})
+  const [loadingTransactions, setLoadingTransactions] = useState<Set<string>>(new Set())
+
+  // Fetch transactions when account is expanded
+  useEffect(() => {
+    if (expandedAccount === null) return
+
+    const account = Object.values(groupedAccounts)
+      .flat()
+      .find((acc) => acc.id === expandedAccount)
+
+    if (!account || !account.account_id) return
+
+    const accountId = account.account_id
+
+    // Skip if already loading or cached
+    if (loadingTransactions.has(accountId) || transactionsCache[accountId]) {
+      return
+    }
+
+    // Mark as loading
+    setLoadingTransactions((prev) => new Set(prev).add(accountId))
+
+    // Fetch transactions
+    getRecentTransactions(accountId, 3)
+      .then((transactions) => {
+        setTransactionsCache((prev) => ({ ...prev, [accountId]: transactions }))
+      })
+      .catch((error) => {
+        console.error(`Failed to fetch transactions for account ${accountId}:`, error)
+      })
+      .finally(() => {
+        setLoadingTransactions((prev) => {
+          const next = new Set(prev)
+          next.delete(accountId)
+          return next
+        })
+      })
+  }, [expandedAccount, groupedAccounts, loadingTransactions, transactionsCache])
+
   return (
     <div className="md:hidden space-y-3">
       {Object.entries(groupedAccounts).map(([groupName, accounts]) => (
@@ -279,24 +319,47 @@ export function AccountsListMobile({
                           <div>
                             <h4 className="text-sm font-semibold mb-2">Recent Transactions</h4>
                             <div className="space-y-2">
-                              {recentTransactions.slice(0, 3).map((txn) => {
-                                const TxnIcon = txn.icon
-                                return (
-                                  <div key={txn.id} className="flex items-center justify-between text-sm">
-                                    <div className="flex items-center gap-2">
-                                      <TxnIcon className="h-4 w-4 text-muted-foreground" />
-                                      <span className="text-muted-foreground">{txn.merchant}</span>
+                              {(() => {
+                                const accountId = account.account_id || String(account.id)
+                                const transactions = transactionsCache[accountId] || []
+                                const isLoading = loadingTransactions.has(accountId)
+
+                                if (isLoading) {
+                                  return (
+                                    <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+                                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                      Loading...
                                     </div>
-                                    <span
-                                      className={`font-semibold tabular-nums font-mono ${
-                                        txn.amount > 0 ? "text-green-600 dark:text-green-400" : ""
-                                      }`}
-                                    >
-                                      {formatCurrency(txn.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
-                                    </span>
-                                  </div>
-                                )
-                              })}
+                                  )
+                                }
+
+                                if (transactions.length === 0) {
+                                  return (
+                                    <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+                                      No recent transactions
+                                    </div>
+                                  )
+                                }
+
+                                return transactions.slice(0, 3).map((txn) => {
+                                  const TxnIcon = txn.icon
+                                  return (
+                                    <div key={txn.id} className="flex items-center justify-between text-sm">
+                                      <div className="flex items-center gap-2">
+                                        <TxnIcon className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-muted-foreground">{txn.merchant}</span>
+                                      </div>
+                                      <span
+                                        className={`font-semibold tabular-nums font-mono ${
+                                          txn.amount > 0 ? "text-green-600 dark:text-green-400" : ""
+                                        }`}
+                                      >
+                                        {formatCurrency(txn.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
+                                      </span>
+                                    </div>
+                                  )
+                                })
+                              })()}
                             </div>
                           </div>
 

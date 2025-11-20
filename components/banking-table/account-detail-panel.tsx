@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, RefreshCw } from "lucide-react"
+import { Calendar, RefreshCw, Loader2 } from "lucide-react"
 
 import type { Account, Transaction } from "@/types/domain"
 import { formatCurrency } from "@/lib/format"
@@ -10,9 +10,10 @@ interface AccountDetailPanelProps {
   typeColors: Record<string, string>
   transactions: Transaction[]
   onReconnect: (accountId: number) => void
+  isLoadingTransactions?: boolean
 }
 
-export function AccountDetailPanel({ account, onReconnect, transactions, typeColors }: AccountDetailPanelProps) {
+export function AccountDetailPanel({ account, onReconnect, transactions, typeColors, isLoadingTransactions = false }: AccountDetailPanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -91,32 +92,43 @@ export function AccountDetailPanel({ account, onReconnect, transactions, typeCol
       <div className="space-y-2">
         <p className="text-xs text-muted-foreground uppercase tracking-wide">Recent Transactions</p>
         <div className="space-y-2">
-          {transactions.slice(0, 3).map((txn) => {
-            const TxnIcon = txn.icon
-            return (
-              <div
-                key={txn.id}
-                className="flex items-center justify-between p-2 rounded-md hover:bg-muted/40 transition-smooth"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
-                    <TxnIcon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{txn.merchant}</p>
-                    <p className="text-xs text-muted-foreground">{txn.date}</p>
-                  </div>
-                </div>
-                <span
-                  className={`text-sm font-semibold tabular-nums font-mono ${
-                    txn.amount > 0 ? "text-green-600 dark:text-green-400" : "text-foreground"
-                  }`}
+          {isLoadingTransactions ? (
+            <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Loading transactions...
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+              No recent transactions
+            </div>
+          ) : (
+            transactions.slice(0, 3).map((txn) => {
+              const TxnIcon = txn.icon
+              return (
+                <div
+                  key={txn.id}
+                  className="flex items-center justify-between p-2 rounded-md hover:bg-muted/40 transition-smooth"
                 >
-                  {formatCurrency(txn.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
-                </span>
-              </div>
-            )
-          })}
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
+                      <TxnIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{txn.merchant}</p>
+                      <p className="text-xs text-muted-foreground">{txn.date}</p>
+                    </div>
+                  </div>
+                  <span
+                    className={`text-sm font-semibold tabular-nums font-mono ${
+                      txn.amount > 0 ? "text-green-600 dark:text-green-400" : "text-foreground"
+                    }`}
+                  >
+                    {formatCurrency(txn.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" })}
+                  </span>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
 

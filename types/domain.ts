@@ -25,6 +25,7 @@ export type AccountType =
 
 export interface Account {
   id: number
+  account_id?: string // Plaid account_id for API calls
   name: string
   type: AccountType
   institution: string

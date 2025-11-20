@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, forwardRef, type HTMLAttributes, useCallback } from "react"
+import { useMemo, forwardRef, type HTMLAttributes, useCallback, useState, useEffect } from "react"
 
 import { MaskableValue } from "@/components/privacy-provider"
 import { Badge } from "@/components/ui/badge"
@@ -62,10 +62,8 @@ const statusStyles: Record<
 
 type VirtualRow =
   | { type: "group"; id: string; groupName: string; count: number }
-  | { type: "account"; id: string; account: Account; groupName: string; isIgnored: boolean }
-  | { type: "detail"; id: string; account: Account }
-
-const recentTransactions: Transaction[] = getRecentTransactions()
+  | { type: "account"; id: string; account: Account; groupName: string; isIgnored: boolean; accountId: string }
+  | { type: "detail"; id: string; account: Account; accountId: string }
 
 interface AccountsTableDesktopProps {
   groupedAccounts: Record<string, Account[]>
@@ -94,6 +92,63 @@ export function AccountsTableDesktop({
   onUpdateConnection,
   onDisconnectAccount,
 }: AccountsTableDesktopProps) {
+  // Cache transactions per account to avoid refetching
+  const [transactionsCache, setTransactionsCache] = useState<Record<string, Transaction[]>>({})
+  const [loadingTransactions, setLoadingTransactions] = useState<Set<string>>(new Set())
+
+  // Fetch transactions when account is expanded
+  useEffect(() => {
+    if (expandedAccount === null) return
+
+    const account = Object.values(groupedAccounts)
+      .flat()
+      .find((acc) => acc.id === expandedAccount)
+
+    if (!account) {
+      console.log("⚠️ Account not found for expandedAccount:", expandedAccount)
+      return
+    }
+    
+    if (!account.account_id) {
+      console.log("⚠️ Account missing account_id:", account)
+      return
+    }
+
+    const accountId = account.account_id
+    console.log(`🔓 Expanded account ${account.name} (id=${account.id}, account_id=${accountId})`)
+
+    // Skip if already loading or cached
+    if (loadingTransactions.has(accountId)) {
+      console.log(`⏳ Already loading transactions for ${accountId}`)
+      return
+    }
+    
+    if (transactionsCache[accountId]) {
+      console.log(`💾 Using cached transactions for ${accountId} (${transactionsCache[accountId].length} txns)`)
+      return
+    }
+
+    // Mark as loading
+    setLoadingTransactions((prev) => new Set(prev).add(accountId))
+    console.log(`🚀 Fetching transactions for account ${accountId}...`)
+
+    // Fetch transactions
+    getRecentTransactions(accountId, 3)
+      .then((transactions) => {
+        setTransactionsCache((prev) => ({ ...prev, [accountId]: transactions }))
+      })
+      .catch((error) => {
+        console.error(`Failed to fetch transactions for account ${accountId}:`, error)
+      })
+      .finally(() => {
+        setLoadingTransactions((prev) => {
+          const next = new Set(prev)
+          next.delete(accountId)
+          return next
+        })
+      })
+  }, [expandedAccount, groupedAccounts, loadingTransactions, transactionsCache])
+
   const virtualRows = useMemo<VirtualRow[]>(() => {
     const rows: VirtualRow[] = []
 
@@ -111,12 +166,16 @@ export function AccountsTableDesktop({
 
       if (!isCollapsed) {
         accounts.forEach((account) => {
+          // Use Plaid account_id for API calls
+          const accountId = account.account_id || String(account.id)
+          
           const accountRow: VirtualRow = {
             type: "account",
             id: `account-${account.id}`,
             account,
             groupName,
             isIgnored: ignoredAccounts.has(account.id),
+            accountId,
           }
           rows.push(accountRow)
 
@@ -125,6 +184,7 @@ export function AccountsTableDesktop({
               type: "detail",
               id: `detail-${account.id}`,
               account,
+              accountId,
             })
           }
         })
@@ -317,13 +377,17 @@ export function AccountsTableDesktop({
           }
 
           if (item.type === "detail") {
+            const transactions = transactionsCache[item.accountId] || []
+            const isLoading = loadingTransactions.has(item.accountId)
+            
             return [
               <td key={`${item.id}-detail`} colSpan={7} className="bg-muted/30 p-4">
                 <AccountDetailPanel
                   account={item.account}
                   onReconnect={onUpdateConnection}
-                  transactions={recentTransactions}
+                  transactions={transactions}
                   typeColors={typeColors}
+                  isLoadingTransactions={isLoading}
                 />
               </td>,
             ]

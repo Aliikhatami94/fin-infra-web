@@ -22,7 +22,19 @@ export default function BankingPage() {
     const loadAccounts = async () => {
       try {
         const fetchedAccounts = await getAccounts()
+        console.log("📥 BankingPage received from getAccounts:", fetchedAccounts.map(acc => ({
+          id: acc.id,
+          name: acc.name,
+          account_id: acc.account_id,
+          hasAccountId: !!acc.account_id
+        })))
         setAccounts(fetchedAccounts)
+        console.log("📤 BankingPage state after setAccounts:", fetchedAccounts.map(acc => ({
+          id: acc.id,
+          name: acc.name,
+          account_id: acc.account_id,
+          hasAccountId: !!acc.account_id
+        })))
       } catch (error) {
         console.error("Failed to load accounts:", error)
         setAccounts([])

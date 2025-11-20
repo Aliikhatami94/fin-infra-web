@@ -37,6 +37,7 @@ export const transactionSchema: z.ZodType<Transaction> = z.object({
 
 export const accountSchema: z.ZodType<Account> = z.object({
   id: z.number(),
+  account_id: z.string().optional(), // Plaid account_id for API calls
   name: z.string(),
   type: z.string(),
   institution: z.string(),
