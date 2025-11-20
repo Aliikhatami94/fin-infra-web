@@ -51,13 +51,24 @@ interface BalanceHistoryResponse {
  * Map Plaid account type to frontend AccountType
  */
 function mapAccountType(type: string, subtype?: string): AccountType {
+  // Depository accounts (checking, savings, money market, CD, HSA)
   if (type === "depository") {
     if (subtype === "checking") return "Checking"
     if (subtype === "savings") return "Savings"
+    // Default depository to Checking
     return "Checking"
   }
+  
+  // Credit accounts
   if (type === "credit") return "Credit Card"
+  
+  // Investment accounts (IRA, 401k, brokerage, etc.)
   if (type === "investment" || type === "brokerage") return "Investment"
+  
+  // Loan accounts (mortgage, student, auto, personal)
+  if (type === "loan") return "loan"
+  
+  // Fallback: return the raw type
   return type as AccountType
 }
 

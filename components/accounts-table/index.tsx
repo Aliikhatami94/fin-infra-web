@@ -24,7 +24,7 @@ import type { Account } from "@/types/domain"
 
 const { Filter, Plus } = sharedIcons
 
-interface BankingTableProps {
+interface AccountsTableProps {
   accounts: Account[]
   onRequestLink: () => void
   onDisconnect: (institution: string) => void
@@ -32,7 +32,7 @@ interface BankingTableProps {
   linkingInstitution?: string | null
 }
 
-export function BankingTable({
+export function AccountsTable({
   accounts: initialAccounts,
   onRequestLink,
   onDisconnect,

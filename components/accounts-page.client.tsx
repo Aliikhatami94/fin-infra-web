@@ -13,11 +13,11 @@ import { isMarketingMode } from "@/lib/marketingMode"
 import { listLinkableInstitutions, simulateInstitutionLink } from "@/lib/services"
 import type { Account, LinkedInstitution, InstitutionConnectionStatus } from "@/types/domain"
 
-const BankingKPICards = dynamic(() => import("@/components/banking-kpi-cards").then((m) => m.BankingKPICards), {
+const AccountsKPICards = dynamic(() => import("@/components/accounts-kpi-cards").then((m) => m.AccountsKPICards), {
   ssr: false,
 })
 
-const BankingCallouts = dynamic(() => import("@/components/banking-callouts").then((m) => m.BankingCallouts), {
+const AccountsCallouts = dynamic(() => import("@/components/accounts-callouts").then((m) => m.AccountsCallouts), {
   ssr: false,
 })
 
@@ -25,20 +25,20 @@ const AIInsightsBanner = dynamic(() => import("@/components/ai-insights-banner")
   ssr: false,
 })
 
-const BankingTable = dynamic(() => import("@/components/banking-table").then((m) => m.BankingTable), { ssr: false })
+const AccountsTable = dynamic(() => import("@/components/accounts-table").then((m) => m.AccountsTable), { ssr: false })
 
 const PlaidLinkButton = dynamic(() => import("@/components/plaid-link-button").then((m) => m.PlaidLinkButton), {
   ssr: false,
 })
 
-interface BankingPageClientProps {
+interface AccountsPageClientProps {
   accounts: Account[]
   totalCash: number
   totalCreditDebt: number
   totalInvestments: number
 }
 
-export function BankingPageClient({ accounts, totalCash, totalCreditDebt, totalInvestments }: BankingPageClientProps) {
+export function AccountsPageClient({ accounts, totalCash, totalCreditDebt, totalInvestments }: AccountsPageClientProps) {
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
   const [institutionToDisconnect, setInstitutionToDisconnect] = useState<string | null>(null)
   const [linkModalOpen, setLinkModalOpen] = useState(false)
@@ -136,8 +136,8 @@ export function BankingPageClient({ accounts, totalCash, totalCreditDebt, totalI
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h1 className="text-xl md:text-2xl font-semibold text-foreground">Banking</h1>
-              <p className="text-sm text-muted-foreground">Manage your linked bank accounts and credit cards</p>
+              <h1 className="text-xl md:text-2xl font-semibold text-foreground">Accounts</h1>
+              <p className="text-sm text-muted-foreground">Manage all your connected accounts and financial institutions</p>
             </div>
             <div className="flex items-center">
               {inMarketingMode ? (
@@ -187,14 +187,14 @@ export function BankingPageClient({ accounts, totalCash, totalCreditDebt, totalI
             </span>
           </div>
         )}
-        <BankingKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
+        <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
 
         <CollapsibleSection
           title="Financial Health"
-          storageKey="banking-callouts-expanded"
+          storageKey="accounts-callouts-expanded"
           defaultExpanded={false}
         >
-          <BankingCallouts />
+          <AccountsCallouts />
         </CollapsibleSection>
 
         <CollapsibleSection
@@ -207,10 +207,10 @@ export function BankingPageClient({ accounts, totalCash, totalCreditDebt, totalI
 
         <CollapsibleSection
           title="All Accounts"
-          storageKey="banking-table-expanded"
+          storageKey="accounts-table-expanded"
           defaultExpanded={true}
         >
-          <BankingTable
+          <AccountsTable
             accounts={accounts}
             onRequestLink={handleRequestLink}
             onDisconnect={handleDisconnect}
@@ -279,4 +279,4 @@ export function BankingPageClient({ accounts, totalCash, totalCreditDebt, totalI
   )
 }
 
-export default BankingPageClient
+export default AccountsPageClient
