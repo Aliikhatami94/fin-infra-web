@@ -9,7 +9,6 @@ import type { LucideIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
-import { MicroSparkline } from "@/components/ui/micro-sparkline"
 import { KPIIcon } from "@/components/ui/kpi-icon"
 import type { SemanticTone } from "@/lib/color-utils"
 import { cn } from "@/lib/utils"
@@ -27,20 +26,6 @@ interface AccountsKPICardsProps {
   totalInvestments: number
 }
 
-const createSparklineSeries = (currentValue: number, baselineValue: number) => {
-  const totalPoints = 30
-  const delta = currentValue - baselineValue
-  const amplitude = Math.abs(delta) * 0.2
-
-  return Array.from({ length: totalPoints }, (_, index) => {
-    const progress = index / (totalPoints - 1)
-    const base = baselineValue + delta * progress
-    const wave = Math.sin(progress * Math.PI * 2) * amplitude * 0.25
-    const value = base + wave
-    return Number(value.toFixed(2))
-  })
-}
-
 export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments }: AccountsKPICardsProps) {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -54,7 +39,6 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
     baselineValue: number
     icon: LucideIcon
     tone: SemanticTone
-    sparklineColor: string
     lastSynced: string
     source: string
   }> = [
@@ -65,7 +49,6 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       baselineValue: totalCash / 1.023,
       icon: Wallet,
       tone: "info",
-      sparklineColor: "rgb(37, 99, 235)",
       lastSynced: "3 min ago",
       source: "Plaid",
     },
@@ -76,7 +59,6 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       baselineValue: totalCreditDebt / 0.988,
       icon: CreditCard,
       tone: "negative",
-      sparklineColor: "rgb(220, 38, 38)",
       lastSynced: "3 min ago",
       source: "Plaid",
     },
@@ -87,7 +69,6 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       baselineValue: totalInvestments / 1.051,
       icon: TrendingUp,
       tone: "positive",
-      sparklineColor: "rgb(22, 163, 74)",
       lastSynced: "5 min ago",
       source: "Teller",
     },
@@ -112,12 +93,11 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
   const renderKPICard = (kpi: typeof kpis[0]) => {
     const isHidden = hiddenCards.has(kpi.title)
     const Icon = kpi.icon
-    const sparklineData = createSparklineSeries(kpi.value, kpi.baselineValue)
 
     return (
       <motion.div {...cardHoverVariants} className="h-full pt-2">
-        <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px]">
-          <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
+        <Card className="card-standard card-lift h-full min-h-[180px] md:min-h-[200px]">
+          <CardContent className="flex flex-col h-full gap-3 p-4 md:p-5">
             <div className="flex items-start justify-between gap-2">
               <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
             </div>
@@ -139,7 +119,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
               <KPIIcon icon={Icon} tone={kpi.tone} size="md" />
             </div>
             {!isHidden && (
-              <div className="flex items-end justify-between gap-3 mt-auto">
+              <div className="flex items-center gap-3 mt-auto">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -169,12 +149,6 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
                     </p>
                   </TooltipContent>
                 </Tooltip>
-                <MicroSparkline
-                  data={sparklineData}
-                  color={kpi.sparklineColor}
-                  ariaLabel={`${kpi.title} 30-day trend sparkline`}
-                  className="h-9 w-24"
-                />
               </div>
             )}
           </CardContent>

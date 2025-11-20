@@ -2,8 +2,10 @@
 
 import { useMemo, useState, type MouseEvent, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import type { KPI, KPIQuickAction } from "@/types/domain"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
@@ -54,7 +56,7 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
 }
 
 interface KPICardContentProps {
-  kpi: ReturnType<typeof getDashboardKpis>[0]
+  kpi: KPI
   index: number
   isHidden: boolean
   onPlanModalOpen: () => void
@@ -70,10 +72,25 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
     <TooltipProvider>
       <Link href={kpi.href} className="h-full block">
         <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants} className="h-full">
-          <Card className="cursor-pointer card-standard card-lift h-full min-h-[200px] md:min-h-[220px]">
-            <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
-              <div className="flex items-start justify-between gap-2">
+          <Card className="cursor-pointer card-standard card-lift h-full min-h-[180px] md:min-h-[200px]">
+            <CardContent className="flex flex-col h-full gap-3 p-4 md:p-5">
+              <div className="flex items-start justify-between gap-2 flex-wrap">
                 <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
+                {kpi.badge && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant={kpi.badge.variant} className="text-xs font-medium flex items-center gap-1">
+                        {kpi.badge.icon && <kpi.badge.icon className="h-3 w-3" />}
+                        {kpi.badge.label}
+                      </Badge>
+                    </TooltipTrigger>
+                    {kpi.badge.tooltip && (
+                      <TooltipContent>
+                        <p className="text-xs max-w-xs">{kpi.badge.tooltip}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                )}
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1 flex-1 min-w-0">
@@ -90,7 +107,7 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
               </div>
               {!isHidden && (
                 <>
-                  <div className="flex items-end justify-between gap-4">
+                  <div className="flex items-center gap-4">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="delta-chip text-delta font-medium cursor-help">
@@ -114,7 +131,6 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
                         </p>
                       </TooltipContent>
                     </Tooltip>
-                    <Sparkline data={kpi.sparkline} color={trendStyles.strokeColor} />
                   </div>
                   <div
                     className={cn(
@@ -124,7 +140,7 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
                         : "",
                     )}
                   >
-                    {hasQuickActions && kpi.quickActions?.map((action) => {
+                    {hasQuickActions && kpi.quickActions?.map((action: KPIQuickAction) => {
                         const isDisabled = action.disabled
                         const actionLabel = action.description ?? `${action.label} for ${kpi.label}`
                         const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {

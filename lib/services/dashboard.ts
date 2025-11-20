@@ -2,10 +2,10 @@ import { kpis, recentActivities, personaKpiExtras, personaKpiPriorities } from "
 import { dashboardKpisResponseSchema, recentActivitiesResponseSchema } from "@/lib/schemas"
 import type { KPI, OnboardingPersona, RecentActivity, Account } from "@/types/domain"
 import { isMarketingMode } from "@/lib/marketingMode"
-import { DollarSign, Wallet, CreditCard, Activity } from "lucide-react"
+import { DollarSign, Wallet, CreditCard, Activity, AlertCircle, AlertTriangle, Lightbulb } from "lucide-react"
 
 /**
- * Calculate real KPIs from account data
+ * Calculate real KPIs from account data with financial health insights
  */
 function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
   // Calculate totals from accounts
@@ -28,38 +28,96 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
   const totalLiabilities = totalCreditDebt + totalLoans
   const netWorth = totalAssets - totalLiabilities
   
+  // Financial Health Analysis
+  const isNetWorthNegative = netWorth < 0
+  const debtToAssetRatio = totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : 0
+  const emergencyFundMonths = totalCash / 4000 // Assuming $4k/month expenses
+  const investmentRate = totalAssets > 0 ? (totalInvestments / totalAssets) * 100 : 0
+  
   // Calculate trends (mock for now - would need historical data)
-  const netWorthChange = netWorth > 0 ? 5.2 : 0
-  const cashChange = -2.1 // Slightly down (spent some)
-  const debtChange = totalCreditDebt + totalLoans > 0 ? -3.4 : 0 // Negative = paying down debt
+  const netWorthChange = netWorth > 0 ? 5.2 : -2.3 // Negative net worth shows downward trend
+  const cashChange = totalCash > 10000 ? -2.1 : -8.5 // Warn if cash is low
+  const debtChange = totalLiabilities > 0 ? -3.4 : 0 // Negative = paying down debt (good!)
   const investmentsChange = totalInvestments > 0 ? 4.8 : 0
   
   // Helper to create sparkline
   const createSparkline = (value: number, trend: number) => {
     const points = 10
-    const base = value / (1 + trend / 100)
+    const base = Math.abs(value) / (1 + Math.abs(trend) / 100)
     return Array.from({ length: points }, (_, i) => {
       const progress = i / (points - 1)
-      return base + (base * trend / 100) * progress
+      const sparkValue = base + (base * trend / 100) * progress
+      return value < 0 ? -sparkValue : sparkValue
     })
+  }
+  
+  // Smart quick actions based on financial health
+  const getNetWorthActions = () => {
+    if (isNetWorthNegative) {
+      return [
+        { label: "Create debt plan", href: "/dashboard/accounts" },
+        { label: "View breakdown", href: "/dashboard/accounts" },
+      ]
+    }
+    return [
+      { label: "View details", href: "/dashboard/accounts" },
+    ]
+  }
+  
+  const getCashActions = () => {
+    if (emergencyFundMonths < 3) {
+      return [
+        { label: "Build emergency fund", href: "/cash-flow" },
+      ]
+    }
+    return [
+      { label: "View cash flow", href: "/cash-flow" },
+    ]
+  }
+  
+  const getDebtActions = () => {
+    if (debtToAssetRatio > 50) {
+      return [
+        { label: "Create payoff plan", href: "/dashboard/accounts" },
+      ]
+    }
+    return [
+      { label: "View accounts", href: "/dashboard/accounts" },
+    ]
+  }
+  
+  const getInvestmentActions = () => {
+    if (investmentRate < 20 && totalCash > 5000) {
+      return [
+        { label: "Grow investments", href: "/dashboard/portfolio" },
+      ]
+    }
+    return [
+      { label: "View portfolio", href: "/dashboard/portfolio" },
+    ]
   }
   
   const realKpis: Partial<Record<string, KPI>> = {
     "Net Worth": {
       label: "Net Worth",
-      value: `$${netWorth.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `${netWorth < 0 ? '-' : ''}$${Math.abs(netWorth).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: `${netWorthChange >= 0 ? '+' : ''}${netWorthChange.toFixed(1)}%`,
-      baselineValue: `$${(netWorth / (1 + netWorthChange / 100)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      baselineValue: `$${Math.abs(netWorth / (1 + netWorthChange / 100)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       trend: netWorthChange >= 0 ? "up" : "down",
       sparkline: createSparkline(netWorth, netWorthChange),
       icon: DollarSign,
       lastSynced: "2 minutes ago",
       source: "Plaid",
       href: "/dashboard/accounts",
-      quickActions: [
-        { label: "See details", href: "/dashboard/accounts" },
-        { label: "Share summary", href: "/documents" },
-      ],
+      quickActions: getNetWorthActions(),
+      ...(isNetWorthNegative && {
+        badge: {
+          label: "Action Needed",
+          variant: "destructive" as const,
+          icon: AlertCircle,
+          tooltip: "Your liabilities exceed your assets. Focus on debt reduction and building savings."
+        }
+      }),
     },
     "Cash Available": {
       label: "Cash Available",
@@ -72,10 +130,15 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       lastSynced: "2 minutes ago",
       source: "Plaid",
       href: "/dashboard/accounts",
-      quickActions: [
-        { label: "Move funds", href: "/cash-flow" },
-        { label: "Set savings rule", href: "/cash-flow" },
-      ],
+      quickActions: getCashActions(),
+      ...(emergencyFundMonths < 3 && {
+        badge: {
+          label: emergencyFundMonths < 1 ? "Critical" : "Low Fund",
+          variant: emergencyFundMonths < 1 ? "destructive" as const : "secondary" as const,
+          icon: emergencyFundMonths < 1 ? AlertCircle : AlertTriangle,
+          tooltip: `Emergency fund covers ~${emergencyFundMonths.toFixed(1)} months. Aim for 3-6 months of expenses.`
+        }
+      }),
     },
     "Debt Balance": {
       label: "Debt Balance",
@@ -88,9 +151,15 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       lastSynced: "2 minutes ago",
       source: "Plaid",
       href: "/dashboard/accounts",
-      quickActions: [
-        { label: "Plan payoff", href: "/dashboard/accounts" },
-      ],
+      quickActions: getDebtActions(),
+      ...(debtToAssetRatio > 50 && {
+        badge: {
+          label: debtToAssetRatio > 80 ? "High Debt" : "Monitor",
+          variant: debtToAssetRatio > 80 ? "destructive" as const : "secondary" as const,
+          icon: debtToAssetRatio > 80 ? AlertCircle : AlertTriangle,
+          tooltip: `Debt is ${debtToAssetRatio.toFixed(0)}% of your assets. Aim to keep this below 50%.`
+        }
+      }),
     },
     "Investable Assets": {
       label: "Investable Assets",
@@ -103,10 +172,15 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       lastSynced: "2 minutes ago",
       source: "Plaid",
       href: "/dashboard/portfolio",
-      quickActions: [
-        { label: "Allocate cash", href: "/dashboard/portfolio" },
-        { label: "Automate transfers", href: "/cash-flow" },
-      ],
+      quickActions: getInvestmentActions(),
+      ...(investmentRate < 20 && totalCash > 5000 && {
+        badge: {
+          label: "Opportunity",
+          variant: "default" as const,
+          icon: Lightbulb,
+          tooltip: `Only ${investmentRate.toFixed(0)}% of assets are invested. Consider investing excess cash.`
+        }
+      }),
     },
   }
   

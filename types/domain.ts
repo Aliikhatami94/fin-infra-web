@@ -180,6 +180,12 @@ export interface KPI {
   personas?: DashboardPersona[]
   narrative?: string
   quickActions?: KPIQuickAction[]
+  badge?: {
+    label: string
+    variant: "default" | "secondary" | "destructive" | "outline"
+    icon?: IconComponent
+    tooltip?: string
+  }
 }
 
 export type KPIQuickActionIntent = "navigate" | "plan-adjust"
