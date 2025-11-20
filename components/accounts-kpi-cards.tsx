@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
 import { Wallet, CreditCard, TrendingUp, TrendingDown, ChevronDown, ChevronUp } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import type { Account } from "@/types/domain"
+import { isMarketingMode } from "@/lib/marketingMode"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LastSyncBadge } from "@/components/last-sync-badge"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
@@ -20,17 +22,47 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 
+/**
+ * Calculate relative time from account lastSync timestamp
+ */
+function getRelativeTime(lastSync: string): string {
+  try {
+    const syncDate = new Date(lastSync)
+    const now = new Date()
+    const diffMs = now.getTime() - syncDate.getTime()
+    const diffMinutes = Math.floor(diffMs / 60000)
+    
+    if (diffMinutes < 1) return "just now"
+    if (diffMinutes < 60) return `${diffMinutes} min ago`
+    
+    const diffHours = Math.floor(diffMinutes / 60)
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    
+    const diffDays = Math.floor(diffHours / 24)
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  } catch {
+    return "recently"
+  }
+}
+
 interface AccountsKPICardsProps {
+  accounts: Account[]
   totalCash: number
   totalCreditDebt: number
   totalInvestments: number
 }
 
-export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments }: AccountsKPICardsProps) {
+export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalInvestments }: AccountsKPICardsProps) {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [hiddenCards] = useState<Set<string>>(new Set())
+
+  // Calculate real sync times from accounts, or use mock data in marketing mode
+  const inMarketingMode = isMarketingMode()
+  const cashAccounts = accounts.filter(acc => acc.type === "Checking" || acc.type === "Savings")
+  const creditAccounts = accounts.filter(acc => acc.type === "Credit Card")
+  const investmentAccounts = accounts.filter(acc => acc.type === "Investment")
 
   const kpis: Array<{
     title: string
@@ -49,7 +81,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       baselineValue: totalCash / 1.023,
       icon: Wallet,
       tone: "info",
-      lastSynced: "3 min ago",
+      lastSynced: inMarketingMode ? "3 min ago" : (cashAccounts.length > 0 ? getRelativeTime(cashAccounts[0].lastSync) : "recently"),
       source: "Plaid",
     },
     {
@@ -59,7 +91,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       baselineValue: totalCreditDebt / 0.988,
       icon: CreditCard,
       tone: "negative",
-      lastSynced: "3 min ago",
+      lastSynced: inMarketingMode ? "3 min ago" : (creditAccounts.length > 0 ? getRelativeTime(creditAccounts[0].lastSync) : "recently"),
       source: "Plaid",
     },
     {
@@ -69,7 +101,7 @@ export function AccountsKPICards({ totalCash, totalCreditDebt, totalInvestments 
       baselineValue: totalInvestments / 1.051,
       icon: TrendingUp,
       tone: "positive",
-      lastSynced: "5 min ago",
+      lastSynced: inMarketingMode ? "5 min ago" : (investmentAccounts.length > 0 ? getRelativeTime(investmentAccounts[0].lastSync) : "recently"),
       source: "Teller",
     },
   ]

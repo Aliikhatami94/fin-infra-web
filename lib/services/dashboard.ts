@@ -5,6 +5,29 @@ import { isMarketingMode } from "@/lib/marketingMode"
 import { DollarSign, Wallet, CreditCard, Activity, AlertCircle, AlertTriangle, Lightbulb } from "lucide-react"
 
 /**
+ * Calculate relative time from account lastSync timestamp
+ */
+function getRelativeTime(lastSync: string): string {
+  try {
+    const syncDate = new Date(lastSync)
+    const now = new Date()
+    const diffMs = now.getTime() - syncDate.getTime()
+    const diffMinutes = Math.floor(diffMs / 60000)
+    
+    if (diffMinutes < 1) return "just now"
+    if (diffMinutes < 60) return `${diffMinutes} min ago`
+    
+    const diffHours = Math.floor(diffMinutes / 60)
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    
+    const diffDays = Math.floor(diffHours / 24)
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  } catch {
+    return "recently"
+  }
+}
+
+/**
  * Calculate real KPIs from account data with financial health insights
  */
 function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
@@ -106,7 +129,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       trend: netWorthChange >= 0 ? "up" : "down",
       sparkline: createSparkline(netWorth, netWorthChange),
       icon: DollarSign,
-      lastSynced: "2 minutes ago",
+      lastSynced: accounts.length > 0 ? getRelativeTime(accounts[0].lastSync) : "recently",
       source: "Plaid",
       href: "/dashboard/accounts",
       quickActions: getNetWorthActions(),
@@ -127,7 +150,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       trend: cashChange >= 0 ? "up" : "down",
       sparkline: createSparkline(totalCash, cashChange),
       icon: DollarSign,
-      lastSynced: "2 minutes ago",
+      lastSynced: cashAccounts.length > 0 ? getRelativeTime(cashAccounts[0].lastSync) : "recently",
       source: "Plaid",
       href: "/dashboard/accounts",
       quickActions: getCashActions(),
@@ -148,7 +171,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       trend: debtChange <= 0 ? "down" : "up", // Down is good for debt
       sparkline: createSparkline(totalLiabilities, debtChange),
       icon: CreditCard,
-      lastSynced: "2 minutes ago",
+      lastSynced: creditAccounts.length > 0 ? getRelativeTime(creditAccounts[0].lastSync) : (loanAccounts.length > 0 ? getRelativeTime(loanAccounts[0].lastSync) : "recently"),
       source: "Plaid",
       href: "/dashboard/accounts",
       quickActions: getDebtActions(),
@@ -169,7 +192,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       trend: investmentsChange >= 0 ? "up" : "down",
       sparkline: createSparkline(totalInvestments, investmentsChange),
       icon: Wallet,
-      lastSynced: "2 minutes ago",
+      lastSynced: investmentAccounts.length > 0 ? getRelativeTime(investmentAccounts[0].lastSync) : "recently",
       source: "Plaid",
       href: "/dashboard/portfolio",
       quickActions: getInvestmentActions(),

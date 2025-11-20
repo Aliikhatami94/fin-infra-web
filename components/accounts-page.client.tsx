@@ -187,7 +187,7 @@ export function AccountsPageClient({ accounts, totalCash, totalCreditDebt, total
             </span>
           </div>
         )}
-        <AccountsKPICards totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
+        <AccountsKPICards accounts={accounts} totalCash={totalCash} totalCreditDebt={totalCreditDebt} totalInvestments={totalInvestments} />
 
         <CollapsibleSection
           title="Financial Health"
