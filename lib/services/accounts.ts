@@ -26,6 +26,7 @@ interface PlaidAccount {
  */
 interface AccountsApiResponse {
   accounts: PlaidAccount[]
+  fetched_at?: string  // ISO timestamp when data was fetched from Plaid
 }
 
 /**
@@ -108,7 +109,8 @@ async function fetchBalanceHistory(
 async function transformPlaidAccount(
   acc: PlaidAccount,
   index: number,
-  token: string
+  token: string,
+  fetchedAt?: string
 ): Promise<Account> {
   const balance = acc.balances?.current ?? acc.balances?.available ?? 0
   const accountType = mapAccountType(acc.type, acc.subtype)
@@ -137,7 +139,7 @@ async function transformPlaidAccount(
     balance,
     change,
     balanceHistory,
-    lastSync: new Date().toISOString(),
+    lastSync: fetchedAt || new Date().toISOString(), // Use backend's fetch time, not current time
     status: "active",
     nextBillDue: null,
     nextBillAmount: null,
@@ -171,7 +173,7 @@ async function fetchAccountsFromApi(): Promise<Account[]> {
   
   // Transform accounts with balance history (in parallel for performance)
   const transformedAccounts = await Promise.all(
-    data.accounts.map((acc, index) => transformPlaidAccount(acc, index, token))
+    data.accounts.map((acc, index) => transformPlaidAccount(acc, index, token, data.fetched_at))
   )
   
   return transformedAccounts

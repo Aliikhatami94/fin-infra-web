@@ -24,15 +24,19 @@ import {
 
 /**
  * Calculate relative time from account lastSync timestamp
+ * Note: This shows when data was actually fetched, not when it was served from cache
  */
 function getRelativeTime(lastSync: string): string {
   try {
     const syncDate = new Date(lastSync)
     const now = new Date()
     const diffMs = now.getTime() - syncDate.getTime()
+    const diffSeconds = Math.floor(diffMs / 1000)
     const diffMinutes = Math.floor(diffMs / 60000)
     
-    if (diffMinutes < 1) return "just now"
+    // If less than 30 seconds, show seconds
+    if (diffSeconds < 30) return `${diffSeconds}s ago`
+    // If less than 60 minutes, show minutes
     if (diffMinutes < 60) return `${diffMinutes} min ago`
     
     const diffHours = Math.floor(diffMinutes / 60)
@@ -82,7 +86,7 @@ export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalIn
       icon: Wallet,
       tone: "info",
       lastSynced: inMarketingMode ? "3 min ago" : (cashAccounts.length > 0 ? getRelativeTime(cashAccounts[0].lastSync) : "recently"),
-      source: "Plaid",
+      source: inMarketingMode ? "Plaid" : (cashAccounts.length > 0 ? (cashAccounts[0].institution || "Plaid") : "Plaid"),
     },
     {
       title: "Total Credit Debt",
@@ -92,7 +96,7 @@ export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalIn
       icon: CreditCard,
       tone: "negative",
       lastSynced: inMarketingMode ? "3 min ago" : (creditAccounts.length > 0 ? getRelativeTime(creditAccounts[0].lastSync) : "recently"),
-      source: "Plaid",
+      source: inMarketingMode ? "Plaid" : (creditAccounts.length > 0 ? (creditAccounts[0].institution || "Plaid") : "Plaid"),
     },
     {
       title: "Total Investments",
@@ -102,7 +106,7 @@ export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalIn
       icon: TrendingUp,
       tone: "positive",
       lastSynced: inMarketingMode ? "5 min ago" : (investmentAccounts.length > 0 ? getRelativeTime(investmentAccounts[0].lastSync) : "recently"),
-      source: "Teller",
+      source: inMarketingMode ? "Teller" : (investmentAccounts.length > 0 ? (investmentAccounts[0].institution || "Plaid") : "Plaid"),
     },
   ]
 

@@ -6,15 +6,19 @@ import { DollarSign, Wallet, CreditCard, Activity, AlertCircle, AlertTriangle, L
 
 /**
  * Calculate relative time from account lastSync timestamp
+ * Note: This shows when data was actually fetched, not when it was served from cache
  */
 function getRelativeTime(lastSync: string): string {
   try {
     const syncDate = new Date(lastSync)
     const now = new Date()
     const diffMs = now.getTime() - syncDate.getTime()
+    const diffSeconds = Math.floor(diffMs / 1000)
     const diffMinutes = Math.floor(diffMs / 60000)
     
-    if (diffMinutes < 1) return "just now"
+    // If less than 30 seconds, show seconds
+    if (diffSeconds < 30) return `${diffSeconds}s ago`
+    // If less than 60 minutes, show minutes
     if (diffMinutes < 60) return `${diffMinutes} min ago`
     
     const diffHours = Math.floor(diffMinutes / 60)
@@ -130,7 +134,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       sparkline: createSparkline(netWorth, netWorthChange),
       icon: DollarSign,
       lastSynced: accounts.length > 0 ? getRelativeTime(accounts[0].lastSync) : "recently",
-      source: "Plaid",
+      source: accounts.length > 0 ? (accounts[0].institution || "Plaid") : "Plaid",
       href: "/dashboard/accounts",
       quickActions: getNetWorthActions(),
       ...(isNetWorthNegative && {
@@ -151,7 +155,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       sparkline: createSparkline(totalCash, cashChange),
       icon: DollarSign,
       lastSynced: cashAccounts.length > 0 ? getRelativeTime(cashAccounts[0].lastSync) : "recently",
-      source: "Plaid",
+      source: cashAccounts.length > 0 ? (cashAccounts[0].institution || "Plaid") : "Plaid",
       href: "/dashboard/accounts",
       quickActions: getCashActions(),
       ...(emergencyFundMonths < 3 && {
@@ -172,7 +176,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       sparkline: createSparkline(totalLiabilities, debtChange),
       icon: CreditCard,
       lastSynced: creditAccounts.length > 0 ? getRelativeTime(creditAccounts[0].lastSync) : (loanAccounts.length > 0 ? getRelativeTime(loanAccounts[0].lastSync) : "recently"),
-      source: "Plaid",
+      source: creditAccounts.length > 0 ? (creditAccounts[0].institution || "Plaid") : (loanAccounts.length > 0 ? (loanAccounts[0].institution || "Plaid") : "Plaid"),
       href: "/dashboard/accounts",
       quickActions: getDebtActions(),
       ...(debtToAssetRatio > 50 && {
@@ -193,7 +197,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
       sparkline: createSparkline(totalInvestments, investmentsChange),
       icon: Wallet,
       lastSynced: investmentAccounts.length > 0 ? getRelativeTime(investmentAccounts[0].lastSync) : "recently",
-      source: "Plaid",
+      source: investmentAccounts.length > 0 ? (investmentAccounts[0].institution || "Plaid") : "Plaid",
       href: "/dashboard/portfolio",
       quickActions: getInvestmentActions(),
       ...(investmentRate < 20 && totalCash > 5000 && {
