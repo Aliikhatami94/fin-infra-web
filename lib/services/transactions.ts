@@ -10,6 +10,19 @@ import type { LucideIcon } from "lucide-react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
+// Cache duration: 30 seconds (matches backend TTL)
+const CACHE_DURATION = 30 * 1000
+
+// Cache for transactions with promise deduplication
+const transactionsCache = new Map<
+  string, 
+  { 
+    data: Transaction[] | null; 
+    timestamp: number; 
+    promise: Promise<Transaction[]> | null 
+  }
+>()
+
 /**
  * Plaid transaction response from backend
  */
@@ -140,6 +153,7 @@ async function fetchTransactionsFromApi(
 /**
  * Returns the list of transactions.
  * Fetches from API in production, uses mock data in marketing mode.
+ * Implements caching with promise deduplication to prevent duplicate API calls.
  */
 export async function getTransactions(
   startDate?: string,
@@ -150,16 +164,62 @@ export async function getTransactions(
     return transactionsResponseSchema.parse(transactionsMock)
   }
   
-  try {
-    const transactions = await fetchTransactionsFromApi(startDate, endDate, accountId)
-    console.log(`Fetched ${transactions.length} transactions from API`)
-    const validated = transactionsResponseSchema.parse(transactions)
-    console.log(`Validated ${validated.length} transactions`)
-    return validated
-  } catch (error) {
-    console.error("Failed to fetch transactions:", error)
-    console.error("Error details:", error instanceof Error ? error.message : error)
-    // Fallback to empty array on error (user can re-link)
-    return []
+  // Create cache key from parameters
+  const cacheKey = `${startDate || "all"}:${endDate || "all"}:${accountId || "all"}`
+  
+  const now = Date.now()
+  const cached = transactionsCache.get(cacheKey)
+  
+  // Return cached data if fresh
+  if (cached?.data && (now - cached.timestamp) < CACHE_DURATION) {
+    console.log(`Using cached transactions (${cached.data.length} items)`)
+    return cached.data
   }
+  
+  // If fetch already in progress, await it (prevents duplicate calls)
+  if (cached?.promise) {
+    console.log("Awaiting existing transactions fetch...")
+    return cached.promise
+  }
+  
+  // Start new fetch and store promise
+  const fetchPromise = (async () => {
+    try {
+      const transactions = await fetchTransactionsFromApi(startDate, endDate, accountId)
+      console.log(`Fetched ${transactions.length} transactions from API`)
+      const validated = transactionsResponseSchema.parse(transactions)
+      console.log(`Validated ${validated.length} transactions`)
+      
+      // Update cache with data
+      transactionsCache.set(cacheKey, {
+        data: validated,
+        timestamp: Date.now(),
+        promise: null,
+      })
+      
+      return validated
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error)
+      console.error("Error details:", error instanceof Error ? error.message : error)
+      
+      // Cache empty array to prevent retry storms
+      const emptyResult: Transaction[] = []
+      transactionsCache.set(cacheKey, {
+        data: emptyResult,
+        timestamp: Date.now(),
+        promise: null,
+      })
+      
+      return emptyResult
+    }
+  })()
+  
+  // Store promise in cache
+  transactionsCache.set(cacheKey, {
+    data: cached?.data || null,
+    timestamp: cached?.timestamp || now,
+    promise: fetchPromise,
+  })
+  
+  return fetchPromise
 }
