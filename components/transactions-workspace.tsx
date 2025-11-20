@@ -199,12 +199,9 @@ export function TransactionsWorkspace() {
       // Update state with partial or complete range
       setDateRangeState({ presetId: "custom", range: next })
 
-      // Only close popover when both dates are selected
-      if (next.from && next.to) {
-        setDatePickerOpen(false)
-      }
+      // Don't auto-close - let user manually close or adjust selection
     },
-    [setDatePickerOpen],
+    [],
   )
 
   const clearDateRange = useCallback(() => {
@@ -422,41 +419,51 @@ export function TransactionsWorkspace() {
                   <span className="truncate">{dateRangeLabel}</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto space-y-3 p-3" align="end">
-                <div className="flex flex-wrap items-center gap-2">
-                  {presetOrder.map((presetId) => {
-                    const active = selectedPresetId === presetId
-                    return (
-                      <Button
-                        key={presetId}
-                        size="sm"
-                        variant={active ? "secondary" : "outline"}
-                        className="rounded-full text-xs h-7"
-                        onClick={() => applyPreset(presetId)}
-                        aria-pressed={active}
-                      >
-                        {presetLabels[presetId]}
-                      </Button>
-                    )
-                  })}
-                </div>
-                <Calendar
-                  mode="range"
-                  numberOfMonths={1}
-                  selected={selectedRange}
-                  onSelect={handleRangeSelect}
-                  initialFocus
-                />
-                {selectedRange.from || selectedRange.to ? (
-                  <div className="flex items-center justify-between gap-2 pt-1">
-                    <Button variant="ghost" size="sm" onClick={clearDateRange} className="h-8">
-                      Clear range
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedRange.from && !selectedRange.to ? "Select end date" : "Range selected"}
-                    </p>
+              <PopoverContent className="w-auto p-0" align="end">
+                <div className="flex flex-col items-center space-y-3 p-3">
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {presetOrder.map((presetId) => {
+                      const active = selectedPresetId === presetId
+                      return (
+                        <Button
+                          key={presetId}
+                          size="sm"
+                          variant={active ? "secondary" : "outline"}
+                          className="rounded-full text-xs h-7"
+                          onClick={() => applyPreset(presetId)}
+                          aria-pressed={active}
+                        >
+                          {presetLabels[presetId]}
+                        </Button>
+                      )
+                    })}
                   </div>
-                ) : null}
+                  <Calendar
+                    mode="range"
+                    numberOfMonths={1}
+                    selected={selectedRange}
+                    onSelect={handleRangeSelect}
+                  />
+                  <div className="flex items-center justify-between gap-2 pt-1 w-full">
+                    <Button variant="ghost" size="sm" onClick={clearDateRange} className="h-8">
+                      Clear
+                    </Button>
+                    {selectedRange.from && selectedRange.to ? (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={() => setDatePickerOpen(false)}
+                        className="h-8"
+                      >
+                        Apply
+                      </Button>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        {selectedRange.from ? "Select end date" : "Select start date"}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </PopoverContent>
             </Popover>
           </div>
