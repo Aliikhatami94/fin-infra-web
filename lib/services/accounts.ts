@@ -74,33 +74,78 @@ function mapAccountType(type: string, subtype?: string): AccountType {
 }
 
 /**
- * Fetch balance history for an account
+ * Cache for balance history to prevent duplicate fetches
+ */
+const historyCache = new Map<string, { 
+  data: BalanceHistoryResponse | null; 
+  timestamp: number;
+  promise: Promise<BalanceHistoryResponse | null> | null;
+}>()
+const HISTORY_CACHE_DURATION = 30000 // 30 seconds
+
+/**
+ * Fetch balance history for an account with caching and request deduplication
  */
 async function fetchBalanceHistory(
   accountId: string,
   token: string,
   days: number = 30
 ): Promise<BalanceHistoryResponse | null> {
-  try {
-    const response = await fetch(
-      `${API_URL}/banking/accounts/${accountId}/history?days=${days}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
+  const cacheKey = `${accountId}:${days}`
+  const now = Date.now()
+  
+  // Check cache
+  const cached = historyCache.get(cacheKey)
+  if (cached) {
+    // Return cached data if still fresh
+    if (cached.data !== null && (now - cached.timestamp) < HISTORY_CACHE_DURATION) {
+      return cached.data
+    }
+    // If there's a fetch in progress, wait for it (prevents duplicate requests)
+    if (cached.promise) {
+      return cached.promise
+    }
+  }
+  
+  // Start new fetch
+  const fetchPromise = (async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/banking/accounts/${accountId}/history?days=${days}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
 
-    if (!response.ok) {
-      console.warn(`Failed to fetch balance history for account ${accountId}`)
+      if (!response.ok) {
+        console.warn(`Failed to fetch balance history for account ${accountId}`)
+        return null
+      }
+
+      const data = await response.json()
+      
+      // Update cache
+      historyCache.set(cacheKey, { data, timestamp: Date.now(), promise: null })
+      
+      return data
+    } catch (error) {
+      console.warn(`Error fetching balance history for account ${accountId}:`, error)
+      // Cache the null result to prevent retry storms
+      historyCache.set(cacheKey, { data: null, timestamp: Date.now(), promise: null })
       return null
     }
-
-    return await response.json()
-  } catch (error) {
-    console.warn(`Error fetching balance history for account ${accountId}:`, error)
-    return null
-  }
+  })()
+  
+  // Store the promise so concurrent calls can await it
+  historyCache.set(cacheKey, { 
+    data: cached?.data ?? null, 
+    timestamp: cached?.timestamp ?? now, 
+    promise: fetchPromise 
+  })
+  
+  return fetchPromise
 }
 
 /**

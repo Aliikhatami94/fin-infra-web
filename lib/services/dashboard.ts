@@ -214,15 +214,54 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
   return realKpis
 }
 
+// Cache for accounts to prevent duplicate fetches within the same page load
+let accountsCache: { data: Account[] | null; timestamp: number; promise: Promise<Account[]> | null } = { 
+  data: null, 
+  timestamp: 0, 
+  promise: null 
+}
+const CACHE_DURATION = 30000 // 30 seconds (matches backend cache)
+
+async function getCachedAccounts(): Promise<Account[]> {
+  const now = Date.now()
+  
+  // Return cached data if it's still fresh
+  if (accountsCache.data && (now - accountsCache.timestamp) < CACHE_DURATION) {
+    return accountsCache.data
+  }
+  
+  // If there's already a fetch in progress, wait for it (prevents duplicate requests)
+  if (accountsCache.promise) {
+    return accountsCache.promise
+  }
+  
+  // Start new fetch
+  const fetchPromise = (async () => {
+    const { getAccounts } = await import("@/lib/services/accounts")
+    const accounts = await getAccounts()
+    
+    // Update cache
+    accountsCache.data = accounts
+    accountsCache.timestamp = Date.now()
+    accountsCache.promise = null
+    
+    return accounts
+  })()
+  
+  // Store the promise so concurrent calls can await it
+  accountsCache.promise = fetchPromise
+  
+  return fetchPromise
+}
+
 export async function getDashboardKpis(persona?: OnboardingPersona): Promise<KPI[]> {
   let base = dashboardKpisResponseSchema.parse(kpis)
   
   // If not in marketing mode, fetch real account data and calculate real KPIs
   if (!isMarketingMode()) {
     try {
-      // Dynamic import to avoid circular dependencies
-      const { getAccounts } = await import("@/lib/services/accounts")
-      const accounts = await getAccounts()
+      // Use cached accounts to prevent duplicate API calls
+      const accounts = await getCachedAccounts()
       
       if (accounts.length > 0) {
         const realKpis = calculateRealKpis(accounts)
