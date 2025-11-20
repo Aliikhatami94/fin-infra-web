@@ -38,7 +38,7 @@ export function AccountsTable({
   onDisconnect,
   isLinking = false,
   linkingInstitution,
-}: BankingTableProps) {
+}: AccountsTableProps) {
   const [sortField, setSortField] = useState<SortField>("balance")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts)

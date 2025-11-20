@@ -2,6 +2,11 @@ import { transactionsMock } from "@/lib/mock"
 import { transactionsResponseSchema } from "@/lib/schemas"
 import type { Transaction } from "@/types/domain"
 import { isMarketingMode } from "@/lib/marketingMode"
+import { 
+  Coffee, ShoppingBag, Home, Briefcase, UtensilsCrossed, 
+  Wallet2, Plane, PiggyBank, Zap, Building, Car, HeartPulse, Gift 
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
@@ -37,13 +42,7 @@ interface TransactionsApiResponse {
 /**
  * Map Plaid category to icon (simplified for now)
  */
-function getCategoryIcon(category?: string[] | null): any {
-  // Import icons dynamically
-  const { 
-    Coffee, ShoppingBag, Home, Briefcase, UtensilsCrossed, 
-    Wallet2, Plane, PiggyBank, Zap, Building, Car, HeartPulse, Gift 
-  } = require("lucide-react")
-  
+function getCategoryIcon(category?: string[] | null): LucideIcon {
   if (!category || category.length === 0) return Wallet2
   
   const primary = category[0].toLowerCase()
