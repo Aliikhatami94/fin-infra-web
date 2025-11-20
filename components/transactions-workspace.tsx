@@ -323,21 +323,6 @@ export function TransactionsWorkspace() {
     [clearSelection, selectedFilters, selectedTransactionIds.length],
   )
 
-  console.log('Render check - isLoading:', isLoading, 'transactions:', transactions.length, 'filteredTransactions:', filteredTransactions.length)
-  
-  if (isLoading) {
-    return (
-      <Card className="card-standard overflow-hidden">
-        <CardContent className="flex items-center justify-center min-h-[400px]">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
-            <p className="text-sm text-muted-foreground">Loading transactions...</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <Card className="card-standard overflow-hidden">
       <CardHeader className="gap-4 md:gap-6 md:sticky md:top-0 md:z-10 md:border-b md:border-border/40 md:bg-card/95 md:backdrop-blur supports-[backdrop-filter]:md:bg-card/80">
@@ -514,7 +499,16 @@ export function TransactionsWorkspace() {
           {liveMessage}
         </div>
 
-        <div className="space-y-3 px-4 py-4 md:hidden">
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[400px] md:h-[540px]">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+              <p className="text-sm text-muted-foreground">Loading transactions...</p>
+            </div>
+          </div>
+        ) : null}
+
+        <div className={isLoading ? "hidden" : "space-y-3 px-4 py-4 md:hidden"}>
           {filteredTransactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-4">
               <div className="rounded-full bg-muted/50 p-3">
@@ -632,9 +626,9 @@ export function TransactionsWorkspace() {
           )}
         </div>
 
-        <div className="hidden md:block h-[540px] overflow-hidden">
+        <div className={isLoading ? "hidden" : "hidden md:block h-[540px] overflow-hidden"}>
           {filteredTransactions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-4 text-center space-y-4">
+            <div className="flex flex-col items-center justify-center h-full px-4 text-center space-y-4">
               <div className="rounded-full bg-muted/50 p-4">
                 <Filter className="h-8 w-8 text-muted-foreground" />
               </div>
