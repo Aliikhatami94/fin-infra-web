@@ -153,7 +153,7 @@ async function getCachedMetrics(): Promise<any> {
   // Start new fetch and store promise
   const fetchPromise = (async () => {
     try {
-      const data = await _fetchPortfolioMetrics(userId)
+      const data = await _fetchPortfolioMetrics()
       
       // Update cache with data
       metricsCache = {
@@ -205,7 +205,7 @@ async function getCachedBenchmark(): Promise<any> {
   // Start new fetch and store promise
   const fetchPromise = (async () => {
     try {
-      const data = await _fetchPortfolioBenchmark(userId)
+      const data = await _fetchPortfolioBenchmark()
       
       // Update cache with data
       benchmarkCache = {

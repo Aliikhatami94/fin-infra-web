@@ -118,84 +118,6 @@ export async function fetchInsightsSummary(userId: string) {
 }
 
 /**
- * Portfolio metrics
- */
-export async function fetchPortfolioMetrics(userId: string, accounts?: string[]) {
-  const params = new URLSearchParams({ user_id: userId })
-  if (accounts) {
-    accounts.forEach(acc => params.append('accounts', acc))
-  }
-  
-  return apiFetch<{
-    total_value: number
-    day_change: number
-    day_change_percent: number
-    total_return: number
-    ytd_return: number
-    mtd_return: number
-    asset_allocation: Record<string, number>
-  }>(`/v0/portfolio/metrics?${params}`)
-}
-
-/**
- * Portfolio benchmark comparison
- */
-export async function fetchPortfolioBenchmark(
-  userId: string,
-  benchmark = 'SPY',
-  period = '1y'
-) {
-  return apiFetch<{
-    portfolio_return: number
-    benchmark_return: number
-    alpha: number
-    beta: number
-    sharpe_ratio: number
-    period: string
-  }>(`/v0/portfolio/benchmark?user_id=${userId}&benchmark=${benchmark}&period=${period}`)
-}
-
-/**
- * Portfolio holdings
- */
-export async function fetchPortfolioHoldings(userId: string) {
-  return apiFetch<{
-    holdings: Array<{
-      symbol: string
-      name: string
-      quantity: number
-      cost_basis: number
-      current_price: number
-      market_value: number
-      gain_loss: number
-      gain_loss_percent: number
-      weight: number
-    }>
-    total_value: number
-    total_cost_basis: number
-    total_gain_loss: number
-  }>(`/v0/portfolio/holdings?user_id=${userId}`)
-}
-
-/**
- * Portfolio allocation
- */
-export async function fetchPortfolioAllocation(userId: string) {
-  return apiFetch<{
-    by_asset_class: Array<{
-      class: string
-      value: number
-      percent: number
-    }>
-    by_sector: Array<{
-      sector: string
-      value: number
-      percent: number
-    }>
-  }>(`/v0/portfolio/allocation?user_id=${userId}`)
-}
-
-/**
  * Banking connection status
  */
 export async function fetchBankingConnectionStatus(userId: string) {
@@ -255,6 +177,57 @@ export async function disconnectProvider(provider: string) {
   }>(`/v0/banking-connection/${provider}`, {
     method: 'DELETE',
   })
+}
+
+/**
+ * Portfolio metrics
+ */
+export async function fetchPortfolioMetrics() {
+  return apiFetch<{
+    total_value: number
+    day_change: number
+    day_change_percent: number
+    total_return: number
+    ytd_return: number
+    mtd_return: number
+    asset_allocation: Record<string, number>
+  }>('/v0/portfolio/metrics')
+}
+
+/**
+ * Portfolio benchmark comparison
+ */
+export async function fetchPortfolioBenchmark(benchmark = 'SPY', period = '1y') {
+  return apiFetch<{
+    period: string
+    benchmark: string
+    portfolio_return: number
+    benchmark_return: number
+    alpha: number
+    beta: number
+    sharpe_ratio: number | null
+    outperformance: number
+  }>(`/v0/portfolio/benchmark?benchmark=${benchmark}&period=${period}`)
+}
+
+/**
+ * Portfolio allocation
+ */
+export async function fetchPortfolioAllocation() {
+  return apiFetch<{
+    by_asset_class: Record<string, number>
+    target_allocation: Record<string, number>
+    rebalancing_needed: boolean
+    drift: number
+  }>('/v0/portfolio/allocation')
+}
+
+/**
+ * Portfolio holdings (placeholder - not yet implemented)
+ */
+export async function fetchPortfolioHoldings() {
+  // TODO: Implement holdings endpoint in backend
+  return Promise.resolve({ holdings: [] })
 }
 
 /**
