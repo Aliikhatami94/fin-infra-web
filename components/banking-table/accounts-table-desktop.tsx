@@ -104,33 +104,19 @@ export function AccountsTableDesktop({
       .flat()
       .find((acc) => acc.id === expandedAccount)
 
-    if (!account) {
-      console.log("⚠️ Account not found for expandedAccount:", expandedAccount)
-      return
-    }
-    
-    if (!account.account_id) {
-      console.log("⚠️ Account missing account_id:", account)
+    if (!account || !account.account_id) {
       return
     }
 
     const accountId = account.account_id
-    console.log(`🔓 Expanded account ${account.name} (id=${account.id}, account_id=${accountId})`)
 
     // Skip if already loading or cached
-    if (loadingTransactions.has(accountId)) {
-      console.log(`⏳ Already loading transactions for ${accountId}`)
-      return
-    }
-    
-    if (transactionsCache[accountId]) {
-      console.log(`💾 Using cached transactions for ${accountId} (${transactionsCache[accountId].length} txns)`)
+    if (loadingTransactions.has(accountId) || transactionsCache[accountId]) {
       return
     }
 
     // Mark as loading
     setLoadingTransactions((prev) => new Set(prev).add(accountId))
-    console.log(`🚀 Fetching transactions for account ${accountId}...`)
 
     // Fetch transactions
     getRecentTransactions(accountId, 3)
@@ -292,19 +278,19 @@ export function AccountsTableDesktop({
   }, [onToggleExpand])
 
   return (
-    <div className="hidden md:block">
-      <div className="table-surface">
+    <div className="hidden md:block w-full">
+      <div className="table-surface w-full">
         <TableVirtuoso
           data={virtualRows}
-          style={{ height: tableHeight, scrollbarGutter: "stable" }}
+          style={{ height: tableHeight, scrollbarGutter: "stable", width: "100%" }}
           components={tableComponents}
-          className="min-w-full"
+          className="w-full"
         fixedHeaderContent={() => (
           <tr
             className="border-b text-xs uppercase tracking-wide text-muted-foreground"
             style={{ borderColor: "var(--table-divider)" }}
           >
-            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left w-[45%] lg:w-[35%]">
               <button
                 onClick={() => onSort("name")}
                 className="flex items-center gap-1 hover:text-foreground transition-colors"
@@ -313,8 +299,8 @@ export function AccountsTableDesktop({
                 <ArrowUpDown className="h-3 w-3" />
               </button>
             </th>
-            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">Type</th>
-            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left hidden lg:table-cell lg:w-[12%]">Type</th>
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right w-[30%] lg:w-[18%]">
               <button
                 onClick={() => onSort("balance")}
                 className="flex items-center gap-1 ml-auto hover:text-foreground transition-colors"
@@ -323,7 +309,7 @@ export function AccountsTableDesktop({
                 <ArrowUpDown className="h-3 w-3" />
               </button>
             </th>
-            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right hidden xl:table-cell xl:w-[15%]">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -341,9 +327,9 @@ export function AccountsTableDesktop({
                 </Tooltip>
               </TooltipProvider>
             </th>
-            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">Last Sync</th>
-            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">Status</th>
-            <th className="px-[calc(var(--table-cell-padding-x)/2)] py-[var(--table-cell-padding-y)] text-right" aria-hidden />
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left hidden lg:table-cell lg:w-[12%]">Last Sync</th>
+            <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left w-[20%] lg:w-[14%]">Status</th>
+            <th className="px-[calc(var(--table-cell-padding-x)/2)] py-[var(--table-cell-padding-y)] text-right w-[5%] lg:w-[4%]" aria-hidden />
           </tr>
         )}
         itemContent={(index, item) => {
@@ -402,12 +388,12 @@ export function AccountsTableDesktop({
               key={`${item.id}-account`}
               className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-border/50">
-                  <BankIcon className="h-5 w-5 text-foreground" />
+              <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-border/50">
+                  <BankIcon className="h-4 w-4 md:h-5 md:w-5 text-foreground" />
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-foreground truncate">{account.name}</p>
                     {isIgnored && (
                       <Badge variant="outline" className="text-xs">
@@ -416,12 +402,18 @@ export function AccountsTableDesktop({
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground truncate font-medium">{account.institution}</p>
+                  {/* Show type badge on smaller screens where type column is hidden */}
+                  <div className="lg:hidden mt-1">
+                    <Badge variant="outline" className={cn("text-xs whitespace-nowrap", typeColors[account.type] || "")}>
+                      {account.type}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </td>,
             <td
               key={`${item.id}-type`}
-              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle hidden lg:table-cell"
             >
               <Badge variant="outline" className={cn("whitespace-nowrap", typeColors[account.type] || "")}>
                 {account.type}
@@ -443,7 +435,7 @@ export function AccountsTableDesktop({
             </td>,
             <td
               key={`${item.id}-change`}
-              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle hidden xl:table-cell"
             >
               <div className="inline-flex items-center justify-end gap-1 whitespace-nowrap">
                 <MiniSparkline
@@ -471,7 +463,7 @@ export function AccountsTableDesktop({
             </td>,
             <td
               key={`${item.id}-sync`}
-              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
+              className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle hidden lg:table-cell"
             >
               <p className="text-sm text-muted-foreground whitespace-nowrap">{account.lastSync}</p>
             </td>,

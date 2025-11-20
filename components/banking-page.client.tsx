@@ -176,7 +176,7 @@ export function BankingPageClient({ accounts, totalCash, totalCreditDebt, totalI
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18 }}
-        className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-10 space-y-6 py-6"
+        className="w-full px-4 sm:px-6 lg:px-8 space-y-6 py-6"
       >
         {linkingInstitution && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">

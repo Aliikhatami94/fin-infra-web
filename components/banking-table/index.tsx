@@ -51,12 +51,6 @@ export function BankingTable({
 
   // Update accounts when prop changes
   useEffect(() => {
-    console.log("🔄 BankingTable received accounts:", initialAccounts.map(acc => ({
-      id: acc.id,
-      name: acc.name,
-      account_id: acc.account_id,
-      hasAccountId: !!acc.account_id
-    })))
     setAccounts(initialAccounts)
   }, [initialAccounts])
 

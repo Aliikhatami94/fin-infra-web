@@ -158,23 +158,10 @@ async function fetchAccountsFromApi(): Promise<Account[]> {
 
   const data: AccountsApiResponse = await response.json()
   
-  console.log("📦 Raw API response accounts:", data.accounts.map(acc => ({
-    name: acc.name,
-    account_id: acc.account_id,
-    hasAccountId: !!acc.account_id
-  })))
-  
   // Transform accounts with balance history (in parallel for performance)
   const transformedAccounts = await Promise.all(
     data.accounts.map((acc, index) => transformPlaidAccount(acc, index, token))
   )
-  
-  console.log("✨ Transformed accounts:", transformedAccounts.map(acc => ({
-    id: acc.id,
-    name: acc.name,
-    account_id: acc.account_id,
-    hasAccountId: !!acc.account_id
-  })))
   
   return transformedAccounts
 }
@@ -206,10 +193,7 @@ export async function getAccounts(): Promise<Account[]> {
  * @param limit - Maximum number of transactions to return (default: 3)
  */
 export async function getRecentTransactions(accountId?: string, limit: number = 3): Promise<Transaction[]> {
-  console.log(`🔍 getRecentTransactions called with accountId=${accountId}, limit=${limit}`)
-  
   if (isMarketingMode()) {
-    console.log("📸 Marketing mode - returning mock transactions")
     return transactionsResponseSchema.parse(mockTransactions.slice(0, limit))
   }
 
@@ -220,14 +204,12 @@ export async function getRecentTransactions(accountId?: string, limit: number = 
     const endDate = new Date().toISOString().split("T")[0]
     const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
     
-    console.log(`📅 Fetching transactions: ${startDate} to ${endDate}, accountId=${accountId}`)
     const transactions = await getTransactions(startDate, endDate, accountId)
-    console.log(`✅ Fetched ${transactions.length} transactions, returning top ${limit}`)
     
     // Return most recent transactions (limited)
     return transactions.slice(0, limit)
   } catch (error) {
-    console.error(`❌ Failed to fetch recent transactions for account ${accountId}:`, error)
+    console.error(`Failed to fetch recent transactions for account ${accountId}:`, error)
     // Fallback to mock data on error
     return transactionsResponseSchema.parse(mockTransactions.slice(0, limit))
   }
