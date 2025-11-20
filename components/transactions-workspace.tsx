@@ -419,17 +419,22 @@ export function TransactionsWorkspace() {
                   <span className="truncate">{dateRangeLabel}</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <div className="flex flex-col items-center space-y-3 p-3">
-                  <div className="flex flex-wrap items-center justify-center gap-2">
+              <PopoverContent 
+                className="w-auto max-w-[calc(100vw-1rem)] p-2" 
+                align="center"
+                collisionPadding={10}
+                sideOffset={8}
+              >
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="grid grid-cols-2 gap-1.5 w-full">
                     {presetOrder.map((presetId) => {
                       const active = selectedPresetId === presetId
                       return (
                         <Button
                           key={presetId}
                           size="sm"
-                          variant={active ? "secondary" : "outline"}
-                          className="rounded-full text-xs h-7"
+                          variant={active ? "default" : "ghost"}
+                          className="h-7 text-xs font-medium"
                           onClick={() => applyPreset(presetId)}
                           aria-pressed={active}
                         >
@@ -443,9 +448,10 @@ export function TransactionsWorkspace() {
                     numberOfMonths={1}
                     selected={selectedRange}
                     onSelect={handleRangeSelect}
+                    className="[--cell-size:1.75rem] text-sm"
                   />
-                  <div className="flex items-center justify-between gap-2 pt-1 w-full">
-                    <Button variant="ghost" size="sm" onClick={clearDateRange} className="h-8">
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    <Button variant="ghost" size="sm" onClick={clearDateRange} className="h-7 text-xs">
                       Clear
                     </Button>
                     {selectedRange.from && selectedRange.to ? (
@@ -453,12 +459,12 @@ export function TransactionsWorkspace() {
                         variant="default" 
                         size="sm" 
                         onClick={() => setDatePickerOpen(false)}
-                        className="h-8"
+                        className="h-7 text-xs"
                       >
                         Apply
                       </Button>
                     ) : (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[11px] text-muted-foreground">
                         {selectedRange.from ? "Select end date" : "Select start date"}
                       </p>
                     )}
