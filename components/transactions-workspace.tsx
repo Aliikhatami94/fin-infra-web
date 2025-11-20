@@ -402,7 +402,11 @@ export function TransactionsWorkspace() {
               <Input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search merchants or categories"
+                onKeyDown={(event) => {
+                  // Prevent global keyboard shortcuts from interfering with input
+                  event.stopPropagation()
+                }}
+                placeholder="Search transactions..."
                 className="w-full"
                 aria-label="Search transactions"
               />

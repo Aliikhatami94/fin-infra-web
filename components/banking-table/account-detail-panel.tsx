@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, RefreshCw, Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import type { Account, Transaction } from "@/types/domain"
 import { formatCurrency } from "@/lib/format"
@@ -14,6 +15,17 @@ interface AccountDetailPanelProps {
 }
 
 export function AccountDetailPanel({ account, onReconnect, transactions, typeColors, isLoadingTransactions = false }: AccountDetailPanelProps) {
+  const router = useRouter()
+  
+  const handleViewAllTransactions = () => {
+    // Navigate to transactions page with account filter
+    if (account.account_id) {
+      router.push(`/dashboard/transactions?account=${account.account_id}`)
+    } else {
+      router.push('/dashboard/transactions')
+    }
+  }
+  
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -132,7 +144,7 @@ export function AccountDetailPanel({ account, onReconnect, transactions, typeCol
         </div>
       </div>
 
-      <Button variant="outline" size="sm" className="w-full">
+      <Button variant="outline" size="sm" className="w-full" onClick={handleViewAllTransactions}>
         View All Transactions
       </Button>
     </div>
