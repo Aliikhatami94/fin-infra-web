@@ -192,12 +192,39 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
 export function OverviewKPIs() {
   const { state, hydrated } = useOnboardingState()
   const router = useRouter()
-  const kpis = useMemo(() => getDashboardKpis(hydrated ? state.persona : undefined), [hydrated, state.persona])
+  const [kpis, setKpis] = useState<ReturnType<typeof getDashboardKpis> extends Promise<infer T> ? T : never>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [hiddenCards] = useState<Set<string>>(new Set())
+  
+  // Load KPIs asynchronously
+  useEffect(() => {
+    let mounted = true
+    
+    const loadKpis = async () => {
+      try {
+        const data = await getDashboardKpis(hydrated ? state.persona : undefined)
+        if (mounted) {
+          setKpis(data)
+          setIsLoading(false)
+        }
+      } catch (error) {
+        console.error("Failed to load KPIs:", error)
+        if (mounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+    
+    loadKpis()
+    
+    return () => {
+      mounted = false
+    }
+  }, [hydrated, state.persona])
 
   const handlePlanModalChange = (open: boolean) => {
     setIsPlanModalOpen(open)
@@ -253,8 +280,18 @@ export function OverviewKPIs() {
             transition={{ duration: 0.3 }}
             className="overflow-hidden pt-2"
           >
-            {/* Mobile: Horizontal carousel */}
-            <div className="md:hidden space-y-3">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+                Loading metrics...
+              </div>
+            ) : kpis.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+                No metrics available
+              </div>
+            ) : (
+              <>
+                {/* Mobile: Horizontal carousel */}
+                <div className="md:hidden space-y-3">
               <Carousel
                 setApi={setCarouselApi}
                 opts={{
@@ -296,19 +333,21 @@ export function OverviewKPIs() {
               </div>
             </div>
 
-            {/* Tablet/Desktop: Grid layout */}
-            <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
-              {kpis.map((kpi, index) => (
-                <KPICardContent
-                  key={kpi.label}
-                  kpi={kpi}
-                  index={index}
-                  isHidden={hiddenCards.has(kpi.label)}
-                  onPlanModalOpen={() => setIsPlanModalOpen(true)}
-                  router={router}
-                />
-              ))}
-            </div>
+                {/* Tablet/Desktop: Grid layout */}
+                <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+                  {kpis.map((kpi, index) => (
+                    <KPICardContent
+                      key={kpi.label}
+                      kpi={kpi}
+                      index={index}
+                      isHidden={hiddenCards.has(kpi.label)}
+                      onPlanModalOpen={() => setIsPlanModalOpen(true)}
+                      router={router}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
