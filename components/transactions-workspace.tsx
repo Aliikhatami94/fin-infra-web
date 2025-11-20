@@ -90,15 +90,17 @@ const presetLabels: Record<DateRangePresetId, string> = {
 const presetOrder: DateRangePresetId[] = ["30d", "90d", "ytd", "all"]
 
 function createPresetRange(preset: DateRangePresetId): DateRange {
-  const now = new Date()
+  // Use start of day to avoid timezone issues with calendar display
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   switch (preset) {
     case "30d":
-      return { from: subDays(now, 29), to: now }
+      return { from: subDays(today, 29), to: today }
     case "90d":
-      return { from: subDays(now, 89), to: now }
+      return { from: subDays(today, 89), to: today }
     case "ytd":
-      return { from: startOfYear(now), to: now }
+      return { from: startOfYear(today), to: today }
     case "all":
     default:
       return { from: undefined, to: undefined }
@@ -151,13 +153,17 @@ export function TransactionsWorkspace() {
       setIsLoading(true)
       try {
         const { from, to } = dateRangeState.range
+        
+        // Only fetch if we have both dates or neither (all dates)
+        if ((from && !to) || (!from && to)) {
+          setIsLoading(false)
+          return
+        }
+        
         const startDate = from ? format(from, "yyyy-MM-dd") : undefined
         const endDate = to ? format(to, "yyyy-MM-dd") : undefined
         
-        console.log('Loading transactions with date range:', startDate, 'to', endDate)
         const fetchedTransactions = await getTransactions(startDate, endDate)
-        console.log('Setting transactions state:', fetchedTransactions.length, 'transactions')
-        console.log('First transaction:', fetchedTransactions[0])
         setTransactions(fetchedTransactions)
         setLiveMessage(`${fetchedTransactions.length} transactions loaded`)
       } catch (error) {
@@ -186,23 +192,19 @@ export function TransactionsWorkspace() {
 
   const handleRangeSelect = useCallback(
     (next: DateRange | undefined) => {
-      if (!next || (!next.from && !next.to)) {
-        applyPreset("all")
+      if (!next) {
         return
       }
 
-      const normalized: DateRange = {
-        from: next.from,
-        to: next.to,
-      }
+      // Update state with partial or complete range
+      setDateRangeState({ presetId: "custom", range: next })
 
-      setDateRangeState({ presetId: "custom", range: normalized })
-
-      if (normalized.from && normalized.to) {
+      // Only close popover when both dates are selected
+      if (next.from && next.to) {
         setDatePickerOpen(false)
       }
     },
-    [applyPreset, setDatePickerOpen],
+    [setDatePickerOpen],
   )
 
   const clearDateRange = useCallback(() => {
@@ -420,7 +422,7 @@ export function TransactionsWorkspace() {
                   <span className="truncate">{dateRangeLabel}</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[320px] space-y-3 p-3" align="end">
+              <PopoverContent className="w-auto space-y-3 p-3" align="end">
                 <div className="flex flex-wrap items-center gap-2">
                   {presetOrder.map((presetId) => {
                     const active = selectedPresetId === presetId
@@ -429,7 +431,7 @@ export function TransactionsWorkspace() {
                         key={presetId}
                         size="sm"
                         variant={active ? "secondary" : "outline"}
-                        className="rounded-full"
+                        className="rounded-full text-xs h-7"
                         onClick={() => applyPreset(presetId)}
                         aria-pressed={active}
                       >
@@ -440,24 +442,21 @@ export function TransactionsWorkspace() {
                 </div>
                 <Calendar
                   mode="range"
-                  numberOfMonths={2}
+                  numberOfMonths={1}
                   selected={selectedRange}
                   onSelect={handleRangeSelect}
                   initialFocus
                 />
-                <div className="flex items-center justify-between gap-2">
-                  <Button variant="ghost" size="sm" onClick={clearDateRange}>
-                    Clear
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => setDatePickerOpen(false)}
-                    disabled={!selectedRange.from || !selectedRange.to}
-                  >
-                    Apply
-                  </Button>
-                </div>
+                {selectedRange.from || selectedRange.to ? (
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <Button variant="ghost" size="sm" onClick={clearDateRange} className="h-8">
+                      Clear range
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedRange.from && !selectedRange.to ? "Select end date" : "Range selected"}
+                    </p>
+                  </div>
+                ) : null}
               </PopoverContent>
             </Popover>
           </div>

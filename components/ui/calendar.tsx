@@ -110,7 +110,7 @@ function Calendar({
         range_middle: cn('rounded-none', defaultClassNames.range_middle),
         range_end: cn('rounded-r-md bg-accent', defaultClassNames.range_end),
         today: cn(
-          'bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none',
+          'border border-primary/40 rounded-md data-[selected=true]:border-0',
           defaultClassNames.today,
         ),
         outside: cn(
