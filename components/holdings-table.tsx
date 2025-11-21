@@ -288,8 +288,18 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
 
   const tableComponents = useMemo<TableComponents<VirtualRow>>(() => {
     const VirtTable = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
-      ({ className, ...props }, ref) => (
-        <table {...props} ref={ref} className={cn("w-full text-sm table-fixed", className)} />
+      ({ className, children, ...props }, ref) => (
+        <table {...props} ref={ref} className={cn("w-full text-sm", className)}>
+          <colgroup>
+            <col style={{ width: '28%' }} /> {/* Ticker */}
+            <col style={{ width: '12%' }} /> {/* Quantity */}
+            <col style={{ width: '16%' }} /> {/* Value */}
+            <col style={{ width: '16%' }} /> {/* P/L */}
+            <col style={{ width: '12%' }} /> {/* Weight */}
+            <col style={{ width: '60px' }} /> {/* Actions */}
+          </colgroup>
+          {children}
+        </table>
       ),
     )
     VirtTable.displayName = "HoldingsVirtuosoTable"
@@ -316,7 +326,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           onClick?.(event)
         }}
         className={cn(
-          "border-b last:border-0",
+          "border-b last:border-0 transition-colors",
           item.type === "group"
             ? "bg-muted/30"
             : "hover:bg-muted/50 transition-colors cursor-pointer odd:bg-muted/20",
@@ -377,89 +387,77 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
             </div>
           ) : (
             <>
-          <div className="hidden md:block">
-            <div className="table-surface">
-              <TableVirtuoso
-                data={virtualRows}
-                style={{ height: tableHeight }}
-                components={tableComponents}
-                className="min-w-full"
-              fixedHeaderContent={() => (
-                <tr
-                  className="border-b text-xs uppercase tracking-wide text-muted-foreground"
-                  style={{ borderColor: "var(--table-divider)" }}
-                >
-                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("ticker")}
-                      className="flex items-center gap-1 font-medium transition-colors hover:text-foreground"
-                      aria-label="Sort by ticker"
-                    >
-                      Ticker
-                    </button>
-                  </th>
-                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("qty")}
-                      className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
-                      aria-label="Sort by quantity"
-                    >
-                      Quantity
-                    </button>
-                  </th>
-                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("value")}
-                      className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
-                      aria-label="Sort by value"
-                    >
-                      Value
-                    </button>
-                  </th>
-                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("pl")}
-                      className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
-                      aria-label="Sort by profit and loss"
-                    >
-                      P/L
-                    </button>
-                  </th>
-                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("weight")}
-                      className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
-                      aria-label="Sort by portfolio weight"
-                    >
-                      Weight
-                    </button>
-                  </th>
-                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("account")}
-                      className="flex items-center gap-1 transition-colors hover:text-foreground"
-                      aria-label="Sort by account"
-                    >
-                      Account
-                    </button>
-                  </th>
-                  <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
-                    <span className="text-xs uppercase tracking-wide">Actions</span>
-                  </th>
-                </tr>
-              )}
-              itemContent={(index, item) => {
+              <div className="hidden md:block">
+                <div className="table-surface">
+                  <TableVirtuoso
+                    data={virtualRows}
+                    style={{ height: tableHeight }}
+                    components={tableComponents}
+                    className="min-w-full"
+                    fixedHeaderContent={() => (
+                      <tr
+                        className="border-b text-xs uppercase tracking-wide text-muted-foreground"
+                        style={{ borderColor: "var(--table-divider)" }}
+                      >
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">
+                          <button
+                            type="button"
+                            onClick={() => toggleSort("ticker")}
+                            className="flex items-center gap-1 font-medium transition-colors hover:text-foreground"
+                            aria-label="Sort by ticker"
+                          >
+                            Ticker
+                          </button>
+                        </th>
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                          <button
+                            type="button"
+                            onClick={() => toggleSort("qty")}
+                            className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
+                            aria-label="Sort by quantity"
+                          >
+                            Quantity
+                          </button>
+                        </th>
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                          <button
+                            type="button"
+                            onClick={() => toggleSort("value")}
+                            className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
+                            aria-label="Sort by value"
+                          >
+                            Value
+                          </button>
+                        </th>
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                          <button
+                            type="button"
+                            onClick={() => toggleSort("pl")}
+                            className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
+                            aria-label="Sort by profit and loss"
+                          >
+                            P/L
+                          </button>
+                        </th>
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                          <button
+                            type="button"
+                            onClick={() => toggleSort("weight")}
+                            className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
+                            aria-label="Sort by portfolio weight"
+                          >
+                            Weight
+                          </button>
+                        </th>
+                        <th className="w-[var(--table-cell-padding-x)]" />
+                      </tr>
+                    )}
+                    itemContent={(index, item) => {
                 if (item.type === "group") {
                   return [
                     <td
                       key={`${item.id}-group`}
-                      colSpan={7}
+                      colSpan={6}
                       className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] font-semibold text-sm text-foreground"
                     >
                       <div className="flex items-center gap-2">
@@ -476,13 +474,13 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     key={`${item.id}-ticker`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
                   >
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted text-base font-semibold">
                         {holding.logo}
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{holding.ticker}</p>
-                        <p className="text-xs text-muted-foreground">{holding.name}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-foreground truncate">{holding.ticker}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-[200px]" title={holding.name}>{holding.name}</p>
                       </div>
                     </div>
                   </td>,
@@ -490,7 +488,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     key={`${item.id}-qty`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
-                    <p className="text-sm tabular-nums font-mono whitespace-nowrap text-foreground">
+                    <p className="text-sm tabular-nums font-mono whitespace-nowrap text-foreground font-medium">
                       {Number.isInteger(holding.qty) ? holding.qty.toLocaleString() : holding.qty.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                     </p>
                   </td>,
@@ -519,15 +517,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     key={`${item.id}-weight`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
-                    <p className="text-sm font-mono tabular-nums whitespace-nowrap text-foreground">{holding.weight.toFixed(2)}%</p>
-                  </td>,
-                  <td
-                    key={`${item.id}-account`}
-                    className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
-                  >
-                    <Badge variant="outline" className="whitespace-nowrap">
-                      {holding.account}
-                    </Badge>
+                    <p className="text-sm font-mono tabular-nums whitespace-nowrap text-foreground font-medium">{holding.weight.toFixed(2)}%</p>
                   </td>,
                   <td
                     key={`${item.id}-actions`}
@@ -558,13 +548,13 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     </DropdownMenu>
                   </td>,
                 ]
-              }}
-            />
-            </div>
-          </div>
+                    }}
+                  />
+                </div>
+              </div>
 
-          <div className="md:hidden space-y-3">
-            {groupedRows.map(({ group, items }) => (
+              <div className="md:hidden space-y-3">
+                {groupedRows.map(({ group, items }) => (
               <div key={group || "no-group"} className="space-y-3">
                 {group && (
                   <div className="flex items-center gap-2 px-2 py-1 bg-muted/30 rounded-md">
@@ -622,9 +612,9 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
-          </>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
