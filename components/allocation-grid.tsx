@@ -56,12 +56,11 @@ const isAllocationView = (value: string): value is AllocationView => {
 // Format asset class names from API
 const formatAssetClassName = (name: string): string => {
   const mapping: Record<string, string> = {
-    'equity': 'US Stocks',
-    'international_equity': 'International',
-    'fixed_income': 'Bonds',
+    'stocks': 'Stocks',
+    'bonds': 'Bonds',
     'cash': 'Cash',
-    'cryptocurrency': 'Crypto',
-    'derivative': 'Derivatives',
+    'crypto': 'Crypto',
+    'real_estate': 'Real Estate',
     'other': 'Other',
   }
   return mapping[name.toLowerCase()] || name
@@ -114,19 +113,28 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
         const data = await fetchPortfolioAllocation()
         
         // Transform API response to chart format
-        // by_asset_class is a Record<string, number> where values are dollar amounts
-        const totalValue = Object.values(data.by_asset_class).reduce((sum, val) => sum + val, 0)
+        // by_asset_class contains percentages (0-100), but we need amounts for display
+        // If all values are 0, fall back to mock data
+        const totalPercent = Object.values(data.by_asset_class).reduce((sum, val) => sum + val, 0)
         
-        const assetClass: AllocationSlice[] = Object.entries(data.by_asset_class).map(([name, amount], idx) => ({
-          name: formatAssetClassName(name),
-          value: totalValue > 0 ? Math.round((amount / totalValue) * 100) : 0,
-          amount,
-          color: PIE_CHART_COLORS[idx % PIE_CHART_COLORS.length],
-        }))
+        if (totalPercent === 0) {
+          // No allocation data yet, use mock
+          setAllocationData(mockAllocationData)
+          return
+        }
+        
+        const assetClass: AllocationSlice[] = Object.entries(data.by_asset_class)
+          .filter(([_, percent]) => percent > 0)
+          .map(([name, percent], idx) => ({
+            name: formatAssetClassName(name),
+            value: Math.round(percent),
+            amount: 0, // Backend doesn't provide dollar amounts in this endpoint
+            color: PIE_CHART_COLORS[idx % PIE_CHART_COLORS.length],
+          }))
 
         // Note: Backend doesn't provide sector breakdown yet, using mock for now
         setAllocationData({
-          assetClass,
+          assetClass: assetClass.length > 0 ? assetClass : mockAllocationData.assetClass,
           sector: mockAllocationData.sector,
           region: mockAllocationData.region,
         })

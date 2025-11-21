@@ -57,39 +57,63 @@ export interface PortfolioKPI {
 }
 
 export async function getPortfolioHoldings(): Promise<Holding[]> {
+  console.log('[Holdings] getPortfolioHoldings called')
+  console.log('[Holdings] window:', typeof window !== 'undefined' ? 'available' : 'unavailable')
+  console.log('[Holdings] isMarketingMode:', typeof window !== 'undefined' ? isMarketingMode() : 'N/A')
+  console.log('[Holdings] USE_MOCK_DATA:', USE_MOCK_DATA)
+  console.log('[Holdings] API_URL:', process.env.NEXT_PUBLIC_API_URL)
+  
   // Marketing mode: Always use mock data
   if (typeof window !== 'undefined' && isMarketingMode()) {
+    console.log('[Holdings] ❌ Using mock data: marketing mode')
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
 
   // Use mock data if API not configured or user not authenticated
   const userId = getCurrentUserId()
-  if (USE_MOCK_DATA || !userId) {
+  console.log('[Holdings] getCurrentUserId():', userId)
+  console.log('[Holdings] localStorage auth_token:', typeof window !== 'undefined' ? localStorage.getItem('auth_token') : 'N/A')
+  
+  if (USE_MOCK_DATA) {
+    console.log('[Holdings] ❌ Using mock data: API not configured (USE_MOCK_DATA=true)')
+    return holdingsResponseSchema.parse(portfolioHoldings)
+  }
+  
+  if (!userId) {
+    console.log('[Holdings] ❌ Using mock data: not authenticated (no userId)')
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
 
-  // Fetch real holdings from investment API
+  // Fetch real holdings from /investments/holdings endpoint
+  // Backend auto-resolves authenticated user's Plaid token
+  // Falls back to mock data on error (e.g., no Plaid connection)
   try {
-    const { fetchInvestmentHoldings } = await import('@/lib/api/client')
-    const holdingsData = await fetchInvestmentHoldings()
+    console.log('[Holdings] ✅ Fetching real data from API...')
+    const holdingsData = await _fetchInvestmentHoldings()
+    console.log('[Holdings] ✅ Received', holdingsData.length, 'holdings from API:', holdingsData)
     
-    // Transform API response to match Holding type
-    const holdings = holdingsData.map(h => ({
-      symbol: h.security.ticker_symbol || h.security.security_id,
-      name: h.security.name || 'Unknown',
-      shares: h.quantity,
-      price: h.institution_price,
-      value: h.institution_value,
-      change: h.unrealized_gain_loss || 0,
-      changePercent: h.unrealized_gain_loss_percent || 0,
-      costBasis: h.cost_basis || h.institution_value,
-      sector: h.security.sector || 'Other',
-      assetType: h.security.type as any || 'equity',
-    }))
+    // Transform backend holdings to frontend Holding type
+    const holdings = holdingsData.map(h => {
+      const quantity = parseFloat(h.quantity.toString())
+      const costBasis = parseFloat(h.cost_basis?.toString() || h.institution_value.toString())
+      const currentPrice = parseFloat(h.institution_price.toString())
+      const change = parseFloat(h.unrealized_gain_loss?.toString() || '0')
+      const avgPrice = quantity > 0 ? costBasis / quantity : currentPrice
+      
+      return {
+        symbol: h.security.ticker_symbol || h.security.name?.substring(0, 6).toUpperCase() || 'N/A',
+        name: h.security.name || 'Unknown',
+        shares: quantity,
+        avgPrice: avgPrice,
+        currentPrice: currentPrice,
+        change: change,
+      }
+    })
     
+    console.log('[Holdings] ✅ Transformed to', holdings.length, 'holdings:', holdings)
     return holdingsResponseSchema.parse(holdings)
   } catch (error) {
-    console.error('Failed to fetch portfolio holdings, falling back to mock:', error)
+    console.error('[Holdings] ❌ Failed to fetch portfolio holdings, falling back to mock:', error)
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
 }

@@ -44,8 +44,8 @@ export async function getInvestmentHoldings(accountIds?: string[]) {
  * Get investment transactions (buy, sell, dividend, etc.)
  */
 export async function getInvestmentTransactions(
-  startDate?: string,
-  endDate?: string,
+  startDate: string,
+  endDate: string,
   accountIds?: string[]
 ) {
   // Marketing mode: Return empty for now

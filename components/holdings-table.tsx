@@ -21,8 +21,11 @@ import {
 import { Button } from "@/components/ui/button"
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis } from "recharts"
 import { TableVirtuoso, type TableComponents } from "react-virtuoso"
+import { getPortfolioHoldings } from "@/lib/services/portfolio"
+import type { Holding } from "@/types/domain"
 
-const holdings = [
+// Mock holdings as fallback
+const mockHoldings = [
   {
     ticker: "AAPL",
     name: "Apple Inc.",
@@ -88,6 +91,32 @@ const holdings = [
 type SortKey = "ticker" | "qty" | "value" | "pl" | "plPercent" | "weight" | "account"
 type GroupBy = "none" | "account" | "asset-class"
 
+// Transform Holding type to component's expected format
+function transformHolding(h: Holding, totalValue: number) {
+  const value = h.shares * h.currentPrice
+  const cost = h.shares * h.avgPrice
+  const pl = h.change // Already calculated by backend as unrealized_gain_loss
+  const plPercent = cost > 0 ? (pl / cost) * 100 : 0
+  const weight = totalValue > 0 ? Math.round((value / totalValue) * 10000) / 100 : 0 // Round to 2 decimals
+  
+  // Get a simple logo based on symbol
+  const firstChar = h.symbol.charAt(0).toUpperCase()
+  const logo = firstChar >= 'A' && firstChar <= 'Z' ? firstChar : '📈'
+  
+  return {
+    ticker: h.symbol,
+    name: h.name,
+    qty: h.shares,
+    value: value,
+    pl: pl,
+    plPercent: plPercent,
+    weight: weight,
+    account: "Investment Account",
+    logo: logo,
+    sparkline: [value * 0.95, value * 0.97, value * 0.98, value * 0.99, value * 1.0, value * 1.01, value],
+  }
+}
+
 export interface HoldingsTableProps {
   allocationFilter?: string | null
 }
@@ -97,8 +126,50 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
   const [query, setQuery] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("value")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
-  const [selectedHolding, setSelectedHolding] = useState<(typeof holdings)[0] | null>(null)
+  const [selectedHolding, setSelectedHolding] = useState<any | null>(null)
   const [groupBy, setGroupBy] = useState<GroupBy>("none")
+  const [holdings, setHoldings] = useState<typeof mockHoldings>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch real holdings data on mount
+  useEffect(() => {
+    let mounted = true
+    
+    async function loadHoldings() {
+      try {
+        const data = await getPortfolioHoldings()
+        if (!mounted) return
+        
+        // Calculate total value for weight calculation
+        const totalValue = data.reduce((sum, h) => sum + (h.shares * h.currentPrice), 0)
+        
+        // Transform holdings to component format
+        const transformed = data.map(h => transformHolding(h, totalValue))
+        
+        setHoldings(transformed)
+      } catch (error) {
+        console.error("Failed to load holdings:", error)
+        // On error, use mock data as fallback
+        const totalValue = mockHoldings.reduce((sum, h) => sum + h.value, 0)
+        setHoldings(mockHoldings)
+      } finally {
+        if (mounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+    
+    loadHoldings()
+    
+    return () => {
+      mounted = false
+    }
+  }, [])
+  
+  // Clear search when navigating away
+  useEffect(() => {
+    setQuery("")
+  }, [pathname])
 
   // Clear search when navigating away
   useEffect(() => {
@@ -144,7 +215,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     }
 
     return sorted
-  }, [query, sortKey, sortDir, allocationFilter, groupBy])
+  }, [holdings, query, sortKey, sortDir, allocationFilter, groupBy])
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"))
@@ -172,6 +243,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
   }, [selectedHolding])
 
   const groupedRows = useMemo(() => {
+    console.log('[HoldingsTable] Computing groupedRows:', { groupBy, rowsCount: rows.length, holdingsCount: holdings.length })
     if (groupBy === "none") return [{ group: null, items: rows }]
 
     const groups = new Map<string, typeof rows>()
@@ -182,7 +254,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     })
 
     return Array.from(groups.entries()).map(([group, items]) => ({ group, items }))
-  }, [rows, groupBy])
+  }, [rows, groupBy, holdings.length])
 
   type VirtualRow =
     | { type: "group"; id: string; label: string }
@@ -195,9 +267,9 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
         entries.push({ type: "group", id: `group-${group}`, label: group })
       }
       entries.push(
-        ...items.map((holding) => ({
+        ...items.map((holding, idx) => ({
           type: "holding" as const,
-          id: `${group || "none"}-${holding.ticker}`,
+          id: `${group || "none"}-${holding.ticker}-${idx}`,
           holding,
         })),
       )
@@ -295,6 +367,16 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           </div>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-12 bg-muted animate-pulse rounded" />
+              <div className="h-12 bg-muted animate-pulse rounded" />
+              <div className="h-12 bg-muted animate-pulse rounded" />
+              <div className="h-12 bg-muted animate-pulse rounded" />
+              <div className="h-12 bg-muted animate-pulse rounded" />
+            </div>
+          ) : (
+            <>
           <div className="hidden md:block">
             <div className="table-surface">
               <TableVirtuoso
@@ -408,14 +490,16 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     key={`${item.id}-qty`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
-                    <p className="text-sm tabular-nums font-mono whitespace-nowrap text-foreground">{holding.qty}</p>
+                    <p className="text-sm tabular-nums font-mono whitespace-nowrap text-foreground">
+                      {Number.isInteger(holding.qty) ? holding.qty.toLocaleString() : holding.qty.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                    </p>
                   </td>,
                   <td
                     key={`${item.id}-value`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
                     <p className="text-sm font-semibold tabular-nums text-foreground font-mono whitespace-nowrap">
-                      <MaskableValue value={`$${holding.value.toLocaleString()}`} srLabel={`${holding.ticker} value`} />
+                      <MaskableValue value={`$${holding.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} srLabel={`${holding.ticker} value`} />
                     </p>
                   </td>,
                   <td
@@ -426,7 +510,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                       className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                     >
                       <MaskableValue
-                        value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString()}`}
+                        value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                         srLabel={`${holding.ticker} profit and loss`}
                       />
                     </p>
@@ -435,7 +519,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     key={`${item.id}-weight`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
-                    <p className="text-sm font-mono tabular-nums whitespace-nowrap text-foreground">{holding.weight}%</p>
+                    <p className="text-sm font-mono tabular-nums whitespace-nowrap text-foreground">{holding.weight.toFixed(2)}%</p>
                   </td>,
                   <td
                     key={`${item.id}-account`}
@@ -488,9 +572,9 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     <span className="text-sm font-semibold text-foreground">{group}</span>
                   </div>
                 )}
-                {items.map((holding) => (
+                {items.map((holding, idx) => (
                   <div
-                    key={holding.ticker}
+                    key={`${holding.ticker}-${holding.value}-${idx}`}
                     onClick={() => setSelectedHolding(holding)}
                     className="card-standard card-lift cursor-pointer p-4 space-y-3"
                   >
@@ -514,7 +598,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                         <p className="text-xs text-muted-foreground mb-1">Value</p>
                         <p className="text-base font-semibold tabular-nums font-mono">
                           <MaskableValue
-                            value={`$${holding.value.toLocaleString()}`}
+                            value={`$${holding.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                             srLabel={`${holding.ticker} value`}
                           />
                         </p>
@@ -525,14 +609,14 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                           className={`text-base font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                         >
                           <MaskableValue
-                            value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString()}`}
+                            value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                             srLabel={`${holding.ticker} profit and loss`}
                           />
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Weight</p>
-                        <p className="text-sm font-medium tabular-nums">{holding.weight}%</p>
+                        <p className="text-sm font-medium tabular-nums">{holding.weight.toFixed(2)}%</p>
                       </div>
                     </div>
                   </div>
@@ -540,6 +624,8 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
               </div>
             ))}
           </div>
+          </>
+          )}
         </CardContent>
       </Card>
 

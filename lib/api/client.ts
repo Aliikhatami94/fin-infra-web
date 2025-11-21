@@ -228,7 +228,14 @@ export async function fetchPortfolioBenchmark(benchmark = 'SPY', period = '1y') 
  */
 export async function fetchPortfolioAllocation() {
   return apiFetch<{
-    by_asset_class: Record<string, number>
+    by_asset_class: {
+      stocks: number
+      bonds: number
+      cash: number
+      crypto: number
+      real_estate: number
+      other: number
+    }
     target_allocation: Record<string, number>
     rebalancing_needed: boolean
     drift: number
@@ -237,13 +244,12 @@ export async function fetchPortfolioAllocation() {
 
 /**
  * Investment Holdings
- * User-scoped endpoint that automatically uses authenticated user's Plaid token
+ * POST /investments/holdings
+ * 
+ * App auth: user_router (automatic via session)
+ * Provider access: Auto-resolved from user's stored Plaid token
  */
 export async function fetchInvestmentHoldings(accountIds?: string[]) {
-  const params = accountIds && accountIds.length > 0 
-    ? `?${accountIds.map(id => `account_ids=${encodeURIComponent(id)}`).join('&')}`
-    : ''
-  
   return apiFetch<Array<{
     account_id: string
     security: {
@@ -263,27 +269,29 @@ export async function fetchInvestmentHoldings(accountIds?: string[]) {
     currency: string
     unrealized_gain_loss: number | null
     unrealized_gain_loss_percent: number | null
-  }>>(`/v0/investments/holdings${params}`)
+  }>>('/investments/holdings', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      account_ids: accountIds,
+    }),
+  })
 }
 
 /**
  * Investment Transactions
+ * POST /investments/transactions
+ * 
+ * App auth: user_router (automatic via session)
+ * Provider access: Auto-resolved from user's stored Plaid token
  */
 export async function fetchInvestmentTransactions(
-  startDate?: string,
-  endDate?: string,
+  startDate: string,
+  endDate: string,
   accountIds?: string[]
 ) {
-  const params = new URLSearchParams()
-  if (startDate) params.append('start_date', startDate)
-  if (endDate) params.append('end_date', endDate)
-  if (accountIds && accountIds.length > 0) {
-    accountIds.forEach(id => params.append('account_ids', id))
-  }
-  
-  const queryString = params.toString()
-  const url = queryString ? `/v0/investments/transactions?${queryString}` : '/v0/investments/transactions'
-  
   return apiFetch<Array<{
     transaction_id: string
     account_id: string
@@ -295,11 +303,25 @@ export async function fetchInvestmentTransactions(
     amount: number
     fees: number | null
     currency: string
-  }>>(url)
+  }>>('/investments/transactions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      start_date: startDate,
+      end_date: endDate,
+      account_ids: accountIds,
+    }),
+  })
 }
 
 /**
  * Investment Accounts with aggregated holdings
+ * POST /investments/accounts
+ * 
+ * App auth: user_router (automatic via session)
+ * Provider access: Auto-resolved from user's stored Plaid token
  */
 export async function fetchInvestmentAccounts() {
   return apiFetch<Array<{
@@ -315,30 +337,46 @@ export async function fetchInvestmentAccounts() {
     total_value?: number
     total_cost_basis?: number
     total_unrealized_gain_loss?: number
-  }>>('/v0/investments/accounts')
+  }>>('/investments/accounts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+  })
 }
 
 /**
  * Portfolio Asset Allocation
+ * POST /investments/allocation
+ * 
+ * App auth: user_router (automatic via session)
+ * Provider access: Auto-resolved from user's stored Plaid token
  */
 export async function fetchInvestmentAllocation(accountIds?: string[]) {
-  const params = accountIds && accountIds.length > 0 
-    ? `?${accountIds.map(id => `account_ids=${encodeURIComponent(id)}`).join('&')}`
-    : ''
-  
   return apiFetch<{
     by_type: Record<string, number>
     by_sector: Record<string, number>
     total_value: number
-  }>(`/v0/investments/allocation${params}`)
+  }>('/investments/allocation', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      account_ids: accountIds,
+    }),
+  })
 }
 
 /**
  * Security Details
+ * POST /investments/securities
+ * 
+ * App auth: user_router (automatic via session)
+ * Provider access: Auto-resolved from user's stored Plaid token
  */
 export async function fetchInvestmentSecurities(securityIds: string[]) {
-  const params = securityIds.map(id => `security_ids=${encodeURIComponent(id)}`).join('&')
-  
   return apiFetch<Array<{
     security_id: string
     cusip: string | null
@@ -350,7 +388,15 @@ export async function fetchInvestmentSecurities(securityIds: string[]) {
     close_price: number
     close_price_as_of: string | null
     currency: string
-  }>>(`/v0/investments/securities?${params}`)
+  }>>('/investments/securities', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      security_ids: securityIds,
+    }),
+  })
 }
 
 /**
