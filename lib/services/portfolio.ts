@@ -198,8 +198,15 @@ export async function getPortfolioAllocation() {
         }
         
         holdingsData.forEach((holding, index) => {
-          // institution_value is already a number from the API
-          const value = holding.institution_value
+          // Force conversion to number - API may return string or number
+          const rawValue = holding.institution_value
+          const value = typeof rawValue === 'string' ? parseFloat(rawValue) : Number(rawValue)
+          
+          if (isNaN(value)) {
+            console.warn(`[Allocation] Warning: Invalid value for holding ${index}:`, rawValue)
+            return // Skip invalid values
+          }
+          
           totalValue += value
           
           // Categorize by security type
@@ -209,7 +216,9 @@ export async function getPortfolioAllocation() {
             console.log(`[Allocation] Processing holding ${index}:`, {
               ticker: holding.security.ticker_symbol,
               type: securityType,
-              value: value
+              rawValue: rawValue,
+              parsedValue: value,
+              totalSoFar: totalValue
             })
           }
           

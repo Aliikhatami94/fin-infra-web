@@ -89,8 +89,12 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
   const [view, setView] = useState<AllocationView>("assetClass")
   const [selectedSlice, setSelectedSlice] = useState<string | null>(null)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
-  const [allocationData, setAllocationData] = useState<Record<AllocationView, AllocationSlice[]>>(mockAllocationData)
-  const [isLoading, setIsLoading] = useState(false)
+  const [allocationData, setAllocationData] = useState<Record<AllocationView, AllocationSlice[]>>({
+    assetClass: [],
+    sector: [],
+    region: [],
+  })
+  const [isLoading, setIsLoading] = useState(true)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   // Fetch real allocation data
@@ -218,9 +222,23 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
         )}
       </CardHeader>
       <CardContent className="flex items-center justify-center min-h-[320px]">
-        <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
-          {/* Chart - centered and compact */}
-          <div className="h-48 w-48 shrink-0">
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-48 w-48 rounded-full bg-muted animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-40 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-36 bg-muted animate-pulse rounded" />
+            </div>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="text-center text-muted-foreground">
+            <p>No allocation data available</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+            {/* Chart - centered and compact */}
+            <div className="h-48 w-48 shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -290,7 +308,8 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
               </button>
             ))}
           </div>
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
