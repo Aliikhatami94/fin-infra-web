@@ -7,7 +7,6 @@ import { useAuth } from "@/lib/auth/context"
 // Heavy widgets are dynamically loaded client-side with skeletons
 import { OverviewKPIs } from "@/components/overview-kpis"
 import { ChartCardSkeleton } from "@/components/chart-skeleton"
-import type { AllocationChartProps } from "@/components/allocation-chart"
 import { ErrorBoundary } from "@/components/error-boundary"
 import {
   AIInsightsListSkeleton,
@@ -16,14 +15,6 @@ import {
 } from "@/components/dashboard-skeletons"
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
 import { DashboardShell } from "@/components/dashboard/shell"
-
-const AllocationChart = dynamic<AllocationChartProps>(
-  () => import("@/components/allocation-chart").then((mod) => mod.AllocationChart),
-  {
-    ssr: false,
-    loading: () => <ChartCardSkeleton title="Portfolio Allocation" />,
-  },
-)
 
 const PerformanceTimeline = dynamic(
   () => import("@/components/performance-timeline").then((mod) => mod.PerformanceTimeline),
@@ -74,8 +65,6 @@ const AIInsights = dynamic(
 // AI chat is now global in the dashboard layout
 
 export default function OverviewPage() {
-  const [allocationFilter, setAllocationFilter] = useState<string | null>(null)
-
   const bands = [
     {
       content: (
@@ -86,10 +75,7 @@ export default function OverviewPage() {
           className="space-y-4"
         >
           <h2 className="text-lg font-semibold text-foreground">Portfolio Health</h2>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <AllocationChart onFilterChange={setAllocationFilter} activeFilter={allocationFilter} />
-            <PerformanceTimeline />
-          </div>
+          <PerformanceTimeline />
         </motion.div>
       ),
       span: "full" as const,
@@ -117,12 +103,7 @@ export default function OverviewPage() {
           className="space-y-4"
         >
           <h2 className="text-lg font-semibold text-foreground">Holdings</h2>
-          {allocationFilter ? (
-            <p className="text-sm text-muted-foreground">
-              Showing holdings for: <span className="font-medium text-foreground">{allocationFilter}</span>
-            </p>
-          ) : null}
-          <Portfolio filter={allocationFilter} />
+          <Portfolio />
         </motion.div>
       ),
       span: "full" as const,
