@@ -119,6 +119,177 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
 }
 
 /**
+ * Get portfolio allocation data
+ * 
+ * Strategy:
+ * 1. Try to fetch from /v0/portfolio/allocation endpoint
+ * 2. If returns all zeros, calculate from holdings directly
+ * 3. Fall back to mock data on error
+ */
+export async function getPortfolioAllocation() {
+  console.log('[Allocation] getPortfolioAllocation called')
+  console.log('[Allocation] isMarketingMode:', typeof window !== 'undefined' ? isMarketingMode() : 'N/A')
+  console.log('[Allocation] USE_MOCK_DATA:', USE_MOCK_DATA)
+  
+  // Marketing mode: Always use mock data
+  if (typeof window !== 'undefined' && isMarketingMode()) {
+    console.log('[Allocation] ❌ Using mock data: marketing mode')
+    return getMockAllocation()
+  }
+
+  // Use mock data if API not configured or user not authenticated
+  const userId = getCurrentUserId()
+  console.log('[Allocation] getCurrentUserId():', userId)
+  
+  if (USE_MOCK_DATA) {
+    console.log('[Allocation] ❌ Using mock data: API not configured (USE_MOCK_DATA=true)')
+    return getMockAllocation()
+  }
+  
+  if (!userId) {
+    console.log('[Allocation] ❌ Using mock data: not authenticated (no userId)')
+    return getMockAllocation()
+  }
+
+  // Fetch real allocation from API or calculate from holdings
+  try {
+    console.log('[Allocation] ✅ Fetching allocation from API...')
+    const data = await _fetchPortfolioAllocation()
+    console.log('[Allocation] ✅ Received allocation data from API:', JSON.stringify(data, null, 2))
+    
+    // Transform to component format
+    const assetClassData = [
+      { name: "Stocks", value: Math.round(data.by_asset_class.stocks * 100), color: "#3b82f6" },
+      { name: "Bonds", value: Math.round(data.by_asset_class.bonds * 100), color: "#10b981" },
+      { name: "Cash", value: Math.round(data.by_asset_class.cash * 100), color: "#f59e0b" },
+      { name: "Crypto", value: Math.round(data.by_asset_class.crypto * 100), color: "#8b5cf6" },
+      { name: "Real Estate", value: Math.round(data.by_asset_class.real_estate * 100), color: "#ec4899" },
+      { name: "Other", value: Math.round(data.by_asset_class.other * 100), color: "#6366f1" },
+    ].filter(item => item.value > 0) // Only show non-zero allocations
+    
+    console.log('[Allocation] Transformed asset class data:', assetClassData)
+    
+    // Check if we have any real data from allocation endpoint
+    const hasRealData = assetClassData.length > 0
+    console.log('[Allocation] hasRealData check:', hasRealData, 'assetClassData:', assetClassData)
+    
+    if (!hasRealData) {
+      console.log('[Allocation] ⚠️ Allocation API returned all zeros, calculating from holdings...')
+      
+      // Try to calculate from holdings directly
+      try {
+        console.log('[Allocation] About to call _fetchInvestmentHoldings()...')
+        const holdingsData = await _fetchInvestmentHoldings()
+        console.log('[Allocation] ✅ Fetched holdings for calculation:', holdingsData.length, 'holdings')
+        console.log('[Allocation] Holdings data sample:', holdingsData.slice(0, 2))
+        
+        if (holdingsData.length === 0) {
+          console.log('[Allocation] ⚠️ No holdings found, falling back to mock data')
+          return getMockAllocation()
+        }
+        
+        // Calculate total value and allocation by type
+        let totalValue = 0
+        const typeTotals: Record<string, number> = {
+          cash: 0,
+          stocks: 0,
+          crypto: 0,
+          other: 0,
+        }
+        
+        holdingsData.forEach((holding, index) => {
+          // Convert string to number
+          const value = parseFloat(holding.institution_value)
+          totalValue += value
+          
+          // Categorize by security type
+          const securityType = holding.security.type?.toLowerCase() || 'other'
+          
+          if (index < 3) {
+            console.log(`[Allocation] Processing holding ${index}:`, {
+              ticker: holding.security.ticker_symbol,
+              type: securityType,
+              value: value
+            })
+          }
+          
+          if (securityType.includes('cash') || holding.security.ticker_symbol?.includes('DOLLAR')) {
+            typeTotals.cash += value
+          } else if (securityType.includes('crypto') || securityType.includes('cryptocurrency')) {
+            typeTotals.crypto += value
+          } else if (securityType === 'equity' || securityType === 'stock' || securityType.includes('mutual fund') || securityType.includes('etf')) {
+            typeTotals.stocks += value
+          } else {
+            typeTotals.other += value
+          }
+        })
+        
+        console.log('[Allocation] ✅ Calculated totals:', { totalValue, typeTotals })
+        
+        // Convert to percentages
+        const calculatedData = [
+          { name: "Cash", value: Math.round((typeTotals.cash / totalValue) * 100), color: "#f59e0b" },
+          { name: "Stocks", value: Math.round((typeTotals.stocks / totalValue) * 100), color: "#3b82f6" },
+          { name: "Crypto", value: Math.round((typeTotals.crypto / totalValue) * 100), color: "#8b5cf6" },
+          { name: "Other", value: Math.round((typeTotals.other / totalValue) * 100), color: "#6366f1" },
+        ].filter(item => item.value > 0)
+        
+        console.log('[Allocation] ✅ Calculated allocation from holdings:', calculatedData)
+        console.log('[Allocation] 🎉 RETURNING CALCULATED DATA (not mock)')
+        
+        return {
+          assetClass: calculatedData,
+          sector: getMockAllocation().sector,
+          region: getMockAllocation().region,
+        }
+      } catch (holdingsError) {
+        console.error('[Allocation] ❌ Failed to calculate from holdings:', holdingsError)
+        console.error('[Allocation] Error stack:', (holdingsError as Error).stack)
+        return getMockAllocation()
+      }
+    }
+    
+    console.log('[Allocation] 🎉 RETURNING API DATA (not mock):', assetClassData)
+    return {
+      assetClass: assetClassData,
+      
+      // For now, use mock data for sector and region
+      // TODO: Add sector/region endpoints in backend
+      sector: getMockAllocation().sector,
+      region: getMockAllocation().region,
+    }
+  } catch (error) {
+    console.error('[Allocation] ❌ Failed to fetch allocation, falling back to mock:', error)
+    console.error('[Allocation] Error stack:', (error as Error).stack)
+    return getMockAllocation()
+  }
+}
+
+function getMockAllocation() {
+  return {
+    assetClass: [
+      { name: "Stocks", value: 65, color: "#3b82f6" },
+      { name: "Bonds", value: 20, color: "#10b981" },
+      { name: "Cash", value: 10, color: "#f59e0b" },
+      { name: "Crypto", value: 5, color: "#8b5cf6" },
+    ],
+    sector: [
+      { name: "Technology", value: 35, color: "#3b82f6" },
+      { name: "Healthcare", value: 25, color: "#10b981" },
+      { name: "Finance", value: 20, color: "#f59e0b" },
+      { name: "Consumer", value: 15, color: "#8b5cf6" },
+      { name: "Other", value: 5, color: "#ef4444" },
+    ],
+    region: [
+      { name: "North America", value: 50, color: "#3b82f6" },
+      { name: "Europe", value: 25, color: "#10b981" },
+      { name: "Asia Pacific", value: 20, color: "#f59e0b" },
+      { name: "Emerging Markets", value: 5, color: "#8b5cf6" },
+    ],
+  }
+}
+
+/**
  * Get relative time string (e.g., "5s ago", "2 min ago")
  */
 function getRelativeTime(timestamp: string): string {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import type { TooltipContentProps } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,6 +8,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { Landmark, Building2, Globe2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PIE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
+import { getPortfolioAllocation } from "@/lib/services/portfolio"
 
 type AllocationView = "assetClass" | "sector" | "region"
 
@@ -15,28 +16,6 @@ interface AllocationDataPoint extends Record<string, unknown> {
   name: string
   value: number
   color: string
-}
-
-const allocationData: Record<AllocationView, AllocationDataPoint[]> = {
-  assetClass: [
-    { name: "Stocks", value: 65, color: PIE_CHART_COLORS[0] },
-    { name: "Bonds", value: 20, color: PIE_CHART_COLORS[1] },
-    { name: "Cash", value: 10, color: PIE_CHART_COLORS[2] },
-    { name: "Crypto", value: 5, color: PIE_CHART_COLORS[3] },
-  ],
-  sector: [
-    { name: "Technology", value: 35, color: PIE_CHART_COLORS[0] },
-    { name: "Healthcare", value: 25, color: PIE_CHART_COLORS[1] },
-    { name: "Finance", value: 20, color: PIE_CHART_COLORS[2] },
-    { name: "Consumer", value: 15, color: PIE_CHART_COLORS[3] },
-    { name: "Other", value: 5, color: PIE_CHART_COLORS[4] },
-  ],
-  region: [
-    { name: "North America", value: 50, color: PIE_CHART_COLORS[0] },
-    { name: "Europe", value: 25, color: PIE_CHART_COLORS[1] },
-    { name: "Asia Pacific", value: 20, color: PIE_CHART_COLORS[2] },
-    { name: "Emerging Markets", value: 5, color: PIE_CHART_COLORS[3] },
-  ],
 }
 
 export interface AllocationChartProps {
@@ -70,6 +49,45 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
   const [view, setView] = useState<AllocationView>("assetClass")
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [allocationData, setAllocationData] = useState<Record<AllocationView, AllocationDataPoint[]>>({
+    assetClass: [],
+    sector: [],
+    region: [],
+  })
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch allocation data on mount
+  useEffect(() => {
+    console.log('[AllocationChart] Component mounted, starting to load allocation data...')
+    let mounted = true
+    
+    async function loadAllocation() {
+      try {
+        console.log('[AllocationChart] Calling getPortfolioAllocation()...')
+        const data = await getPortfolioAllocation()
+        console.log('[AllocationChart] Received data:', data)
+        if (!mounted) return
+        
+        setAllocationData(data)
+        console.log('[AllocationChart] State updated with allocation data')
+      } catch (error) {
+        console.error("[AllocationChart] Failed to load portfolio allocation:", error)
+      } finally {
+        if (mounted) {
+          setIsLoading(false)
+          console.log('[AllocationChart] Loading complete, isLoading set to false')
+        }
+      }
+    }
+    
+    loadAllocation()
+    
+    return () => {
+      console.log('[AllocationChart] Component unmounting')
+      mounted = false
+    }
+  }, [])
+
   const data = allocationData[view]
 
   const handleSegmentClick = (entry: AllocationDataPoint) => {
@@ -139,6 +157,15 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
         )}
       </CardHeader>
       <CardContent className="flex items-center justify-center min-h-[320px]">
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-48 w-48 rounded-full bg-muted animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+            </div>
+          </div>
+        ) : (
         <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
           {/* Chart - centered and compact */}
           <div className="h-48 w-48 shrink-0">
@@ -207,6 +234,7 @@ export function AllocationChart({ onFilterChange, activeFilter }: AllocationChar
             ))}
           </div>
         </div>
+        )}
       </CardContent>
     </Card>
   )

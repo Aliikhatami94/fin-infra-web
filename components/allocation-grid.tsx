@@ -8,8 +8,8 @@ import type { TooltipContentProps } from "recharts"
 import { Landmark, Building2, Globe2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PIE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
-import { fetchPortfolioAllocation } from "@/lib/api/client"
 import { isMarketingMode } from "@/lib/marketingMode"
+import { getPortfolioAllocation } from "@/lib/services/portfolio"
 
 type AllocationView = "assetClass" | "sector" | "region"
 
@@ -95,55 +95,45 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
   
   // Fetch real allocation data
   useEffect(() => {
+    console.log('[AllocationGrid] Component mounted, loading allocation data...')
     async function loadAllocation() {
-      // Marketing mode: always use mock data
-      if (isMarketingMode()) {
-        setAllocationData(mockAllocationData)
-        return
-      }
-
-      // No API URL configured: use mock data
-      if (!process.env.NEXT_PUBLIC_API_URL) {
-        setAllocationData(mockAllocationData)
-        return
-      }
-
       try {
         setIsLoading(true)
-        const data = await fetchPortfolioAllocation()
+        console.log('[AllocationGrid] Calling getPortfolioAllocation()...')
+        const data = await getPortfolioAllocation()
+        console.log('[AllocationGrid] Received allocation data:', data)
         
-        // Transform API response to chart format
-        // by_asset_class contains percentages (0-100), but we need amounts for display
-        // If all values are 0, fall back to mock data
-        const totalPercent = Object.values(data.by_asset_class).reduce((sum, val) => sum + val, 0)
+        // Transform to the format expected by this component
+        const assetClass: AllocationSlice[] = data.assetClass.map((item) => ({
+          name: item.name,
+          value: item.value,
+          amount: 0, // Backend doesn't provide dollar amounts yet
+          color: item.color,
+        }))
         
-        if (totalPercent === 0) {
-          // No allocation data yet, use mock
-          setAllocationData(mockAllocationData)
-          return
-        }
+        const sector: AllocationSlice[] = data.sector.map((item) => ({
+          name: item.name,
+          value: item.value,
+          amount: 0,
+          color: item.color,
+        }))
         
-        const assetClass: AllocationSlice[] = Object.entries(data.by_asset_class)
-          .filter(([_, percent]) => percent > 0)
-          .map(([name, percent], idx) => ({
-            name: formatAssetClassName(name),
-            value: Math.round(percent),
-            amount: 0, // Backend doesn't provide dollar amounts in this endpoint
-            color: PIE_CHART_COLORS[idx % PIE_CHART_COLORS.length],
-          }))
-
-        // Note: Backend doesn't provide sector breakdown yet, using mock for now
-        setAllocationData({
-          assetClass: assetClass.length > 0 ? assetClass : mockAllocationData.assetClass,
-          sector: mockAllocationData.sector,
-          region: mockAllocationData.region,
-        })
+        const region: AllocationSlice[] = data.region.map((item) => ({
+          name: item.name,
+          value: item.value,
+          amount: 0,
+          color: item.color,
+        }))
+        
+        setAllocationData({ assetClass, sector, region })
+        console.log('[AllocationGrid] Allocation data set successfully')
       } catch (error) {
-        console.error('Failed to fetch allocation data:', error)
+        console.error('[AllocationGrid] Failed to fetch allocation data:', error)
         // Fallback to mock data on error
         setAllocationData(mockAllocationData)
       } finally {
         setIsLoading(false)
+        console.log('[AllocationGrid] Loading complete')
       }
     }
 
