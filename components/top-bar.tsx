@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useConnectivity } from "@/components/connectivity-provider"
+import { WifiOff, Wifi, AlertTriangle } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +52,7 @@ export function TopBar({
   const { density, setDensity } = useDensity()
   const { user, logout } = useAuth()
   const router = useRouter()
+  const { isOffline } = useConnectivity()
 
   const isDateRangeValue = (value: string): value is typeof dateRange => {
     return ["1D", "5D", "1M", "6M", "YTD", "1Y", "ALL"].includes(value)
@@ -136,6 +139,23 @@ export function TopBar({
 
         {/* Right section: Actions + Profile - Progressive disclosure on mobile */}
         <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
+          {/* Offline indicator - shows when offline */}
+          {isOffline && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                    <WifiOff className="h-3.5 w-3.5 text-amber-700 dark:text-amber-300" />
+                    <span className="hidden sm:inline text-xs font-medium text-amber-900 dark:text-amber-100">Offline</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>You are offline. Automations paused.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
           {/* Workspace badge - desktop only */}
           <Badge variant="secondary" className="hidden xl:flex items-center gap-1 rounded-full px-2 py-0.5">
             <Building2 className="h-3 w-3" />

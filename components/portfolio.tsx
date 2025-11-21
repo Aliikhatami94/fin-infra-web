@@ -196,10 +196,10 @@ export function Portfolio({ filter }: PortfolioProps) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((h) => {
+                {rows.map((h, index) => {
                   const allocation = totalValue ? (h.value / totalValue) * 100 : 0
                   return (
-                    <tr key={h.symbol} className="border-b last:border-0">
+                    <tr key={`${h.symbol}-${index}`} className="border-b last:border-0">
                       <td className="py-3 pr-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center font-semibold text-xs">

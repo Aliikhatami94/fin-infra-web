@@ -5,7 +5,6 @@ import type React from "react"
 import { useEffect, useState, Suspense } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { TopBar } from "@/components/top-bar"
-import { OfflineBanner } from "@/components/offline-banner"
 import { ConnectivityProvider, useConnectivity } from "@/components/connectivity-provider"
 import { Button } from "@/components/ui/button"
 import { MessageSquare } from "lucide-react"
@@ -165,8 +164,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               isSidebarCollapsed ? "lg:pl-16" : "lg:pl-64",
             )}
           >
-            <OfflineBanner />
-            
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
               {/* Desktop: Header outside main content */}
               <header className="hidden lg:block">

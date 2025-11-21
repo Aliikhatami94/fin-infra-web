@@ -34,6 +34,83 @@ export function useOfflineStatus(): OfflineStatus {
   const [isOnline, setIsOnline] = useState<boolean>(getInitialOnlineState)
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
   const [initializing, setInitializing] = useState(true)
+  const [isDemoModeEnabled, setIsDemoModeEnabled] = useState(false)
+  
+  // Check if we're in local/dev environment by calling /v0/status
+  useEffect(() => {
+    const checkEnvironment = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        if (!apiUrl) {
+          console.log('[Offline Demo] No API URL configured, demo mode disabled')
+          return
+        }
+        
+        const res = await fetch(`${apiUrl}/v0/status`)
+        if (res.ok) {
+          const data = await res.json()
+          const env = data.env as string
+          const isDev = env === 'local' || env === 'dev'
+          setIsDemoModeEnabled(isDev)
+          
+          if (isDev) {
+            console.log(`[Offline Demo] ✅ Running in ${env} mode - manual toggle enabled`)
+            console.log('[Offline Demo] Press Cmd+Shift+O (Mac) or Ctrl+Shift+O (Windows/Linux) to toggle offline mode')
+          } else {
+            console.log(`[Offline Demo] Running in ${env} mode - manual toggle disabled for security`)
+          }
+        }
+      } catch (error) {
+        console.log('[Offline Demo] Failed to check environment, demo mode disabled')
+      }
+    }
+    
+    checkEnvironment()
+  }, [])
+  
+  // Temporary: Allow toggling offline mode with Cmd+Shift+O (Mac) or Ctrl+Shift+O (Windows/Linux) for demo
+  // Only enabled in local/dev environments
+  useEffect(() => {
+    if (!isDemoModeEnabled) {
+      return
+    }
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('[Offline Demo] Key pressed:', {
+        key: e.key,
+        metaKey: e.metaKey,
+        ctrlKey: e.ctrlKey,
+        shiftKey: e.shiftKey,
+        code: e.code
+      })
+      
+      // Check for Cmd (Mac) or Ctrl (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'O' || e.key === 'o')) {
+        console.log('[Offline Demo] ✅ Shortcut detected! Toggling...')
+        e.preventDefault()
+        setIsOnline(prev => {
+          const newState = !prev
+          console.log(`[Offline Demo] 🔄 Toggled to ${newState ? 'ONLINE ✅' : 'OFFLINE ⚠️'}`)
+          return newState
+        })
+      } else {
+        console.log('[Offline Demo] ❌ Not the right combo')
+      }
+    }
+    
+    if (typeof window !== "undefined") {
+      window.addEventListener("keydown", handleKeyDown)
+      console.log('[Offline Demo] 🎯 Keyboard listener attached!')
+      console.log('[Offline Demo] Current state:', isOnline ? 'ONLINE' : 'OFFLINE')
+    }
+    
+    return () => {
+      if (typeof window !== "undefined") {
+        console.log('[Offline Demo] 🔌 Keyboard listener detached')
+        window.removeEventListener("keydown", handleKeyDown)
+      }
+    }
+  }, [isOnline, isDemoModeEnabled])
 
   useEffect(() => {
     let active = true
