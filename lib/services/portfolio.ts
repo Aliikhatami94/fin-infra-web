@@ -198,8 +198,8 @@ export async function getPortfolioAllocation() {
         }
         
         holdingsData.forEach((holding, index) => {
-          // Convert string to number
-          const value = parseFloat(holding.institution_value)
+          // institution_value is already a number from the API
+          const value = holding.institution_value
           totalValue += value
           
           // Categorize by security type

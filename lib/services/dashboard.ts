@@ -215,7 +215,7 @@ function calculateRealKpis(accounts: Account[]): Partial<Record<string, KPI>> {
 }
 
 // Cache for accounts to prevent duplicate fetches within the same page load
-let accountsCache: { data: Account[] | null; timestamp: number; promise: Promise<Account[]> | null } = { 
+const accountsCache: { data: Account[] | null; timestamp: number; promise: Promise<Account[]> | null } = { 
   data: null, 
   timestamp: 0, 
   promise: null 
