@@ -5,7 +5,7 @@ import type { HTMLAttributes } from "react"
 import { usePathname } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, MoreVertical, Eye, EyeOff, TrendingUpIcon } from "lucide-react"
+import { Building2, MoreVertical, Eye, EyeOff, TrendingUpIcon, ChevronDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
@@ -290,14 +290,6 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     const VirtTable = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
       ({ className, children, ...props }, ref) => (
         <table {...props} ref={ref} className={cn("w-full text-sm", className)}>
-          <colgroup>
-            <col style={{ width: '28%' }} /> {/* Ticker */}
-            <col style={{ width: '12%' }} /> {/* Quantity */}
-            <col style={{ width: '16%' }} /> {/* Value */}
-            <col style={{ width: '16%' }} /> {/* P/L */}
-            <col style={{ width: '12%' }} /> {/* Weight */}
-            <col style={{ width: '60px' }} /> {/* Actions */}
-          </colgroup>
           {children}
         </table>
       ),
@@ -326,10 +318,10 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
           onClick?.(event)
         }}
         className={cn(
-          "border-b last:border-0 transition-colors",
+          "border-b last:border-0",
           item.type === "group"
-            ? "bg-muted/30"
-            : "hover:bg-muted/50 transition-colors cursor-pointer odd:bg-muted/20",
+            ? "bg-muted/40"
+            : "hover:bg-muted/50 transition-colors cursor-pointer odd:bg-muted/25",
           className,
         )}
       />
@@ -399,57 +391,47 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                         className="border-b text-xs uppercase tracking-wide text-muted-foreground"
                         style={{ borderColor: "var(--table-divider)" }}
                       >
-                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left">
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-left w-[35%]">
                           <button
-                            type="button"
                             onClick={() => toggleSort("ticker")}
-                            className="flex items-center gap-1 font-medium transition-colors hover:text-foreground"
-                            aria-label="Sort by ticker"
+                            className="flex items-center gap-1 hover:text-foreground transition-colors"
                           >
                             Ticker
                           </button>
                         </th>
-                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right w-[12%]">
                           <button
-                            type="button"
                             onClick={() => toggleSort("qty")}
-                            className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
-                            aria-label="Sort by quantity"
+                            className="ml-auto flex items-center gap-1 hover:text-foreground transition-colors"
                           >
                             Quantity
                           </button>
                         </th>
-                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right w-[16%]">
                           <button
-                            type="button"
                             onClick={() => toggleSort("value")}
-                            className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
-                            aria-label="Sort by value"
+                            className="ml-auto flex items-center gap-1 hover:text-foreground transition-colors"
                           >
                             Value
                           </button>
                         </th>
-                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right w-[16%]">
                           <button
-                            type="button"
                             onClick={() => toggleSort("pl")}
-                            className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
-                            aria-label="Sort by profit and loss"
+                            className="ml-auto flex items-center gap-1 hover:text-foreground transition-colors"
                           >
                             P/L
                           </button>
                         </th>
-                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right">
+                        <th className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right w-[12%]">
                           <button
-                            type="button"
                             onClick={() => toggleSort("weight")}
-                            className="ml-auto flex items-center gap-1 transition-colors hover:text-foreground"
-                            aria-label="Sort by portfolio weight"
+                            className="ml-auto flex items-center gap-1 hover:text-foreground transition-colors"
                           >
                             Weight
                           </button>
                         </th>
-                        <th className="w-[var(--table-cell-padding-x)]" />
+                        <th className="px-[calc(var(--table-cell-padding-x)/2)] py-[var(--table-cell-padding-y)] text-right w-[5%]" aria-hidden />
                       </tr>
                     )}
                     itemContent={(index, item) => {
@@ -474,13 +456,13 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
                     key={`${item.id}-ticker`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] align-middle"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted text-base font-semibold">
-                        {holding.logo}
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                      <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-border/50">
+                        <span className="text-base md:text-lg font-semibold text-foreground">{holding.logo}</span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-foreground truncate">{holding.ticker}</p>
-                        <p className="text-xs text-muted-foreground truncate max-w-[200px]" title={holding.name}>{holding.name}</p>
+                        <p className="text-sm font-medium text-foreground truncate">{holding.ticker}</p>
+                        <p className="text-xs text-muted-foreground truncate font-medium" title={holding.name}>{holding.name}</p>
                       </div>
                     </div>
                   </td>,
@@ -555,63 +537,67 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
 
               <div className="md:hidden space-y-3">
                 {groupedRows.map(({ group, items }) => (
-              <div key={group || "no-group"} className="space-y-3">
-                {group && (
-                  <div className="flex items-center gap-2 px-2 py-1 bg-muted/30 rounded-md">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-foreground">{group}</span>
-                  </div>
-                )}
-                {items.map((holding, idx) => (
-                  <div
-                    key={`${holding.ticker}-${holding.value}-${idx}`}
-                    onClick={() => setSelectedHolding(holding)}
-                    className="card-standard card-lift cursor-pointer p-4 space-y-3"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-lg flex-shrink-0">
-                          {holding.logo}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-foreground truncate">{holding.ticker}</p>
-                          <p className="text-xs text-muted-foreground truncate">{holding.name}</p>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="whitespace-nowrap ml-2">
-                        {holding.account}
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Value</p>
-                        <p className="text-base font-semibold tabular-nums font-mono">
-                          <MaskableValue
-                            value={`$${holding.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                            srLabel={`${holding.ticker} value`}
-                          />
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground mb-1">P/L</p>
-                        <p
-                          className={`text-base font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                  <div key={group || "no-group"}>
+                    {group && (
+                      <button
+                        className="flex items-center gap-2 w-full py-2 px-3 mb-2 rounded-md hover:bg-muted/40 transition-smooth text-left"
+                      >
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-semibold">{group}</span>
+                        <Badge variant="outline" className="ml-auto">
+                          {items.length}
+                        </Badge>
+                      </button>
+                    )}
+                    <div className="space-y-3">
+                      {items.map((holding, idx) => (
+                        <div
+                          key={`${holding.ticker}-${holding.value}-${idx}`}
+                          onClick={() => setSelectedHolding(holding)}
+                          className="card-standard card-lift cursor-pointer p-4 space-y-3"
                         >
-                          <MaskableValue
-                            value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                            srLabel={`${holding.ticker} profit and loss`}
-                          />
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Weight</p>
-                        <p className="text-sm font-medium tabular-nums">{holding.weight.toFixed(2)}%</p>
-                      </div>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-border/50">
+                                <span className="text-lg font-semibold text-foreground">{holding.logo}</span>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-foreground truncate">{holding.ticker}</p>
+                                <p className="text-xs text-muted-foreground truncate font-medium">{holding.name}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Value</p>
+                              <p className="text-sm font-semibold tabular-nums font-mono">
+                                <MaskableValue
+                                  value={`$${holding.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                  srLabel={`${holding.ticker} value`}
+                                />
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">P/L</p>
+                              <p
+                                className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                              >
+                                <MaskableValue
+                                  value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                  srLabel={`${holding.ticker} profit and loss`}
+                                />
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Weight</p>
+                              <p className="text-sm font-medium tabular-nums">{holding.weight.toFixed(2)}%</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
                 ))}
               </div>
             </>
