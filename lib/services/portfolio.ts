@@ -107,6 +107,8 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
         avgPrice: avgPrice,
         currentPrice: currentPrice,
         change: change,
+        assetClass: h.security.type || 'Other',
+        accountId: h.account_id,
       }
     })
     
@@ -226,7 +228,13 @@ export async function getPortfolioAllocation() {
             typeTotals.cash += value
           } else if (securityType.includes('crypto') || securityType.includes('cryptocurrency')) {
             typeTotals.crypto += value
-          } else if (securityType === 'equity' || securityType === 'stock' || securityType.includes('mutual fund') || securityType.includes('etf')) {
+          } else if (
+            securityType === 'equity' || 
+            securityType === 'stock' || 
+            securityType === 'mutual_fund' || 
+            securityType.includes('mutual fund') || 
+            securityType.includes('etf')
+          ) {
             typeTotals.stocks += value
           } else {
             typeTotals.other += value

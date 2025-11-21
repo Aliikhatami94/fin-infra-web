@@ -61,6 +61,8 @@ export interface Holding {
   avgPrice: number
   currentPrice: number
   change: number
+  assetClass?: string
+  accountId?: string
 }
 
 export interface Document {

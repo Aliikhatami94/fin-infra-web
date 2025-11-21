@@ -35,6 +35,7 @@ const mockHoldings = [
     plPercent: 17.5,
     weight: 15.2,
     account: "Fidelity",
+    assetClass: "equity",
     logo: "🍎",
     sparkline: [180, 182, 185, 183, 187, 190, 188],
   },
@@ -47,6 +48,7 @@ const mockHoldings = [
     plPercent: 24.3,
     weight: 22.4,
     account: "Fidelity",
+    assetClass: "equity",
     logo: "🪟",
     sparkline: [380, 385, 390, 388, 395, 400, 420],
   },
@@ -59,6 +61,7 @@ const mockHoldings = [
     plPercent: -7.1,
     weight: 6.0,
     account: "Fidelity",
+    assetClass: "equity",
     logo: "🔍",
     sparkline: [145, 143, 140, 138, 135, 137, 140],
   },
@@ -71,6 +74,7 @@ const mockHoldings = [
     plPercent: 19.7,
     weight: 6.8,
     account: "Robinhood",
+    assetClass: "equity",
     logo: "⚡",
     sparkline: [240, 245, 250, 248, 255, 260, 255],
   },
@@ -83,6 +87,7 @@ const mockHoldings = [
     plPercent: 15.9,
     weight: 7.2,
     account: "Fidelity",
+    assetClass: "equity",
     logo: "📦",
     sparkline: [170, 175, 178, 180, 182, 185, 180],
   },
@@ -90,6 +95,31 @@ const mockHoldings = [
 
 type SortKey = "ticker" | "qty" | "value" | "pl" | "plPercent" | "weight" | "account"
 type GroupBy = "none" | "account" | "asset-class"
+
+// Normalize asset class values from API to user-friendly labels
+function normalizeAssetClass(type?: string): string {
+  if (!type) return "Other"
+  
+  const normalized = type.toLowerCase()
+  
+  if (normalized.includes('cash') || normalized.includes('dollar')) {
+    return "Cash"
+  } else if (normalized.includes('crypto') || normalized.includes('cryptocurrency')) {
+    return "Crypto"
+  } else if (
+    normalized === 'equity' || 
+    normalized === 'stock' || 
+    normalized === 'mutual_fund' || 
+    normalized.includes('mutual fund') || 
+    normalized.includes('etf')
+  ) {
+    return "Stocks"
+  } else if (normalized.includes('bond') || normalized.includes('fixed')) {
+    return "Bonds"
+  } else {
+    return "Other"
+  }
+}
 
 // Transform Holding type to component's expected format
 function transformHolding(h: Holding, totalValue: number) {
@@ -111,7 +141,8 @@ function transformHolding(h: Holding, totalValue: number) {
     pl: pl,
     plPercent: plPercent,
     weight: weight,
-    account: "Investment Account",
+    account: h.accountId || "Investment Account",
+    assetClass: normalizeAssetClass(h.assetClass),
     logo: logo,
     sparkline: [value * 0.95, value * 0.97, value * 0.98, value * 0.99, value * 1.0, value * 1.01, value],
   }
@@ -248,7 +279,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
 
     const groups = new Map<string, typeof rows>()
     rows.forEach((row) => {
-      const key = groupBy === "account" ? row.account : "Asset Class"
+      const key = groupBy === "account" ? row.account : (row.assetClass || "Other")
       if (!groups.has(key)) groups.set(key, [])
       groups.get(key)!.push(row)
     })
