@@ -29,9 +29,22 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
   const response = await fetch(url, {
     ...options,
     headers,
+    credentials: 'include', // Always include cookies for OAuth session
   })
 
   if (!response.ok) {
+    // Handle 401 Unauthorized - session expired or invalid
+    if (response.status === 401) {
+      // Clear auth token
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token')
+      }
+      // Create a custom error that can be caught by components
+      const error = new Error('Session expired. Please log in again.')
+      error.name = 'AuthenticationError'
+      throw error
+    }
+    
     const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
     throw new Error(error.detail || `API error: ${response.status}`)
   }

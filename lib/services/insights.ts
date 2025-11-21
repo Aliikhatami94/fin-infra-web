@@ -42,19 +42,16 @@ export async function getInsightsFeed(): Promise<InsightFeedItem[]> {
     return insightFeedResponseSchema.parse(insightsFeed)
   }
 
-  // For now, use mock data (insights endpoints not yet implemented in backend)
-  // TODO: Remove this and uncomment API call once backend endpoints are ready
-  return insightFeedResponseSchema.parse(insightsFeed)
-
-  /* Uncomment when backend insights endpoints are implemented:
+  // Fetch from backend API
   try {
-    const data = await fetchInsightsFeed(getCurrentUserId() || DEMO_USER_ID, 50, true)
+    const DEMO_USER_ID = "demo-user-id" // Fallback for unauthenticated users
+    const userId = getCurrentUserId() || DEMO_USER_ID
+    const data = await fetchInsightsFeed(userId, 50, true)
     return insightFeedResponseSchema.parse(data.insights)
   } catch (error) {
     console.error('Failed to fetch insights feed, falling back to mock:', error)
     return insightFeedResponseSchema.parse(insightsFeed)
   }
-  */
 }
 
 export function getCashFlowInsights(): DocumentInsight[] {

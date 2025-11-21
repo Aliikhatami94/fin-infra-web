@@ -227,9 +227,13 @@ export function OverviewKPIs() {
           setKpis(data)
           setIsLoading(false)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to load KPIs:", error)
         if (mounted) {
+          // Handle authentication errors - redirect to login
+          if (error?.name === 'AuthenticationError' || error?.message?.includes('Session expired')) {
+            router.push('/sign-in')
+          }
           setIsLoading(false)
         }
       }
@@ -240,7 +244,7 @@ export function OverviewKPIs() {
     return () => {
       mounted = false
     }
-  }, [hydrated, state.persona])
+  }, [hydrated, state.persona, router])
 
   const handlePlanModalChange = (open: boolean) => {
     setIsPlanModalOpen(open)

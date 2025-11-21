@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
@@ -8,6 +8,8 @@ import type { TooltipContentProps } from "recharts"
 import { Landmark, Building2, Globe2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PIE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
+import { fetchPortfolioAllocation } from "@/lib/api/client"
+import { isMarketingMode } from "@/lib/marketingMode"
 
 type AllocationView = "assetClass" | "sector" | "region"
 
@@ -18,7 +20,8 @@ interface AllocationSlice extends Record<string, unknown> {
   color: string
 }
 
-const allocationData: Record<AllocationView, AllocationSlice[]> = {
+// Mock data fallback
+const mockAllocationData: Record<AllocationView, AllocationSlice[]> = {
   assetClass: [
     { name: "US Stocks", value: 48, amount: 89000, color: PIE_CHART_COLORS[0] },
     { name: "International", value: 22, amount: 41000, color: PIE_CHART_COLORS[1] },
@@ -50,6 +53,20 @@ const isAllocationView = (value: string): value is AllocationView => {
   return value === "assetClass" || value === "sector" || value === "region"
 }
 
+// Format asset class names from API
+const formatAssetClassName = (name: string): string => {
+  const mapping: Record<string, string> = {
+    'equity': 'US Stocks',
+    'international_equity': 'International',
+    'fixed_income': 'Bonds',
+    'cash': 'Cash',
+    'cryptocurrency': 'Crypto',
+    'derivative': 'Derivatives',
+    'other': 'Other',
+  }
+  return mapping[name.toLowerCase()] || name
+}
+
 const renderTooltip = ({ active, payload }: TooltipContentProps<number, string>) => {
   if (active && payload && payload.length) {
     const data = payload[0]?.payload as AllocationSlice | undefined
@@ -73,7 +90,58 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
   const [view, setView] = useState<AllocationView>("assetClass")
   const [selectedSlice, setSelectedSlice] = useState<string | null>(null)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+  const [allocationData, setAllocationData] = useState<Record<AllocationView, AllocationSlice[]>>(mockAllocationData)
+  const [isLoading, setIsLoading] = useState(false)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Fetch real allocation data
+  useEffect(() => {
+    async function loadAllocation() {
+      // Marketing mode: always use mock data
+      if (isMarketingMode()) {
+        setAllocationData(mockAllocationData)
+        return
+      }
+
+      // No API URL configured: use mock data
+      if (!process.env.NEXT_PUBLIC_API_URL) {
+        setAllocationData(mockAllocationData)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        const data = await fetchPortfolioAllocation()
+        
+        // Transform API response to chart format
+        // by_asset_class is a Record<string, number> where values are dollar amounts
+        const totalValue = Object.values(data.by_asset_class).reduce((sum, val) => sum + val, 0)
+        
+        const assetClass: AllocationSlice[] = Object.entries(data.by_asset_class).map(([name, amount], idx) => ({
+          name: formatAssetClassName(name),
+          value: totalValue > 0 ? Math.round((amount / totalValue) * 100) : 0,
+          amount,
+          color: PIE_CHART_COLORS[idx % PIE_CHART_COLORS.length],
+        }))
+
+        // Note: Backend doesn't provide sector breakdown yet, using mock for now
+        setAllocationData({
+          assetClass,
+          sector: mockAllocationData.sector,
+          region: mockAllocationData.region,
+        })
+      } catch (error) {
+        console.error('Failed to fetch allocation data:', error)
+        // Fallback to mock data on error
+        setAllocationData(mockAllocationData)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadAllocation()
+  }, [])
+
   const data = allocationData[view]
 
   const handleSliceClick = (slice: AllocationSlice) => {

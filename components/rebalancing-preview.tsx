@@ -1,13 +1,26 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, ArrowRight, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { fetchPortfolioAllocation } from "@/lib/api/client"
+import { isMarketingMode } from "@/lib/marketingMode"
 
-const rebalancingSuggestions = [
+interface RebalanceSuggestion {
+  ticker: string
+  action: "buy" | "sell"
+  currentWeight: number
+  targetWeight: number
+  shares: number
+  amount: number
+  reason: string
+}
+
+const mockRebalancingSuggestions: RebalanceSuggestion[] = [
   {
     ticker: "AAPL",
     action: "sell",
@@ -38,6 +51,100 @@ const rebalancingSuggestions = [
 ]
 
 export function RebalancingPreview() {
+  const [suggestions, setSuggestions] = useState<RebalanceSuggestion[]>(mockRebalancingSuggestions)
+  const [rebalancingNeeded, setRebalancingNeeded] = useState(true)
+  const [drift, setDrift] = useState(2.3)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Fetch real allocation data
+  useEffect(() => {
+    async function loadRebalancing() {
+      // Marketing mode: always use mock data
+      if (isMarketingMode()) {
+        setSuggestions(mockRebalancingSuggestions)
+        return
+      }
+
+      // No API URL configured: use mock data
+      if (!process.env.NEXT_PUBLIC_API_URL) {
+        setSuggestions(mockRebalancingSuggestions)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        const data = await fetchPortfolioAllocation()
+        
+        setRebalancingNeeded(data.rebalancing_needed)
+        setDrift(data.drift)
+
+        // If no rebalancing needed, show empty state
+        if (!data.rebalancing_needed) {
+          setSuggestions([])
+          return
+        }
+
+        // Transform API data to suggestions
+        // Note: Backend doesn't yet provide detailed suggestions, so we use drift info
+        // In future, backend should return specific buy/sell recommendations
+        const calculatedSuggestions: RebalanceSuggestion[] = []
+        
+        for (const [assetClass, currentWeight] of Object.entries(data.by_asset_class)) {
+          const targetWeight = data.target_allocation[assetClass] || 0
+          const diff = currentWeight - targetWeight
+          
+          if (Math.abs(diff) > 1) { // Only suggest if drift > 1%
+            calculatedSuggestions.push({
+              ticker: assetClass,
+              action: diff > 0 ? "sell" : "buy",
+              currentWeight: Math.round(currentWeight * 10) / 10,
+              targetWeight: Math.round(targetWeight * 10) / 10,
+              shares: 0, // Not available from backend yet
+              amount: 0, // Not available from backend yet
+              reason: diff > 0 
+                ? `Overweight by ${Math.abs(diff).toFixed(1)}%`
+                : `Underweight by ${Math.abs(diff).toFixed(1)}%`,
+            })
+          }
+        }
+
+        setSuggestions(calculatedSuggestions.length > 0 ? calculatedSuggestions : mockRebalancingSuggestions)
+      } catch (error) {
+        console.error('Failed to fetch rebalancing data:', error)
+        // Fallback to mock data on error
+        setSuggestions(mockRebalancingSuggestions)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadRebalancing()
+  }, [])
+
+  // Show empty state if no rebalancing needed
+  if (!rebalancingNeeded && !isLoading && suggestions.length === 0) {
+    return (
+      <Card className="card-standard border-green-500/20">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-green-500" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Portfolio Balanced</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Your allocation matches your targets</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Your portfolio is well-balanced. No rebalancing needed at this time.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="card-standard border-primary/20">
       <CardHeader>
@@ -69,7 +176,7 @@ export function RebalancingPreview() {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {rebalancingSuggestions.map((suggestion, index) => (
+        {suggestions.map((suggestion, index) => (
           <motion.div
             key={suggestion.ticker}
             initial={{ opacity: 0, x: -20 }}
@@ -116,9 +223,9 @@ export function RebalancingPreview() {
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Estimated impact on portfolio:</span>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Risk Score:</span>
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                -2.3% (Lower)
+              <span className="text-xs text-muted-foreground">Portfolio Drift:</span>
+              <Badge variant="outline" className={drift > 5 ? "text-red-600 border-red-600" : "text-green-600 border-green-600"}>
+                {drift.toFixed(1)}% {drift > 5 ? "(High)" : "(Low)"}
               </Badge>
             </div>
           </div>

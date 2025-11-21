@@ -46,6 +46,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth()
   }, [])
 
+  // Periodic session check every 5 minutes to detect expiration
+  useEffect(() => {
+    if (!user) return
+    
+    const interval = setInterval(async () => {
+      try {
+        const token = localStorage.getItem("auth_token")
+        const headers: Record<string, string> = {}
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`
+        }
+
+        const response = await fetch(`${API_URL}/users/me`, {
+          headers,
+          credentials: "include",
+          cache: "no-store",
+        })
+
+        if (!response.ok) {
+          // Session expired - log out
+          console.warn("Session expired during periodic check")
+          localStorage.removeItem("auth_token")
+          setUser(null)
+          router.push("/sign-in")
+        }
+      } catch (error) {
+        console.error("Session check failed:", error)
+      }
+    }, 5 * 60 * 1000) // Check every 5 minutes
+
+    return () => clearInterval(interval)
+  }, [user, router])
+
   async function checkAuth() {
     try {
       // FIRST: Check if there's an OAuth token in the URL hash (from OAuth callback redirect)
