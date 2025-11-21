@@ -68,19 +68,30 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
 
-  // For now, use mock data (portfolio endpoints not yet implemented in backend)
-  // TODO: Remove this and uncomment API call once backend endpoints are ready
-  return holdingsResponseSchema.parse(portfolioHoldings)
-
-  /* Uncomment when backend portfolio endpoints are implemented:
+  // Fetch real holdings from investment API
   try {
-    const data = await fetchPortfolioHoldings(userId)
-    return holdingsResponseSchema.parse(data.holdings)
+    const { fetchInvestmentHoldings } = await import('@/lib/api/client')
+    const holdingsData = await fetchInvestmentHoldings()
+    
+    // Transform API response to match Holding type
+    const holdings = holdingsData.map(h => ({
+      symbol: h.security.ticker_symbol || h.security.security_id,
+      name: h.security.name || 'Unknown',
+      shares: h.quantity,
+      price: h.institution_price,
+      value: h.institution_value,
+      change: h.unrealized_gain_loss || 0,
+      changePercent: h.unrealized_gain_loss_percent || 0,
+      costBasis: h.cost_basis || h.institution_value,
+      sector: h.security.sector || 'Other',
+      assetType: h.security.type as any || 'equity',
+    }))
+    
+    return holdingsResponseSchema.parse(holdings)
   } catch (error) {
     console.error('Failed to fetch portfolio holdings, falling back to mock:', error)
     return holdingsResponseSchema.parse(portfolioHoldings)
   }
-  */
 }
 
 /**

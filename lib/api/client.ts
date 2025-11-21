@@ -223,11 +223,121 @@ export async function fetchPortfolioAllocation() {
 }
 
 /**
- * Portfolio holdings (placeholder - not yet implemented)
+ * Investment Holdings
+ * User-scoped endpoint that automatically uses authenticated user's Plaid token
  */
-export async function fetchPortfolioHoldings() {
-  // TODO: Implement holdings endpoint in backend
-  return Promise.resolve({ holdings: [] })
+export async function fetchInvestmentHoldings(accountIds?: string[]) {
+  const params = accountIds && accountIds.length > 0 
+    ? `?${accountIds.map(id => `account_ids=${encodeURIComponent(id)}`).join('&')}`
+    : ''
+  
+  return apiFetch<Array<{
+    account_id: string
+    security: {
+      security_id: string
+      ticker_symbol: string | null
+      name: string | null
+      type: string
+      sector: string | null
+      close_price: number
+      close_price_as_of: string | null
+      currency: string
+    }
+    quantity: number
+    institution_price: number
+    institution_value: number
+    cost_basis: number | null
+    currency: string
+    unrealized_gain_loss: number | null
+    unrealized_gain_loss_percent: number | null
+  }>>(`/v0/investments/holdings${params}`)
+}
+
+/**
+ * Investment Transactions
+ */
+export async function fetchInvestmentTransactions(
+  startDate?: string,
+  endDate?: string,
+  accountIds?: string[]
+) {
+  const params = new URLSearchParams()
+  if (startDate) params.append('start_date', startDate)
+  if (endDate) params.append('end_date', endDate)
+  if (accountIds && accountIds.length > 0) {
+    accountIds.forEach(id => params.append('account_ids', id))
+  }
+  
+  const queryString = params.toString()
+  const url = queryString ? `/v0/investments/transactions?${queryString}` : '/v0/investments/transactions'
+  
+  return apiFetch<Array<{
+    transaction_id: string
+    account_id: string
+    security: any
+    date: string
+    type: string
+    quantity: number
+    price: number
+    amount: number
+    fees: number | null
+    currency: string
+  }>>(url)
+}
+
+/**
+ * Investment Accounts with aggregated holdings
+ */
+export async function fetchInvestmentAccounts() {
+  return apiFetch<Array<{
+    account_id: string
+    name: string
+    type: string
+    subtype: string | null
+    balances: {
+      current: number
+      available: number | null
+    }
+    holdings: any[]
+    total_value?: number
+    total_cost_basis?: number
+    total_unrealized_gain_loss?: number
+  }>>('/v0/investments/accounts')
+}
+
+/**
+ * Portfolio Asset Allocation
+ */
+export async function fetchInvestmentAllocation(accountIds?: string[]) {
+  const params = accountIds && accountIds.length > 0 
+    ? `?${accountIds.map(id => `account_ids=${encodeURIComponent(id)}`).join('&')}`
+    : ''
+  
+  return apiFetch<{
+    by_type: Record<string, number>
+    by_sector: Record<string, number>
+    total_value: number
+  }>(`/v0/investments/allocation${params}`)
+}
+
+/**
+ * Security Details
+ */
+export async function fetchInvestmentSecurities(securityIds: string[]) {
+  const params = securityIds.map(id => `security_ids=${encodeURIComponent(id)}`).join('&')
+  
+  return apiFetch<Array<{
+    security_id: string
+    cusip: string | null
+    isin: string | null
+    ticker_symbol: string | null
+    name: string | null
+    type: string
+    sector: string | null
+    close_price: number
+    close_price_as_of: string | null
+    currency: string
+  }>>(`/v0/investments/securities?${params}`)
 }
 
 /**
