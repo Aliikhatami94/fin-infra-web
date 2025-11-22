@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState, MouseEvent } from "react"
+import { useState, useRef, useEffect, MouseEvent } from "react"
 import { AllocationGrid } from "@/components/allocation-grid"
 import { HoldingsTable } from "@/components/holdings-table"
 import { motion, useMotionValue, useSpring, useTransform, MotionValue } from "framer-motion"
@@ -122,6 +122,213 @@ function LandingStatCard({ label, value, change, positive }: { label: string, va
   )
 }
 
+export function FinanceBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let width = 0
+    let height = 0
+    let animationFrameId: number
+    
+    const updateSize = () => {
+      // We want the canvas to cover the full scrollable area if possible, 
+      // but getBoundingClientRect returns viewport size if fixed, or element size if absolute.
+      // Since we are switching to absolute positioning in a full-height container,
+      // offsetWidth/Height should give us the full size.
+      width = canvas.offsetWidth
+      height = canvas.offsetHeight
+      
+      // Update canvas resolution
+      canvas.width = width
+      canvas.height = height
+    }
+
+    // Initial size
+    updateSize()
+
+    // Use ResizeObserver to detect size changes (e.g. content expansion)
+    const resizeObserver = new ResizeObserver(() => {
+      updateSize()
+    })
+    resizeObserver.observe(canvas)
+
+    // Also listen to window resize as backup
+    window.addEventListener('resize', updateSize)
+
+    const mouse = { x: width / 2, y: height / 2 }
+    
+    const handleMouseMove = (e: globalThis.MouseEvent) => {
+      // Adjust mouse coordinates to be relative to the canvas
+      // Since canvas might be scrolled, we need to account for that if it's absolute.
+      // e.clientX/Y are viewport coordinates.
+      // If canvas is absolute and full page, we need page coordinates?
+      // No, getBoundingClientRect().top gives position relative to viewport.
+      // So e.clientY - rect.top is correct for mouse position on canvas.
+      const rect = canvas.getBoundingClientRect()
+      mouse.x = e.clientX - rect.left
+      mouse.y = e.clientY - rect.top
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+
+    // Particles representing "Transactions" or "Data"
+    const particles: { x: number, y: number, vx: number, vy: number, size: number, life: number, color: string }[] = []
+    
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height)
+      
+      // Determine colors based on theme (simple check)
+      const isDark = document.documentElement.classList.contains('dark')
+      const gridColor = isDark ? '255, 255, 255' : '0, 0, 0'
+      
+      // Brand colors for particles
+      const colors = [
+        '59, 130, 246', // Blue
+        '16, 185, 129', // Emerald
+        '139, 92, 246', // Violet
+      ]
+      
+      // 1. Draw Grid of Dots - Minimal & Spacious with Distortion
+      const gridSize = 50 
+      
+      // Optimization: Only draw grid points that are visible in the viewport?
+      // Or just draw all. If height is huge, drawing all might be slow.
+      // Let's draw all for now, but if performance sucks we can optimize.
+      // Actually, let's optimize to only draw visible grid points.
+      // We can get the scroll position.
+      const scrollY = window.scrollY
+      const viewportHeight = window.innerHeight
+      const startY = Math.floor(scrollY / gridSize) * gridSize - gridSize
+      const endY = startY + viewportHeight + gridSize * 2
+
+      for (let x = 0; x < width; x += gridSize) {
+        for (let y = Math.max(0, startY); y < Math.min(height, endY); y += gridSize) {
+          // Distance from mouse
+          const dx = x - mouse.x
+          const dy = y - mouse.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          const maxDist = 400 // Interaction radius
+          
+          // Base opacity - Very subtle
+          let alpha = 0.03
+          let size = 1
+          
+          let gx = x
+          let gy = y
+
+          // Mouse interaction (Distortion & Spotlight)
+          if (dist < maxDist) {
+            const intensity = Math.pow(1 - dist / maxDist, 2)
+            alpha += intensity * 0.2
+            size += intensity * 1.5
+            
+            // Slight repulsion effect
+            const angle = Math.atan2(dy, dx)
+            const move = intensity * 15
+            gx += Math.cos(angle) * move
+            gy += Math.sin(angle) * move
+          }
+          
+          ctx.fillStyle = `rgba(${gridColor}, ${alpha})`
+          ctx.beginPath()
+          ctx.arc(gx, gy, size, 0, Math.PI * 2)
+          ctx.fill()
+        }
+      }
+      
+      // 2. Spawn Particles (Data Flow)
+      // Spawn them near the bottom of the VIEWPORT, not the document
+      if (particles.length < 15 && Math.random() > 0.97) {
+        const spawnY = window.scrollY + window.innerHeight + 20
+        particles.push({
+          x: Math.random() * width,
+          y: spawnY,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: -0.5 - Math.random() * 1, // Upward movement
+          size: Math.random() * 2 + 1,
+          life: 1,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        })
+      }
+      
+      // 3. Update & Draw Particles
+      particles.forEach((p, i) => {
+        p.x += p.vx
+        p.y += p.vy
+        p.life -= 0.004
+        
+        if (p.life <= 0 || p.y < window.scrollY - 50) { // Kill if above viewport
+          particles.splice(i, 1)
+          return
+        }
+        
+        ctx.fillStyle = `rgba(${p.color}, ${p.life * 0.4})`
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Connect to nearby particles (Constellations)
+        particles.slice(i + 1).forEach(p2 => {
+            const dx = p.x - p2.x
+            const dy = p.y - p2.y
+            const dist = Math.sqrt(dx*dx + dy*dy)
+            
+            if (dist < 150) {
+                ctx.strokeStyle = `rgba(${p.color}, ${Math.min(p.life, p2.life) * 0.15})`
+                ctx.lineWidth = 0.5
+                ctx.beginPath()
+                ctx.moveTo(p.x, p.y)
+                ctx.lineTo(p2.x, p2.y)
+                ctx.stroke()
+            }
+        })
+        
+        // Connect to nearest grid point - Only when very close
+        const gx = Math.round(p.x / gridSize) * gridSize
+        const gy = Math.round(p.y / gridSize) * gridSize
+        const dx = p.x - gx
+        const dy = p.y - gy
+        const dist = Math.sqrt(dx*dx + dy*dy)
+        
+        if (dist < gridSize) {
+          ctx.strokeStyle = `rgba(${p.color}, ${p.life * 0.1})`
+          ctx.lineWidth = 0.5
+          ctx.beginPath()
+          ctx.moveTo(p.x, p.y)
+          ctx.lineTo(gx, gy)
+          ctx.stroke()
+        }
+      })
+      
+      animationFrameId = requestAnimationFrame(draw)
+    }
+    
+    draw()
+    
+    return () => {
+      window.removeEventListener('resize', updateSize)
+      window.removeEventListener('mousemove', handleMouseMove)
+      resizeObserver.disconnect()
+      cancelAnimationFrame(animationFrameId)
+    }
+  }, [])
+
+  return (
+    <div className="absolute inset-0 -z-50 overflow-hidden pointer-events-none h-full w-full">
+      {/* Subtle gradient backing */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 rounded-full blur-3xl opacity-30" />
+      
+      {/* The Interactive Canvas */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+    </div>
+  )
+}
+
 export function LandingInteractiveDemo() {
   const [key, setKey] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -208,13 +415,6 @@ export function LandingInteractiveDemo() {
       onMouseMove={onMouseMove}
       className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24 relative overflow-visible"
     >
-      {/* Background elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-      </div>
-
       {/* Hero Content & Floating KPIs */}
       <div className="relative z-10 mb-24">
         <div className="text-center max-w-4xl mx-auto relative">
