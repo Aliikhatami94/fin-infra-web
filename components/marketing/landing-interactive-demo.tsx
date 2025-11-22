@@ -214,8 +214,8 @@ export function FinanceBackground() {
           const maxDist = 400 // Interaction radius
           
           // Base opacity - Very subtle
-          let alpha = 0.03
-          let size = 1
+          let alpha = 0.02
+          let size = 0.6
           
           let gx = x
           let gy = y
@@ -224,7 +224,7 @@ export function FinanceBackground() {
           if (dist < maxDist) {
             const intensity = Math.pow(1 - dist / maxDist, 2)
             alpha += intensity * 0.2
-            size += intensity * 1.5
+            size += intensity * 1.2
             
             // Slight repulsion effect
             const angle = Math.atan2(dy, dx)
