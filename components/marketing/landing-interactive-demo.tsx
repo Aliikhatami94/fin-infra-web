@@ -1,14 +1,16 @@
 "use client"
 
+import Link from "next/link"
 import { useState, MouseEvent } from "react"
 import { AllocationGrid } from "@/components/allocation-grid"
 import { HoldingsTable } from "@/components/holdings-table"
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
+import { motion, useMotionValue, useSpring, useTransform, MotionValue } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Play, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { Play, ArrowUpRight, ArrowDownRight, Sparkles, ExternalLink } from "lucide-react"
 import confetti from "canvas-confetti"
 import { getMockKPIs, getMockAllocation, getMockHoldings } from "@/lib/services/portfolio"
+import { BRAND } from "@/lib/brand"
 
 function TiltCard({ children, className, delay = 0 }: { children: React.ReactNode; className?: string, delay?: number }) {
   const x = useMotionValue(0)
@@ -47,6 +49,59 @@ function TiltCard({ children, className, delay = 0 }: { children: React.ReactNod
   )
 }
 
+function ParallaxCard({ 
+  children, 
+  className, 
+  mouseX, 
+  mouseY, 
+  depth = 1,
+  delay = 0,
+  directionX = 1,
+  directionY = 1
+}: { 
+  children: React.ReactNode
+  className?: string
+  mouseX: MotionValue<number>
+  mouseY: MotionValue<number>
+  depth?: number
+  delay?: number
+  directionX?: number
+  directionY?: number
+}) {
+  // Calculate movement based on depth
+  // Higher depth = more movement
+  const moveX = useTransform(mouseX, [0, 1], [-20 * depth * directionX, 20 * depth * directionX])
+  const moveY = useTransform(mouseY, [0, 1], [-20 * depth * directionY, 20 * depth * directionY])
+  
+  const springX = useSpring(moveX, { stiffness: 40, damping: 30 })
+  const springY = useSpring(moveY, { stiffness: 40, damping: 30 })
+
+  // Add subtle rotation
+  const rotateX = useTransform(mouseY, [0, 1], [5 * depth * directionY, -5 * depth * directionY])
+  const rotateY = useTransform(mouseX, [0, 1], [-5 * depth * directionX, 5 * depth * directionX])
+  const springRotateX = useSpring(rotateX, { stiffness: 40, damping: 30 })
+  const springRotateY = useSpring(rotateY, { stiffness: 40, damping: 30 })
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, delay }}
+      style={{ 
+        x: springX, 
+        y: springY,
+        rotateX: springRotateX,
+        rotateY: springRotateY,
+        transformStyle: "preserve-3d"
+      }}
+      className={cn("relative", className)}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 function LandingStatCard({ label, value, change, positive }: { label: string, value: string, change: string, positive: boolean }) {
   return (
     <div className="flex flex-col p-6 rounded-2xl bg-card/50 border border-white/10 shadow-xl backdrop-blur-md hover:bg-card/60 transition-colors h-full">
@@ -69,6 +124,15 @@ export function LandingInteractiveDemo() {
   const [key, setKey] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [kpiData, setKpiData] = useState(getMockKPIs())
+  
+  const mouseX = useMotionValue(0.5)
+  const mouseY = useMotionValue(0.5)
+
+  function onMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
+    const { left, top, width, height } = currentTarget.getBoundingClientRect()
+    mouseX.set((clientX - left) / width)
+    mouseY.set((clientY - top) / height)
+  }
   
   // Helper to add 'amount' to allocation data which is required by AllocationGrid types
   const enrichAllocation = (data: ReturnType<typeof getMockAllocation>) => {
@@ -138,47 +202,107 @@ export function LandingInteractiveDemo() {
   }
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative overflow-visible">
+    <section 
+      onMouseMove={onMouseMove}
+      className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24 relative overflow-visible"
+    >
       {/* Background elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      {/* Header Section */}
-      <div className="text-center mb-16 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            Experience the <span className="text-primary">Power</span>
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            See how your portfolio comes to life with real-time updates and interactive analytics.
-          </p>
-          
-          <Button 
-            size="lg" 
-            onClick={handleSimulate}
-            disabled={isAnimating}
-            className="rounded-full h-12 px-8 text-base shadow-lg hover:shadow-primary/25 transition-all hover:scale-105 active:scale-95"
-          >
-            <Play className={cn("mr-2 h-5 w-5 fill-current", isAnimating && "animate-pulse")} />
-            {isAnimating ? "Simulating Market..." : "Simulate Market Move"}
-          </Button>
-        </motion.div>
-      </div>
+      {/* Hero Content & Floating KPIs */}
+      <div className="relative z-10 mb-24">
+        <div className="text-center max-w-4xl mx-auto relative">
+          {/* Floating KPIs - Desktop */}
+          <div className="hidden lg:block absolute top-28 -left-52 w-64 z-20">
+            <ParallaxCard mouseX={mouseX} mouseY={mouseY} depth={1.5} delay={0.2} directionX={-1} directionY={1} className="scale-90 hover:scale-100 transition-transform">
+              <LandingStatCard {...kpiData[0]} />
+            </ParallaxCard>
+          </div>
+          <div className="hidden lg:block absolute top-96 -left-64 w-64 z-20">
+            <ParallaxCard mouseX={mouseX} mouseY={mouseY} depth={2.5} delay={0.4} directionX={1} directionY={-1} className="scale-90 hover:scale-100 transition-transform">
+              <LandingStatCard {...kpiData[1]} />
+            </ParallaxCard>
+          </div>
+          <div className="hidden lg:block absolute top-16 -right-56 w-64 z-20">
+            <ParallaxCard mouseX={mouseX} mouseY={mouseY} depth={1.2} delay={0.3} directionX={-1} directionY={-1} className="scale-90 hover:scale-100 transition-transform">
+              <LandingStatCard {...kpiData[2]} />
+            </ParallaxCard>
+          </div>
+          <div className="hidden lg:block absolute top-80 -right-40 w-64 z-20">
+            <ParallaxCard mouseX={mouseX} mouseY={mouseY} depth={2.0} delay={0.5} directionX={1} directionY={1} className="scale-90 hover:scale-100 transition-transform">
+              <LandingStatCard {...kpiData[3]} />
+            </ParallaxCard>
+          </div>
 
-      {/* Floating Components Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 relative z-10">
-        {kpiData.map((kpi, i) => (
-          <TiltCard key={i} delay={i * 0.1} className="h-full">
-            <LandingStatCard {...kpi} />
-          </TiltCard>
-        ))}
+          {/* Mobile KPIs Grid (visible only on small screens) */}
+          <div className="grid grid-cols-2 gap-4 lg:hidden mb-12">
+            {kpiData.map((kpi, i) => (
+              <TiltCard key={i} delay={i * 0.1}>
+                <LandingStatCard {...kpi} />
+              </TiltCard>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative z-30"
+          >
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden />
+              <span>AI-powered financial intelligence</span>
+            </div>
+            
+            <h1 className="mb-6 text-foreground text-[clamp(2.5rem,5.5vw,5rem)] font-bold tracking-tight leading-[1.1]">
+              Financial clarity for
+              <br />
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+                every decision
+              </span>
+            </h1>
+
+            <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              Orchestrate portfolios, cash flow, and planning in one secure platform built to surface actionable insights
+              the moment your finance team needs them.
+            </p>
+            
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-12">
+              <Button 
+                size="lg" 
+                onClick={handleSimulate}
+                disabled={isAnimating}
+                className="rounded-full h-12 px-8 text-base shadow-lg hover:shadow-primary/25 transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-primary/90"
+              >
+                <Play className={cn("mr-2 h-5 w-5 fill-current", isAnimating && "animate-pulse")} />
+                {isAnimating ? "Simulating..." : "Simulate Market"}
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-12 rounded-full px-8 text-base font-medium border-border/50 hover:border-border hover:bg-accent/5 backdrop-blur-sm"
+              >
+                <Link href="/demo" aria-label={`Watch a guided tour of the ${BRAND.name} financial platform`}>
+                  Watch Demo
+                </Link>
+              </Button>
+            </div>
+
+            <div className="flex flex-col items-center justify-center gap-6 text-sm text-muted-foreground sm:flex-row">
+              <div className="flex flex-wrap items-center justify-center gap-3 rounded-full border border-border/30 bg-muted/30 px-5 py-2 backdrop-blur-sm">
+                <span className="text-xs font-medium text-muted-foreground">Trusted by</span>
+                <span className="text-xs font-semibold text-foreground">Fortress Bank</span>
+                <span className="text-xs font-semibold text-foreground">Radial Ventures</span>
+                <span className="text-xs font-semibold text-foreground">Northern Equity</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
