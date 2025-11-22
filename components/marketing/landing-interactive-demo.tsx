@@ -136,42 +136,21 @@ export function FinanceBackground() {
     let animationFrameId: number
     
     const updateSize = () => {
-      // We want the canvas to cover the full scrollable area if possible, 
-      // but getBoundingClientRect returns viewport size if fixed, or element size if absolute.
-      // Since we are switching to absolute positioning in a full-height container,
-      // offsetWidth/Height should give us the full size.
-      width = canvas.offsetWidth
-      height = canvas.offsetHeight
-      
-      // Update canvas resolution
+      width = window.innerWidth
+      height = window.innerHeight
       canvas.width = width
       canvas.height = height
     }
 
     // Initial size
     updateSize()
-
-    // Use ResizeObserver to detect size changes (e.g. content expansion)
-    const resizeObserver = new ResizeObserver(() => {
-      updateSize()
-    })
-    resizeObserver.observe(canvas)
-
-    // Also listen to window resize as backup
     window.addEventListener('resize', updateSize)
 
     const mouse = { x: width / 2, y: height / 2 }
     
     const handleMouseMove = (e: globalThis.MouseEvent) => {
-      // Adjust mouse coordinates to be relative to the canvas
-      // Since canvas might be scrolled, we need to account for that if it's absolute.
-      // e.clientX/Y are viewport coordinates.
-      // If canvas is absolute and full page, we need page coordinates?
-      // No, getBoundingClientRect().top gives position relative to viewport.
-      // So e.clientY - rect.top is correct for mouse position on canvas.
-      const rect = canvas.getBoundingClientRect()
-      mouse.x = e.clientX - rect.left
-      mouse.y = e.clientY - rect.top
+      mouse.x = e.clientX
+      mouse.y = e.clientY
     }
     window.addEventListener('mousemove', handleMouseMove)
 
@@ -195,21 +174,24 @@ export function FinanceBackground() {
       // 1. Draw Grid of Dots - Minimal & Spacious with Distortion
       const gridSize = 50 
       
-      // Optimization: Only draw grid points that are visible in the viewport?
-      // Or just draw all. If height is huge, drawing all might be slow.
-      // Let's draw all for now, but if performance sucks we can optimize.
-      // Actually, let's optimize to only draw visible grid points.
-      // We can get the scroll position.
+      const scrollX = window.scrollX
       const scrollY = window.scrollY
-      const viewportHeight = window.innerHeight
-      const startY = Math.floor(scrollY / gridSize) * gridSize - gridSize
-      const endY = startY + viewportHeight + gridSize * 2
+      
+      // Calculate visible grid range
+      const startX = Math.floor(scrollX / gridSize) * gridSize
+      const endX = startX + width + gridSize
+      const startY = Math.floor(scrollY / gridSize) * gridSize
+      const endY = startY + height + gridSize
 
-      for (let x = 0; x < width; x += gridSize) {
-        for (let y = Math.max(0, startY); y < Math.min(height, endY); y += gridSize) {
-          // Distance from mouse
-          const dx = x - mouse.x
-          const dy = y - mouse.y
+      for (let x = startX; x < endX; x += gridSize) {
+        for (let y = startY; y < endY; y += gridSize) {
+          // Screen coordinates
+          const screenX = x - scrollX
+          const screenY = y - scrollY
+
+          // Distance from mouse (in screen space)
+          const dx = screenX - mouse.x
+          const dy = screenY - mouse.y
           const dist = Math.sqrt(dx * dx + dy * dy)
           const maxDist = 400 // Interaction radius
           
@@ -217,8 +199,8 @@ export function FinanceBackground() {
           let alpha = 0.02
           let size = 0.6
           
-          let gx = x
-          let gy = y
+          let gx = screenX
+          let gy = screenY
 
           // Mouse interaction (Distortion & Spotlight)
           if (dist < maxDist) {
@@ -241,11 +223,11 @@ export function FinanceBackground() {
       }
       
       // 2. Spawn Particles (Data Flow)
-      // Spawn them near the bottom of the VIEWPORT, not the document
       if (particles.length < 15 && Math.random() > 0.97) {
-        const spawnY = window.scrollY + window.innerHeight + 20
+        const spawnY = scrollY + height + 20
+        const spawnX = scrollX + Math.random() * width
         particles.push({
-          x: Math.random() * width,
+          x: spawnX,
           y: spawnY,
           vx: (Math.random() - 0.5) * 0.5,
           vy: -0.5 - Math.random() * 1, // Upward movement
@@ -261,14 +243,18 @@ export function FinanceBackground() {
         p.y += p.vy
         p.life -= 0.004
         
-        if (p.life <= 0 || p.y < window.scrollY - 50) { // Kill if above viewport
+        // Cull if far outside viewport
+        if (p.life <= 0 || p.y < scrollY - 50 || p.x < scrollX - 50 || p.x > scrollX + width + 50) {
           particles.splice(i, 1)
           return
         }
         
+        const screenX = p.x - scrollX
+        const screenY = p.y - scrollY
+        
         ctx.fillStyle = `rgba(${p.color}, ${p.life * 0.4})`
         ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.arc(screenX, screenY, p.size, 0, Math.PI * 2)
         ctx.fill()
         
         // Connect to nearby particles (Constellations)
@@ -278,16 +264,19 @@ export function FinanceBackground() {
             const dist = Math.sqrt(dx*dx + dy*dy)
             
             if (dist < 150) {
+                const p2ScreenX = p2.x - scrollX
+                const p2ScreenY = p2.y - scrollY
+                
                 ctx.strokeStyle = `rgba(${p.color}, ${Math.min(p.life, p2.life) * 0.15})`
                 ctx.lineWidth = 0.5
                 ctx.beginPath()
-                ctx.moveTo(p.x, p.y)
-                ctx.lineTo(p2.x, p2.y)
+                ctx.moveTo(screenX, screenY)
+                ctx.lineTo(p2ScreenX, p2ScreenY)
                 ctx.stroke()
             }
         })
         
-        // Connect to nearest grid point - Only when very close
+        // Connect to nearest grid point
         const gx = Math.round(p.x / gridSize) * gridSize
         const gy = Math.round(p.y / gridSize) * gridSize
         const dx = p.x - gx
@@ -295,11 +284,14 @@ export function FinanceBackground() {
         const dist = Math.sqrt(dx*dx + dy*dy)
         
         if (dist < gridSize) {
+          const gScreenX = gx - scrollX
+          const gScreenY = gy - scrollY
+          
           ctx.strokeStyle = `rgba(${p.color}, ${p.life * 0.1})`
           ctx.lineWidth = 0.5
           ctx.beginPath()
-          ctx.moveTo(p.x, p.y)
-          ctx.lineTo(gx, gy)
+          ctx.moveTo(screenX, screenY)
+          ctx.lineTo(gScreenX, gScreenY)
           ctx.stroke()
         }
       })
@@ -312,13 +304,12 @@ export function FinanceBackground() {
     return () => {
       window.removeEventListener('resize', updateSize)
       window.removeEventListener('mousemove', handleMouseMove)
-      resizeObserver.disconnect()
       cancelAnimationFrame(animationFrameId)
     }
   }, [])
 
   return (
-    <div className="absolute inset-0 -z-50 overflow-hidden pointer-events-none h-full w-full">
+    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none">
       {/* Subtle gradient backing */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 rounded-full blur-3xl opacity-30" />
