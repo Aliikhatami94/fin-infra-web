@@ -172,7 +172,7 @@ function LandingStatCard({ label, value, change, positive, compact = false }: { 
   
   return (
     <div className={cn(
-      "flex flex-col justify-between rounded-xl bg-card/50 backdrop-blur-xl border border-[color:var(--table-divider)] shadow-sm lg:shadow-xl hover:bg-card/60 transition-colors h-full",
+      "flex flex-col justify-between rounded-xl bg-card/80 backdrop-blur-xl border border-border/30 shadow-sm hover:bg-card/90 transition-colors h-full",
       compact ? "p-3 min-h-[90px]" : "p-4 lg:p-5 min-h-[120px]"
     )}>
       <div className="flex items-start justify-between mb-1">
@@ -593,7 +593,7 @@ export function LandingInteractiveDemo() {
             <AllocationGrid 
               demoMode={true} 
               mockDataOverride={allocationData}
-              className="h-full bg-card/50 backdrop-blur-xl border border-[color:var(--table-divider)] shadow-sm lg:shadow-xl"
+              className="h-full bg-card/80 backdrop-blur-xl border border-border/30 shadow-sm"
             />
           </TiltCard>
         </div>
@@ -605,7 +605,7 @@ export function LandingInteractiveDemo() {
               demoMode={true} 
               mockDataOverride={holdingsData}
               hideControls={true}
-              className="bg-card/50 backdrop-blur-xl border-0 shadow-sm lg:shadow-xl"
+              className="bg-card/80 backdrop-blur-xl shadow-sm"
             />
           </TiltCard>
         </div>
