@@ -10,6 +10,7 @@ import { FooterBackToTop } from "@/components/footer-back-to-top"
 import { AutomationLearnMoreModal } from "@/components/automation-learn-more-modal"
 import { InsightPreviewModal } from "@/components/insight-preview-modal"
 import { AllocationComparisonSlider } from "@/components/allocation-comparison-slider"
+import { LandingInteractiveDemo } from "@/components/marketing/landing-interactive-demo"
 import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock, ExternalLink, ArrowDownRight } from "lucide-react"
 import { BRAND } from "@/lib/brand"
 import { cn } from "@/lib/utils"
@@ -301,6 +302,8 @@ export default function LandingPage() {
               </div>
             </div>
           </section>
+
+          <LandingInteractiveDemo />
 
           <section
             id="product-highlights"

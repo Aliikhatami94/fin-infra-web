@@ -14,6 +14,7 @@ import GlobalFeedbackTrigger from "@/components/global-feedback-trigger"
 import { DensityProvider } from "@/app/providers/density-provider"
 import { AppearanceProvider } from "@/components/appearance-provider"
 import { AuthProvider } from "@/lib/auth/context"
+import { ConnectivityProvider } from "@/components/connectivity-provider"
 
 const _inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -43,16 +44,18 @@ export default function RootLayout({
           <DensityProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               <AuthProvider>
-                <PrivacyProvider>
-                  <PersonaProvider>
-                    <DateRangeProvider>
-                      <MarketingModeScript />
-                      {children}
-                      {/* Global feedback button available on all pages */}
-                      <GlobalFeedbackTrigger />
-                    </DateRangeProvider>
-                  </PersonaProvider>
-                </PrivacyProvider>
+                <ConnectivityProvider>
+                  <PrivacyProvider>
+                    <PersonaProvider>
+                      <DateRangeProvider>
+                        <MarketingModeScript />
+                        {children}
+                        {/* Global feedback button available on all pages */}
+                        <GlobalFeedbackTrigger />
+                      </DateRangeProvider>
+                    </PersonaProvider>
+                  </PrivacyProvider>
+                </ConnectivityProvider>
               </AuthProvider>
             </ThemeProvider>
           </DensityProvider>

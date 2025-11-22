@@ -72,6 +72,10 @@ export interface PortfolioKPI {
   source: string
 }
 
+export function getMockHoldings(): Holding[] {
+  return holdingsResponseSchema.parse(portfolioHoldings)
+}
+
 export async function getPortfolioHoldings(): Promise<Holding[]> {
   console.log('[Holdings] getPortfolioHoldings called')
   console.log('[Holdings] window:', typeof window !== 'undefined' ? 'available' : 'unavailable')
@@ -82,7 +86,7 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
   // Marketing mode: Always use mock data
   if (typeof window !== 'undefined' && isMarketingMode()) {
     console.log('[Holdings] ❌ Using mock data: marketing mode')
-    return holdingsResponseSchema.parse(portfolioHoldings)
+    return getMockHoldings()
   }
 
   // Use mock data if API not configured or user not authenticated
@@ -92,12 +96,12 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
   
   if (USE_MOCK_DATA) {
     console.log('[Holdings] ❌ Using mock data: API not configured (USE_MOCK_DATA=true)')
-    return holdingsResponseSchema.parse(portfolioHoldings)
+    return getMockHoldings()
   }
   
   if (!userId) {
     console.log('[Holdings] ❌ Using mock data: not authenticated (no userId)')
-    return holdingsResponseSchema.parse(portfolioHoldings)
+    return getMockHoldings()
   }
 
   // Fetch real holdings from /investments/holdings endpoint
@@ -303,7 +307,7 @@ export async function getPortfolioAllocation() {
   }
 }
 
-function getMockAllocation() {
+export function getMockAllocation() {
   return {
     assetClass: [
       { name: "Stocks", value: 65, color: "#3b82f6" },
@@ -587,77 +591,81 @@ async function calculateRealKPIs(): Promise<PortfolioKPI[]> {
 /**
  * Get portfolio KPIs (real or mock data)
  */
+export function getMockKPIs(): PortfolioKPI[] {
+  return [
+    {
+      label: "Total Value",
+      value: "$187,650.45",
+      change: "+5.7%",
+      baselineValue: "$177,520.30",
+      positive: true,
+      tooltip: "Current market value of all investment accounts",
+      icon: DollarSign,
+      lastSynced: "just now",
+      source: "Live",
+    },
+    {
+      label: "All-Time P/L",
+      value: "+$24,650.45",
+      change: "+15.1%",
+      baselineValue: "$21,420.10",
+      positive: true,
+      tooltip: "Total profit/loss since you started investing",
+      icon: TrendingUpIcon,
+      lastSynced: "just now",
+      source: "Live",
+    },
+    {
+      label: "Sharpe Ratio",
+      value: "1.85",
+      change: "+Good",
+      baselineValue: "1.73",
+      positive: true,
+      tooltip: "Risk-adjusted return metric. Higher is better (>1 is good, >2 is excellent)",
+      icon: Target,
+      lastSynced: "5 min ago",
+      source: "Calculated",
+    },
+    {
+      label: "Beta",
+      value: "0.92",
+      change: "-Less volatile",
+      baselineValue: "0.97",
+      positive: true,
+      tooltip: "Volatility relative to market (SPY). <1 means less volatile than market",
+      icon: Activity,
+      lastSynced: "5 min ago",
+      source: "Calculated",
+    },
+    {
+      label: "Volatility",
+      value: "14.2%",
+      change: "-1.3%",
+      baselineValue: "15.5%",
+      positive: true,
+      tooltip: "Standard deviation of returns. Lower is less risky",
+      icon: Activity,
+      lastSynced: "5 min ago",
+      source: "Calculated",
+    },
+    {
+      label: "YTD Return",
+      value: "+18.4%",
+      change: "+2.1%",
+      baselineValue: "+16.3%",
+      positive: true,
+      tooltip: "Year-to-date return since January 1st",
+      icon: TrendingUp,
+      lastSynced: "just now",
+      source: "Live",
+    },
+  ]
+}
+
 export async function getPortfolioKPIs(): Promise<PortfolioKPI[]> {
   if (isMarketingMode()) {
     // Return mock data for marketing mode
-    return [
-      {
-        label: "Total Value",
-        value: "$187,650.45",
-        change: "+5.7%",
-        baselineValue: "$177,520.30",
-        positive: true,
-        tooltip: "Current market value of all investment accounts",
-        icon: DollarSign,
-        lastSynced: "just now",
-        source: "Live",
-      },
-      {
-        label: "All-Time P/L",
-        value: "+$24,650.45",
-        change: "+15.1%",
-        baselineValue: "$21,420.10",
-        positive: true,
-        tooltip: "Total profit/loss since you started investing",
-        icon: TrendingUpIcon,
-        lastSynced: "just now",
-        source: "Live",
-      },
-      {
-        label: "Sharpe Ratio",
-        value: "1.85",
-        change: "+Good",
-        baselineValue: "1.73",
-        positive: true,
-        tooltip: "Risk-adjusted return metric. Higher is better (>1 is good, >2 is excellent)",
-        icon: Target,
-        lastSynced: "5 min ago",
-        source: "Calculated",
-      },
-      {
-        label: "Beta",
-        value: "0.92",
-        change: "-Less volatile",
-        baselineValue: "0.97",
-        positive: true,
-        tooltip: "Volatility relative to market (SPY). <1 means less volatile than market",
-        icon: Activity,
-        lastSynced: "5 min ago",
-        source: "Calculated",
-      },
-      {
-        label: "Volatility",
-        value: "14.2%",
-        change: "-1.3%",
-        baselineValue: "15.5%",
-        positive: true,
-        tooltip: "Standard deviation of returns. Lower is less risky",
-        icon: Activity,
-        lastSynced: "5 min ago",
-        source: "Calculated",
-      },
-      {
-        label: "YTD Return",
-        value: "+18.4%",
-        change: "+2.1%",
-        baselineValue: "+16.3%",
-        positive: true,
-        tooltip: "Year-to-date return since January 1st",
-        icon: TrendingUp,
-        lastSynced: "just now",
-        source: "Live",
-      },
-    ]
+    return getMockKPIs()
   }
   
   try {

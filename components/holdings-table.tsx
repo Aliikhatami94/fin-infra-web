@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis } from "recharts"
 import { TableVirtuoso, type TableComponents } from "react-virtuoso"
-import { getPortfolioHoldings } from "@/lib/services/portfolio"
+import { getPortfolioHoldings, getMockHoldings } from "@/lib/services/portfolio"
 import type { Holding } from "@/types/domain"
 
 // Mock holdings as fallback
@@ -148,11 +148,14 @@ function transformHolding(h: Holding, totalValue: number) {
   }
 }
 
-export interface HoldingsTableProps {
+export interface HoldingsTableProps extends HTMLAttributes<HTMLDivElement> {
   allocationFilter?: string | null
+  demoMode?: boolean
+  mockDataOverride?: any[]
+  hideControls?: boolean
 }
 
-export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
+export function HoldingsTable({ allocationFilter, demoMode = false, mockDataOverride, hideControls = false, className, ...props }: HoldingsTableProps) {
   const pathname = usePathname()
   const [query, setQuery] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("value")
@@ -167,8 +170,23 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     let mounted = true
     
     async function loadHoldings() {
+      if (mockDataOverride) {
+        // Check if it needs transformation (e.g. has 'symbol' but not 'ticker')
+        const needsTransform = mockDataOverride.length > 0 && 'symbol' in mockDataOverride[0] && !('ticker' in mockDataOverride[0])
+        
+        if (needsTransform) {
+             const totalValue = mockDataOverride.reduce((sum, h) => sum + (h.shares * h.currentPrice), 0)
+             const transformed = mockDataOverride.map(h => transformHolding(h, totalValue))
+             setHoldings(transformed)
+        } else {
+             setHoldings(mockDataOverride)
+        }
+        setIsLoading(false)
+        return
+      }
+
       try {
-        const data = await getPortfolioHoldings()
+        const data = demoMode ? getMockHoldings() : await getPortfolioHoldings()
         if (!mounted) return
         
         // Calculate total value for weight calculation
@@ -205,7 +223,7 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [demoMode, mockDataOverride])
   
   // Clear search when navigating away
   useEffect(() => {
@@ -322,10 +340,15 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     const estimatedRowHeight = 60
     const estimatedHeader = 48
     const totalHeight = estimatedHeader + virtualRows.length * estimatedRowHeight
+    
+    if (hideControls) {
+      return totalHeight
+    }
+
     const maxHeight = 520
     const minHeight = 260
     return Math.max(minHeight, Math.min(maxHeight, totalHeight))
-  }, [virtualRows.length])
+  }, [virtualRows.length, hideControls])
 
   const tableComponents = useMemo<TableComponents<VirtualRow>>(() => {
     const VirtTable = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
@@ -382,36 +405,41 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
     }
   }, [setSelectedHolding])
 
+  const Wrapper = hideControls ? "div" : Card
+  const InnerWrapper = hideControls ? "div" : CardContent
+
   return (
     <>
-      <Card className="card-standard">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <CardTitle>Holdings</CardTitle>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <Select value={groupBy} onValueChange={(value) => setGroupBy(value as GroupBy)}>
-                <SelectTrigger className="w-full sm:w-[180px] h-9 text-sm">
-                  <SelectValue placeholder="No grouping" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No grouping</SelectItem>
-                  <SelectItem value="account">Group by Account</SelectItem>
-                  <SelectItem value="asset-class">Group by Asset Class</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Filter holdings..."
-                className="w-full sm:max-w-xs"
-                aria-label="Filter holdings"
-              />
+      <Wrapper className={cn(hideControls ? "overflow-hidden rounded-xl" : "card-standard", className)}>
+        {!hideControls && (
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <CardTitle>Holdings</CardTitle>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                <Select value={groupBy} onValueChange={(value) => setGroupBy(value as GroupBy)}>
+                  <SelectTrigger className="w-full sm:w-[180px] h-9 text-sm">
+                    <SelectValue placeholder="No grouping" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No grouping</SelectItem>
+                    <SelectItem value="account">Group by Account</SelectItem>
+                    <SelectItem value="asset-class">Group by Asset Class</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Filter holdings..."
+                  className="w-full sm:max-w-xs"
+                  aria-label="Filter holdings"
+                />
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
+          </CardHeader>
+        )}
+        <InnerWrapper className={cn(hideControls ? "h-full p-0" : "")}>
           {isLoading ? (
-            <div className="space-y-4">
+            <div className={cn("space-y-4", hideControls && "p-6")}>
               <div className="h-12 bg-muted animate-pulse rounded" />
               <div className="h-12 bg-muted animate-pulse rounded" />
               <div className="h-12 bg-muted animate-pulse rounded" />
@@ -420,8 +448,8 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
             </div>
           ) : (
             <>
-              <div className="hidden md:block">
-                <div className="table-surface">
+              <div className={cn("hidden md:block", hideControls && "h-full")}>
+                <div className={cn("table-surface", hideControls && "h-full")}>
                   <TableVirtuoso
                     data={virtualRows}
                     style={{ height: tableHeight }}
@@ -643,8 +671,8 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
+        </InnerWrapper>
+      </Wrapper>
 
       <Dialog open={!!selectedHolding} onOpenChange={(open) => !open && setSelectedHolding(null)}>
         <DialogContent className="max-w-3xl">

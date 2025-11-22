@@ -9,7 +9,7 @@ import { Landmark, Building2, Globe2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PIE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
 import { isMarketingMode } from "@/lib/marketingMode"
-import { getPortfolioAllocation } from "@/lib/services/portfolio"
+import { getPortfolioAllocation, getMockAllocation } from "@/lib/services/portfolio"
 
 type AllocationView = "assetClass" | "sector" | "region"
 
@@ -47,7 +47,11 @@ const mockAllocationData: Record<AllocationView, AllocationSlice[]> = {
 
 export interface AllocationGridProps {
   onFilterChange?: (filter: string | null) => void
+  demoMode?: boolean
+  mockDataOverride?: any
+  className?: string
 }
+
 
 const isAllocationView = (value: string): value is AllocationView => {
   return value === "assetClass" || value === "sector" || value === "region"
@@ -85,15 +89,11 @@ const renderTooltip = ({ active, payload }: TooltipContentProps<number, string>)
   return null
 }
 
-export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
+export function AllocationGrid({ onFilterChange, demoMode = false, mockDataOverride, className }: AllocationGridProps) {
   const [view, setView] = useState<AllocationView>("assetClass")
   const [selectedSlice, setSelectedSlice] = useState<string | null>(null)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
-  const [allocationData, setAllocationData] = useState<Record<AllocationView, AllocationSlice[]>>({
-    assetClass: [],
-    sector: [],
-    region: [],
-  })
+  const [allocationData, setAllocationData] = useState<Record<AllocationView, AllocationSlice[]>>(mockAllocationData)
   const [isLoading, setIsLoading] = useState(true)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
@@ -101,10 +101,16 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
   useEffect(() => {
     console.log('[AllocationGrid] Component mounted, loading allocation data...')
     async function loadAllocation() {
+      if (mockDataOverride) {
+        setAllocationData(mockDataOverride)
+        setIsLoading(false)
+        return
+      }
+
       try {
         setIsLoading(true)
         console.log('[AllocationGrid] Calling getPortfolioAllocation()...')
-        const data = await getPortfolioAllocation()
+        const data = demoMode ? getMockAllocation() : await getPortfolioAllocation()
         console.log('[FRONTEND_ALLOCATION] ========================================')
         console.log('[FRONTEND_ALLOCATION] Asset Class breakdown:')
         data.assetClass.forEach(item => {
@@ -151,12 +157,11 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
         setAllocationData(mockAllocationData)
       } finally {
         setIsLoading(false)
-        console.log('[AllocationGrid] Loading complete')
       }
     }
-
+    
     loadAllocation()
-  }, [])
+  }, [demoMode, mockDataOverride])
 
   const data = allocationData[view]
 
@@ -198,7 +203,7 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
   }, [])
 
   return (
-    <Card className="card-standard">
+    <Card className={cn("card-standard", className)}>
       <CardHeader className="space-y-4">
         <CardTitle className="text-base sm:text-lg">Portfolio Allocation</CardTitle>
         

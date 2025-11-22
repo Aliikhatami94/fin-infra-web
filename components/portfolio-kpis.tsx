@@ -18,7 +18,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel"
-import { getPortfolioKPIs, type PortfolioKPI } from "@/lib/services/portfolio"
+import { getPortfolioKPIs, getMockKPIs, type PortfolioKPI } from "@/lib/services/portfolio"
 
 type RiskMetricKey = "sharpe" | "beta" | "volatility"
 
@@ -28,7 +28,12 @@ const riskMetricLabelToKey: Record<string, RiskMetricKey> = {
   Volatility: "volatility",
 }
 
-export function PortfolioKPIs() {
+interface PortfolioKPIsProps {
+  demoMode?: boolean
+  mockDataOverride?: PortfolioKPI[]
+}
+
+export function PortfolioKPIs({ demoMode = false, mockDataOverride }: PortfolioKPIsProps) {
   const [selectedMetric, setSelectedMetric] = useState<RiskMetricKey | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [hiddenCards] = useState<Set<string>>(new Set())
@@ -42,7 +47,12 @@ export function PortfolioKPIs() {
     async function loadKPIs() {
       setLoading(true)
       try {
-        const data = await getPortfolioKPIs()
+        let data: PortfolioKPI[]
+        if (mockDataOverride) {
+          data = mockDataOverride
+        } else {
+          data = demoMode ? getMockKPIs() : await getPortfolioKPIs()
+        }
         console.log('[FRONTEND_KPIs] ========================================')
         console.log('[FRONTEND_KPIs] Received KPIs count:', data.length)
         data.forEach(kpi => {
@@ -57,7 +67,7 @@ export function PortfolioKPIs() {
       }
     }
     loadKPIs()
-  }, [])
+  }, [demoMode, mockDataOverride])
 
   // Handle carousel slide change
   useEffect(() => {
