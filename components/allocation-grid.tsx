@@ -105,6 +105,20 @@ export function AllocationGrid({ onFilterChange }: AllocationGridProps) {
         setIsLoading(true)
         console.log('[AllocationGrid] Calling getPortfolioAllocation()...')
         const data = await getPortfolioAllocation()
+        console.log('[FRONTEND_ALLOCATION] ========================================')
+        console.log('[FRONTEND_ALLOCATION] Asset Class breakdown:')
+        data.assetClass.forEach(item => {
+          console.log(`[FRONTEND_ALLOCATION]   ${item.name}=${item.value}%`)
+        })
+        console.log('[FRONTEND_ALLOCATION] Sector breakdown:')
+        data.sector.forEach(item => {
+          console.log(`[FRONTEND_ALLOCATION]   ${item.name}=${item.value}%`)
+        })
+        console.log('[FRONTEND_ALLOCATION] Region breakdown:')
+        data.region.forEach(item => {
+          console.log(`[FRONTEND_ALLOCATION]   ${item.name}=${item.value}%`)
+        })
+        console.log('[FRONTEND_ALLOCATION] ========================================')
         console.log('[AllocationGrid] Received allocation data:', data)
         
         // Transform to the format expected by this component

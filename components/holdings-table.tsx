@@ -174,6 +174,16 @@ export function HoldingsTable({ allocationFilter }: HoldingsTableProps) {
         // Calculate total value for weight calculation
         const totalValue = data.reduce((sum, h) => sum + (h.shares * h.currentPrice), 0)
         
+        console.log('[FRONTEND_HOLDINGS] ========================================')
+        console.log('[FRONTEND_HOLDINGS] Holdings count:', data.length)
+        console.log('[FRONTEND_HOLDINGS] Total portfolio value: $' + totalValue.toFixed(2))
+        console.log('[FRONTEND_HOLDINGS] Sample holdings:')
+        data.slice(0, 5).forEach(h => {
+          const value = h.shares * h.currentPrice
+          console.log(`[FRONTEND_HOLDINGS]   ${h.symbol}: ${h.shares} shares @ $${h.currentPrice} = $${value.toFixed(2)} | P/L: $${h.change.toFixed(2)} | Class: ${h.assetClass}`)
+        })
+        console.log('[FRONTEND_HOLDINGS] ========================================')
+        
         // Transform holdings to component format
         const transformed = data.map(h => transformHolding(h, totalValue))
         

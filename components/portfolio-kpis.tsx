@@ -43,6 +43,12 @@ export function PortfolioKPIs() {
       setLoading(true)
       try {
         const data = await getPortfolioKPIs()
+        console.log('[FRONTEND_KPIs] ========================================')
+        console.log('[FRONTEND_KPIs] Received KPIs count:', data.length)
+        data.forEach(kpi => {
+          console.log(`[FRONTEND_KPIs] ${kpi.label}: ${kpi.value} (${kpi.change}) source=${kpi.source}`)
+        })
+        console.log('[FRONTEND_KPIs] ========================================')
         setKpis(data)
       } catch (error) {
         console.error("Failed to load portfolio KPIs:", error)

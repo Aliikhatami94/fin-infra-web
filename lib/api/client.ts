@@ -200,7 +200,9 @@ export async function fetchPortfolioMetrics() {
     total_value: number
     day_change: number
     day_change_percent: number
-    total_return: number
+    total_return: number  // Still present for backward compat
+    total_return_pct: number  // NEW: percentage value from backend (1972.82 not 19.7282)
+    unrealized_pl: number  // NEW: dollar amount of unrealized P/L
     ytd_return: number
     mtd_return: number
     asset_allocation: Record<string, number>

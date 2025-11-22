@@ -9,6 +9,8 @@ export const holdingSchema: z.ZodType<Holding> = z.object({
   avgPrice: z.number(),
   currentPrice: z.number(),
   change: z.number(),
+  assetClass: z.string().optional(),
+  accountId: z.string().optional(),
 })
 
 export const holdingsResponseSchema = holdingSchema.array()

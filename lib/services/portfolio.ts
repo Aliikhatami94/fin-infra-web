@@ -20,6 +20,22 @@ const USE_MOCK_DATA = !process.env.NEXT_PUBLIC_API_URL
 // Cache duration: 30 seconds (matches backend TTL)
 const CACHE_DURATION = 30 * 1000
 
+/**
+ * Normalize asset class from backend security.type to display label
+ * Backend returns: cash, equity, mutual_fund, etf, cryptocurrency, etc.
+ * Frontend displays: Cash, Stocks, Bonds, Crypto, Other
+ */
+function normalizeAssetClass(type?: string): string {
+  if (!type) return "Other"
+  const normalized = type.toLowerCase()
+  
+  if (normalized.includes('cash') || normalized.includes('dollar')) return "Cash"
+  else if (normalized.includes('crypto')) return "Crypto"
+  else if (normalized === 'equity' || normalized === 'mutual_fund' || normalized.includes('mutual fund') || normalized === 'etf' || normalized === 'stock') return "Stocks"
+  else if (normalized.includes('bond')) return "Bonds"
+  else return "Other"
+}
+
 // Cache for portfolio data with promise deduplication
 let metricsCache: { 
   data: any | null; 
@@ -100,6 +116,10 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
       const change = parseFloat(h.unrealized_gain_loss?.toString() || '0')
       const avgPrice = quantity > 0 ? costBasis / quantity : currentPrice
       
+      // Normalize asset class from backend type to display label
+      const rawType = h.security.type || 'other'
+      const assetClass = normalizeAssetClass(rawType)
+      
       return {
         symbol: h.security.ticker_symbol || h.security.name?.substring(0, 6).toUpperCase() || 'N/A',
         name: h.security.name || 'Unknown',
@@ -107,7 +127,7 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
         avgPrice: avgPrice,
         currentPrice: currentPrice,
         change: change,
-        assetClass: h.security.type || 'Other',
+        assetClass: assetClass,
         accountId: h.account_id,
       }
     })
@@ -160,13 +180,14 @@ export async function getPortfolioAllocation() {
     console.log('[Allocation] ✅ Received allocation data from API:', JSON.stringify(data, null, 2))
     
     // Transform to component format
+    // Backend returns percentages already (48.52 not 0.4852), so just round
     const assetClassData = [
-      { name: "Stocks", value: Math.round(data.by_asset_class.stocks * 100), color: "#3b82f6" },
-      { name: "Bonds", value: Math.round(data.by_asset_class.bonds * 100), color: "#10b981" },
-      { name: "Cash", value: Math.round(data.by_asset_class.cash * 100), color: "#f59e0b" },
-      { name: "Crypto", value: Math.round(data.by_asset_class.crypto * 100), color: "#8b5cf6" },
-      { name: "Real Estate", value: Math.round(data.by_asset_class.real_estate * 100), color: "#ec4899" },
-      { name: "Other", value: Math.round(data.by_asset_class.other * 100), color: "#6366f1" },
+      { name: "Stocks", value: Math.round(data.by_asset_class.stocks), color: "#3b82f6" },
+      { name: "Bonds", value: Math.round(data.by_asset_class.bonds), color: "#10b981" },
+      { name: "Cash", value: Math.round(data.by_asset_class.cash), color: "#f59e0b" },
+      { name: "Crypto", value: Math.round(data.by_asset_class.crypto), color: "#8b5cf6" },
+      { name: "Real Estate", value: Math.round(data.by_asset_class.real_estate), color: "#ec4899" },
+      { name: "Other", value: Math.round(data.by_asset_class.other), color: "#6366f1" },
     ].filter(item => item.value > 0) // Only show non-zero allocations
     
     console.log('[Allocation] Transformed asset class data:', assetClassData)
@@ -495,13 +516,14 @@ async function calculateRealKPIs(): Promise<PortfolioKPI[]> {
   }
   
   // All-Time P/L KPI
-  if (metrics.total_return !== undefined) {
-    const returnPercent = (metrics.total_return || 0) * 100
+  // Backend provides unrealized_pl (dollar amount) and total_return_pct (percentage)
+  if (metrics.unrealized_pl !== undefined && metrics.total_return_pct !== undefined) {
+    const returnPercent = metrics.total_return_pct // Already a percentage from backend
     kpis.push({
       label: "All-Time P/L",
-      value: formatCurrency(metrics.total_value * (metrics.total_return || 0)),
+      value: formatCurrency(metrics.unrealized_pl),
       change: formatPercent(returnPercent),
-      baselineValue: formatCurrency(metrics.total_value),
+      baselineValue: formatCurrency(metrics.total_value - metrics.unrealized_pl),
       positive: returnPercent >= 0,
       tooltip: "Total profit/loss since you started investing",
       icon: TrendingUpIcon,
