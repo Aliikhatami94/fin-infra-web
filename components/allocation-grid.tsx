@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
@@ -18,6 +18,51 @@ interface AllocationSlice extends Record<string, unknown> {
   value: number
   amount: number
   color: string
+}
+
+function AnimatedNumber({ value, decimals = 0 }: { value: number, decimals?: number }) {
+  const [displayValue, setDisplayValue] = useState(value)
+  const animationRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (Math.abs(value - displayValue) < 0.01) return
+
+    const startValue = displayValue
+    const endValue = value
+    const duration = 1000
+    const startTime = performance.now()
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+      const easedProgress = easeInOutCubic(progress)
+      
+      const current = startValue + (endValue - startValue) * easedProgress
+      setDisplayValue(current)
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate)
+      } else {
+        setDisplayValue(endValue)
+        animationRef.current = null
+      }
+    }
+
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+    }
+    animationRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [value])
+
+  return <>{displayValue.toFixed(decimals)}</>
 }
 
 // Mock data fallback
@@ -93,17 +138,26 @@ export function AllocationGrid({ onFilterChange, demoMode = false, mockDataOverr
   const [view, setView] = useState<AllocationView>("assetClass")
   const [selectedSlice, setSelectedSlice] = useState<string | null>(null)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
-  const [allocationData, setAllocationData] = useState<Record<AllocationView, AllocationSlice[]>>(mockAllocationData)
+  const [allocationData, setAllocationData] = useState<Record<AllocationView, AllocationSlice[]>>(mockDataOverride || mockAllocationData)
   const [isLoading, setIsLoading] = useState(true)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isInitialMount = useRef(true)
   
-  // Fetch real allocation data
+  // Update data when mockDataOverride changes (without remounting)
+  useEffect(() => {
+    if (mockDataOverride && !isInitialMount.current) {
+      setAllocationData(mockDataOverride)
+    }
+  }, [mockDataOverride])
+  
+  // Fetch real allocation data (only on initial mount)
   useEffect(() => {
     console.log('[AllocationGrid] Component mounted, loading allocation data...')
     async function loadAllocation() {
       if (mockDataOverride) {
         setAllocationData(mockDataOverride)
         setIsLoading(false)
+        isInitialMount.current = false
         return
       }
 
@@ -157,11 +211,13 @@ export function AllocationGrid({ onFilterChange, demoMode = false, mockDataOverr
         setAllocationData(mockAllocationData)
       } finally {
         setIsLoading(false)
+        isInitialMount.current = false
       }
     }
     
     loadAllocation()
-  }, [demoMode, mockDataOverride])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const data = allocationData[view]
 
@@ -205,7 +261,7 @@ export function AllocationGrid({ onFilterChange, demoMode = false, mockDataOverr
   const Wrapper = demoMode ? "div" : Card
 
   return (
-    <Wrapper className={cn(demoMode ? "overflow-hidden rounded-xl p-5" : "card-standard", className)}>
+    <Wrapper className={cn(demoMode ? "overflow-hidden rounded-xl p-4 sm:p-5" : "card-standard", className)}>
       <CardHeader className="space-y-4">
         {!demoMode && <CardTitle className="text-base sm:text-lg">Portfolio Allocation</CardTitle>}
         
@@ -320,10 +376,10 @@ export function AllocationGrid({ onFilterChange, demoMode = false, mockDataOverr
                 </div>
                 <div className="flex flex-col items-end">
                   <span className="text-sm font-semibold font-mono tabular-nums">
-                    {item.value}%
+                    <AnimatedNumber value={item.value} decimals={0} />%
                   </span>
                   <span className="text-xs text-muted-foreground font-mono tabular-nums">
-                    ${item.amount.toLocaleString()}
+                    $<AnimatedNumber value={item.amount} decimals={0} />
                   </span>
                 </div>
               </button>

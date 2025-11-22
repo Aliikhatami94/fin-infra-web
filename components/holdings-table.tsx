@@ -1,6 +1,6 @@
 "use client"
 
-import { forwardRef, useMemo, useState, useEffect } from "react"
+import { forwardRef, useMemo, useState, useEffect, useRef } from "react"
 import type { HTMLAttributes } from "react"
 import { usePathname } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -121,6 +121,55 @@ function normalizeAssetClass(type?: string): string {
   }
 }
 
+function AnimatedNumber({ value, decimals = 0, prefix = "", suffix = "" }: { value: number, decimals?: number, prefix?: string, suffix?: string }) {
+  const [displayValue, setDisplayValue] = useState(value)
+  const animationRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (Math.abs(value - displayValue) < 0.01) return
+
+    const startValue = displayValue
+    const endValue = value
+    const duration = 1000
+    const startTime = performance.now()
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+      const easedProgress = easeInOutCubic(progress)
+      
+      const current = startValue + (endValue - startValue) * easedProgress
+      setDisplayValue(current)
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate)
+      } else {
+        setDisplayValue(endValue)
+        animationRef.current = null
+      }
+    }
+
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+    }
+    animationRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [value])
+
+  const formatted = decimals === 0 
+    ? Math.round(displayValue).toLocaleString()
+    : displayValue.toFixed(decimals)
+
+  return <>{prefix}{formatted}{suffix}</>
+}
+
 // Transform Holding type to component's expected format
 function transformHolding(h: Holding, totalValue: number) {
   const value = h.shares * h.currentPrice
@@ -162,10 +211,26 @@ export function HoldingsTable({ allocationFilter, demoMode = false, mockDataOver
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [selectedHolding, setSelectedHolding] = useState<any | null>(null)
   const [groupBy, setGroupBy] = useState<GroupBy>("none")
-  const [holdings, setHoldings] = useState<typeof mockHoldings>([])
+  const [holdings, setHoldings] = useState<typeof mockHoldings>(mockDataOverride || [])
   const [isLoading, setIsLoading] = useState(true)
+  const isInitialMount = useRef(true)
 
-  // Fetch real holdings data on mount
+  // Update holdings when mockDataOverride changes (without remounting)
+  useEffect(() => {
+    if (mockDataOverride && !isInitialMount.current) {
+      const needsTransform = mockDataOverride.length > 0 && 'symbol' in mockDataOverride[0] && !('ticker' in mockDataOverride[0])
+      
+      if (needsTransform) {
+        const totalValue = mockDataOverride.reduce((sum, h) => sum + (h.shares * h.currentPrice), 0)
+        const transformed = mockDataOverride.map(h => transformHolding(h, totalValue))
+        setHoldings(transformed)
+      } else {
+        setHoldings(mockDataOverride)
+      }
+    }
+  }, [mockDataOverride])
+
+  // Fetch real holdings data on mount (only once)
   useEffect(() => {
     let mounted = true
     
@@ -182,6 +247,7 @@ export function HoldingsTable({ allocationFilter, demoMode = false, mockDataOver
              setHoldings(mockDataOverride)
         }
         setIsLoading(false)
+        isInitialMount.current = false
         return
       }
 
@@ -214,6 +280,7 @@ export function HoldingsTable({ allocationFilter, demoMode = false, mockDataOver
       } finally {
         if (mounted) {
           setIsLoading(false)
+          isInitialMount.current = false
         }
       }
     }
@@ -223,7 +290,8 @@ export function HoldingsTable({ allocationFilter, demoMode = false, mockDataOver
     return () => {
       mounted = false
     }
-  }, [demoMode, mockDataOverride])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   
   // Clear search when navigating away
   useEffect(() => {
@@ -540,7 +608,7 @@ export function HoldingsTable({ allocationFilter, demoMode = false, mockDataOver
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
                     <p className="text-sm tabular-nums font-mono whitespace-nowrap text-foreground font-medium">
-                      {Number.isInteger(holding.qty) ? holding.qty.toLocaleString() : holding.qty.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      <AnimatedNumber value={holding.qty} decimals={Number.isInteger(holding.qty) ? 0 : 2} />
                     </p>
                   </td>,
                   <td
@@ -548,7 +616,8 @@ export function HoldingsTable({ allocationFilter, demoMode = false, mockDataOver
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
                     <p className="text-sm font-semibold tabular-nums text-foreground font-mono whitespace-nowrap">
-                      <MaskableValue value={`$${holding.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} srLabel={`${holding.ticker} value`} />
+                      <MaskableValue value={`$`} srLabel={`${holding.ticker} value`} />
+                      <AnimatedNumber value={holding.value} decimals={2} />
                     </p>
                   </td>,
                   <td
@@ -559,16 +628,19 @@ export function HoldingsTable({ allocationFilter, demoMode = false, mockDataOver
                       className={`text-sm font-semibold tabular-nums font-mono ${holding.pl > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                     >
                       <MaskableValue
-                        value={`${holding.pl > 0 ? "+" : ""}$${holding.pl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                        value={`${holding.pl > 0 ? "+" : ""}$`}
                         srLabel={`${holding.ticker} profit and loss`}
                       />
+                      <AnimatedNumber value={holding.pl} decimals={2} />
                     </p>
                   </td>,
                   <td
                     key={`${item.id}-weight`}
                     className="px-[var(--table-cell-padding-x)] py-[var(--table-cell-padding-y)] text-right align-middle"
                   >
-                    <p className="text-sm font-mono tabular-nums whitespace-nowrap text-foreground font-medium">{holding.weight.toFixed(2)}%</p>
+                    <p className="text-sm font-mono tabular-nums whitespace-nowrap text-foreground font-medium">
+                      <AnimatedNumber value={holding.weight} decimals={2} suffix="%" />
+                    </p>
                   </td>,
                   <td
                     key={`${item.id}-actions`}

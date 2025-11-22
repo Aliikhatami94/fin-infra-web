@@ -7,7 +7,7 @@ import { HoldingsTable } from "@/components/holdings-table"
 import { motion, useMotionValue, useSpring, useTransform, MotionValue } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Play, ArrowUpRight, ArrowDownRight, Sparkles, ExternalLink } from "lucide-react"
+import { Play, ArrowUpRight, ArrowDownRight, Sparkles } from "lucide-react"
 import confetti from "canvas-confetti"
 import { getMockKPIs, getMockAllocation, getMockHoldings } from "@/lib/services/portfolio"
 import { BRAND } from "@/lib/brand"
@@ -102,21 +102,98 @@ function ParallaxCard({
   )
 }
 
-function LandingStatCard({ label, value, change, positive }: { label: string, value: string, change: string, positive: boolean }) {
+function AnimatedNumber({ value, prefix = "", suffix = "", compact = false }: { value: number, prefix?: string, suffix?: string, compact?: boolean }) {
+  const [displayValue, setDisplayValue] = useState(value)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const animationRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (Math.abs(value - displayValue) < 0.01) return
+
+    setIsAnimating(true)
+    const startValue = displayValue
+    const endValue = value
+    const duration = 1000 // Fixed duration for all numbers
+    const startTime = performance.now()
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      // Easing function for smooth acceleration/deceleration
+      const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+      const easedProgress = easeInOutCubic(progress)
+      
+      const current = startValue + (endValue - startValue) * easedProgress
+      setDisplayValue(current)
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate)
+      } else {
+        setDisplayValue(endValue) // Ensure final value is exact
+        setIsAnimating(false)
+        animationRef.current = null
+      }
+    }
+
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+    }
+    animationRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [value])
+
+  const formatted = displayValue.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+
   return (
-    <div className="flex flex-col justify-between p-5 rounded-xl bg-card/50 backdrop-blur-xl border border-[color:var(--table-divider)] shadow-xl hover:bg-card/60 transition-colors h-full min-h-[120px]">
-      <div className="flex items-start justify-between mb-2">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
-        <div className={cn(
-          "flex items-center text-xs font-medium px-2 py-0.5 rounded-full",
-          positive ? "text-emerald-500 bg-emerald-500/10" : "text-red-500 bg-red-500/10"
-        )}>
-          {positive ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
+    <span className={cn(
+      "font-bold tracking-tight text-foreground block truncate transition-all duration-200",
+      compact ? "text-xl" : "text-3xl",
+      isAnimating && "blur-[0.5px]"
+    )}>
+      {prefix}{formatted}{suffix}
+    </span>
+  )
+}
+
+function LandingStatCard({ label, value, change, positive, compact = false }: { label: string, value: string, change: string, positive: boolean, compact?: boolean }) {
+  // Parse numeric value for animation
+  const numericValue = parseFloat(value.replace(/[^0-9.-]+/g, ""))
+  const prefix = value.includes("$") ? "$" : ""
+  const suffix = value.includes("%") ? "%" : ""
+  
+  return (
+    <div className={cn(
+      "flex flex-col justify-between rounded-xl bg-card/50 backdrop-blur-xl border border-[color:var(--table-divider)] shadow-sm lg:shadow-xl hover:bg-card/60 transition-colors h-full",
+      compact ? "p-3 min-h-[90px]" : "p-4 lg:p-5 min-h-[120px]"
+    )}>
+      <div className="flex items-start justify-between mb-1">
+        <span className={cn("font-medium text-muted-foreground uppercase tracking-wider", compact ? "text-[10px]" : "text-xs")}>{label}</span>
+        <motion.div 
+          key={change}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className={cn(
+            "flex items-center font-medium rounded-full",
+            compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5",
+            positive ? "text-emerald-500 bg-emerald-500/10" : "text-red-500 bg-red-500/10"
+          )}
+        >
+          {positive ? <ArrowUpRight className={cn("mr-1", compact ? "w-2.5 h-2.5" : "w-3 h-3")} /> : <ArrowDownRight className={cn("mr-1", compact ? "w-2.5 h-2.5" : "w-3 h-3")} />}
           {change}
-        </div>
+        </motion.div>
       </div>
-      <div className="mt-2">
-        <span className="text-3xl font-bold tracking-tight text-foreground block truncate" title={value}>{value}</span>
+      <div className={cn("mt-auto", compact ? "mt-0" : "mt-2")}>
+        <AnimatedNumber value={numericValue} prefix={prefix} suffix={suffix} compact={compact} />
       </div>
     </div>
   )
@@ -321,7 +398,6 @@ export function FinanceBackground() {
 }
 
 export function LandingInteractiveDemo() {
-  const [key, setKey] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [kpiData, setKpiData] = useState(getMockKPIs())
   
@@ -396,7 +472,6 @@ export function LandingInteractiveDemo() {
       }))
       setHoldingsData(newHoldings)
 
-      setKey(prev => prev + 1)
       setIsAnimating(false)
     }, 600)
   }
@@ -488,29 +563,37 @@ export function LandingInteractiveDemo() {
               </div>
             </div>
 
-            {/* Mobile KPIs - Horizontal Scroll (visible only on small screens) */}
-            <div className="lg:hidden w-full mt-12">
-              <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory">
-                {kpiData.slice(0, 3).map((kpi, i) => (
-                  <div key={i} className="min-w-[260px] h-32 snap-center first:pl-2 last:pr-2">
-                    <LandingStatCard {...kpi} />
+            {/* Mobile KPIs - Infinite Marquee (visible only on small screens) */}
+            <div className="lg:hidden w-full mt-4 overflow-hidden -mx-4 mask-linear-fade py-4">
+              <motion.div 
+                className="flex gap-3 px-4 w-max"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ 
+                  repeat: Infinity, 
+                  ease: "linear", 
+                  duration: 40 
+                }}
+              >
+                {/* Duplicate items for seamless loop */}
+                {[...kpiData, ...kpiData].map((kpi, i) => (
+                  <div key={i} className="min-w-[200px] h-24 flex-shrink-0">
+                    <LandingStatCard {...kpi} compact={true} />
                   </div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10">
         {/* Allocation - Floating */}
         <div className="lg:col-span-4">
           <TiltCard delay={0.4} className="h-full">
             <AllocationGrid 
-              key={key} 
               demoMode={true} 
               mockDataOverride={allocationData}
-              className="h-full bg-card/50 backdrop-blur-xl border border-[color:var(--table-divider)] shadow-xl"
+              className="h-full bg-card/50 backdrop-blur-xl border border-[color:var(--table-divider)] shadow-sm lg:shadow-xl"
             />
           </TiltCard>
         </div>
@@ -519,11 +602,10 @@ export function LandingInteractiveDemo() {
         <div className="lg:col-span-8">
           <TiltCard delay={0.5}>
             <HoldingsTable 
-              key={key} 
               demoMode={true} 
               mockDataOverride={holdingsData}
               hideControls={true}
-              className="bg-card/50 backdrop-blur-xl border-0 shadow-xl"
+              className="bg-card/50 backdrop-blur-xl border-0 shadow-sm lg:shadow-xl"
             />
           </TiltCard>
         </div>
