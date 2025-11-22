@@ -240,14 +240,7 @@ export function LandingInteractiveDemo() {
             </ParallaxCard>
           </div>
 
-          {/* Mobile KPIs Grid (visible only on small screens) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:hidden mb-12 max-w-2xl mx-auto">
-            {kpiData.slice(0, 3).map((kpi, i) => (
-              <div key={i} className="h-32">
-                <LandingStatCard {...kpi} />
-              </div>
-            ))}
-          </div>
+          {/* Mobile KPIs Grid (visible only on small screens) - REMOVED to move below text */}
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -301,6 +294,17 @@ export function LandingInteractiveDemo() {
                 <span className="text-xs font-semibold text-foreground">Fortress Bank</span>
                 <span className="text-xs font-semibold text-foreground">Radial Ventures</span>
                 <span className="text-xs font-semibold text-foreground">Northern Equity</span>
+              </div>
+            </div>
+
+            {/* Mobile KPIs - Horizontal Scroll (visible only on small screens) */}
+            <div className="lg:hidden w-full mt-12">
+              <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory">
+                {kpiData.slice(0, 3).map((kpi, i) => (
+                  <div key={i} className="min-w-[260px] h-32 snap-center first:pl-2 last:pr-2">
+                    <LandingStatCard {...kpi} />
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>
