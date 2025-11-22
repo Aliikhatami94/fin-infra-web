@@ -104,17 +104,19 @@ function ParallaxCard({
 
 function LandingStatCard({ label, value, change, positive }: { label: string, value: string, change: string, positive: boolean }) {
   return (
-    <div className="flex flex-col p-6 rounded-2xl bg-card/50 border border-white/10 shadow-xl backdrop-blur-md hover:bg-card/60 transition-colors h-full">
-      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{label}</span>
-      <div className="flex items-end justify-between mt-auto">
-        <span className="text-2xl font-bold tracking-tight text-foreground">{value}</span>
+    <div className="flex flex-col justify-between p-5 rounded-xl bg-card/50 backdrop-blur-xl border border-[color:var(--table-divider)] shadow-xl hover:bg-card/60 transition-colors h-full min-h-[120px]">
+      <div className="flex items-start justify-between mb-2">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
         <div className={cn(
-          "flex items-center text-xs font-medium px-2 py-1 rounded-full",
+          "flex items-center text-xs font-medium px-2 py-0.5 rounded-full",
           positive ? "text-emerald-500 bg-emerald-500/10" : "text-red-500 bg-red-500/10"
         )}>
           {positive ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
           {change}
         </div>
+      </div>
+      <div className="mt-2">
+        <span className="text-3xl font-bold tracking-tight text-foreground block truncate" title={value}>{value}</span>
       </div>
     </div>
   )
@@ -239,11 +241,11 @@ export function LandingInteractiveDemo() {
           </div>
 
           {/* Mobile KPIs Grid (visible only on small screens) */}
-          <div className="grid grid-cols-2 gap-4 lg:hidden mb-12">
-            {kpiData.map((kpi, i) => (
-              <TiltCard key={i} delay={i * 0.1}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:hidden mb-12 max-w-2xl mx-auto">
+            {kpiData.slice(0, 3).map((kpi, i) => (
+              <div key={i} className="h-32">
                 <LandingStatCard {...kpi} />
-              </TiltCard>
+              </div>
             ))}
           </div>
 
@@ -313,7 +315,7 @@ export function LandingInteractiveDemo() {
               key={key} 
               demoMode={true} 
               mockDataOverride={allocationData}
-              className="h-full bg-card/50 backdrop-blur-xl border-white/10 shadow-xl"
+              className="h-full bg-card/50 backdrop-blur-xl border border-[color:var(--table-divider)] shadow-xl"
             />
           </TiltCard>
         </div>

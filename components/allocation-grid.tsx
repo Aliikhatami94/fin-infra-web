@@ -202,10 +202,12 @@ export function AllocationGrid({ onFilterChange, demoMode = false, mockDataOverr
     }, 100)
   }, [])
 
+  const Wrapper = demoMode ? "div" : Card
+
   return (
-    <Card className={cn("card-standard", className)}>
+    <Wrapper className={cn(demoMode ? "overflow-hidden rounded-xl p-5" : "card-standard", className)}>
       <CardHeader className="space-y-4">
-        <CardTitle className="text-base sm:text-lg">Portfolio Allocation</CardTitle>
+        {!demoMode && <CardTitle className="text-base sm:text-lg">Portfolio Allocation</CardTitle>}
         
         {/* Tabs below title, above chart */}
         <Tabs value={view} onValueChange={handleViewChange} className="sm:flex sm:justify-center">
@@ -330,6 +332,6 @@ export function AllocationGrid({ onFilterChange, demoMode = false, mockDataOverr
           </div>
         )}
       </CardContent>
-    </Card>
+    </Wrapper>
   )
 }
