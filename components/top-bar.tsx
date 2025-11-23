@@ -183,26 +183,6 @@ export function TopBar({
             </Tooltip>
           </TooltipProvider>
 
-          {/* Date range selector - tablet+ */}
-          <Select value={dateRange} onValueChange={handleDateRangeChange}>
-            <SelectTrigger 
-              className="w-[6.5rem] md:w-28 lg:w-32 rounded-full hidden md:flex h-8 text-xs" 
-              title={`Date range: ${dateRange}`}
-            >
-              <Calendar className="mr-1.5 h-3.5 w-3.5 shrink-0" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1D">1 Day</SelectItem>
-              <SelectItem value="5D">5 Days</SelectItem>
-              <SelectItem value="1M">1 Month</SelectItem>
-              <SelectItem value="6M">6 Months</SelectItem>
-              <SelectItem value="YTD">YTD</SelectItem>
-              <SelectItem value="1Y">1 Year</SelectItem>
-              <SelectItem value="ALL">All Time</SelectItem>
-            </SelectContent>
-          </Select>
-
           {/* Notifications - always visible */}
           <Button
             variant="ghost"
