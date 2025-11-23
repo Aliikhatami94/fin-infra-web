@@ -9,268 +9,26 @@ import { SkipLink } from "@/components/skip-link"
 import { FooterBackToTop } from "@/components/footer-back-to-top"
 import { AutomationLearnMoreModal } from "@/components/automation-learn-more-modal"
 import { InsightPreviewModal } from "@/components/insight-preview-modal"
-import { AllocationComparisonSlider } from "@/components/allocation-comparison-slider"
 import { LandingInteractiveDemo, FinanceBackground } from "@/components/marketing/landing-interactive-demo"
 import { TrendingUp, Shield, Zap, BarChart3, Sparkles, Lock, ExternalLink, ArrowDownRight } from "lucide-react"
 import { BRAND } from "@/lib/brand"
 import { cn } from "@/lib/utils"
 
 export default function LandingPage() {
-  const [contentVisible, setContentVisible] = useState(() =>
-    typeof window !== "undefined" && (window as Window & { __introPlayed?: boolean }).__introPlayed ? true : false,
-  )
-  const [showIntro, setShowIntro] = useState(() =>
-    typeof window !== "undefined" && (window as Window & { __introPlayed?: boolean }).__introPlayed ? false : true,
-  )
-  const cleanupTimerRef = useRef<number | null>(null)
-  const introFallbackTimerRef = useRef<number | null>(null)
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return
-    }
-
-    // Skip intro on client-side navigations within the same document
-    if ((window as Window & { __introPlayed?: boolean }).__introPlayed) {
-      setContentVisible(true)
-      setShowIntro(false)
-      // Ensure we always start at the top
-      try {
-        document.documentElement.scrollTop = 0
-        document.body.scrollTop = 0
-        window.scrollTo(0, 0)
-      } catch {}
-      return
-    }
-
-    // Ensure we always start at the top
-    try {
-      document.documentElement.scrollTop = 0
-      document.body.scrollTop = 0
-      window.scrollTo(0, 0)
-    } catch {}
-
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
-
-    if (mediaQuery.matches) {
-      setContentVisible(true)
-      setShowIntro(false)
-      ;(window as Window & { __introPlayed?: boolean }).__introPlayed = true
-      return
-    }
-
-    introFallbackTimerRef.current = window.setTimeout(() => {
-      introFallbackTimerRef.current = null
-      // Reveal content and keep scroll at top
-      setContentVisible(true)
-      ;(window as Window & { __introPlayed?: boolean }).__introPlayed = true
-      try {
-        document.documentElement.scrollTop = 0
-        document.body.scrollTop = 0
-        window.scrollTo(0, 0)
-      } catch {}
-      if (cleanupTimerRef.current) {
-        clearTimeout(cleanupTimerRef.current)
-        cleanupTimerRef.current = null
-      }
-      cleanupTimerRef.current = window.setTimeout(() => {
-        setShowIntro(false)
-        cleanupTimerRef.current = null
-      }, 520)
-    }, 1800)
-
-    const handleChange = (event: MediaQueryListEvent) => {
-      if (event.matches) {
-        if (introFallbackTimerRef.current) {
-          clearTimeout(introFallbackTimerRef.current)
-          introFallbackTimerRef.current = null
-        }
-        if (cleanupTimerRef.current) {
-          clearTimeout(cleanupTimerRef.current)
-          cleanupTimerRef.current = null
-        }
-        setContentVisible(true)
-        setShowIntro(false)
-      }
-    }
-
-    mediaQuery.addEventListener("change", handleChange)
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange)
-      if (cleanupTimerRef.current) {
-        clearTimeout(cleanupTimerRef.current)
-        cleanupTimerRef.current = null
-      }
-      if (introFallbackTimerRef.current) {
-        clearTimeout(introFallbackTimerRef.current)
-        introFallbackTimerRef.current = null
-      }
-    }
-  }, [])
-
-  // Lock body scroll while intro overlay is visible and keep at top
-  useEffect(() => {
-    if (typeof document === "undefined") return
-    if (showIntro) {
-      const prevOverflow = document.body.style.overflow
-      const prevOverscroll = document.documentElement.style.overscrollBehavior
-      try {
-        document.body.style.overflow = "hidden"
-        document.documentElement.style.overscrollBehavior = "contain"
-        document.documentElement.scrollTop = 0
-        document.body.scrollTop = 0
-        window.scrollTo(0, 0)
-      } catch {}
-      return () => {
-        document.body.style.overflow = prevOverflow
-        document.documentElement.style.overscrollBehavior = prevOverscroll
-      }
-    } else {
-      try {
-        document.body.style.overflow = ""
-        document.documentElement.style.overscrollBehavior = ""
-        window.scrollTo(0, 0)
-      } catch {}
-    }
-  }, [showIntro])
-
-  const handleIntroAnimationEnd = () => {
-    if (contentVisible) {
-      return
-    }
-
-    // Snap to top as the intro ends
-    try {
-      document.documentElement.scrollTop = 0
-      document.body.scrollTop = 0
-      window.scrollTo(0, 0)
-    } catch {}
-
-    setContentVisible(true)
-    ;(window as Window & { __introPlayed?: boolean }).__introPlayed = true
-
-    if (introFallbackTimerRef.current) {
-      clearTimeout(introFallbackTimerRef.current)
-      introFallbackTimerRef.current = null
-    }
-
-    if (cleanupTimerRef.current) {
-      clearTimeout(cleanupTimerRef.current)
-      cleanupTimerRef.current = null
-    }
-
-    if (typeof window !== "undefined") {
-      cleanupTimerRef.current = window.setTimeout(() => {
-        setShowIntro(false)
-        cleanupTimerRef.current = null
-      }, 520)
-    }
-  }
-
-  const getTransitionDelay = (index: number, baseDelay: number) =>
-    contentVisible ? `${baseDelay + index * 0.05}s` : "0s"
+  const getTransitionDelay = (index: number, baseDelay: number) => `${baseDelay + index * 0.05}s`
 
   return (
     <div className="relative min-h-screen overflow-hidden">
         <FinanceBackground />
         <SkipLink />
-        <div
-          className={cn(
-            "transition-opacity duration-700 ease-[var(--ease-standard)]",
-            contentVisible ? "opacity-100" : "opacity-0 pointer-events-none",
-          )}
-        >
-          <LandingHeader />
-        </div>
-        <div
-          className={cn(
-            "transition-opacity duration-700 ease-[var(--ease-standard)]",
-            contentVisible ? "opacity-100" : "opacity-0 pointer-events-none",
-          )}
-        >
-          <BackToTopButton />
-        </div>
-
-        {showIntro && (
-          <div
-            className={cn(
-              "pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-background via-background to-background/95 transition-opacity duration-400 ease-[var(--ease-standard)]",
-              contentVisible ? "opacity-0" : "opacity-100",
-            )}
-            aria-hidden
-          >
-            <div className="relative flex items-center justify-center">
-              <div className="intro-icon-glow absolute inset-0 rounded-[2.75rem]" aria-hidden />
-              <div
-                className="intro-icon relative flex h-48 w-48 items-center justify-center rounded-[2.75rem] bg-gradient-to-br from-primary via-primary/85 to-primary/65 text-primary-foreground shadow-[0_36px_120px_rgba(80,62,185,0.35)]"
-                onAnimationEnd={handleIntroAnimationEnd}
-              >
-                <TrendingUp className="h-24 w-24" strokeWidth={2.25} aria-hidden />
-              </div>
-            </div>
-          </div>
-        )}
+        <LandingHeader />
+        <BackToTopButton />
 
         <main id="main-content" className="relative">
           <LandingInteractiveDemo />
 
-          <section
-            id="product-highlights"
-            aria-labelledby="product-highlights-heading"
-            className="relative px-6 py-32 lg:px-8 scroll-mt-20"
-          >
-            <div
-              className={cn(
-                "mx-auto max-w-7xl transition-all duration-500 ease-[var(--ease-standard)]",
-                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
-              )}
-              style={{ transitionDelay: contentVisible ? "0.35s" : "0s" }}
-            >
-              <h2
-                id="product-highlights-heading"
-                className="mb-12 text-center text-[clamp(2rem,4vw,3rem)] font-semibold tracking-tight text-foreground"
-              >
-                Product highlights
-              </h2>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {features.map((feature, index) => (
-                  <Link
-                    key={feature.title}
-                    href={feature.href}
-                    className={cn(
-                      "group relative flex h-full min-h-[20rem] flex-col justify-between overflow-hidden rounded-3xl border border-border/30 bg-card/80 p-8 text-left shadow-[var(--shadow-soft)] transition-all duration-500 ease-[var(--ease-standard)]",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
-                      "hover:-translate-y-1 hover:shadow-[var(--shadow-bold)] hover:border-primary/40",
-                      contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
-                    )}
-                    style={{ transitionDelay: getTransitionDelay(index, 0.4) }}
-                    aria-label={`Learn more about ${feature.title}`}
-                  >
-                    <div className="mb-6 flex h-14 w-14 items-center justify-center self-start rounded-2xl bg-[var(--surface-security)]/25 text-primary transition-transform duration-300 group-hover:-translate-y-1">
-                      {feature.icon}
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-semibold tracking-tight text-foreground">{feature.title}</h3>
-                      <p className="text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
-                    </div>
-                    <span className="mt-6 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                      Explore <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-
           <section aria-labelledby="feature-highlights" className="relative px-6 pb-24 lg:px-8">
-            <div
-              className={cn(
-                "mx-auto max-w-5xl space-y-24 transition-all duration-500 ease-[var(--ease-standard)]",
-                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
-              )}
-              style={{ transitionDelay: contentVisible ? "0.45s" : "0s" }}
-            >
+            <div className="mx-auto max-w-5xl space-y-24">
               <div className="text-center">
                 <p className="text-sm font-semibold uppercase tracking-wide text-primary">Product highlights</p>
                 <h2 id="feature-highlights" className="mt-3 text-[clamp(2rem,4vw,3rem)] font-semibold tracking-tight">
@@ -283,11 +41,7 @@ export default function LandingPage() {
                   key={highlight.id}
                   id={highlight.id}
                   aria-labelledby={`${highlight.id}-title`}
-                  className={cn(
-                    "grid items-center gap-8 rounded-3xl border border-border/30 bg-card/80 p-8 shadow-[var(--shadow-soft)] lg:grid-cols-[1.2fr_1fr] scroll-mt-20 transition-all duration-500 ease-[var(--ease-standard)]",
-                    contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
-                  )}
-                  style={{ transitionDelay: getTransitionDelay(index, 0.55) }}
+                  className="grid items-center gap-8 rounded-3xl border border-border/30 bg-card/80 p-8 shadow-[var(--shadow-soft)] lg:grid-cols-[1.2fr_1fr] scroll-mt-20"
                 >
                   <div className="space-y-4">
                     <h3 id={`${highlight.id}-title`} className="text-2xl font-semibold tracking-tight text-foreground">
@@ -312,13 +66,7 @@ export default function LandingPage() {
           </section>
 
           <section className="relative px-6 py-32 lg:px-8">
-            <div
-              className={cn(
-                "mx-auto max-w-4xl text-center transition-all duration-500 ease-[var(--ease-standard)]",
-                contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
-              )}
-              style={{ transitionDelay: contentVisible ? "0.65s" : "0s" }}
-            >
+            <div className="mx-auto max-w-4xl text-center">
               <h2 className="mb-6 text-[clamp(2.25rem,5vw,3.5rem)] font-semibold tracking-tight">
                 Ready to unify your
                 <br />
@@ -350,12 +98,7 @@ export default function LandingPage() {
           </section>
         </main>
 
-        <footer
-          className={cn(
-            "relative border-t border-border/20 bg-background/40 backdrop-blur-xl transition-opacity duration-700 ease-[var(--ease-standard)]",
-            contentVisible ? "opacity-100" : "opacity-0",
-          )}
-        >
+        <footer className="relative border-t border-border/20 bg-background/40 backdrop-blur-xl">
           <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
             {/* Main Footer Content */}
             <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:gap-12">
@@ -466,45 +209,6 @@ export default function LandingPage() {
   )
 }
 
-const features = [
-  {
-    icon: <BarChart3 className="h-7 w-7" />,
-    title: "Real-time Analytics",
-    description: "Track your portfolio performance with live data and comprehensive analytics.",
-    href: "/features/analytics",
-  },
-  {
-    icon: <Lock className="h-7 w-7" />,
-    title: "Secure & Reliable",
-    description: "Bank-level security with encrypted data storage and secure authentication.",
-    href: "/features/security",
-  },
-  {
-    icon: <Zap className="h-7 w-7" />,
-    title: "Integrated Workflows",
-    description: "Automate reconciliations, approvals, and reporting without leaving your finance hub.",
-    href: "/features/automation",
-  },
-  {
-    icon: <Sparkles className="h-7 w-7" />,
-    title: "Smart Insights",
-    description: "AI-powered insights help you make informed decisions and spot opportunities.",
-    href: "/features/insights",
-  },
-  {
-    icon: <TrendingUp className="h-7 w-7" />,
-    title: "Portfolio Tracking",
-    description: "Monitor all your investments in one place with detailed performance metrics.",
-    href: "/features/portfolio",
-  },
-  {
-    icon: <Shield className="h-7 w-7" />,
-    title: "Cash Flow Planning",
-    description: "Stay ahead of inflows and outflows with guidance that keeps liquidity on track.",
-    href: "/features/cashflow",
-  },
-]
-
 const featureHighlights = [
   {
     id: "feature-analytics",
@@ -593,7 +297,14 @@ const featureHighlights = [
       "Model scenarios across tax lots, fees, and cash needs.",
       "Provide LPs and execs curated snapshots without extra prep.",
     ],
-    snapshot: <AllocationComparisonSlider />,
+    snapshot: (
+      <>
+        <p className="font-medium text-foreground">Portfolio allocation</p>
+        <p className="mt-2">
+          Track asset allocation across all accounts with real-time rebalancing suggestions.
+        </p>
+      </>
+    ),
   },
   {
     id: "feature-cashflow",

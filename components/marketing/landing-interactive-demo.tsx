@@ -2,14 +2,11 @@
 
 import Link from "next/link"
 import { useState, useRef, useEffect, MouseEvent } from "react"
-import { AllocationGrid } from "@/components/allocation-grid"
-import { HoldingsTable } from "@/components/holdings-table"
 import { motion, useMotionValue, useSpring, useTransform, MotionValue } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Play, ArrowUpRight, ArrowDownRight, Sparkles } from "lucide-react"
-import confetti from "canvas-confetti"
-import { getMockKPIs, getMockAllocation, getMockHoldings } from "@/lib/services/portfolio"
+import { ArrowUpRight, ArrowDownRight, Sparkles } from "lucide-react"
+import { getMockKPIs } from "@/lib/services/portfolio"
 import { BRAND } from "@/lib/brand"
 
 function TiltCard({ children, className, delay = 0 }: { children: React.ReactNode; className?: string, delay?: number }) {
@@ -398,8 +395,7 @@ export function FinanceBackground() {
 }
 
 export function LandingInteractiveDemo() {
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [kpiData, setKpiData] = useState(getMockKPIs())
+  const [kpiData] = useState(getMockKPIs())
   
   const mouseX = useMotionValue(0.5)
   const mouseY = useMotionValue(0.5)
@@ -408,72 +404,6 @@ export function LandingInteractiveDemo() {
     const { left, top, width, height } = currentTarget.getBoundingClientRect()
     mouseX.set((clientX - left) / width)
     mouseY.set((clientY - top) / height)
-  }
-  
-  // Helper to add 'amount' to allocation data which is required by AllocationGrid types
-  const enrichAllocation = (data: ReturnType<typeof getMockAllocation>) => {
-    const enrich = (items: { name: string; value: number; color: string }[]) => 
-      items.map(item => ({ ...item, amount: item.value * 1000 }))
-    return {
-      assetClass: enrich(data.assetClass),
-      sector: enrich(data.sector),
-      region: enrich(data.region)
-    }
-  }
-
-  const [allocationData, setAllocationData] = useState(enrichAllocation(getMockAllocation()))
-  const [holdingsData, setHoldingsData] = useState(getMockHoldings())
-
-  const handleSimulate = () => {
-    setIsAnimating(true)
-    
-    // Trigger confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
-    })
-
-    // Simulate network delay for effect
-    setTimeout(() => {
-      // Randomize data
-      const randomize = (val: number) => val * (0.9 + Math.random() * 0.2)
-      
-      // Update KPIs
-      const newKpis = getMockKPIs().map(kpi => {
-        const numValue = parseFloat(kpi.value.replace(/[^0-9.-]+/g, ""))
-        const newValue = randomize(numValue)
-        return {
-          ...kpi,
-          value: kpi.value.includes("$") 
-            ? `$${newValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : newValue.toFixed(2),
-          change: `${(Math.random() * 10 - 2).toFixed(1)}%`,
-          positive: Math.random() > 0.3
-        }
-      })
-      setKpiData(newKpis)
-
-      // Update Allocation (shuffle values slightly)
-      const rawAllocation = getMockAllocation()
-      const randomizedAllocation = {
-        assetClass: rawAllocation.assetClass.map(item => ({ ...item, value: Math.max(1, Math.round(randomize(item.value))) })),
-        sector: rawAllocation.sector.map(item => ({ ...item, value: Math.max(1, Math.round(randomize(item.value))) })),
-        region: rawAllocation.region.map(item => ({ ...item, value: Math.max(1, Math.round(randomize(item.value))) })),
-      }
-      setAllocationData(enrichAllocation(randomizedAllocation))
-
-      // Update Holdings
-      const newHoldings = getMockHoldings().map(h => ({
-        ...h,
-        currentPrice: randomize(h.currentPrice),
-        change: randomize(h.change),
-      }))
-      setHoldingsData(newHoldings)
-
-      setIsAnimating(false)
-    }, 600)
   }
 
   return (
@@ -533,14 +463,12 @@ export function LandingInteractiveDemo() {
             </p>
             
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-12">
-              <Button 
-                size="lg" 
-                onClick={handleSimulate}
-                disabled={isAnimating}
-                className="rounded-full h-12 px-8 text-base shadow-lg hover:shadow-primary/25 transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-primary/90"
+              <Button
+                asChild
+                size="lg"
+                className="h-12 rounded-full px-8 text-base shadow-lg hover:shadow-primary/25 transition-all hover:scale-105 active:scale-95"
               >
-                <Play className={cn("mr-2 h-5 w-5 fill-current", isAnimating && "animate-pulse")} />
-                {isAnimating ? "Simulating..." : "Simulate Market"}
+                <Link href="/dashboard">Get Started</Link>
               </Button>
               <Button
                 asChild
@@ -586,30 +514,6 @@ export function LandingInteractiveDemo() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10">
-        {/* Allocation - Floating */}
-        <div className="lg:col-span-4">
-          <TiltCard delay={0.4} className="h-full">
-            <AllocationGrid 
-              demoMode={true} 
-              mockDataOverride={allocationData}
-              className="h-full bg-card/80 backdrop-blur-xl border border-border/30 shadow-sm"
-            />
-          </TiltCard>
-        </div>
-
-        {/* Holdings - Floating */}
-        <div className="lg:col-span-8">
-          <TiltCard delay={0.5}>
-            <HoldingsTable 
-              demoMode={true} 
-              mockDataOverride={holdingsData}
-              hideControls={true}
-              className="bg-card/80 backdrop-blur-xl shadow-sm"
-            />
-          </TiltCard>
-        </div>
-      </div>
     </section>
   )
 }
