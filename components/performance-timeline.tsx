@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, ReferenceDot } from "recharts"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useDateRange } from "@/components/date-range-provider"
 import { usePersona } from "@/components/persona-provider"
@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Clock } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LINE_CHART_COLORS, CHART_STYLES, BAR_CHART_PRESETS } from "@/lib/chart-colors"
+import { fetchPortfolioHistory } from "@/lib/api/client"
+import { isMarketingMode } from "@/lib/marketingMode"
 
 const BENCHMARKS = {
   SPY: { label: "S&P 500 (SPY)", drift: 280, volatility: 900, color: BAR_CHART_PRESETS.performance.benchmark },
@@ -94,19 +96,83 @@ export function PerformanceTimeline() {
   const [benchmark, setBenchmark] = useState<BenchmarkKey | null>(null)
   const { dateRange } = useDateRange()
   const { persona } = usePersona()
+  const [historyData, setHistoryData] = useState<TimelinePoint[] | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const data = useMemo(() => {
-    const daysMap = {
-      "1D": 1,
-      "5D": 5,
-      "1M": 30,
-      "6M": 180,
-      YTD: Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (1000 * 60 * 60 * 24)),
-      "1Y": 365,
-      ALL: 730,
+  // Fetch real portfolio history from backend
+  useEffect(() => {
+    // Always use mock data in marketing mode
+    if (isMarketingMode()) {
+      return
     }
-    return generateData(daysMap[dateRange])
+
+    const periodMap: Record<typeof dateRange, Parameters<typeof fetchPortfolioHistory>[0]> = {
+      "1D": "1d",
+      "5D": "1w",
+      "1M": "1m",
+      "6M": "6m",
+      YTD: "ytd",
+      "1Y": "1y",
+      ALL: "all",
+    }
+
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const response = await fetchPortfolioHistory(periodMap[dateRange], "daily")
+        
+        // Transform backend data to chart format
+        const transformedData: TimelinePoint[] = response.data.map((point, index) => {
+          const date = new Date(point.date)
+          
+          // Calculate "planned" value (simple linear growth for now)
+          // TODO: This should come from user's savings goals/projections
+          const planned = response.data[0].portfolio_value + (index * 320)
+          
+          return {
+            index,
+            date: date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            }),
+            portfolio: point.portfolio_value,
+            planned,
+            // Benchmark data will be added later when we implement benchmark history
+            SPY: point.portfolio_value,
+            QQQ: point.portfolio_value,
+            VT: point.portfolio_value,
+          }
+        })
+        
+        setHistoryData(transformedData)
+      } catch (error) {
+        console.error("Failed to fetch portfolio history:", error)
+        // Fall back to mock data on error
+        setHistoryData(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
   }, [dateRange])
+
+  // Use real data if available, otherwise fall back to mock data
+  const data = useMemo(() => {
+    if (isMarketingMode() || !historyData || historyData.length === 0) {
+      const daysMap = {
+        "1D": 1,
+        "5D": 5,
+        "1M": 30,
+        "6M": 180,
+        YTD: Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (1000 * 60 * 60 * 24)),
+        "1Y": 365,
+        ALL: 730,
+      }
+      return generateData(daysMap[dateRange])
+    }
+    return historyData
+  }, [dateRange, historyData])
 
   const milestones = useMemo(() => {
     if (!data.length) return []

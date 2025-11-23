@@ -210,6 +210,26 @@ export async function fetchPortfolioMetrics() {
 }
 
 /**
+ * Portfolio history (time-series data for charts)
+ */
+export async function fetchPortfolioHistory(
+  period: '1d' | '1w' | '1m' | '3m' | '6m' | '1y' | 'ytd' | 'all' = '1y',
+  granularity: 'hourly' | 'daily' | 'weekly' | 'monthly' = 'daily'
+) {
+  return apiFetch<{
+    data: Array<{
+      date: string
+      portfolio_value: number
+      cost_basis: number
+      unrealized_pl: number
+      total_return_pct: number
+    }>
+    period: string
+    granularity: string
+  }>(`/v0/portfolio/history?period=${period}&granularity=${granularity}`)
+}
+
+/**
  * Portfolio benchmark comparison
  */
 export async function fetchPortfolioBenchmark(benchmark = 'SPY', period = '1y') {
