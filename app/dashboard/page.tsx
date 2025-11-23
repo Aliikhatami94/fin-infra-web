@@ -16,11 +16,11 @@ import {
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
 import { DashboardShell } from "@/components/dashboard/shell"
 
-const PerformanceTimeline = dynamic(
-  () => import("@/components/performance-timeline").then((mod) => mod.PerformanceTimeline),
+const NetWorthTimeline = dynamic(
+  () => import("@/components/net-worth-timeline").then((mod) => mod.NetWorthTimeline),
   {
     ssr: false,
-    loading: () => <ChartCardSkeleton title="Performance Timeline" />,
+    loading: () => <ChartCardSkeleton title="Net Worth" />,
   },
 )
 
@@ -74,8 +74,8 @@ export default function OverviewPage() {
           transition={{ duration: 0.18 }}
           className="space-y-4"
         >
-          <h2 className="text-lg font-semibold text-foreground">Portfolio Health</h2>
-          <PerformanceTimeline />
+          <h2 className="text-lg font-semibold text-foreground">Net Worth</h2>
+          <NetWorthTimeline />
         </motion.div>
       ),
       span: "full" as const,

@@ -230,6 +230,25 @@ export async function fetchPortfolioHistory(
 }
 
 /**
+ * Net worth history (time-series data for charts)
+ */
+export async function fetchNetWorthHistory(
+  period: '1d' | '1w' | '1m' | '3m' | '6m' | '1y' | 'ytd' | 'all' = '1y',
+  granularity: 'daily' | 'weekly' | 'monthly' = 'daily'
+) {
+  return apiFetch<{
+    data: Array<{
+      date: string
+      net_worth: number
+      assets: number
+      liabilities: number
+    }>
+    period: string
+    granularity: string
+  }>(`/v0/dashboard/net-worth-history?period=${period}&granularity=${granularity}`)
+}
+
+/**
  * Portfolio benchmark comparison
  */
 export async function fetchPortfolioBenchmark(benchmark = 'SPY', period = '1y') {
