@@ -3,13 +3,11 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
-import { TrendingUp, TrendingDown, Info, ChevronDown, ChevronUp } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { LastSyncBadge } from "@/components/last-sync-badge"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { RiskMetricModal } from "@/components/risk-metric-modal"
-import { KPIIcon } from "@/components/ui/kpi-icon"
+
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
@@ -94,75 +92,32 @@ export function PortfolioKPIs({ demoMode = false, mockDataOverride }: PortfolioK
     return (
       <motion.div {...cardHoverVariants} className="h-full">
         <Card
-          className={`card-standard card-lift h-full ${isRiskMetric ? "cursor-pointer" : ""}`}
+          className={`card-standard h-full ${isRiskMetric ? "cursor-pointer" : ""}`}
           onClick={() => {
             if (metricKey && !isHidden) {
               setSelectedMetric(metricKey)
             }
           }}
         >
-          <CardContent className="flex flex-col h-full gap-3 p-5">
-            <div className="flex items-start justify-between gap-2">
-              <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
-              <KPIIcon icon={Icon} tone="info" size="md" />
-            </div>
-            <div className="space-y-2 flex-1">
-              <div className="flex items-center gap-1.5">
-                <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
-                        aria-label={`More information about ${kpi.label}`}
-                      >
-                        <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-label-xs font-normal max-w-xs">{kpi.tooltip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start gap-2">
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-xs font-medium text-muted-foreground truncate">{kpi.label}</p>
+                {isHidden ? (
+                  <p className="text-2xl font-bold font-tabular text-foreground">••••••</p>
+                ) : (
+                  <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">
+                    <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
+                  </p>
+                )}
               </div>
-              {isHidden ? (
-                <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
-              ) : (
-                <p className="text-kpi font-semibold font-tabular text-foreground">
-                  <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
-                </p>
-              )}
               {!isHidden && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
-                        aria-label={`${kpi.change} change`}
-                      >
-                        {kpi.positive ? (
-                          <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
-                        )}
-                        <span
-                          className={`text-delta font-medium font-tabular ${
-                            kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
-                          }`}
-                        >
-                          <MaskableValue value={kpi.change} className="font-tabular" />
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-label-xs font-normal">
-                        Previous: <span className="font-mono">{kpi.baselineValue}</span>
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <div className={cn("flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium", 
+                  kpi.positive ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+                )}>
+                  {kpi.positive ? "+" : ""}
+                  <MaskableValue value={kpi.change} srLabel="change" className="font-tabular" />
+                </div>
               )}
             </div>
           </CardContent>
@@ -239,7 +194,6 @@ export function PortfolioKPIs({ demoMode = false, mockDataOverride }: PortfolioK
             transition={{ duration: 0.3 }}
             className="overflow-hidden pt-4"
           >
-            <TooltipProvider>
               {/* Mobile: Horizontal carousel */}
               <div className="md:hidden space-y-3">
                 <Carousel
@@ -282,14 +236,13 @@ export function PortfolioKPIs({ demoMode = false, mockDataOverride }: PortfolioK
               </div>
 
               {/* Tablet/Desktop: Grid layout */}
-              <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4">
                 {kpis.map((kpi, index) => (
                   <motion.div key={kpi.label} {...createStaggeredCardVariants(index, 0)} className="h-full">
                     {renderKPICard(kpi)}
                   </motion.div>
                 ))}
               </div>
-            </TooltipProvider>
           </motion.div>
         )}
       </AnimatePresence>

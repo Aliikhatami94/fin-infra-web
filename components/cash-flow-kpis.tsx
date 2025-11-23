@@ -4,11 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react"
 import { Line, LineChart, ResponsiveContainer } from "recharts"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { LastSyncBadge } from "@/components/last-sync-badge"
-import { createStaggeredCardVariants } from "@/lib/motion-variants"
+import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { formatCurrency } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -313,8 +311,54 @@ export function CashFlowKPIs() {
     },
   ]
 
+  const renderKPICard = (kpi: typeof kpiCards[0]) => (
+    <motion.div {...cardHoverVariants} className="h-full">
+      <Card className="card-standard h-full">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start gap-2">
+            <div className="space-y-0.5 min-w-0">
+              <p className="text-xs font-medium text-muted-foreground truncate">{kpi.label}</p>
+              <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">
+                <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
+              </p>
+            </div>
+            {kpi.change !== undefined && (
+              <div className={cn("flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium", 
+                kpi.change >= 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+              )}>
+                {kpi.change >= 0 ? "+" : ""}{kpi.change}%
+              </div>
+            )}
+          </div>
+
+          <div className="mt-2 flex items-center justify-between gap-2">
+            {kpi.note ? (
+              <p className="text-xs text-muted-foreground truncate max-w-[120px]" title={kpi.note}>{kpi.note}</p>
+            ) : <div />}
+
+            {kpi.sparkline && (
+              <div className="w-12 h-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={kpi.sparkline}>
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke={kpi.tone === "positive" ? "var(--color-positive)" : kpi.tone === "warning" ? "var(--color-warning)" : "hsl(210, 100%, 60%)"}
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+
   return (
-    <TooltipProvider>
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-card/30 px-3 py-2">
         <p className="text-xs text-muted-foreground">
           Time scale: <span className="font-medium text-foreground">{timeScaleOptions.find((option) => option.id === activeTimeScale)?.label ?? ""}</span>
@@ -371,90 +415,7 @@ export function CashFlowKPIs() {
             {kpiCards.map((kpi, index) => (
               <CarouselItem key={kpi.id} className="pl-4 basis-[85%] sm:basis-[48%]">
                 <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
-                  <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px]">
-                    <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
-                      <div className="flex items-start justify-between gap-2">
-                        <LastSyncBadge timestamp="2 min ago" source="Plaid" />
-                      </div>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1 flex-1 min-w-0">
-                          <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
-                          <p
-                            className="text-kpi font-semibold font-tabular text-foreground"
-                            aria-label={`${kpi.label} ${kpi.value} ${activeTimeScale}`}
-                            aria-live="polite"
-                          >
-                            <MaskableValue
-                              value={kpi.value}
-                              srLabel={`${kpi.label} value`}
-                              className="font-tabular"
-                            />
-                          </p>
-                        </div>
-                        <KPIIcon icon={kpi.icon} tone={kpi.tone} />
-                      </div>
-                      {kpi.change !== undefined && (
-                        <div className="flex items-end justify-between gap-4">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="delta-chip text-delta font-medium cursor-help">
-                                {(() => {
-                                  const deltaIsPositive = kpi.change >= 0
-                                  const DeltaIcon = deltaIsPositive ? TrendingUp : TrendingDown
-                                  const deltaColor = deltaIsPositive
-                                    ? "text-[var(--color-positive)]"
-                                    : "text-[var(--color-negative)]"
-                                  const deltaPrefix = deltaIsPositive ? "+" : ""
-                                  return (
-                                    <>
-                                      <DeltaIcon className={cn("h-3.5 w-3.5", deltaColor)} aria-hidden="true" />
-                                      <span className={cn("text-delta font-medium font-tabular", deltaColor)}>
-                                        {deltaPrefix}
-                                        {kpi.change}%
-                                      </span>
-                                    </>
-                                  )
-                                })()}
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs">
-                                {kpi.changeComparison}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                          <div className="w-16 h-8">
-                            <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
-                              <LineChart data={kpi.sparkline}>
-                                <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 60%)" strokeWidth={2} dot={false} />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
-                      )}
-                      {kpi.note && (
-                        <div className="border-t border-border/40 pt-3 mt-auto">
-                          <div className="flex items-center justify-between gap-4">
-                            <p className="text-xs text-muted-foreground font-normal line-clamp-2 flex-1">{kpi.note}</p>
-                            <div className="w-16 h-8 shrink-0">
-                              <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
-                                <LineChart data={kpi.sparkline}>
-                                  <Line
-                                    type="monotone"
-                                    dataKey="value"
-                                    stroke={kpi.tone === "positive" ? "var(--color-positive)" : "var(--color-warning)"}
-                                    strokeWidth={2}
-                                    dot={false}
-                                  />
-                                </LineChart>
-                              </ResponsiveContainer>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {kpi.extraContent}
-                    </CardContent>
-                  </Card>
+                  {renderKPICard(kpi)}
                 </motion.div>
               </CarouselItem>
             ))}
@@ -480,96 +441,13 @@ export function CashFlowKPIs() {
       </div>
 
       {/* Desktop: Grid layout */}
-      <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+      <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
         {kpiCards.map((kpi, index) => (
           <motion.div key={kpi.id} {...createStaggeredCardVariants(index, 0)} className="h-full">
-            <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px]">
-              <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
-                <div className="flex items-start justify-between gap-2">
-                  <LastSyncBadge timestamp="2 min ago" source="Plaid" />
-                </div>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
-                    <p
-                      className="text-kpi font-semibold font-tabular text-foreground"
-                      aria-label={`${kpi.label} ${kpi.value} ${activeTimeScale}`}
-                      aria-live="polite"
-                    >
-                      <MaskableValue
-                        value={kpi.value}
-                        srLabel={`${kpi.label} value`}
-                        className="font-tabular"
-                      />
-                    </p>
-                  </div>
-                  <KPIIcon icon={kpi.icon} tone={kpi.tone} />
-                </div>
-                {kpi.change !== undefined && (
-                  <div className="flex items-end justify-between gap-4">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="delta-chip text-delta font-medium cursor-help">
-                          {(() => {
-                            const deltaIsPositive = kpi.change >= 0
-                            const DeltaIcon = deltaIsPositive ? TrendingUp : TrendingDown
-                            const deltaColor = deltaIsPositive
-                              ? "text-[var(--color-positive)]"
-                              : "text-[var(--color-negative)]"
-                            const deltaPrefix = deltaIsPositive ? "+" : ""
-                            return (
-                              <>
-                                <DeltaIcon className={cn("h-3.5 w-3.5", deltaColor)} aria-hidden="true" />
-                                <span className={cn("text-delta font-medium font-tabular", deltaColor)}>
-                                  {deltaPrefix}
-                                  {kpi.change}%
-                                </span>
-                              </>
-                            )
-                          })()}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">
-                          {kpi.changeComparison}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <div className="w-16 h-8">
-                      <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
-                        <LineChart data={kpi.sparkline}>
-                          <Line type="monotone" dataKey="value" stroke="hsl(210, 100%, 60%)" strokeWidth={2} dot={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                )}
-                {kpi.note && (
-                  <div className="border-t border-border/40 pt-3 mt-auto">
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-xs text-muted-foreground font-normal line-clamp-2 flex-1">{kpi.note}</p>
-                      <div className="w-16 h-8 shrink-0">
-                        <ResponsiveContainer width="100%" height="100%" aria-hidden="true">
-                          <LineChart data={kpi.sparkline}>
-                            <Line
-                              type="monotone"
-                              dataKey="value"
-                              stroke={kpi.tone === "positive" ? "var(--color-positive)" : "var(--color-warning)"}
-                              strokeWidth={2}
-                              dot={false}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {kpi.extraContent}
-              </CardContent>
-            </Card>
+            {renderKPICard(kpi)}
           </motion.div>
         ))}
       </div>
-    </TooltipProvider>
+    </div>
   )
 }

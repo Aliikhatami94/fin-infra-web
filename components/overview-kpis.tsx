@@ -5,13 +5,10 @@ import { useRouter } from "next/navigation"
 import type { KPI, KPIQuickAction } from "@/types/domain"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { LastSyncBadge } from "@/components/last-sync-badge"
 import Link from "next/link"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { getTrendSemantic } from "@/lib/color-utils"
@@ -20,7 +17,6 @@ import { useOnboardingState } from "@/hooks/use-onboarding-state"
 import { Button } from "@/components/ui/button"
 import { navigateInApp } from "@/lib/linking"
 import { PlanAdjustModal } from "@/components/plan-adjust-modal"
-import { KPIIcon } from "@/components/ui/kpi-icon"
 import {
   Carousel,
   CarouselContent,
@@ -66,142 +62,38 @@ interface KPICardContentProps {
 function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICardContentProps) {
   const trendValue = kpi.trend === "up" ? 1 : kpi.trend === "down" ? -1 : 0
   const trendStyles = getTrendSemantic(trendValue)
-  const hasQuickActions = kpi.quickActions && kpi.quickActions.length > 0
 
   return (
-    <TooltipProvider>
       <Link href={kpi.href} className="h-full block">
         <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants} className="h-full">
-          <Card className="cursor-pointer card-standard card-lift h-full min-h-[180px] md:min-h-[200px]">
-            <CardContent className="flex flex-col h-full gap-3 p-4 md:p-5">
-              <div className="flex items-start justify-between gap-2 flex-wrap">
-                <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
-                {kpi.badge && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge variant={kpi.badge.variant} className="text-xs font-medium flex items-center gap-1">
-                        {kpi.badge.icon && <kpi.badge.icon className="h-3 w-3" />}
-                        {kpi.badge.label}
-                      </Badge>
-                    </TooltipTrigger>
-                    {kpi.badge.tooltip && (
-                      <TooltipContent>
-                        <p className="text-xs max-w-xs">{kpi.badge.tooltip}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                )}
-              </div>
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 flex-1 min-w-0">
-                  <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
+          <Card className="cursor-pointer card-standard h-full">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start gap-2">
+                <div className="space-y-0.5 min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground truncate">{kpi.label}</p>
                   {isHidden ? (
-                    <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+                    <p className="text-2xl font-bold font-tabular text-foreground">••••••</p>
                   ) : (
-                    <p className="text-kpi font-semibold font-tabular break-words text-foreground">
+                    <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">
                       <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
                     </p>
                   )}
                 </div>
-                <KPIIcon icon={kpi.icon} tone={trendStyles.tone} size="md" />
+                {!isHidden && (
+                  <div className={cn("flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium", 
+                    kpi.trend === "up" ? "bg-emerald-500/10 text-emerald-500" : 
+                    kpi.trend === "down" ? "bg-rose-500/10 text-rose-500" : 
+                    "bg-slate-100 text-slate-500 dark:bg-slate-800"
+                  )}>
+                    {kpi.trend === "up" ? "+" : kpi.trend === "down" ? "" : ""}
+                    <MaskableValue value={kpi.change} srLabel="change" className="font-tabular" />
+                  </div>
+                )}
               </div>
-              {!isHidden && (
-                <>
-                  <div className="flex items-center gap-4">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="delta-chip text-delta font-medium cursor-help">
-                          {kpi.trend === "up" ? (
-                            <TrendingUp className={cn("h-3.5 w-3.5", trendStyles.iconClass)} aria-hidden="true" />
-                          ) : (
-                            <TrendingDown className={cn("h-3.5 w-3.5", trendStyles.iconClass)} aria-hidden="true" />
-                          )}
-                          <span className={cn("text-delta font-medium font-tabular", trendStyles.textClass)}>
-                            <MaskableValue
-                              value={kpi.change}
-                              srLabel={`${kpi.label} change`}
-                              className="font-tabular"
-                            />
-                          </span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">
-                          vs. last month: <span className="font-mono">{kpi.baselineValue}</span>
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <div
-                    className={cn(
-                      "border-t border-border/40 pt-3 mt-auto h-[52px] overflow-hidden",
-                      hasQuickActions
-                        ? "flex max-w-full items-start gap-2 flex-wrap content-start"
-                        : "",
-                    )}
-                  >
-                    {hasQuickActions && kpi.quickActions?.map((action: KPIQuickAction) => {
-                        const isDisabled = action.disabled
-                        const actionLabel = action.description ?? `${action.label} for ${kpi.label}`
-                        const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                          if (isDisabled) {
-                            return
-                          }
-
-                          if (action.intent === "plan-adjust") {
-                            onPlanModalOpen()
-                            return
-                          }
-
-                          if (action.href) {
-                            await navigateInApp(router, action.href, {
-                              toastMessage: `We couldn't open ${action.label}.`,
-                              toastDescription: `Try again shortly or head back to your dashboard to continue exploring.`,
-                            })
-                          }
-                        }
-
-                        const button = (
-                          <Button
-                            key={`${kpi.label}-${action.label}`}
-                            variant="ghost"
-                            size="sm"
-                            type="button"
-                            className="h-7 px-2 text-xs font-medium whitespace-nowrap shrink-0"
-                            aria-label={actionLabel}
-                            onClick={handleClick}
-                            disabled={isDisabled}
-                          >
-                            <span className="inline-flex items-center gap-1">
-                              <span className="truncate">{action.label}</span>
-                              {!isDisabled && <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
-                            </span>
-                          </Button>
-                        )
-
-                        if (!action.tooltip) {
-                          return button
-                        }
-
-                        return (
-                          <Tooltip key={`${kpi.label}-${action.label}`}>
-                            <TooltipTrigger asChild>
-                              <span className="inline-flex">{button}</span>
-                            </TooltipTrigger>
-                            <TooltipContent>{action.tooltip}</TooltipContent>
-                          </Tooltip>
-                        )
-                      })}
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
         </motion.div>
       </Link>
-    </TooltipProvider>
   )
 }
 
@@ -354,7 +246,7 @@ export function OverviewKPIs() {
             </div>
 
                 {/* Tablet/Desktop: Grid layout */}
-                <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+                <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
                   {kpis.map((kpi, index) => (
                     <KPICardContent
                       key={kpi.label}

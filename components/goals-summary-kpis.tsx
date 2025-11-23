@@ -3,14 +3,12 @@
 import { useMemo, useState, useEffect } from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { TrendingUp, DollarSign, Target, ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { createStaggeredCardVariants } from "@/lib/motion-variants"
-import { LastSyncBadge } from "@/components/last-sync-badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
 import { Progress } from "@/components/ui/progress"
 import { useOnboardingState } from "@/hooks/use-onboarding-state"
-import { KPIIcon } from "@/components/ui/kpi-icon"
+
 import { Button } from "@/components/ui/button"
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import { cn } from "@/lib/utils"
@@ -108,55 +106,28 @@ export function GoalsSummaryKPIs() {
   const renderKPICard = (cardId: string, index: number) => {
     if (cardId === 'progress') {
       return (
-        <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px] overflow-hidden">
-          <CardContent className="flex h-full flex-col gap-2 p-4 md:p-5 w-full min-w-0">
-            <div className="flex items-start justify-between gap-2 min-w-0">
-              <div className="space-y-1 flex-1 min-w-0">
-                <div className="flex items-center flex-wrap gap-2 mb-1">
-                  <p className="text-label-xs text-muted-foreground truncate">{primaryLabel}</p>
-                  <LastSyncBadge timestamp="5 min ago" source="Manual" />
+        <Card className="card-standard h-full">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start gap-2">
+              <div className="space-y-0.5 min-w-0 w-full">
+                <div className="flex justify-between items-start">
+                   <p className="text-xs font-medium text-muted-foreground truncate">{primaryLabel}</p>
+                   <div className="flex items-center px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 text-[10px] font-medium">
+                     {percentComplete}%
+                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2 text-label-xs text-muted-foreground font-normal">
-                    <div className="min-w-0">
-                      <span className="block">Saved</span>
-                      <span className="block font-medium text-foreground font-tabular truncate">${totalSaved.toLocaleString()}</span>
-                    </div>
-                    <div className="min-w-0 text-right">
-                      <span className="block">Target</span>
-                      <span className="block font-medium text-foreground font-tabular truncate">${totalTarget.toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <Progress value={percentComplete} aria-label={`${percentComplete}% of goal funded`} />
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-kpi font-semibold font-tabular">{percentComplete}%</span>
-                    <span className="text-label-xs text-muted-foreground font-normal shrink-0">complete</span>
-                  </div>
+                <div className="flex items-baseline justify-between">
+                   <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">{percentComplete}%</p>
+                   <p className="text-xs text-muted-foreground">of ${totalTarget.toLocaleString()}</p>
                 </div>
+                <Progress value={percentComplete} className="h-1.5 mt-1" />
               </div>
-              <KPIIcon icon={Target} tone="info" shape="circle" className="shrink-0" />
             </div>
-            <div className="flex items-end justify-between gap-2 mt-auto min-w-0">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className="inline-flex items-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help text-label-xs text-[var(--color-positive)] shrink-0"
-                      aria-label="Goal progress in the last 6 months"
-                    >
-                      Last 6 months
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-label-xs font-normal">Previous balance: $54,000</p>
-                    <p className="text-label-xs font-normal">Current balance: ${totalSaved.toLocaleString()}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <div className="shrink-0 flex-1 flex justify-end min-w-0 max-w-[100px]">
-                <MiniSparkline data={sparklineData} color="hsl(217, 91%, 60%)" />
-              </div>
+
+            <div className="mt-2 flex items-center justify-end">
+               <div className="w-12 h-6">
+                  <MiniSparkline data={sparklineData} color="hsl(217, 91%, 60%)" />
+               </div>
             </div>
           </CardContent>
         </Card>
@@ -165,45 +136,25 @@ export function GoalsSummaryKPIs() {
     
     if (cardId === 'contribution') {
       return (
-        <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px] overflow-hidden">
-          <CardContent className="flex h-full flex-col gap-2 p-4 md:p-5 w-full min-w-0">
-            <div className="flex items-start justify-between gap-2 min-w-0">
-              <div className="space-y-1 min-w-0 flex-1">
-                <div className="flex items-center flex-wrap gap-2 mb-1">
-                  <p className="text-label-xs text-muted-foreground truncate">{monthlyLabel}</p>
-                  <LastSyncBadge timestamp="5 min ago" source="Manual" />
-                </div>
-                <p className="text-kpi font-semibold font-tabular truncate">
+        <Card className="card-standard h-full">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start gap-2">
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-xs font-medium text-muted-foreground truncate">{monthlyLabel}</p>
+                <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">
                   ${monthlyContribution.toLocaleString()}
-                  <span className="text-body-sm font-normal text-muted-foreground">/mo</span>
+                  <span className="text-sm font-normal text-muted-foreground ml-1">/mo</span>
                 </p>
               </div>
-              <KPIIcon icon={DollarSign} tone="positive" shape="circle" className="shrink-0" />
+              <div className="flex items-center px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
+                On Track
+              </div>
             </div>
-            <div className="flex items-end justify-between gap-2 mt-auto min-w-0">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help shrink-0"
-                        aria-label={`${contributionRate}% of target contribution`}
-                      >
-                        <span className="text-label-xs text-[var(--color-warning)]">{contributionRate}%</span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-label-xs font-normal">Target: ${targetContribution.toLocaleString()}/mo</p>
-                      <p className="text-label-xs font-normal">Current: ${monthlyContribution.toLocaleString()}/mo</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <span className="text-label-xs text-muted-foreground font-normal shrink-0">of target</span>
-              </div>
-              <div className="shrink-0 flex-1 flex justify-end min-w-0 max-w-[100px]">
-                <MiniSparkline data={contributionData} color="var(--color-positive)" />
-              </div>
+
+            <div className="mt-2 flex items-center justify-end">
+               <div className="w-12 h-6">
+                  <MiniSparkline data={contributionData} color="var(--color-positive)" />
+               </div>
             </div>
           </CardContent>
         </Card>
@@ -212,26 +163,26 @@ export function GoalsSummaryKPIs() {
     
     // funding card
     return (
-      <Card className="card-standard card-lift h-full min-h-[200px] md:min-h-[220px] overflow-hidden">
-        <CardContent className="flex h-full flex-col gap-2 p-4 md:p-5 w-full min-w-0">
-          <div className="flex items-start justify-between gap-2 min-w-0">
-            <div className="space-y-1 flex-1 min-w-0">
-              <div className="flex items-center flex-wrap gap-2 mb-1">
-                <p className="text-label-xs text-muted-foreground truncate">{fundingHeadline}</p>
-                <LastSyncBadge timestamp="5 min ago" source="Manual" />
-              </div>
-              <p className="text-title-sm font-semibold text-foreground">On Track</p>
+      <Card className="card-standard h-full">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start gap-2">
+            <div className="space-y-0.5 min-w-0">
+              <p className="text-xs font-medium text-muted-foreground truncate">{fundingHeadline}</p>
+              <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">On Track</p>
             </div>
-            <KPIIcon icon={TrendingUp} tone="positive" shape="circle" className="shrink-0" />
+            <div className="flex items-center px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
+              Safe
+            </div>
           </div>
-          <div className="space-y-1 mt-auto">
-            <div className="flex items-center justify-between gap-2 text-label-xs text-muted-foreground font-normal min-w-0">
-              <span className="truncate flex-1">Emergency Fund</span>
-              <span className="font-medium text-foreground font-tabular shrink-0">$500/mo</span>
+
+          <div className="mt-2 space-y-0.5">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="truncate">Emergency Fund</span>
+              <span className="font-medium text-foreground">$500</span>
             </div>
-            <div className="flex items-center justify-between gap-2 text-label-xs text-muted-foreground font-normal min-w-0">
-              <span className="truncate flex-1">House Down Payment</span>
-              <span className="font-medium text-foreground font-tabular shrink-0">$600/mo</span>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="truncate">House Down Payment</span>
+              <span className="font-medium text-foreground">$600</span>
             </div>
           </div>
         </CardContent>
@@ -286,7 +237,7 @@ export function GoalsSummaryKPIs() {
                 <CarouselContent className="-ml-4 pt-4">
                   {kpiCards.map((card) => (
                     <CarouselItem key={card.id} className="pl-4 basis-[85%] sm:basis-[48%]">
-                      <motion.div {...createStaggeredCardVariants(card.index, 0)} className="h-full">
+                      <motion.div {...createStaggeredCardVariants(card.index, 0)} {...cardHoverVariants} className="h-full">
                         {renderKPICard(card.id, card.index)}
                       </motion.div>
                     </CarouselItem>
@@ -313,9 +264,9 @@ export function GoalsSummaryKPIs() {
             </div>
 
             {/* Tablet/Desktop: Grid layout */}
-            <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+            <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
               {kpiCards.map((card) => (
-                <motion.div key={card.id} {...createStaggeredCardVariants(card.index, 0)} className="h-full">
+                <motion.div key={card.id} {...createStaggeredCardVariants(card.index, 0)} {...cardHoverVariants} className="h-full">
                   {renderKPICard(card.id, card.index)}
                 </motion.div>
               ))}

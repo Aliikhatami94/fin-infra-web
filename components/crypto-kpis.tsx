@@ -4,20 +4,15 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MaskableValue } from "@/components/privacy-provider"
 import {
-  TrendingUp,
-  TrendingDown,
-  Info,
   Bitcoin,
   DollarSign,
   Coins,
   TrendingUpIcon,
 } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { LastSyncBadge } from "@/components/last-sync-badge"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { createStaggeredCardVariants } from "@/lib/motion-variants"
-import { KPIIcon } from "@/components/ui/kpi-icon"
+import { createStaggeredCardVariants, cardHoverVariants } from "@/lib/motion-variants"
+
 import {
   Carousel,
   CarouselContent,
@@ -137,80 +132,35 @@ export function CryptoKPIs() {
   const renderKPICard = (kpi: typeof kpis[0], index: number) => {
     const Icon = kpi.icon
     return (
-      <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
+      <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants} className="h-full">
         <Card
-          className={`card-standard card-lift h-full min-h-[200px] md:min-h-[220px] ${kpi.clickable ? "cursor-pointer" : ""}`}
+          className={`card-standard h-full ${kpi.clickable ? "cursor-pointer" : ""}`}
           onClick={() => kpi.clickable && router.push("/crypto/btc")}
         >
-          <CardContent className="flex flex-col h-full gap-2 p-4 md:p-5">
-                <div className="flex items-start justify-between gap-2">
-                  <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
-                </div>
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <p className="text-label-xs text-muted-foreground">{kpi.label}</p>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              className="inline-flex items-center justify-center rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors"
-                              aria-label={`More information about ${kpi.label}`}
-                            >
-                              <Info className="h-3 w-3 text-muted-foreground" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-label-xs font-normal">{kpi.tooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <KPIIcon icon={Icon} tone="info" />
-                  </div>
-                  <p
-                    className="text-kpi font-semibold font-tabular text-foreground"
-                    aria-label={`${kpi.label} ${kpi.value}`}
-                  >
-                    <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
-                  </p>
-                  <div className="flex items-center justify-between gap-3">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
-                            aria-label={`${kpi.change} vs. yesterday`}
-                          >
-                            {kpi.positive ? (
-                              <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
-                            ) : (
-                              <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
-                            )}
-                            <span
-                              className={`text-delta font-medium font-tabular ${
-                                kpi.positive ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
-                              }`}
-                            >
-                              <MaskableValue value={kpi.change} className="font-tabular" />
-                            </span>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-label-xs font-normal">
-                            vs. yesterday: <span className="font-mono">{kpi.baselineValue}</span>
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <Sparkline data={kpi.sparkline} positive={kpi.positive} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start gap-2">
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-xs font-medium text-muted-foreground truncate">{kpi.label}</p>
+                <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">
+                  <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
+                </p>
+              </div>
+              <div className={cn("flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium", 
+                kpi.positive ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+              )}>
+                {kpi.positive ? "+" : ""}
+                <MaskableValue value={kpi.change} srLabel="change" className="font-tabular" />
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center justify-end">
+              <div className="w-12 h-6">
+                <Sparkline data={kpi.sparkline} positive={kpi.positive} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     )
   }
 
@@ -254,7 +204,7 @@ export function CryptoKPIs() {
       </div>
 
       {/* Tablet/Desktop: Grid layout */}
-      <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+      <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
         {kpis.map((kpi, index) => (
           <div key={index}>
             {renderKPICard(kpi, index)}
