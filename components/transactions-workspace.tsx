@@ -584,7 +584,7 @@ export function TransactionsWorkspace() {
           ) : (
             filteredTransactions.map((transaction) => {
               const isSelected = selectedTransactionIds.includes(transaction.id)
-              const amountClass = transaction.amount >= 0 ? "text-emerald-600" : "text-foreground"
+              const amountClass = transaction.amount >= 0 ? "text-emerald-600 dark:text-emerald-500" : "text-foreground"
               const formattedAmount = formatCurrency(transaction.amount)
 
               return (
@@ -600,53 +600,58 @@ export function TransactionsWorkspace() {
                     }
                   }}
                   className={cn(
-                    "card-standard card-lift space-y-3 p-4 transition-colors",
+                    "card-standard card-lift p-4 transition-colors",
                     isSelected ? "ring-2 ring-primary" : "hover:border-border/70",
                   )}
                   aria-pressed={isSelected}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">{transaction.merchant}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(transaction.date).toLocaleDateString()} · {transaction.account}
+                  {/* Header Row: Icon, Merchant, Checkbox */}
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
+                      <transaction.icon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{transaction.merchant}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {new Date(transaction.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </p>
                     </div>
                     <Checkbox
                       checked={isSelected}
                       onCheckedChange={() => toggleTransaction(transaction.id)}
                       aria-label={`Select transaction from ${transaction.merchant}`}
+                      className="mt-1"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <span className="font-medium text-foreground">{transaction.category}</span>
-                      {transaction.isNew ? <Badge variant="secondary">New</Badge> : null}
+                  {/* Details Row: Category, Badges, Amount */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs min-w-0">
+                      <span className="font-medium text-foreground px-2 py-0.5 rounded-md bg-muted/50">{transaction.category}</span>
                       {transaction.isRecurring ? (
-                        <Badge variant="secondary" className="bg-blue-500/10 text-blue-700">
+                        <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 text-[10px]">
                           Recurring
                         </Badge>
                       ) : null}
                       {transaction.isFlagged ? (
-                        <Badge variant="secondary" className="bg-amber-500/15 text-amber-700">
+                        <Badge variant="secondary" className="bg-amber-500/15 text-amber-700 text-[10px]">
                           Flagged
                         </Badge>
                       ) : null}
                       {transaction.isTransfer ? (
-                        <Badge variant="secondary" className="bg-purple-500/15 text-purple-700">
+                        <Badge variant="secondary" className="bg-purple-500/15 text-purple-700 text-[10px]">
                           Transfer
                         </Badge>
                       ) : null}
-                      {(transaction.tags ?? []).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-[10px]">
-                          #{tag}
-                        </Badge>
-                      ))}
                     </div>
-                    <span className={cn("text-sm font-semibold tabular-nums", amountClass)}>
+                    <span className={cn("text-base font-semibold tabular-nums whitespace-nowrap flex-shrink-0", amountClass)}>
                       <MaskableValue value={formattedAmount} srLabel={`Amount ${formattedAmount}`} />
                     </span>
+                  </div>
+
+                  {/* Account Row */}
+                  <div className="mt-2 pt-2 border-t border-border/40">
+                    <p className="text-xs text-muted-foreground truncate">{transaction.account}</p>
                   </div>
                 </div>
               )
@@ -697,70 +702,102 @@ export function TransactionsWorkspace() {
               </div>
             </div>
           ) : (
-            <Virtuoso<Transaction>
-              data={filteredTransactions}
-              overscan={200}
-              itemContent={(_index, transaction) => {
-                const isSelected = selectedTransactionIds.includes(transaction.id)
-                const amountClass = transaction.amount >= 0 ? "text-emerald-500" : "text-foreground"
+            <>
+              {/* Table Header */}
+              <div className="grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b border-border/60 bg-muted/30 px-6 py-3 text-xs font-medium text-muted-foreground">
+                <div></div>
+                <div>Description</div>
+                <div>Date</div>
+                <div>Category</div>
+                <div className="text-right">Amount</div>
+              </div>
+              
+              {/* Table Body with Virtualization */}
+              <Virtuoso<Transaction>
+                data={filteredTransactions}
+                overscan={200}
+                itemContent={(_index, transaction) => {
+                  const isSelected = selectedTransactionIds.includes(transaction.id)
+                  const amountClass = transaction.amount >= 0 ? "text-emerald-600 dark:text-emerald-500" : "text-foreground"
 
-                return (
-                  <div
-                    key={transaction.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => toggleTransaction(transaction.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault()
-                        toggleTransaction(transaction.id)
-                      }
-                    }}
-                    className={cn(
-                      "grid grid-cols-[auto_minmax(0,auto)_minmax(0,1fr)_auto] items-center gap-4 border-b border-border/40 px-6 py-4 transition-colors",
-                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                      isSelected ? "bg-primary/5" : "hover:bg-muted/40",
-                    )}
-                  >
-                    <Checkbox checked={isSelected} onCheckedChange={() => toggleTransaction(transaction.id)} />
-                    <div className="flex flex-col text-xs text-muted-foreground min-w-0">
-                      <span className="font-medium text-foreground truncate">{transaction.merchant}</span>
-                      <span className="truncate">{new Date(transaction.date).toLocaleDateString()}</span>
-                      <span className="truncate">{transaction.account}</span>
-                    </div>
-                    <div className="flex flex-col gap-1 text-xs min-w-0">
-                      <span className="font-semibold text-foreground truncate">{transaction.category}</span>
-                      <div className="flex flex-wrap items-center gap-1">
-                        {transaction.isNew ? <Badge variant="secondary">New</Badge> : null}
-                        {transaction.isRecurring ? (
-                          <Badge variant="secondary" className="bg-blue-500/10 text-blue-700">
-                            Recurring
-                          </Badge>
-                        ) : null}
-                        {transaction.isFlagged ? (
-                          <Badge variant="secondary" className="bg-amber-500/15 text-amber-700">
-                            Flagged
-                          </Badge>
-                        ) : null}
-                        {transaction.isTransfer ? (
-                          <Badge variant="secondary" className="bg-purple-500/15 text-purple-700">
-                            Transfer
-                          </Badge>
-                        ) : null}
-                        {(transaction.tags ?? []).map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-[10px]">
-                            #{tag}
-                          </Badge>
-                        ))}
+                  return (
+                    <div
+                      key={transaction.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => toggleTransaction(transaction.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault()
+                          toggleTransaction(transaction.id)
+                        }
+                      }}
+                      className={cn(
+                        "grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b border-border/40 px-6 py-3.5 transition-colors",
+                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                        isSelected ? "bg-primary/5" : "hover:bg-muted/30",
+                      )}
+                    >
+                      {/* Checkbox */}
+                      <div className="flex items-center">
+                        <Checkbox 
+                          checked={isSelected} 
+                          onCheckedChange={() => toggleTransaction(transaction.id)}
+                          aria-label={`Select ${transaction.merchant}`}
+                        />
+                      </div>
+
+                      {/* Description Column */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
+                          <transaction.icon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-foreground truncate">{transaction.merchant}</p>
+                          <p className="text-xs text-muted-foreground truncate">{transaction.account}</p>
+                        </div>
+                      </div>
+
+                      {/* Date Column */}
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(transaction.date).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </div>
+
+                      {/* Category Column */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm font-medium text-foreground truncate">{transaction.category}</span>
+                        <div className="flex flex-wrap items-center gap-1">
+                          {transaction.isRecurring ? (
+                            <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 text-[10px] px-1.5 py-0">
+                              Recurring
+                            </Badge>
+                          ) : null}
+                          {transaction.isFlagged ? (
+                            <Badge variant="secondary" className="bg-amber-500/15 text-amber-700 text-[10px] px-1.5 py-0">
+                              Flagged
+                            </Badge>
+                          ) : null}
+                          {transaction.isTransfer ? (
+                            <Badge variant="secondary" className="bg-purple-500/15 text-purple-700 text-[10px] px-1.5 py-0">
+                              Transfer
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* Amount Column */}
+                      <div className={cn("text-right text-sm font-semibold tabular-nums", amountClass)}>
+                        <MaskableValue value={formatCurrency(transaction.amount)} srLabel={`Amount ${formatCurrency(transaction.amount)}`} />
                       </div>
                     </div>
-                    <div className={cn("text-right text-sm font-semibold tabular-nums whitespace-nowrap", amountClass)}>
-                      {formatCurrency(transaction.amount)}
-                    </div>
-                  </div>
-                )
-              }}
-            />
+                  )
+                }}
+              />
+            </>
           )}
         </div>
       </CardContent>
