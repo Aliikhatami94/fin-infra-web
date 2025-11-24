@@ -123,7 +123,7 @@ export function CashFlow() {
           </div>
         ) : (
         <ChartContainer config={chartConfig} className="h-[320px] w-full">
-          <ComposedChart data={cashFlowData} margin={{ left: 0, right: 0, top: 20, bottom: 0 }} className="text-foreground">
+          <ComposedChart data={cashFlowData} margin={{ left: 0, right: 0, top: 20, bottom: 0 }} barGap={2} barCategoryGap="25%" className="text-foreground">
             <defs>
               <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="currentColor" stopOpacity={0.9} />
@@ -183,17 +183,17 @@ export function CashFlow() {
             />
             <ReferenceLine y={averageIncome} strokeDasharray="5 5" strokeOpacity={0.4} strokeWidth={1.5} className="stroke-muted-foreground">
               <Label 
-                value="avg income" 
+                value={`avg income $${(averageIncome / 1000).toFixed(1)}k`}
                 position="insideTopLeft" 
                 offset={5} 
                 fill="currentColor"
-                fontSize={11} 
-                fontWeight={500}
+                fontSize={10} 
+                fontWeight={200}
                 className="hidden sm:block text-muted-foreground" 
               />
             </ReferenceLine>
-            <Bar dataKey="income" fill="url(#colorIncome)" radius={[8, 8, 0, 0]} maxBarSize={56} />
-            <Bar dataKey="expenses" fill="url(#colorExpenses)" radius={[8, 8, 0, 0]} maxBarSize={44} />
+            <Bar dataKey="income" fill="url(#colorIncome)" radius={[8, 8, 0, 0]} maxBarSize={50} />
+            <Bar dataKey="expenses" fill="url(#colorExpenses)" radius={[8, 8, 0, 0]} maxBarSize={50} />
           </ComposedChart>
         </ChartContainer>
         )}
