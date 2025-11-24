@@ -106,7 +106,7 @@ export function CashFlow() {
           <CardDescription className="text-sm">Income vs expenses with net cash flow trend</CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[120px] h-9 text-xs font-medium">
+          <SelectTrigger className="w-[150px] h-9 text-xs font-medium">
             <SelectValue placeholder="Select range" />
           </SelectTrigger>
           <SelectContent>

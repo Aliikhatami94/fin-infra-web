@@ -194,7 +194,7 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
 
           {/* Account Filter */}
           <Select value={account} onValueChange={setAccount}>
-            <SelectTrigger className="w-[130px] h-7 text-xs border-border/60 bg-card/30">
+            <SelectTrigger className="w-[150px] h-7 text-xs border-border/60 bg-card/30">
               <SelectValue placeholder="Account" />
             </SelectTrigger>
             <SelectContent>
