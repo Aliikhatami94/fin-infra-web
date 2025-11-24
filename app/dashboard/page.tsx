@@ -20,7 +20,7 @@ const NetWorthTimeline = dynamic(
   () => import("@/components/net-worth-timeline").then((mod) => mod.NetWorthTimeline),
   {
     ssr: false,
-    loading: () => <ChartCardSkeleton title="Net Worth" />,
+    loading: () => null, // Don't show skeleton - component handles its own visibility
   },
 )
 
@@ -72,9 +72,7 @@ export default function OverviewPage() {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18 }}
-          className="space-y-4"
         >
-          <h2 className="text-lg font-semibold text-foreground">Net Worth</h2>
           <NetWorthTimeline />
         </motion.div>
       ),

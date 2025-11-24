@@ -52,10 +52,11 @@ export function NetWorthTimeline() {
   const { dateRange } = useDateRange()
   const [historyData, setHistoryData] = useState<NetWorthPoint[] | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [hasError, setHasError] = useState(false)
 
   // Fetch real net worth history from backend
   useEffect(() => {
-    // Always use mock data in marketing mode
+    // Marketing mode: show mock data
     if (isMarketingMode()) {
       return
     }
@@ -72,6 +73,7 @@ export function NetWorthTimeline() {
 
     const fetchData = async () => {
       setIsLoading(true)
+      setHasError(false)
       try {
         const response = await fetchNetWorthHistory(periodMap[dateRange], "daily")
         
@@ -94,7 +96,7 @@ export function NetWorthTimeline() {
         setHistoryData(transformedData)
       } catch (error) {
         console.error("Failed to fetch net worth history:", error)
-        // Fall back to mock data on error
+        setHasError(true)
         setHistoryData(null)
       } finally {
         setIsLoading(false)
@@ -104,9 +106,9 @@ export function NetWorthTimeline() {
     fetchData()
   }, [dateRange])
 
-  // Use real data if available, otherwise fall back to mock data
+  // Marketing mode: show mock data
   const data = useMemo(() => {
-    if (isMarketingMode() || !historyData || historyData.length === 0) {
+    if (isMarketingMode()) {
       const daysMap = {
         "1D": 1,
         "5D": 5,
@@ -118,8 +120,17 @@ export function NetWorthTimeline() {
       }
       return generateMockData(daysMap[dateRange])
     }
-    return historyData
+    return historyData || []
   }, [dateRange, historyData])
+
+  // Don't show chart if:
+  // 1. Not in marketing mode AND
+  // 2. (Loading, error, or insufficient data - need at least 7 days)
+  if (!isMarketingMode()) {
+    if (isLoading || hasError || !historyData || historyData.length < 7) {
+      return null
+    }
+  }
 
   const stats = useMemo(() => {
     if (data.length === 0) return null
@@ -138,7 +149,9 @@ export function NetWorthTimeline() {
   }, [data])
 
   return (
-    <Card className="border-border/40">
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold text-foreground">Net Worth</h2>
+      <Card className="border-border/40">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-medium">Net Worth Over Time</CardTitle>
@@ -225,5 +238,6 @@ export function NetWorthTimeline() {
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }
