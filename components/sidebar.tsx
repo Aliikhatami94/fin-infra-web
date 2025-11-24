@@ -385,48 +385,42 @@ export function Sidebar({
               {collapsed && !mobileOpen ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-full"
+                    <button
+                      className="group flex items-center justify-center gap-2.5 rounded-md px-3 py-1.5 text-sm font-normal transition-colors text-muted-foreground hover:bg-muted hover:text-foreground w-full"
                       onClick={() => {
                         window.dispatchEvent(new Event('openFeedbackDialog'))
                       }}
                       aria-label="Give feedback"
                     >
-                      <HelpCircle className="h-4 w-4" />
-                    </Button>
+                      <HelpCircle className="h-5 w-5 shrink-0" />
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent side="right">
                     <p>Give feedback</p>
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                <button
+                  className="group flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm font-normal transition-colors text-muted-foreground hover:bg-muted hover:text-foreground w-full"
                   onClick={() => {
                     window.dispatchEvent(new Event('openFeedbackDialog'))
                   }}
                 >
-                  <HelpCircle className="h-4 w-4" />
-                  <span className="ml-2">Give feedback</span>
-                </Button>
+                  <HelpCircle className="h-5 w-5 shrink-0" />
+                  <span className="flex-1 text-left">Give feedback</span>
+                </button>
               )}
             </div>
             <div className="p-2 hidden lg:block">
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={toggleCollapsed}
-                className="w-full justify-start"
+                className="group flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm font-normal transition-colors text-muted-foreground hover:bg-muted hover:text-foreground w-full"
                 aria-pressed={collapsed}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
-                <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
-                {!collapsed && <span className="ml-2">Collapse</span>}
-              </Button>
+                <ChevronLeft className={cn("h-5 w-5 shrink-0 transition-transform", collapsed && "rotate-180")} />
+                {!collapsed && <span className="flex-1 text-left">Collapse</span>}
+              </button>
             </div>
           </div>
         </div>

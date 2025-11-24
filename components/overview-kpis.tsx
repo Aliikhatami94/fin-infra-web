@@ -85,7 +85,6 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
                     kpi.trend === "down" ? "bg-rose-500/10 text-rose-500" : 
                     "bg-slate-100 text-slate-500 dark:bg-slate-800"
                   )}>
-                    {kpi.trend === "up" ? "+" : kpi.trend === "down" ? "" : ""}
                     <MaskableValue value={kpi.change} srLabel="change" className="font-tabular" />
                   </div>
                 )}
