@@ -29,11 +29,11 @@
   --chart-1: oklch(0.4 0.05 250);
   --chart-2: oklch(0.55 0.15 150);
   --chart-3: oklch(0.55 0.22 25);
-  --radius: 0.75rem;
+  --radius: 0.5rem;
   --space-card: 1.25rem;
   --space-gap: 1.5rem;
   --kpi-size: 2rem;
-  --radius-lg: 1rem;
+  --radius-lg: 0.625rem;
   --icon-size: 1.5rem;
   --icon-size-sm: 1.25rem;
   --sidebar: oklch(0.98 0.01 255);
@@ -67,7 +67,7 @@
   --space-card-inline: clamp(1.25rem, 0.85rem + 1vw, 2.25rem);
   --space-card-block: clamp(1rem, 0.8rem + 0.6vw, 1.9rem);
   --space-card-gap: clamp(1rem, 0.85rem + 0.5vw, 1.75rem);
-  --card-radius: calc(var(--radius) + 0.35rem);
+  --card-radius: calc(var(--radius) + 0.125rem);
   --table-cell-padding-y: 0.6rem;
   --table-cell-padding-x: clamp(0.75rem, 0.65rem + 0.4vw, 1.35rem);
   --table-surface-bg: color-mix(in oklab, var(--card) 92%, transparent);
