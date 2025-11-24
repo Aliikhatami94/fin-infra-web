@@ -305,7 +305,6 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                   fill="url(#colorInflow)"
                   radius={[4, 4, 0, 0]}
                   onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
-                  cursor="pointer"
                   maxBarSize={28}
                 >
                   {monthlyData.map((entry, index) => {
@@ -321,7 +320,6 @@ export function CashFlowChart({ onMonthClick, selectedMonth }: CashFlowChartProp
                   fill="url(#colorOutflow)"
                   radius={[4, 4, 0, 0]}
                   onClick={(_, index) => onMonthClick?.(monthlyData[index].month)}
-                  cursor="pointer"
                   maxBarSize={28}
                 >
                   {monthlyData.map((entry, index) => {

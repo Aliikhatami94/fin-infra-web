@@ -156,7 +156,7 @@ export function Sidebar({
                 const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
                 const linkClasses = cn(
                   "group flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm font-normal transition-colors",
-                  active ? "bg-accent-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  active ? "bg-accent-muted text-foreground" : "text-muted-foreground/80 hover:bg-muted hover:text-foreground",
                 )
 
                 // On mobile (when mobileOpen is true), always show expanded view
@@ -230,7 +230,7 @@ export function Sidebar({
                   const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
                   const linkClasses = cn(
                     "group flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm font-normal transition-colors",
-                    active ? "bg-accent-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    active ? "bg-accent-muted text-foreground" : "text-muted-foreground/80 hover:bg-muted hover:text-foreground",
                   )
 
                   // Collapsed view for user settings

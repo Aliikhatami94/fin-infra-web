@@ -173,7 +173,7 @@ export function CashFlow() {
                   }}
                 />
               }
-              cursor={{ fill: "hsl(var(--muted)/0.15)" }}
+              cursor={false}
             />
             <ChartLegend 
               content={<ChartLegendContent className="gap-6" />} 
