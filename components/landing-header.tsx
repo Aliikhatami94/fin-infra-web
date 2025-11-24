@@ -15,13 +15,11 @@ export function LandingHeader() {
             {/* Logo */}
             <Link 
               href="/" 
-              className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
+              className="flex items-center gap-2 transition-opacity hover:opacity-80"
               aria-label={`${BRAND.name} home`}
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 text-primary shadow-sm">
-                <Sparkles className="h-5 w-5" strokeWidth={2.25} aria-hidden />
-              </div>
-              <span className="text-lg font-semibold tracking-tight text-foreground">
+              <Sparkles className="h-4 w-4 text-primary" strokeWidth={2} aria-hidden />
+              <span className="text-base font-semibold tracking-tight text-foreground">
                 {BRAND.name}
               </span>
             </Link>
@@ -32,7 +30,7 @@ export function LandingHeader() {
                 asChild
                 variant="ghost"
                 size="sm"
-                className="h-9 px-4 text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg"
+                className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg"
               >
                 <Link href="/sign-in" aria-label={`Sign in to your ${BRAND.name} account`}>
                   Sign In
@@ -41,7 +39,7 @@ export function LandingHeader() {
               <Button
                 asChild
                 size="sm"
-                className="h-9 px-5 rounded-full text-sm font-medium"
+                className="h-8 px-4 rounded-full text-xs font-medium"
               >
                 <Link href="/sign-up" aria-label={`Create your ${BRAND.name} account`}>
                   Get Started

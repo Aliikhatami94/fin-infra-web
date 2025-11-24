@@ -134,12 +134,12 @@ export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalIn
         <Card className="card-standard h-full">
           <CardContent className="p-3">
             <div className="flex justify-between items-start gap-2">
-              <div className="space-y-0 min-w-0">
-                <p className="text-xs font-medium text-muted-foreground truncate">{kpi.title}</p>
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-wide truncate">{kpi.title}</p>
                 {isHidden ? (
-                  <p className="text-2xl font-bold font-tabular text-foreground">••••••</p>
+                  <p className="text-2xl font-semibold font-tabular text-foreground">••••••</p>
                 ) : (
-                  <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">
+                  <p className="text-2xl font-semibold font-tabular text-foreground tracking-tighter">
                     <MaskableValue
                       value={`$${Math.abs(kpi.value).toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
                       srLabel={`${kpi.title} value`}
@@ -149,8 +149,8 @@ export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalIn
                 )}
               </div>
               {!isHidden && (
-                <div className={cn("flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium", 
-                  kpi.trend > 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+                <div className={cn("flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold", 
+                  kpi.trend > 0 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500" : "bg-rose-500/10 text-rose-600 dark:text-rose-500"
                 )}>
                   {kpi.trend > 0 ? "+" : ""}{kpi.trend}%
                 </div>

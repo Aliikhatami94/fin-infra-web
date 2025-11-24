@@ -70,21 +70,21 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
           <Card className="cursor-pointer card-standard h-full">
             <CardContent className="p-3">
               <div className="flex justify-between items-start gap-2">
-                <div className="space-y-0 min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground truncate">{kpi.label}</p>
+                <div className="space-y-0.5 min-w-0">
+                  <p className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-wide truncate">{kpi.label}</p>
                   {isHidden ? (
-                    <p className="text-2xl font-bold font-tabular text-foreground">••••••</p>
+                    <p className="text-2xl font-semibold font-tabular text-foreground">••••••</p>
                   ) : (
-                    <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">
+                    <p className="text-2xl font-semibold font-tabular text-foreground tracking-tighter">
                       <MaskableValue value={kpi.value} srLabel={`${kpi.label} value`} className="font-tabular" />
                     </p>
                   )}
                 </div>
                 {!isHidden && (
-                  <div className={cn("flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium", 
-                    kpi.trend === "up" ? "bg-emerald-500/10 text-emerald-500" : 
-                    kpi.trend === "down" ? "bg-rose-500/10 text-rose-500" : 
-                    "bg-slate-100 text-slate-500 dark:bg-slate-800"
+                  <div className={cn("flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold", 
+                    kpi.trend === "up" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500" : 
+                    kpi.trend === "down" ? "bg-rose-500/10 text-rose-600 dark:text-rose-500" : 
+                    "bg-muted text-muted-foreground"
                   )}>
                     <MaskableValue value={kpi.change} srLabel="change" className="font-tabular" />
                   </div>

@@ -10,7 +10,6 @@ import { ChartCardSkeleton } from "@/components/chart-skeleton"
 import { ErrorBoundary } from "@/components/error-boundary"
 import {
   AIInsightsListSkeleton,
-  PortfolioSkeleton,
   RecentActivitySkeleton,
 } from "@/components/dashboard-skeletons"
 import { AccountabilityChecklist } from "@/components/accountability-checklist"
@@ -35,14 +34,6 @@ const CashFlow = dynamic(
         contentHeight="h-72"
       />
     ),
-  },
-)
-
-const Portfolio = dynamic(
-  () => import("@/components/portfolio").then((mod) => mod.Portfolio),
-  {
-    ssr: false,
-    loading: () => <PortfolioSkeleton />,
   },
 )
 
@@ -100,20 +91,6 @@ export default function OverviewPage() {
           transition={{ duration: 0.18, delay: 0.1 }}
           className="space-y-4"
         >
-          <h2 className="text-lg font-semibold text-foreground">Holdings</h2>
-          <Portfolio />
-        </motion.div>
-      ),
-      span: "full" as const,
-    },
-    {
-      content: (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18, delay: 0.15 }}
-          className="space-y-4"
-        >
           <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
           <RecentActivity />
         </motion.div>
@@ -125,7 +102,7 @@ export default function OverviewPage() {
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18, delay: 0.2 }}
+          transition={{ duration: 0.18, delay: 0.15 }}
           className="space-y-4"
         >
           <h2 className="text-lg font-semibold text-foreground">Accountability</h2>
@@ -140,7 +117,7 @@ export default function OverviewPage() {
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.18, delay: 0.25 }}
+      transition={{ duration: 0.18, delay: 0.2 }}
       className="space-y-4"
     >
       <h2 className="text-lg font-semibold text-foreground">Insights</h2>

@@ -167,8 +167,8 @@ export function GoalsSummaryKPIs() {
         <CardContent className="p-4">
           <div className="flex justify-between items-start gap-2">
             <div className="space-y-0.5 min-w-0">
-              <p className="text-xs font-medium text-muted-foreground truncate">{fundingHeadline}</p>
-              <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">On Track</p>
+              <p className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-wide truncate">Status</p>
+              <p className="text-2xl font-semibold font-tabular text-foreground tracking-tighter">On Track</p>
             </div>
             <div className="flex items-center px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
               Safe
