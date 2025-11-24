@@ -1,26 +1,45 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
+export function OverviewKPIsSkeleton() {
+  return (
+    <div className="flex flex-wrap gap-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+          <Card className="card-standard h-full">
+            <CardContent className="p-3">
+              <div className="flex justify-between items-start gap-2">
+                <div className="space-y-2 min-w-0 flex-1">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-7 w-24" />
+                </div>
+                <Skeleton className="h-5 w-12 rounded" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function AccountsKPICardsSkeleton() {
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
+    <div className="flex flex-wrap gap-4">
       {Array.from({ length: 3 }).map((_, index) => (
-        <Card key={index} className="card-standard card-lift">
-          <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
-            <Skeleton className="h-4 w-28" rounded="full" />
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-8 w-32" />
+        <div key={index} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+          <Card className="card-standard h-full">
+            <CardContent className="p-3">
+              <div className="flex justify-between items-start gap-2">
+                <div className="space-y-2 min-w-0 flex-1">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-7 w-24" />
+                </div>
+                <Skeleton className="h-5 w-12 rounded" />
               </div>
-              <Skeleton className="h-10 w-10" rounded="lg" />
-            </div>
-            <div className="flex items-end justify-between gap-3">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-9 w-28" rounded="lg" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       ))}
     </div>
   )
@@ -222,24 +241,21 @@ export function AIInsightsListSkeleton() {
 
 export function PortfolioKPIsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
+    <div className="flex flex-wrap gap-4">
       {Array.from({ length: 6 }).map((_, index) => (
-        <Card key={index} className="card-standard card-lift">
-          <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
-            <Skeleton className="h-4 w-20" rounded="full" />
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-2">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-8 w-32" />
+        <div key={index} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+          <Card className="card-standard h-full">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start gap-2">
+                <div className="space-y-2 min-w-0 flex-1">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-7 w-24" />
+                </div>
+                <Skeleton className="h-5 w-12 rounded" />
               </div>
-              <Skeleton className="h-10 w-10" rounded="lg" />
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-4 w-16" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       ))}
     </div>
   )

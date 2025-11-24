@@ -64,8 +64,8 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
   const trendStyles = getTrendSemantic(trendValue)
 
   return (
-      <Link href={kpi.href} className="h-full block">
-        <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants} className="h-full">
+      <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants} className="h-full">
+        <Link href={kpi.href} className="h-full block">
           <Card className="cursor-pointer card-standard h-full">
             <CardContent className="p-3">
               <div className="flex justify-between items-start gap-2">
@@ -91,8 +91,8 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
               </div>
             </CardContent>
           </Card>
-        </motion.div>
-      </Link>
+        </Link>
+      </motion.div>
   )
 }
 
@@ -192,8 +192,22 @@ export function OverviewKPIs() {
             className="overflow-hidden pt-2"
           >
             {isLoading ? (
-              <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-                Loading metrics...
+              <div className="flex flex-wrap gap-4">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+                    <Card className="card-standard h-full">
+                      <CardContent className="p-3">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="space-y-2 min-w-0 flex-1">
+                            <div className="h-3 w-20 bg-muted rounded animate-pulse" />
+                            <div className="h-7 w-24 bg-muted rounded animate-pulse" />
+                          </div>
+                          <div className="h-5 w-12 bg-muted rounded animate-pulse" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
               </div>
             ) : kpis.length === 0 ? (
               <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">

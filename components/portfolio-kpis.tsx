@@ -128,17 +128,23 @@ export function PortfolioKPIs({ demoMode = false, mockDataOverride }: PortfolioK
 
   if (loading) {
     return (
-      <div className="space-y-1">
+      <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Portfolio Metrics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="card-standard">
-              <CardContent className="flex flex-col gap-3 p-5 h-[140px]">
-                <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-                <div className="h-8 w-32 bg-muted animate-pulse rounded" />
-                <div className="h-4 w-16 bg-muted animate-pulse rounded" />
-              </CardContent>
-            </Card>
+        <div className="flex flex-wrap gap-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+              <Card className="card-standard h-full">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="space-y-2 min-w-0 flex-1">
+                      <div className="h-3 w-20 bg-muted rounded animate-pulse" />
+                      <div className="h-7 w-24 bg-muted rounded animate-pulse" />
+                    </div>
+                    <div className="h-5 w-12 bg-muted rounded animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           ))}
         </div>
       </div>
