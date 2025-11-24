@@ -486,6 +486,83 @@ export async function fetchCashFlowHistory(months = 12) {
 }
 
 /**
+ * Activity Feed - Unified timeline of all financial activities
+ * GET /v0/activity/feed
+ * 
+ * Returns merged banking and investment transactions in chronological order.
+ */
+export async function fetchActivityFeed(days = 30, types?: 'banking' | 'investment' | 'banking,investment') {
+  const params = new URLSearchParams({ days: days.toString() })
+  if (types) {
+    params.append('types', types)
+  }
+  
+  return apiFetch<{
+    activities: Array<{
+      id: string
+      type: 'banking' | 'investment'
+      date: string
+      amount: number
+      description: string
+      account_id: string
+      currency: string
+      // Banking-specific
+      category?: string[]
+      merchant_name?: string
+      pending?: boolean
+      // Investment-specific
+      transaction_type?: string
+      security_symbol?: string
+      security_name?: string
+      quantity?: number
+      price?: number
+      fees?: number
+    }>
+    total_count: number
+    date_range: {
+      start_date: string
+      end_date: string
+    }
+  }>(`/v0/activity/feed?${params.toString()}`)
+}
+
+/**
+ * Recent Activity - Quick access to latest activities
+ * GET /v0/activity/recent
+ * 
+ * Convenience endpoint for dashboard widgets.
+ */
+export async function fetchRecentActivity(limit = 20) {
+  return apiFetch<{
+    activities: Array<{
+      id: string
+      type: 'banking' | 'investment'
+      date: string
+      amount: number
+      description: string
+      account_id: string
+      currency: string
+      // Banking-specific
+      category?: string[]
+      merchant_name?: string
+      pending?: boolean
+      // Investment-specific
+      transaction_type?: string
+      security_symbol?: string
+      security_name?: string
+      quantity?: number
+      price?: number
+      fees?: number
+    }>
+    total_count: number
+    date_range: {
+      start_date: string
+      end_date: string
+    }
+  }>(`/v0/activity/recent?limit=${limit}`)
+}
+
+/**
  * Health check
  */
 export async function healthCheck() {

@@ -8,10 +8,10 @@ import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { getRecentActivities } from "@/lib/services"
 import { formatCurrency } from "@/lib/format"
-import { fetchInvestmentTransactions } from "@/lib/api/client"
+import { fetchRecentActivity } from "@/lib/api/client"
 import { isMarketingMode } from "@/lib/marketingMode"
 import { useAuth } from "@/lib/auth/context"
-import { TrendingUp, TrendingDown, DollarSign } from "lucide-react"
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Home, Zap, CreditCard } from "lucide-react"
 
 type Activity = {
   id: string | number
@@ -20,6 +20,7 @@ type Activity = {
   dateGroup: string
   amount: number | null
   type: string
+  activityType?: 'banking' | 'investment'
   icon: any
   actions: Array<{ label: string; variant: any }>
 }
@@ -36,9 +37,9 @@ export function RecentActivity() {
   const displayActivities = showAll ? activities : activities.slice(0, displayLimit)
   const hasMore = activities.length > displayLimit
 
-  // Fetch real investment transactions
+  // Fetch unified activity feed (banking + investment transactions)
   useEffect(() => {
-    async function loadTransactions() {
+    async function loadActivities() {
       // Marketing mode: use mock data
       if (isMarketingMode(searchParams)) {
         const mockActivities = getRecentActivities()
@@ -55,31 +56,12 @@ export function RecentActivity() {
       }
 
       try {
-        // Fetch last 30 days of investment transactions
-        const endDate = new Date().toISOString().split('T')[0]
-        const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        
-        const transactions = await fetchInvestmentTransactions(startDate, endDate)
+        // Fetch unified activity feed (last 30 days, all types)
+        const result = await fetchRecentActivity(50) // Get more than needed for grouping
         
         // Transform to activity format
-        const transformedActivities: Activity[] = transactions.map((tx) => {
-          const amount = parseFloat(tx.amount)
-          const isBuy = tx.type === 'buy'
-          const isSell = tx.type === 'sell'
-          const isDividend = tx.type === 'dividend'
-          
-          let description = tx.name
-          if (tx.security.ticker_symbol) {
-            if (isBuy) {
-              description = `Bought ${parseFloat(tx.quantity).toFixed(2)} shares of ${tx.security.ticker_symbol}`
-            } else if (isSell) {
-              description = `Sold ${parseFloat(tx.quantity).toFixed(2)} shares of ${tx.security.ticker_symbol}`
-            } else if (isDividend) {
-              description = `${tx.security.ticker_symbol} dividend payment`
-            }
-          }
-
-          const date = new Date(tx.date)
+        const transformedActivities: Activity[] = result.activities.map((activity) => {
+          const date = new Date(activity.date)
           const today = new Date()
           const yesterday = new Date(today)
           yesterday.setDate(yesterday.getDate() - 1)
@@ -93,21 +75,63 @@ export function RecentActivity() {
             dateGroup = 'This Week'
           }
 
+          // Determine icon and description based on activity type
+          let icon = CreditCard
+          let description = activity.description
+          let amount = activity.amount
+
+          if (activity.type === 'investment') {
+            // Investment transaction
+            const transactionType = activity.transaction_type
+            const isDividend = transactionType === 'dividend' || transactionType === 'other'
+            const isBuy = transactionType === 'buy'
+            const isSell = transactionType === 'sell'
+            
+            icon = isDividend ? DollarSign : (isBuy ? TrendingDown : TrendingUp)
+            
+            // Format investment description
+            if (activity.security_symbol) {
+              if (isBuy) {
+                description = `Bought ${activity.quantity?.toFixed(2) || ''} shares of ${activity.security_symbol}`
+              } else if (isSell) {
+                description = `Sold ${activity.quantity?.toFixed(2) || ''} shares of ${activity.security_symbol}`
+              } else if (isDividend) {
+                description = `${activity.security_symbol} dividend payment`
+              }
+            }
+
+            // For dividends, show positive amount
+            if (isDividend) {
+              amount = Math.abs(amount)
+            }
+          } else {
+            // Banking transaction
+            // Determine icon based on category or merchant
+            if (activity.category?.includes('Food') || activity.category?.includes('Restaurants')) {
+              icon = ShoppingCart
+            } else if (activity.category?.includes('Home') || activity.category?.includes('Rent')) {
+              icon = Home
+            } else if (activity.category?.includes('Utilities')) {
+              icon = Zap
+            }
+          }
+
           return {
-            id: tx.transaction_id,
+            id: activity.id,
             description,
             date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             dateGroup,
-            amount: isDividend ? Math.abs(amount) : amount,
-            type: tx.type,
-            icon: isDividend ? DollarSign : (isBuy ? TrendingDown : TrendingUp),
+            amount,
+            type: activity.transaction_type || 'transaction',
+            activityType: activity.type,
+            icon,
             actions: [],
           }
         })
 
         setActivities(transformedActivities)
       } catch (error) {
-        console.error('Failed to fetch investment transactions:', error)
+        console.error('Failed to fetch activity feed:', error)
         // Show empty state on error
         setActivities([])
       } finally {
@@ -115,7 +139,7 @@ export function RecentActivity() {
       }
     }
 
-    loadTransactions()
+    loadActivities()
   }, [user])
 
   const groupedActivities = displayActivities.reduce(
@@ -159,8 +183,8 @@ export function RecentActivity() {
             </div>
           ) : activities.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-sm text-muted-foreground">No recent investment activity</p>
-              <p className="text-xs text-muted-foreground mt-1">Connect your investment accounts to see transactions here</p>
+              <p className="text-sm text-muted-foreground">No recent activity</p>
+              <p className="text-xs text-muted-foreground mt-1">Connect your accounts to see banking and investment transactions here</p>
             </div>
           ) : (
           <div className="space-y-6">

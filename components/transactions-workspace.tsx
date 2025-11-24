@@ -54,6 +54,18 @@ const quickFilters: TransactionQuickFilter[] = [
     predicate: (transaction) => Math.abs(transaction.amount) >= 500,
   },
   {
+    id: "investments",
+    label: "Investments",
+    description: "Show only investment activities (buy, sell, dividend)",
+    predicate: (transaction) => transaction.category === "Investment",
+  },
+  {
+    id: "banking",
+    label: "Banking",
+    description: "Show only banking transactions (spending, income)",
+    predicate: (transaction) => transaction.category !== "Investment",
+  },
+  {
     id: "transfers",
     label: "Transfers",
     description: "Include only account-to-account movement",

@@ -4,9 +4,11 @@ import type { Transaction } from "@/types/domain"
 import { isMarketingMode } from "@/lib/marketingMode"
 import { 
   Coffee, ShoppingBag, Home, Briefcase, UtensilsCrossed, 
-  Wallet2, Plane, PiggyBank, Zap, Building, Car, HeartPulse, Gift 
+  Wallet2, Plane, PiggyBank, Zap, Building, Car, HeartPulse, Gift,
+  TrendingUp, TrendingDown, DollarSign
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { format } from "date-fns"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
@@ -24,38 +26,52 @@ const transactionsCache = new Map<
 >()
 
 /**
- * Plaid transaction response from backend
+ * Unified activity item from backend /v0/activity/feed endpoint
  */
-interface PlaidTransaction {
-  transaction_id: string
-  account_id: string
+interface ActivityItem {
+  id: string
+  type: 'banking' | 'investment'  // Backend field name
+  date: string  // Backend field name (ISO date string)
   amount: number
-  date: string
-  name: string
-  merchant_name?: string | null
+  description: string
+  account_id: string  // Backend field name
+  currency?: string
+  // Banking-specific fields
+  merchant_name?: string | null  // Backend field name
   category?: string[] | null
-  pending: boolean
-  payment_channel?: string | null
-  iso_currency_code?: string | null
+  pending?: boolean
+  // Investment-specific fields
+  transaction_type?: string | null  // Backend field name (buy, sell, dividend, etc)
+  security_symbol?: string | null  // Backend field name
+  security_name?: string | null  // Backend field name
+  quantity?: number | null
+  price?: number | null
+  fees?: number | null
 }
 
 /**
- * Backend transactions API response
+ * Backend activity feed API response
  */
-interface TransactionsApiResponse {
-  transactions: PlaidTransaction[]
+interface ActivityFeedResponse {
+  activities: ActivityItem[]
   total_count: number
-  accounts: Array<{
-    account_id: string
-    name: string
-    type: string
-  }>
+  start_date?: string
+  end_date?: string
 }
 
 /**
- * Map Plaid category to icon (simplified for now)
+ * Map activity to icon based on type and category
  */
-function getCategoryIcon(category?: string[] | null): LucideIcon {
+function getActivityIcon(activity: ActivityItem): LucideIcon {
+  // Investment activities
+  if (activity.type === 'investment') {
+    if (activity.amount > 0) return TrendingUp
+    if (activity.amount < 0) return TrendingDown
+    return DollarSign
+  }
+  
+  // Banking activities - use category
+  const category = activity.category
   if (!category || category.length === 0) return Wallet2
   
   const primary = category[0].toLowerCase()
@@ -78,29 +94,42 @@ function getCategoryIcon(category?: string[] | null): LucideIcon {
 }
 
 /**
- * Transform Plaid transaction to frontend Transaction format
+ * Transform unified activity item to frontend Transaction format
  */
-function transformPlaidTransaction(txn: PlaidTransaction, index: number, accountsMap: Map<string, string>): Transaction {
-  const accountName = accountsMap.get(txn.account_id) || "Unknown Account"
+function transformActivityToTransaction(activity: ActivityItem, index: number): Transaction {
+  // For investment activities, use symbol + type as merchant
+  let merchant = activity.description || 'Unknown'
+  if (activity.type === 'investment' && activity.security_symbol) {
+    merchant = `${activity.security_symbol} ${activity.transaction_type || ''}`
+  } else if (activity.merchant_name) {
+    merchant = activity.merchant_name
+  }
+  
+  // Use first category for primary category, rest for tags
+  const primaryCategory = activity.category?.[0] || 
+    (activity.type === 'investment' ? 'Investment' : 'Other')
+  
+  // Safe date extraction (backend returns ISO date string like "2025-01-15")
+  const date = activity.date || new Date().toISOString().split('T')[0]
   
   return {
     id: index + 1,
-    date: txn.date,
-    merchant: txn.merchant_name || txn.name,
-    amount: -txn.amount, // Plaid uses positive for debits, we use negative
-    category: txn.category?.[0] || "Other",
-    icon: getCategoryIcon(txn.category),
-    account: accountName,
+    date,
+    merchant: merchant.trim(),
+    amount: activity.amount || 0,
+    category: primaryCategory,
+    icon: getActivityIcon(activity),
+    account: activity.account_id, // Use account_id as account name for now
     isNew: false,
     isRecurring: false,
     isFlagged: false,
-    isTransfer: txn.category?.some(c => c.toLowerCase().includes("transfer")) || false,
-    tags: txn.category?.slice(1) || [],
+    isTransfer: activity.category?.some(c => c.toLowerCase().includes("transfer")) || false,
+    tags: activity.category?.slice(1) || [],
   }
 }
 
 /**
- * Fetch transactions from backend API
+ * Fetch transactions from backend unified activity feed API
  */
 async function fetchTransactionsFromApi(
   startDate?: string,
@@ -112,13 +141,25 @@ async function fetchTransactionsFromApi(
     throw new Error("No authentication token found")
   }
   
+  // Calculate days for activity feed endpoint
+  let days = 30 // default
+  if (startDate && endDate) {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+  } else if (startDate) {
+    const start = new Date(startDate)
+    const now = new Date()
+    days = Math.ceil((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+  }
+  
   // Build query params
   const params = new URLSearchParams()
-  if (startDate) params.append("start_date", startDate)
-  if (endDate) params.append("end_date", endDate)
-  if (accountId) params.append("account_id", accountId)
+  params.append("days", days.toString())
+  // Include both banking and investment transactions
+  params.append("types", "banking,investment")
   
-  const url = `${API_URL}/v0/transactions${params.toString() ? `?${params.toString()}` : ""}`
+  const url = `${API_URL}/v0/activity/feed?${params.toString()}`
   
   const response = await fetch(url, {
     headers: {
@@ -131,20 +172,46 @@ async function fetchTransactionsFromApi(
       // No accounts connected yet
       return []
     }
-    throw new Error(`Failed to fetch transactions: ${response.statusText}`)
+    throw new Error(`Failed to fetch activity feed: ${response.statusText}`)
   }
   
-  const data: TransactionsApiResponse = await response.json()
+  const data: ActivityFeedResponse = await response.json()
   
-  // Create account ID to name mapping
-  const accountsMap = new Map<string, string>()
-  for (const account of data.accounts) {
-    accountsMap.set(account.account_id, account.name)
+  console.log(`[Transactions] Received ${data.activities.length} activities from API`)
+  
+  // Filter out invalid activities (missing required fields)
+  let activities = data.activities.filter(a => {
+    if (!a.date) {
+      console.warn('[Transactions] Skipping activity with missing date:', a)
+      return false
+    }
+    if (!a.id) {
+      console.warn('[Transactions] Skipping activity with missing id:', a)
+      return false
+    }
+    return true
+  })
+  
+  console.log(`[Transactions] ${activities.length} valid activities after filtering`)
+  
+  // Filter by account ID if provided
+  if (accountId) {
+    activities = activities.filter(a => a.account_id === accountId)
   }
   
-  // Transform transactions
-  const transformed = data.transactions.map((txn, index) => 
-    transformPlaidTransaction(txn, index, accountsMap)
+  // Filter by date range if provided (backend returns wider range than requested)
+  if (startDate || endDate) {
+    activities = activities.filter(activity => {
+      const activityDate = activity.date  // Backend returns ISO date string like "2025-01-15"
+      if (startDate && activityDate < startDate) return false
+      if (endDate && activityDate > endDate) return false
+      return true
+    })
+  }
+  
+  // Transform to Transaction format
+  const transformed = activities.map((activity, index) => 
+    transformActivityToTransaction(activity, index)
   )
   
   return transformed
