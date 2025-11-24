@@ -37,11 +37,11 @@ const generateCashFlowData = (months: number): CashFlowPoint[] => {
 const chartConfig = {
   income: {
     label: "Income",
-    color: "hsl(142, 71%, 45%)",
+    color: "hsl(var(--foreground))",
   },
   expenses: {
     label: "Expenses",
-    color: "hsl(0, 72%, 51%)",
+    color: "hsl(var(--foreground))",
   },
 } satisfies ChartConfig
 
@@ -123,15 +123,15 @@ export function CashFlow() {
           </div>
         ) : (
         <ChartContainer config={chartConfig} className="h-[320px] w-full">
-          <ComposedChart data={cashFlowData} margin={{ left: 0, right: 0, top: 20, bottom: 0 }}>
+          <ComposedChart data={cashFlowData} margin={{ left: 0, right: 0, top: 20, bottom: 0 }} className="text-foreground">
             <defs>
               <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.9}/>
-                <stop offset="95%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.4}/>
+                <stop offset="0%" stopColor="currentColor" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="currentColor" stopOpacity={0.6} />
               </linearGradient>
               <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.9}/>
-                <stop offset="95%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.4}/>
+                <stop offset="0%" stopColor="currentColor" stopOpacity={0.5} />
+                <stop offset="100%" stopColor="currentColor" stopOpacity={0.25} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -145,17 +145,15 @@ export function CashFlow() {
               tickLine={false}
               axisLine={false}
               tickMargin={10}
-              className="text-xs font-semibold"
-              stroke="hsl(var(--foreground))"
-              tick={{ fill: "hsl(var(--muted-foreground))" }}
+              className="text-xs font-semibold text-muted-foreground"
+              tick={{ fill: "currentColor" }}
             />
             <YAxis
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              className="text-xs font-semibold"
-              stroke="hsl(var(--foreground))"
-              tick={{ fill: "hsl(var(--foreground))" }}
+              className="text-xs font-semibold text-muted-foreground"
+              tick={{ fill: "currentColor" }}
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
               width={40}
             />
@@ -183,15 +181,15 @@ export function CashFlow() {
               height={40}
               wrapperStyle={{ paddingBottom: '10px' }}
             />
-            <ReferenceLine y={averageIncome} stroke="hsl(142, 71%, 45%)" strokeDasharray="5 5" strokeOpacity={0.5} strokeWidth={1.5}>
+            <ReferenceLine y={averageIncome} strokeDasharray="5 5" strokeOpacity={0.4} strokeWidth={1.5} className="stroke-muted-foreground">
               <Label 
                 value="avg income" 
                 position="insideTopLeft" 
                 offset={5} 
-                fill="hsl(142, 71%, 45%)" 
+                fill="currentColor"
                 fontSize={11} 
                 fontWeight={500}
-                className="hidden sm:block" 
+                className="hidden sm:block text-muted-foreground" 
               />
             </ReferenceLine>
             <Bar dataKey="income" fill="url(#colorIncome)" radius={[8, 8, 0, 0]} maxBarSize={56} />

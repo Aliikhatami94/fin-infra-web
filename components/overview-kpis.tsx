@@ -67,9 +67,9 @@ function KPICardContent({ kpi, index, isHidden, onPlanModalOpen, router }: KPICa
       <Link href={kpi.href} className="h-full block">
         <motion.div {...createStaggeredCardVariants(index, 0)} {...cardHoverVariants} className="h-full">
           <Card className="cursor-pointer card-standard h-full">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex justify-between items-start gap-2">
-                <div className="space-y-0.5 min-w-0">
+                <div className="space-y-0 min-w-0">
                   <p className="text-xs font-medium text-muted-foreground truncate">{kpi.label}</p>
                   {isHidden ? (
                     <p className="text-2xl font-bold font-tabular text-foreground">••••••</p>

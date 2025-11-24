@@ -143,13 +143,21 @@ export function Sidebar({
 
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="space-y-1 px-2">
-              {DASHBOARD_NAVIGATION.map((item) => {
+              {/* Main Navigation Section */}
+              {!collapsed && (
+                <div className="px-3 py-1.5 text-[10px] font-normal text-muted-foreground/50 uppercase tracking-wide">
+                  Main
+                </div>
+              )}
+              {DASHBOARD_NAVIGATION.filter((item) => 
+                !["Profile", "Billing", "Settings", "Security Center"].includes(item.name)
+              ).map((item) => {
                 const active = isActiveRoute(pathname, item.href, { exact: item.exact })
                 const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
                 const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
                 const linkClasses = cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "group flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm font-normal transition-colors",
+                  active ? "bg-accent-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )
 
                 // Check if this is a coming soon item (check before collapsed rendering)
@@ -250,6 +258,124 @@ export function Sidebar({
                   </Link>
                 )
               })}
+
+              {/* User Settings Section */}
+              <div className={cn("mt-4", collapsed && !mobileOpen && "mt-2")}>
+                {!collapsed && (
+                  <div className="px-3 py-1.5 text-[10px] font-normal text-muted-foreground/50 uppercase tracking-wide">
+                    Account
+                  </div>
+                )}
+                {DASHBOARD_NAVIGATION.filter((item) => 
+                  ["Profile", "Billing", "Settings", "Security Center"].includes(item.name)
+                ).map((item) => {
+                  const active = isActiveRoute(pathname, item.href, { exact: item.exact })
+                  const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
+                  const fallbackTooltip = badgeTooltip ?? `${item.badge} updates pending in ${item.name}`
+                  const linkClasses = cn(
+                    "group flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm font-normal transition-colors",
+                    active ? "bg-accent-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )
+
+                  // Check if this is a coming soon item
+                  const isComingSoon = item.comingSoon && !isMarketing
+
+                  // Collapsed view for user settings
+                  if (collapsed && !mobileOpen) {
+                    if (isComingSoon) {
+                      return (
+                        <Tooltip key={item.name}>
+                          <TooltipTrigger asChild>
+                            <div
+                              className={cn(
+                                linkClasses,
+                                "cursor-not-allowed opacity-50 justify-center"
+                              )}
+                              aria-disabled="true"
+                            >
+                              <item.icon className="h-5 w-5 shrink-0" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>Coming soon</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )
+                    }
+                    
+                    return (
+                      <Tooltip key={item.name}>
+                        <TooltipTrigger asChild>
+                          <Link
+                            href={item.href}
+                            onClick={onMobileClose}
+                            onMouseEnter={() => handlePrefetch(item.href)}
+                            onFocus={() => handlePrefetch(item.href)}
+                            className={cn(linkClasses, "justify-center")}
+                            aria-current={active ? "page" : undefined}
+                          >
+                            <item.icon className="h-5 w-5 shrink-0" />
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{item.name}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )
+                  }
+                  
+                  // Expanded view
+                  if (isComingSoon) {
+                    return (
+                      <div
+                        key={item.name}
+                        className={cn(
+                          linkClasses,
+                          "cursor-not-allowed opacity-50"
+                        )}
+                        aria-disabled="true"
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        <span className="flex-1">{item.name}</span>
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">Soon</Badge>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={onMobileClose}
+                      onMouseEnter={() => handlePrefetch(item.href)}
+                      onFocus={() => handlePrefetch(item.href)}
+                      className={linkClasses}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      <item.icon className="h-5 w-5 shrink-0" />
+                      <>
+                        <span className="flex-1">{item.name}</span>
+                        {item.badge && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="destructive"
+                                className="h-5 min-w-5 px-1 text-xs"
+                                aria-label={fallbackTooltip}
+                              >
+                                {item.badge}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                              <p>{fallbackTooltip}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </>
+                    </Link>
+                  )
+                })}
+              </div>
             </nav>
           </div>
 
