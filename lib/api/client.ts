@@ -329,34 +329,6 @@ export async function fetchInvestmentHoldings(accountIds?: string[]) {
  * App auth: user_router (automatic via session)
  * Provider access: Auto-resolved from user's stored Plaid token
  */
-export async function fetchInvestmentTransactions(
-  startDate: string,
-  endDate: string,
-  accountIds?: string[]
-) {
-  return apiFetch<Array<{
-    transaction_id: string
-    account_id: string
-    security: any
-    date: string
-    type: string
-    quantity: number
-    price: number
-    amount: number
-    fees: number | null
-    currency: string
-  }>>('/investments/transactions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      start_date: startDate,
-      end_date: endDate,
-      account_ids: accountIds,
-    }),
-  })
-}
 
 /**
  * Investment Accounts with aggregated holdings
@@ -437,6 +409,46 @@ export async function fetchInvestmentSecurities(securityIds: string[]) {
     },
     body: JSON.stringify({
       security_ids: securityIds,
+    }),
+  })
+}
+
+/**
+ * Investment Transactions
+ * POST /investments/transactions
+ * 
+ * App auth: user_router (automatic via session)
+ * Provider access: Auto-resolved from user's stored Plaid token
+ */
+export async function fetchInvestmentTransactions(startDate: string, endDate: string, accountIds?: string[]) {
+  return apiFetch<Array<{
+    transaction_id: string
+    account_id: string
+    security: {
+      security_id: string
+      ticker_symbol: string | null
+      name: string | null
+      type: string
+    }
+    date: string
+    name: string
+    type: 'buy' | 'sell' | 'dividend' | 'cash' | 'fee' | 'transfer' | 'cancel'
+    subtype: string | null
+    quantity: string
+    amount: string
+    price: string | null
+    fees: string | null
+    currency: string
+    unofficial_currency_code: string | null
+  }>>('/investments/transactions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      start_date: startDate,
+      end_date: endDate,
+      account_ids: accountIds,
     }),
   })
 }

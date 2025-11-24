@@ -3,19 +3,120 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { getRecentActivities } from "@/lib/services"
 import { formatCurrency } from "@/lib/format"
+import { fetchInvestmentTransactions } from "@/lib/api/client"
+import { isMarketingMode } from "@/lib/marketingMode"
+import { useAuth } from "@/lib/auth/context"
+import { TrendingUp, TrendingDown, DollarSign } from "lucide-react"
 
-const activities = getRecentActivities()
+type Activity = {
+  id: string | number
+  description: string
+  date: string
+  dateGroup: string
+  amount: number | null
+  type: string
+  icon: any
+  actions: Array<{ label: string; variant: any }>
+}
 
 export function RecentActivity() {
-  const [selectedActivity, setSelectedActivity] = useState<(typeof activities)[0] | null>(null)
+  const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [showAll, setShowAll] = useState(false)
   
   const displayLimit = 5 // Show first 5 activities by default
   const displayActivities = showAll ? activities : activities.slice(0, displayLimit)
   const hasMore = activities.length > displayLimit
+
+  // Fetch real investment transactions
+  useEffect(() => {
+    async function loadTransactions() {
+      // Marketing mode: use mock data
+      if (isMarketingMode(searchParams)) {
+        const mockActivities = getRecentActivities()
+        setActivities(mockActivities)
+        setIsLoading(false)
+        return
+      }
+
+      // Not authenticated: show empty state
+      if (!user?.id) {
+        setActivities([])
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        // Fetch last 30 days of investment transactions
+        const endDate = new Date().toISOString().split('T')[0]
+        const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        
+        const transactions = await fetchInvestmentTransactions(startDate, endDate)
+        
+        // Transform to activity format
+        const transformedActivities: Activity[] = transactions.map((tx) => {
+          const amount = parseFloat(tx.amount)
+          const isBuy = tx.type === 'buy'
+          const isSell = tx.type === 'sell'
+          const isDividend = tx.type === 'dividend'
+          
+          let description = tx.name
+          if (tx.security.ticker_symbol) {
+            if (isBuy) {
+              description = `Bought ${parseFloat(tx.quantity).toFixed(2)} shares of ${tx.security.ticker_symbol}`
+            } else if (isSell) {
+              description = `Sold ${parseFloat(tx.quantity).toFixed(2)} shares of ${tx.security.ticker_symbol}`
+            } else if (isDividend) {
+              description = `${tx.security.ticker_symbol} dividend payment`
+            }
+          }
+
+          const date = new Date(tx.date)
+          const today = new Date()
+          const yesterday = new Date(today)
+          yesterday.setDate(yesterday.getDate() - 1)
+          
+          let dateGroup = 'Earlier'
+          if (date.toDateString() === today.toDateString()) {
+            dateGroup = 'Today'
+          } else if (date.toDateString() === yesterday.toDateString()) {
+            dateGroup = 'Yesterday'
+          } else if (date > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) {
+            dateGroup = 'This Week'
+          }
+
+          return {
+            id: tx.transaction_id,
+            description,
+            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            dateGroup,
+            amount: isDividend ? Math.abs(amount) : amount,
+            type: tx.type,
+            icon: isDividend ? DollarSign : (isBuy ? TrendingDown : TrendingUp),
+            actions: [],
+          }
+        })
+
+        setActivities(transformedActivities)
+      } catch (error) {
+        console.error('Failed to fetch investment transactions:', error)
+        // Show empty state on error
+        setActivities([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadTransactions()
+  }, [user])
 
   const groupedActivities = displayActivities.reduce(
     (acc, activity) => {
@@ -43,6 +144,25 @@ export function RecentActivity() {
           </Button>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-start gap-4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              ))}
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-sm text-muted-foreground">No recent investment activity</p>
+              <p className="text-xs text-muted-foreground mt-1">Connect your investment accounts to see transactions here</p>
+            </div>
+          ) : (
           <div className="space-y-6">
             {Object.entries(groupedActivities).map(([dateGroup, groupActivities]) => (
               <div key={dateGroup} className="space-y-4">
@@ -150,6 +270,7 @@ export function RecentActivity() {
               </div>
             )}
           </div>
+          )}
         </CardContent>
       </Card>
 
