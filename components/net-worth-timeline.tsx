@@ -7,6 +7,7 @@ import { useDateRange } from "@/components/date-range-provider"
 import { LINE_CHART_COLORS, CHART_STYLES } from "@/lib/chart-colors"
 import { fetchNetWorthHistory } from "@/lib/api/client"
 import { isMarketingMode } from "@/lib/marketingMode"
+import { useAuth } from "@/lib/auth/context"
 
 type NetWorthPoint = {
   index: number
@@ -50,6 +51,7 @@ const generateMockData = (days: number): NetWorthPoint[] => {
 
 export function NetWorthTimeline() {
   const { dateRange } = useDateRange()
+  const { user } = useAuth()
   const [historyData, setHistoryData] = useState<NetWorthPoint[] | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [hasError, setHasError] = useState(false)
@@ -57,11 +59,11 @@ export function NetWorthTimeline() {
   // Fetch real net worth history from backend
   useEffect(() => {
     // Marketing mode: show mock data
-    if (isMarketingMode()) {
+    if (isMarketingMode() || !user?.id) {
       return
     }
 
-    const periodMap: Record<typeof dateRange, Parameters<typeof fetchNetWorthHistory>[0]> = {
+    const periodMap: Record<typeof dateRange, Parameters<typeof fetchNetWorthHistory>[1]> = {
       "1D": "1d",
       "5D": "1w",
       "1M": "1m",
@@ -75,7 +77,7 @@ export function NetWorthTimeline() {
       setIsLoading(true)
       setHasError(false)
       try {
-        const response = await fetchNetWorthHistory(periodMap[dateRange], "daily")
+        const response = await fetchNetWorthHistory(user.id, periodMap[dateRange], "daily")
         
         // Transform backend data to chart format
         const transformedData: NetWorthPoint[] = response.data.map((point, index) => {
@@ -104,7 +106,7 @@ export function NetWorthTimeline() {
     }
 
     fetchData()
-  }, [dateRange])
+  }, [dateRange, user])
 
   // Marketing mode: show mock data
   const data = useMemo(() => {

@@ -233,6 +233,7 @@ export async function fetchPortfolioHistory(
  * Net worth history (time-series data for charts)
  */
 export async function fetchNetWorthHistory(
+  userId: string,
   period: '1d' | '1w' | '1m' | '3m' | '6m' | '1y' | 'ytd' | 'all' = '1y',
   granularity: 'daily' | 'weekly' | 'monthly' = 'daily'
 ) {
@@ -245,7 +246,7 @@ export async function fetchNetWorthHistory(
     }>
     period: string
     granularity: string
-  }>(`/v0/dashboard/net-worth-history?period=${period}&granularity=${granularity}`)
+  }>(`/v0/dashboard/net-worth-history?user_id=${userId}&period=${period}&granularity=${granularity}`)
 }
 
 /**

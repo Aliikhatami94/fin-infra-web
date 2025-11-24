@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import type { KPI, KPIQuickAction } from "@/types/domain"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { MaskableValue } from "@/components/privacy-provider"
 import Link from "next/link"
@@ -199,10 +200,10 @@ export function OverviewKPIs() {
                       <CardContent className="p-3">
                         <div className="flex justify-between items-start gap-2">
                           <div className="space-y-2 min-w-0 flex-1">
-                            <div className="h-3 w-20 bg-muted rounded animate-pulse" />
-                            <div className="h-7 w-24 bg-muted rounded animate-pulse" />
+                            <Skeleton className="h-3 w-20" />
+                            <Skeleton className="h-7 w-24" />
                           </div>
-                          <div className="h-5 w-12 bg-muted rounded animate-pulse" />
+                          <Skeleton className="h-5 w-12 rounded" />
                         </div>
                       </CardContent>
                     </Card>
