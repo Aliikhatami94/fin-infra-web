@@ -98,15 +98,14 @@ export function Sidebar({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <>
-        {/* Mobile backdrop with blur and darken effect */}
-        {mobileOpen && (
-          <div
-            className="fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm lg:hidden"
-            onClick={onMobileClose}
-            aria-hidden="true"
-          />
-        )}
+      {/* Mobile backdrop with blur and darken effect */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={onMobileClose}
+          aria-hidden="true"
+        />
+      )}
 
       <aside
         className={cn(
@@ -160,33 +159,9 @@ export function Sidebar({
                   active ? "bg-accent-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )
 
-                // Check if this is a coming soon item (check before collapsed rendering)
-                const isComingSoon = item.comingSoon && !isMarketing
-
                 // On mobile (when mobileOpen is true), always show expanded view
                 // On desktop (lg), respect collapsed state
                 if (collapsed && !mobileOpen) {
-                  if (isComingSoon) {
-                    return (
-                      <Tooltip key={item.name}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={cn(
-                              linkClasses,
-                              "cursor-not-allowed opacity-50 justify-center"
-                            )}
-                            aria-disabled="true"
-                          >
-                            <item.icon className="h-5 w-5 shrink-0" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p>Coming soon</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )
-                  }
-                  
                   return (
                     <Tooltip key={item.name}>
                       <TooltipTrigger asChild>
@@ -207,23 +182,6 @@ export function Sidebar({
                     </Tooltip>
                   )
                 }
-                
-                if (isComingSoon) {
-                  return (
-                    <div
-                      key={item.name}
-                      className={cn(
-                        linkClasses,
-                        "cursor-not-allowed opacity-50"
-                      )}
-                      aria-disabled="true"
-                    >
-                      <item.icon className="h-5 w-5 shrink-0" />
-                      <span className="flex-1">{item.name}</span>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">Soon</Badge>
-                    </div>
-                  )
-                }
 
                 return (
                   <Link
@@ -236,25 +194,23 @@ export function Sidebar({
                     aria-current={active ? "page" : undefined}
                   >
                     <item.icon className="h-5 w-5 shrink-0" />
-                    <>
-                      <span className="flex-1">{item.name}</span>
-                      {item.badge && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Badge
-                              variant="destructive"
-                              className="h-5 min-w-5 px-1 text-xs"
-                              aria-label={fallbackTooltip}
-                            >
-                              {item.badge}
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">
-                            <p>{fallbackTooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </>
+                    <span className="flex-1">{item.name}</span>
+                    {item.badge && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge
+                            variant="destructive"
+                            className="h-5 min-w-5 px-1 text-xs"
+                            aria-label={fallbackTooltip}
+                          >
+                            {item.badge}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{fallbackTooltip}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </Link>
                 )
               })}
@@ -277,32 +233,8 @@ export function Sidebar({
                     active ? "bg-accent-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )
 
-                  // Check if this is a coming soon item
-                  const isComingSoon = item.comingSoon && !isMarketing
-
                   // Collapsed view for user settings
                   if (collapsed && !mobileOpen) {
-                    if (isComingSoon) {
-                      return (
-                        <Tooltip key={item.name}>
-                          <TooltipTrigger asChild>
-                            <div
-                              className={cn(
-                                linkClasses,
-                                "cursor-not-allowed opacity-50 justify-center"
-                              )}
-                              aria-disabled="true"
-                            >
-                              <item.icon className="h-5 w-5 shrink-0" />
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">
-                            <p>Coming soon</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )
-                    }
-                    
                     return (
                       <Tooltip key={item.name}>
                         <TooltipTrigger asChild>
@@ -323,24 +255,6 @@ export function Sidebar({
                       </Tooltip>
                     )
                   }
-                  
-                  // Expanded view
-                  if (isComingSoon) {
-                    return (
-                      <div
-                        key={item.name}
-                        className={cn(
-                          linkClasses,
-                          "cursor-not-allowed opacity-50"
-                        )}
-                        aria-disabled="true"
-                      >
-                        <item.icon className="h-5 w-5 shrink-0" />
-                        <span className="flex-1">{item.name}</span>
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">Soon</Badge>
-                      </div>
-                    )
-                  }
 
                   return (
                     <Link
@@ -353,25 +267,23 @@ export function Sidebar({
                       aria-current={active ? "page" : undefined}
                     >
                       <item.icon className="h-5 w-5 shrink-0" />
-                      <>
-                        <span className="flex-1">{item.name}</span>
-                        {item.badge && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="destructive"
-                                className="h-5 min-w-5 px-1 text-xs"
-                                aria-label={fallbackTooltip}
-                              >
-                                {item.badge}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">
-                              <p>{fallbackTooltip}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </>
+                      <span className="flex-1">{item.name}</span>
+                      {item.badge && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="destructive"
+                              className="h-5 min-w-5 px-1 text-xs"
+                              aria-label={fallbackTooltip}
+                            >
+                              {item.badge}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{fallbackTooltip}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </Link>
                   )
                 })}
@@ -425,7 +337,6 @@ export function Sidebar({
           </div>
         </div>
       </aside>
-      </>
     </TooltipProvider>
   )
 }

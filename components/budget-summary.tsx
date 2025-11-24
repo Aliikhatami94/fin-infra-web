@@ -283,10 +283,10 @@ export function BudgetSummary() {
         </div>
       </div>
 
-      {/* Tablet/Desktop: Grid layout */}
-      <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+      {/* Tablet/Desktop: Fixed width cards layout */}
+      <div className="hidden md:flex flex-wrap gap-4">
         {summary.map((item, index) => (
-          <div key={item.label}>
+          <div key={item.label} className="w-[calc(50%-0.5rem)] xl:w-[calc(33.333%-0.667rem)]">
             {renderCard(item, index)}
           </div>
         ))}

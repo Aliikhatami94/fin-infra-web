@@ -203,10 +203,10 @@ export function CryptoKPIs() {
         </div>
       </div>
 
-      {/* Tablet/Desktop: Grid layout */}
-      <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
+      {/* Tablet/Desktop: Fixed width cards layout */}
+      <div className="hidden md:flex flex-wrap gap-4">
         {kpis.map((kpi, index) => (
-          <div key={index}>
+          <div key={index} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
             {renderKPICard(kpi, index)}
           </div>
         ))}

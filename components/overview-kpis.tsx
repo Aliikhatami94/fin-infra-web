@@ -244,17 +244,18 @@ export function OverviewKPIs() {
               </div>
             </div>
 
-                {/* Tablet/Desktop: Grid layout */}
-                <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
+                {/* Tablet/Desktop: Fixed width cards layout */}
+                <div className="hidden md:flex flex-wrap gap-4">
                   {kpis.map((kpi, index) => (
-                    <KPICardContent
-                      key={kpi.label}
-                      kpi={kpi}
-                      index={index}
-                      isHidden={hiddenCards.has(kpi.label)}
-                      onPlanModalOpen={() => setIsPlanModalOpen(true)}
-                      router={router}
-                    />
+                    <div key={kpi.label} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+                      <KPICardContent
+                        kpi={kpi}
+                        index={index}
+                        isHidden={hiddenCards.has(kpi.label)}
+                        onPlanModalOpen={() => setIsPlanModalOpen(true)}
+                        router={router}
+                      />
+                    </div>
                   ))}
                 </div>
               </>

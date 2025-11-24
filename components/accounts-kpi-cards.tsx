@@ -128,22 +128,18 @@ export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalIn
 
   const renderKPICard = (kpi: typeof kpis[0]) => {
     const isHidden = hiddenCards.has(kpi.title)
-    const Icon = kpi.icon
 
     return (
-      <motion.div {...cardHoverVariants} className="h-full pt-2">
-        <Card className="card-standard card-lift h-full min-h-[180px] md:min-h-[200px]">
-          <CardContent className="flex flex-col h-full gap-3 p-4 md:p-5">
-            <div className="flex items-start justify-between gap-2">
-              <LastSyncBadge timestamp={kpi.lastSynced} source={kpi.source} />
-            </div>
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1 flex-1 min-w-0">
-                <p className="text-label-xs text-muted-foreground">{kpi.title}</p>
+      <motion.div {...cardHoverVariants} className="h-full">
+        <Card className="card-standard h-full">
+          <CardContent className="p-3">
+            <div className="flex justify-between items-start gap-2">
+              <div className="space-y-0 min-w-0">
+                <p className="text-xs font-medium text-muted-foreground truncate">{kpi.title}</p>
                 {isHidden ? (
-                  <p className="text-kpi font-semibold font-tabular text-foreground">••••••</p>
+                  <p className="text-2xl font-bold font-tabular text-foreground">••••••</p>
                 ) : (
-                  <p className="text-kpi font-semibold font-tabular break-words text-foreground">
+                  <p className="text-2xl font-bold font-tabular text-foreground tracking-tight">
                     <MaskableValue
                       value={`$${Math.abs(kpi.value).toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
                       srLabel={`${kpi.title} value`}
@@ -152,41 +148,14 @@ export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalIn
                   </p>
                 )}
               </div>
-              <KPIIcon icon={Icon} tone={kpi.tone} size="md" />
+              {!isHidden && (
+                <div className={cn("flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium", 
+                  kpi.trend > 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+                )}>
+                  {kpi.trend > 0 ? "+" : ""}{kpi.trend}%
+                </div>
+              )}
             </div>
-            {!isHidden && (
-              <div className="flex items-center gap-3 mt-auto">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className="delta-chip text-delta font-medium rounded-md px-1.5 py-1 hover:bg-muted/40 transition-colors cursor-help"
-                      aria-label={`${kpi.trend > 0 ? '+' : ''}${kpi.trend}% vs. last month`}
-                    >
-                      {kpi.trend > 0 ? (
-                        <TrendingUp className="h-3 w-3 text-[var(--color-positive)]" />
-                      ) : (
-                        <TrendingDown className="h-3 w-3 text-[var(--color-negative)]" />
-                      )}
-                      <span
-                        className={`text-delta font-medium font-tabular ${kpi.trend > 0 ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"}`}
-                      >
-                        {kpi.trend > 0 ? "+" : ""}
-                        {kpi.trend}%
-                      </span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-label-xs font-normal">
-                      vs. last month:{" "}
-                      <span className="font-mono">
-                        ${Math.abs(kpi.baselineValue).toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                      </span>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            )}
           </CardContent>
         </Card>
       </motion.div>
@@ -267,12 +236,14 @@ export function AccountsKPICards({ accounts, totalCash, totalCreditDebt, totalIn
                 </div>
               </div>
 
-              {/* Tablet/Desktop: Grid layout */}
-              <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
+              {/* Tablet/Desktop: Fixed width cards layout */}
+              <div className="hidden md:flex flex-wrap gap-4">
                 {kpis.map((kpi, index) => (
-                  <motion.div key={kpi.title} {...createStaggeredCardVariants(index, 0)} className="h-full">
-                    {renderKPICard(kpi)}
-                  </motion.div>
+                  <div key={kpi.title} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+                    <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
+                      {renderKPICard(kpi)}
+                    </motion.div>
+                  </div>
                 ))}
               </div>
             </TooltipProvider>

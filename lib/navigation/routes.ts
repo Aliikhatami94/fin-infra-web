@@ -58,5 +58,5 @@ const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
 ]
 
 export const DASHBOARD_NAVIGATION: NavigationItem[] = BASE_DASHBOARD_NAVIGATION.filter(
-  (item) => !item.featureFlag || isFeatureEnabled(item.featureFlag),
+  (item) => (!item.featureFlag || isFeatureEnabled(item.featureFlag)) && !item.comingSoon,
 )

@@ -440,12 +440,14 @@ export function CashFlowKPIs() {
         </div>
       </div>
 
-      {/* Desktop: Grid layout */}
-      <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
+      {/* Tablet/Desktop: Fixed width cards layout */}
+      <div className="hidden md:flex flex-wrap gap-4">
         {kpiCards.map((kpi, index) => (
-          <motion.div key={kpi.id} {...createStaggeredCardVariants(index, 0)} className="h-full">
-            {renderKPICard(kpi)}
-          </motion.div>
+          <div key={kpi.id} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+            <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
+              {renderKPICard(kpi)}
+            </motion.div>
+          </div>
         ))}
       </div>
     </div>

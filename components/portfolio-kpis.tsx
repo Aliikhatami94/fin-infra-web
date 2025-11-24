@@ -235,12 +235,14 @@ export function PortfolioKPIs({ demoMode = false, mockDataOverride }: PortfolioK
                 )}
               </div>
 
-              {/* Tablet/Desktop: Grid layout */}
-              <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4">
+              {/* Tablet/Desktop: Fixed width cards layout */}
+              <div className="hidden md:flex flex-wrap gap-4">
                 {kpis.map((kpi, index) => (
-                  <motion.div key={kpi.label} {...createStaggeredCardVariants(index, 0)} className="h-full">
-                    {renderKPICard(kpi)}
-                  </motion.div>
+                  <div key={kpi.label} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+                    <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
+                      {renderKPICard(kpi)}
+                    </motion.div>
+                  </div>
                 ))}
               </div>
           </motion.div>

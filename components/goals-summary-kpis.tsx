@@ -263,12 +263,14 @@ export function GoalsSummaryKPIs() {
               </div>
             </div>
 
-            {/* Tablet/Desktop: Grid layout */}
-            <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-4 auto-rows-fr">
+            {/* Tablet/Desktop: Fixed width cards layout */}
+            <div className="hidden md:flex flex-wrap gap-4">
               {kpiCards.map((card) => (
-                <motion.div key={card.id} {...createStaggeredCardVariants(card.index, 0)} {...cardHoverVariants} className="h-full">
-                  {renderKPICard(card.id, card.index)}
-                </motion.div>
+                <div key={card.id} className="w-[calc(50%-0.5rem)] xl:w-[calc(25%-0.75rem)]">
+                  <motion.div {...createStaggeredCardVariants(card.index, 0)} {...cardHoverVariants} className="h-full">
+                    {renderKPICard(card.id, card.index)}
+                  </motion.div>
+                </div>
               ))}
             </div>
           </motion.div>

@@ -133,7 +133,7 @@ export function AccountsPageClient({ accounts, totalCash, totalCreditDebt, total
     <>
       {/* Header */}
       <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b">
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-3">
+        <div className="mx-auto max-w-[1280px] xl:max-w-[1440px] px-4 sm:px-6 xl:px-10 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h1 className="text-xl md:text-2xl font-semibold text-foreground">Accounts</h1>
@@ -176,7 +176,7 @@ export function AccountsPageClient({ accounts, totalCash, totalCreditDebt, total
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18 }}
-        className="w-full px-4 sm:px-6 lg:px-8 space-y-6 py-6"
+        className="mx-auto w-full max-w-[1280px] xl:max-w-[1440px] px-4 sm:px-6 xl:px-10 space-y-6 py-6"
       >
         {linkingInstitution && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
