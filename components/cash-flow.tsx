@@ -100,13 +100,13 @@ export function CashFlow() {
 
   return (
     <Card className="card-standard">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="space-y-1">
-          <CardTitle>Cash Flow</CardTitle>
-          <CardDescription>Income vs expenses with net cash flow trend</CardDescription>
+          <CardTitle className="text-xl font-semibold">Cash Flow</CardTitle>
+          <CardDescription className="text-sm">Income vs expenses with net cash flow trend</CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[120px] h-8 text-xs">
+          <SelectTrigger className="w-[120px] h-9 text-xs font-medium">
             <SelectValue placeholder="Select range" />
           </SelectTrigger>
           <SelectContent>
@@ -116,9 +116,9 @@ export function CashFlow() {
           </SelectContent>
         </Select>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2">
         {isLoading ? (
-          <div className="flex h-[280px] items-center justify-center">
+          <div className="flex h-[320px] items-center justify-center">
             <div className="text-muted-foreground">Loading cash flow data...</div>
           </div>
         ) : (
@@ -144,38 +144,58 @@ export function CashFlow() {
               dataKey="month"
               tickLine={false}
               axisLine={false}
-              tickMargin={12}
-              className="text-[11px] font-medium"
-              stroke="hsl(var(--muted-foreground))"
+              tickMargin={10}
+              className="text-xs font-semibold"
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--muted-foreground))" }}
             />
             <YAxis
               tickLine={false}
               axisLine={false}
-              tickMargin={12}
-              className="text-[11px] font-medium"
-              stroke="hsl(var(--muted-foreground))"
+              tickMargin={8}
+              className="text-xs font-semibold"
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))" }}
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-              width={35}
+              width={40}
             />
             <ChartTooltip
               content={
                 <ChartTooltipContent
-                  className="w-[180px]"
+                  className="w-[200px]"
                   labelFormatter={(label) => `${label}`}
-                  formatter={(value, name) => [
-                    `$${Number(value).toLocaleString()}`,
-                    name === "income" ? "Income" : "Expenses"
-                  ]}
+                  formatter={(value, name) => {
+                    const label = name === "income" ? "Income" : "Expenses"
+                    return [
+                      <div key="value" className="flex items-center justify-between gap-4 w-full">
+                        <span className="text-muted-foreground">{label}:</span>
+                        <span className="font-semibold">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+                    ]
+                  }}
                 />
               }
-              cursor={{ fill: "hsl(var(--muted)/0.2)" }}
+              cursor={{ fill: "hsl(var(--muted)/0.15)" }}
             />
-            <ChartLegend content={<ChartLegendContent />} verticalAlign="top" height={36}/>
-            <ReferenceLine y={averageIncome} stroke="hsl(142, 71%, 45%)" strokeDasharray="3 3" strokeOpacity={0.4}>
-              <Label value="avg income" position="insideBottomLeft" offset={10} fill="hsl(var(--muted-foreground))" fontSize={10} className="hidden sm:block" />
+            <ChartLegend 
+              content={<ChartLegendContent className="gap-6" />} 
+              verticalAlign="top" 
+              height={40}
+              wrapperStyle={{ paddingBottom: '10px' }}
+            />
+            <ReferenceLine y={averageIncome} stroke="hsl(142, 71%, 45%)" strokeDasharray="5 5" strokeOpacity={0.5} strokeWidth={1.5}>
+              <Label 
+                value="avg income" 
+                position="insideTopLeft" 
+                offset={5} 
+                fill="hsl(142, 71%, 45%)" 
+                fontSize={11} 
+                fontWeight={500}
+                className="hidden sm:block" 
+              />
             </ReferenceLine>
-            <Bar dataKey="income" fill="url(#colorIncome)" radius={[8, 8, 0, 0]} maxBarSize={60} />
-            <Bar dataKey="expenses" fill="url(#colorExpenses)" radius={[8, 8, 0, 0]} maxBarSize={48} />
+            <Bar dataKey="income" fill="url(#colorIncome)" radius={[8, 8, 0, 0]} maxBarSize={56} />
+            <Bar dataKey="expenses" fill="url(#colorExpenses)" radius={[8, 8, 0, 0]} maxBarSize={44} />
           </ComposedChart>
         </ChartContainer>
         )}
