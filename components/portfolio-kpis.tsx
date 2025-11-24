@@ -212,7 +212,7 @@ export function PortfolioKPIs({ demoMode = false, mockDataOverride }: PortfolioK
                 >
                   <CarouselContent className="-ml-4">
                     {kpis.map((kpi, index) => (
-                      <CarouselItem key={kpi.label} className="pl-4 basis-[85%] sm:basis-[48%]">
+                      <CarouselItem key={kpi.label} className="pl-4 basis-[57%] sm:basis-[44%]">
                         <motion.div {...createStaggeredCardVariants(index, 0)} className="h-full">
                           {renderKPICard(kpi)}
                         </motion.div>

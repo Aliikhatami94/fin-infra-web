@@ -258,7 +258,7 @@ export function BudgetSummary() {
         >
           <CarouselContent className="-ml-4">
             {summary.map((item, index) => (
-              <CarouselItem key={item.label} className="pl-4 basis-[85%]">
+              <CarouselItem key={item.label} className="pl-4 basis-[57%]">
                 {renderCard(item, index)}
               </CarouselItem>
             ))}

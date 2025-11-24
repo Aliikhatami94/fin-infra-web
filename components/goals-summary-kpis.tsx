@@ -236,7 +236,7 @@ export function GoalsSummaryKPIs() {
               >
                 <CarouselContent className="-ml-4 pt-4">
                   {kpiCards.map((card) => (
-                    <CarouselItem key={card.id} className="pl-4 basis-[85%] sm:basis-[48%]">
+                    <CarouselItem key={card.id} className="pl-4 basis-[57%] sm:basis-[44%]">
                       <motion.div {...createStaggeredCardVariants(card.index, 0)} {...cardHoverVariants} className="h-full">
                         {renderKPICard(card.id, card.index)}
                       </motion.div>

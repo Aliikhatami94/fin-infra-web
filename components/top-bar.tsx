@@ -211,12 +211,12 @@ export function TopBar({
                 </div>
               </DropdownMenuLabel>
               <div className="px-2 pb-2">
-                <div className="inline-flex rounded-md bg-muted p-0.5" role="group" aria-label="Theme selection">
+                <div className="inline-flex rounded-sm bg-muted p-0.5" role="group" aria-label="Theme selection">
                   <button
                     type="button"
                     onClick={() => setTheme("light")}
                     className={cn(
-                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      "inline-flex items-center justify-center rounded-[calc(var(--radius)-2px)] px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
                       mounted && theme === "light"
                         ? "bg-background text-foreground shadow-sm scale-105"
                         : "text-muted-foreground hover:text-foreground hover:scale-105"
@@ -230,7 +230,7 @@ export function TopBar({
                     type="button"
                     onClick={() => setTheme("dark")}
                     className={cn(
-                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      "inline-flex items-center justify-center rounded-[calc(var(--radius)-2px)] px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
                       mounted && theme === "dark"
                         ? "bg-background text-foreground shadow-sm scale-105"
                         : "text-muted-foreground hover:text-foreground hover:scale-105"
@@ -244,7 +244,7 @@ export function TopBar({
                     type="button"
                     onClick={() => setTheme("system")}
                     className={cn(
-                      "inline-flex items-center justify-center rounded px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
+                      "inline-flex items-center justify-center rounded-[calc(var(--radius)-2px)] px-2.5 py-1.5 text-sm font-medium transition-all duration-200",
                       mounted && theme === "system"
                         ? "bg-background text-foreground shadow-sm scale-105"
                         : "text-muted-foreground hover:text-foreground hover:scale-105"
