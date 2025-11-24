@@ -335,192 +335,191 @@ export function TransactionsWorkspace() {
   )
 
   return (
-    <Card className="card-standard overflow-hidden">
-      <CardHeader className="gap-4 md:gap-6 md:sticky md:top-0 md:z-10 md:border-b md:border-border/40 md:bg-card/95 md:backdrop-blur supports-[backdrop-filter]:md:bg-card/80">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between min-w-0">
-          <div className="space-y-1 min-w-0">
-            <CardTitle className="text-lg font-semibold">Transactions workspace</CardTitle>
-            <CardDescription className="truncate">
-              Bulk manage categories, tags, and reviews with keyboard shortcuts and virtualized scrolling.
+    <Card className="card-standard overflow-hidden group">
+      <CardHeader className="space-y-4 md:sticky md:top-0 md:z-10 md:border-b md:border-border/40 md:bg-card/95 md:backdrop-blur supports-[backdrop-filter]:md:bg-card/80">
+        {/* Minimal Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold">Transactions</CardTitle>
+            <CardDescription className="text-xs mt-1">
+              {filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'}
             </CardDescription>
           </div>
-          <div className="flex flex-col items-end gap-2 text-xs text-muted-foreground md:items-center">
-            <div className="flex items-center gap-2">
-              <Keyboard className="h-3.5 w-3.5" />
-              <span>
-                Press <kbd className="rounded bg-muted px-1">⌘</kbd> + <kbd className="rounded bg-muted px-1">A</kbd> to select all
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <AssignmentMenu entityId="transaction-review" entityType="transaction" />
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <CollaborationDrawer
-                        entityId="transaction-review"
-                        entityType="transaction"
-                        entityName="Transactions workspace"
-                        triggerLabel="Discuss"
-                        disabled={selectedTransactionIds.length === 0}
-                      />
-                    </div>
-                  </TooltipTrigger>
-                  {selectedTransactionIds.length === 0 && (
-                    <TooltipContent>
-                      <p className="text-xs">Select transactions to discuss</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between min-w-0">
-          <div className="min-w-0 flex-1 lg:flex-initial overflow-hidden">
-            <ScrollArea className="w-full">
-              <div className="flex items-center gap-2 pb-2">
-                <Button
-                  variant={selectedAccount === "All accounts" ? "secondary" : "outline"}
-                  size="sm"
-                  className="rounded-full flex-shrink-0"
-                  aria-pressed={selectedAccount === "All accounts"}
-                  onClick={() => setSelectedAccount("All accounts")}
-                >
-                  All accounts
-                </Button>
-                {accounts
-                  .filter((account) => account !== "All accounts")
-                  .map((account) => {
-                    const active = selectedAccount === account
-                    return (
-                      <Button
-                        key={account}
-                        variant={active ? "secondary" : "outline"}
-                        size="sm"
-                        className="rounded-full flex-shrink-0"
-                        aria-pressed={active}
-                        onClick={() => setSelectedAccount(account)}
-                      >
-                        {account}
-                      </Button>
-                    )
-                  })}
-              </div>
-            </ScrollArea>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end min-w-0 flex-shrink-0">
-            <div className="relative w-full sm:w-auto sm:min-w-[160px] sm:max-w-[240px]">
-              <Input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                onKeyDown={(event) => {
-                  // Prevent global keyboard shortcuts from interfering with input
-                  event.stopPropagation()
-                }}
-                placeholder="Search transactions..."
-                className="w-full"
-                aria-label="Search transactions"
-              />
-            </div>
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start gap-2 rounded-full sm:w-auto sm:min-w-[160px] sm:max-w-[240px]"
-                  aria-label={`Select transaction date range, currently ${dateRangeLabel}`}
-                >
-                  <CalendarDays className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                  <span className="truncate">{dateRangeLabel}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent 
-                className="w-auto max-w-[calc(100vw-1rem)] p-2" 
-                align="center"
-                collisionPadding={10}
-                sideOffset={8}
-              >
-                <div className="flex flex-col items-center space-y-2">
-                  <div className="grid grid-cols-2 gap-1.5 w-full">
-                    {presetOrder.map((presetId) => {
-                      const active = selectedPresetId === presetId
-                      return (
-                        <Button
-                          key={presetId}
-                          size="sm"
-                          variant={active ? "default" : "ghost"}
-                          className="h-7 text-xs font-medium"
-                          onClick={() => applyPreset(presetId)}
-                          aria-pressed={active}
-                        >
-                          {presetLabels[presetId]}
-                        </Button>
-                      )
-                    })}
+          
+          {/* Action Buttons - Hidden on mobile, shown on hover */}
+          <div className="hidden md:flex items-center gap-2 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100">
+            <AssignmentMenu entityId="transaction-review" entityType="transaction" />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <CollaborationDrawer
+                      entityId="transaction-review"
+                      entityType="transaction"
+                      entityName="Transactions workspace"
+                      triggerLabel="Discuss"
+                      disabled={selectedTransactionIds.length === 0}
+                    />
                   </div>
-                  <Calendar
-                    mode="range"
-                    numberOfMonths={1}
-                    selected={selectedRange}
-                    onSelect={handleRangeSelect}
-                    className="[--cell-size:1.75rem] text-sm"
-                  />
-                  <div className="flex items-center justify-between gap-2 w-full">
-                    <Button variant="ghost" size="sm" onClick={clearDateRange} className="h-7 text-xs">
-                      Clear
-                    </Button>
-                    {selectedRange.from && selectedRange.to ? (
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        onClick={() => setDatePickerOpen(false)}
-                        className="h-7 text-xs"
-                      >
-                        Apply
-                      </Button>
-                    ) : (
-                      <p className="text-[11px] text-muted-foreground">
-                        {selectedRange.from ? "Select end date" : "Select start date"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+                </TooltipTrigger>
+                {selectedTransactionIds.length === 0 && (
+                  <TooltipContent>
+                    <p className="text-xs">Select transactions to discuss</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
-        <TooltipProvider delayDuration={100}>
-          <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <Badge variant="outline" className="gap-1 flex-shrink-0" aria-hidden="true">
-              <Filter className="h-3.5 w-3.5" />
-              Quick filters
-            </Badge>
-            {quickFilters.map((filter) => {
-              const active = selectedFilters.includes(filter.id)
-              return (
-                <Tooltip key={filter.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={active ? "secondary" : "outline"}
-                      size="sm"
-                      className="rounded-full"
-                      onClick={() => toggleFilter(filter.id)}
-                      aria-pressed={active}
-                      aria-label={`${filter.label} – ${filter.description}`}
-                    >
-                      {filter.label}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs text-xs leading-relaxed">
-                    {filter.description}
-                  </TooltipContent>
-                </Tooltip>
-              )
-            })}
+        {/* Compact Controls */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px] max-w-xs">
+            <Input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                event.stopPropagation()
+              }}
+              placeholder="Search transactions..."
+              className="h-9"
+              aria-label="Search transactions"
+            />
           </div>
-        </TooltipProvider>
+
+          {/* Date Range Picker */}
+          <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-2"
+                aria-label={`Select transaction date range, currently ${dateRangeLabel}`}
+              >
+                <CalendarDays className="h-4 w-4" />
+                <span className="hidden sm:inline">{dateRangeLabel}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-auto p-2" 
+              align="end"
+              sideOffset={8}
+            >
+              <div className="flex flex-col items-center space-y-2">
+                <div className="grid grid-cols-2 gap-1.5 w-full">
+                  {presetOrder.map((presetId) => {
+                    const active = selectedPresetId === presetId
+                    return (
+                      <Button
+                        key={presetId}
+                        size="sm"
+                        variant={active ? "default" : "ghost"}
+                        className="h-7 text-xs"
+                        onClick={() => applyPreset(presetId)}
+                      >
+                        {presetLabels[presetId]}
+                      </Button>
+                    )
+                  })}
+                </div>
+                <Calendar
+                  mode="range"
+                  numberOfMonths={1}
+                  selected={selectedRange}
+                  onSelect={handleRangeSelect}
+                  className="text-sm"
+                />
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <Button variant="ghost" size="sm" onClick={clearDateRange} className="h-7 text-xs">
+                    Clear
+                  </Button>
+                  {selectedRange.from && selectedRange.to ? (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={() => setDatePickerOpen(false)}
+                      className="h-7 text-xs"
+                    >
+                      Apply
+                    </Button>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">
+                      {selectedRange.from ? "Select end date" : "Select start date"}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Account Filter Dropdown */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-2">
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {selectedAccount === "All accounts" ? "All accounts" : selectedAccount}
+                </span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-[240px] p-2">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">Accounts</p>
+                {accounts.map((account) => {
+                  const active = selectedAccount === account
+                  return (
+                    <Button
+                      key={account}
+                      variant={active ? "secondary" : "ghost"}
+                      size="sm"
+                      className="w-full justify-start h-8 text-xs font-normal"
+                      onClick={() => setSelectedAccount(account)}
+                    >
+                      {account}
+                    </Button>
+                  )
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Quick Filters Dropdown */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-2">
+                <Filter className="h-4 w-4" />
+                {selectedFilters.length > 0 && (
+                  <span className="flex items-center justify-center h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
+                    {selectedFilters.length}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-[280px] p-2">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">Quick filters</p>
+                {quickFilters.map((filter) => {
+                  const active = selectedFilters.includes(filter.id)
+                  return (
+                    <Button
+                      key={filter.id}
+                      variant={active ? "secondary" : "ghost"}
+                      size="sm"
+                      className="w-full justify-start h-8 text-xs font-normal"
+                      onClick={() => toggleFilter(filter.id)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span>{filter.label}</span>
+                        {active && <div className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                      </div>
+                    </Button>
+                  )
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="sr-only" aria-live="polite">
@@ -703,8 +702,8 @@ export function TransactionsWorkspace() {
             </div>
           ) : (
             <>
-              {/* Table Header */}
-              <div className="grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b border-border/60 bg-muted/30 px-6 py-3 text-xs font-medium text-muted-foreground">
+              {/* Table Header - Minimal */}
+              <div className="grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b px-6 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                 <div></div>
                 <div>Description</div>
                 <div>Date</div>
@@ -733,9 +732,9 @@ export function TransactionsWorkspace() {
                         }
                       }}
                       className={cn(
-                        "grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b border-border/40 px-6 py-3.5 transition-colors",
-                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                        isSelected ? "bg-primary/5" : "hover:bg-muted/30",
+                        "grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b px-6 py-3 transition-all duration-150",
+                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary",
+                        isSelected ? "bg-primary/5 border-l-2 border-l-primary" : "hover:bg-muted/40 border-l-2 border-l-transparent",
                       )}
                     >
                       {/* Checkbox */}
@@ -749,12 +748,12 @@ export function TransactionsWorkspace() {
 
                       {/* Description Column */}
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
-                          <transaction.icon className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex-shrink-0 w-8 h-8 rounded-md bg-muted/40 flex items-center justify-center">
+                          <transaction.icon className="h-3.5 w-3.5 text-muted-foreground" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground truncate">{transaction.merchant}</p>
-                          <p className="text-xs text-muted-foreground truncate">{transaction.account}</p>
+                          <p className="text-sm font-medium text-foreground truncate leading-tight">{transaction.merchant}</p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{transaction.account}</p>
                         </div>
                       </div>
 
@@ -769,22 +768,16 @@ export function TransactionsWorkspace() {
 
                       {/* Category Column */}
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-sm font-medium text-foreground truncate">{transaction.category}</span>
-                        <div className="flex flex-wrap items-center gap-1">
+                        <span className="text-sm text-foreground truncate">{transaction.category}</span>
+                        <div className="flex items-center gap-1">
                           {transaction.isRecurring ? (
-                            <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 text-[10px] px-1.5 py-0">
-                              Recurring
-                            </Badge>
+                            <div className="h-1.5 w-1.5 rounded-full bg-blue-500" title="Recurring" />
                           ) : null}
                           {transaction.isFlagged ? (
-                            <Badge variant="secondary" className="bg-amber-500/15 text-amber-700 text-[10px] px-1.5 py-0">
-                              Flagged
-                            </Badge>
+                            <div className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Flagged" />
                           ) : null}
                           {transaction.isTransfer ? (
-                            <Badge variant="secondary" className="bg-purple-500/15 text-purple-700 text-[10px] px-1.5 py-0">
-                              Transfer
-                            </Badge>
+                            <div className="h-1.5 w-1.5 rounded-full bg-purple-500" title="Transfer" />
                           ) : null}
                         </div>
                       </div>
