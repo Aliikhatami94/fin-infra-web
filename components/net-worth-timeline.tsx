@@ -123,15 +123,6 @@ export function NetWorthTimeline() {
     return historyData || []
   }, [dateRange, historyData])
 
-  // Don't show chart if:
-  // 1. Not in marketing mode AND
-  // 2. (Loading, error, or insufficient data - need at least 7 days)
-  if (!isMarketingMode()) {
-    if (isLoading || hasError || !historyData || historyData.length < 7) {
-      return null
-    }
-  }
-
   const stats = useMemo(() => {
     if (data.length === 0) return null
     
@@ -147,6 +138,15 @@ export function NetWorthTimeline() {
       isPositive: change >= 0,
     }
   }, [data])
+
+  // Don't show chart if:
+  // 1. Not in marketing mode AND
+  // 2. (Loading, error, or insufficient data - need at least 7 days)
+  if (!isMarketingMode()) {
+    if (isLoading || hasError || !historyData || historyData.length < 7) {
+      return null
+    }
+  }
 
   return (
     <div className="space-y-4">
