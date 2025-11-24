@@ -35,6 +35,7 @@ interface ActivityItem {
   amount: number
   description: string
   account_id: string  // Backend field name
+  account_name?: string | null  // Backend field name
   currency?: string
   // Banking-specific fields
   merchant_name?: string | null  // Backend field name
@@ -119,7 +120,7 @@ function transformActivityToTransaction(activity: ActivityItem, index: number): 
     amount: activity.amount || 0,
     category: primaryCategory,
     icon: getActivityIcon(activity),
-    account: activity.account_id, // Use account_id as account name for now
+    account: activity.account_name || activity.account_id.substring(0, 20) + '...',
     isNew: false,
     isRecurring: false,
     isFlagged: false,

@@ -583,7 +583,9 @@ export function TransactionsWorkspace() {
           ) : (
             filteredTransactions.map((transaction) => {
               const isSelected = selectedTransactionIds.includes(transaction.id)
-              const amountClass = transaction.amount >= 0 ? "text-emerald-600 dark:text-emerald-500" : "text-foreground"
+              const amountClass = transaction.amount >= 0 
+                ? "text-emerald-600 dark:text-emerald-500" 
+                : "text-rose-600 dark:text-rose-500"
               const formattedAmount = formatCurrency(transaction.amount)
 
               return (
@@ -703,7 +705,7 @@ export function TransactionsWorkspace() {
           ) : (
             <>
               {/* Table Header - Minimal */}
-              <div className="grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b px-6 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              <div className="grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b border-border/40 bg-muted/20 px-6 py-2 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wide">
                 <div></div>
                 <div>Description</div>
                 <div>Date</div>
@@ -717,7 +719,9 @@ export function TransactionsWorkspace() {
                 overscan={200}
                 itemContent={(_index, transaction) => {
                   const isSelected = selectedTransactionIds.includes(transaction.id)
-                  const amountClass = transaction.amount >= 0 ? "text-emerald-600 dark:text-emerald-500" : "text-foreground"
+                  const amountClass = transaction.amount >= 0 
+                    ? "text-emerald-600 dark:text-emerald-500" 
+                    : "text-rose-600 dark:text-rose-500"
 
                   return (
                     <div
@@ -732,9 +736,9 @@ export function TransactionsWorkspace() {
                         }
                       }}
                       className={cn(
-                        "grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b px-6 py-3 transition-all duration-150",
+                        "grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b border-border/30 px-6 py-2.5 transition-all duration-150",
                         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary",
-                        isSelected ? "bg-primary/5 border-l-2 border-l-primary" : "hover:bg-muted/40 border-l-2 border-l-transparent",
+                        isSelected ? "bg-primary/[0.04] border-l-2 border-l-primary" : "hover:bg-muted/50 border-l-2 border-l-transparent",
                       )}
                     >
                       {/* Checkbox */}
@@ -747,18 +751,18 @@ export function TransactionsWorkspace() {
                       </div>
 
                       {/* Description Column */}
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-md bg-muted/40 flex items-center justify-center">
-                          <transaction.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex-shrink-0 w-7 h-7 rounded bg-muted/50 flex items-center justify-center">
+                          <transaction.icon className="h-3.5 w-3.5 text-muted-foreground/70" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground truncate leading-tight">{transaction.merchant}</p>
-                          <p className="text-xs text-muted-foreground truncate mt-0.5">{transaction.account}</p>
+                          <p className="text-[13px] font-medium text-foreground truncate leading-tight">{transaction.merchant}</p>
+                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{transaction.account}</p>
                         </div>
                       </div>
 
                       {/* Date Column */}
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-[13px] text-muted-foreground/80">
                         {new Date(transaction.date).toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric',
@@ -768,22 +772,18 @@ export function TransactionsWorkspace() {
 
                       {/* Category Column */}
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-sm text-foreground truncate">{transaction.category}</span>
-                        <div className="flex items-center gap-1">
-                          {transaction.isRecurring ? (
-                            <div className="h-1.5 w-1.5 rounded-full bg-blue-500" title="Recurring" />
-                          ) : null}
-                          {transaction.isFlagged ? (
-                            <div className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Flagged" />
-                          ) : null}
-                          {transaction.isTransfer ? (
-                            <div className="h-1.5 w-1.5 rounded-full bg-purple-500" title="Transfer" />
-                          ) : null}
-                        </div>
+                        <span className="text-[13px] text-foreground/90 truncate">{transaction.category}</span>
+                        {(transaction.isRecurring || transaction.isFlagged || transaction.isTransfer) && (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {transaction.isRecurring && <div className="h-1 w-1 rounded-full bg-blue-500/70" title="Recurring" />}
+                            {transaction.isFlagged && <div className="h-1 w-1 rounded-full bg-amber-500/70" title="Flagged" />}
+                            {transaction.isTransfer && <div className="h-1 w-1 rounded-full bg-purple-500/70" title="Transfer" />}
+                          </div>
+                        )}
                       </div>
 
                       {/* Amount Column */}
-                      <div className={cn("text-right text-sm font-semibold tabular-nums", amountClass)}>
+                      <div className={cn("text-right text-[13px] font-semibold tabular-nums", amountClass)}>
                         <MaskableValue value={formatCurrency(transaction.amount)} srLabel={`Amount ${formatCurrency(transaction.amount)}`} />
                       </div>
                     </div>
