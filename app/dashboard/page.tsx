@@ -12,7 +12,8 @@ import {
   AIInsightsListSkeleton,
   RecentActivitySkeleton,
 } from "@/components/dashboard-skeletons"
-import { AccountabilityChecklist } from "@/components/accountability-checklist"
+import { QuickInsights } from "@/components/quick-insights"
+import { ConnectedAccountsSummary } from "@/components/connected-accounts-summary"
 import { DashboardShell } from "@/components/dashboard/shell"
 
 const NetWorthTimeline = dynamic(
@@ -105,10 +106,18 @@ export default function OverviewPage() {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18, delay: 0.15 }}
-          className="space-y-4"
+          className="space-y-4 flex flex-col h-full"
         >
-          <h2 className="text-lg font-semibold text-foreground">Accountability</h2>
-          <AccountabilityChecklist surface="overview" />
+          <div className="space-y-4 flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Quick Insights</h2>
+              <QuickInsights />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Accounts</h2>
+              <ConnectedAccountsSummary />
+            </div>
+          </div>
         </motion.div>
       ),
       span: "half" as const,

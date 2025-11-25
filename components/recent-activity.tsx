@@ -155,11 +155,8 @@ export function RecentActivity() {
 
   return (
     <>
-      <Card className="card-standard">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card>
+        <CardContent className="pt-6">
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
