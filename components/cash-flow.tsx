@@ -95,8 +95,10 @@ export function CashFlow() {
         }
         
         // Aggregate transactions by month
+        // Plaid sandbox returns positive amounts for all transactions
+        // Categorize by description keywords: income vs expenses
         response.activities.forEach((activity) => {
-          if (!activity.date || !activity.amount) return
+          if (!activity.date || activity.amount === undefined || activity.amount === null) return
           
           const date = parseISO(activity.date)
           const monthKey = format(startOfMonth(date), 'yyyy-MM')
@@ -104,10 +106,24 @@ export function CashFlow() {
           if (!monthlyData.has(monthKey)) return
           
           const data = monthlyData.get(monthKey)!
-          if (activity.amount > 0) {
-            data.income += activity.amount
+          const description = activity.description?.toLowerCase() || ''
+          const amount = Math.abs(activity.amount) // Always use absolute value
+          
+          // Determine if it's income based on keywords
+          const isIncome = 
+            description.includes('deposit') ||
+            description.includes('credit') ||
+            description.includes('salary') ||
+            description.includes('paycheck') ||
+            description.includes('pay ') ||
+            description.includes('payment received') ||
+            description.includes('refund') ||
+            description.includes('gusto') // Payroll service
+          
+          if (isIncome) {
+            data.income += amount
           } else {
-            data.expenses += Math.abs(activity.amount)
+            data.expenses += amount
           }
         })
         

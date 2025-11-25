@@ -51,18 +51,16 @@ export function Sidebar({
   useEffect(() => {
     const fetchEnv = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v0/status`)
-        if (res.ok) {
-          const data = await res.json()
-          const envMap: Record<string, string> = {
-            local: "Local",
-            dev: "Dev",
-            test: "Test",
-            prod: "Live"
-          }
-          if (data.env && envMap[data.env]) {
-            setEnvBadge(envMap[data.env])
-          }
+        const { getAPIStatus } = await import('@/lib/api/status')
+        const data = await getAPIStatus()
+        const envMap: Record<string, string> = {
+          local: "Local",
+          dev: "Dev",
+          test: "Test",
+          prod: "Live"
+        }
+        if (data.env && envMap[data.env]) {
+          setEnvBadge(envMap[data.env])
         }
       } catch (e) {
         // Ignore errors, default to Live

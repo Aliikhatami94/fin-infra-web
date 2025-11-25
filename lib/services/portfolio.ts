@@ -57,6 +57,23 @@ let benchmarkCache: {
   promise: null,
 }
 
+let holdingsCache: { 
+  data: any[] | null; 
+  timestamp: number; 
+  promise: Promise<any[]> | null 
+} = {
+  data: null,
+  timestamp: 0,
+  promise: null,
+}
+
+/**
+ * Clear holdings cache (exported for testing/debugging)
+ */
+export function clearHoldingsCache() {
+  holdingsCache = { data: null, timestamp: 0, promise: null }
+}
+
 /**
  * Portfolio KPI structure
  */
@@ -74,6 +91,59 @@ export interface PortfolioKPI {
 
 export function getMockHoldings(): Holding[] {
   return holdingsResponseSchema.parse(portfolioHoldings)
+}
+
+/**
+ * Fetch raw holdings data from API with caching and promise deduplication
+ */
+async function fetchHoldingsData(): Promise<any[]> {
+  const now = Date.now()
+  
+  // Return cached data if fresh
+  if (holdingsCache.data && (now - holdingsCache.timestamp) < CACHE_DURATION) {
+    console.log('[Holdings] ✅ Using cached holdings data')
+    return holdingsCache.data
+  }
+  
+  // If fetch already in progress, await it (prevents duplicate calls)
+  if (holdingsCache.promise) {
+    console.log('[Holdings] ⏳ Holdings fetch already in progress, awaiting...')
+    return holdingsCache.promise
+  }
+  
+  // Start new fetch and store promise
+  const fetchPromise = (async () => {
+    try {
+      console.log('[Holdings] 🔄 Fetching holdings from API...')
+      const data = await _fetchInvestmentHoldings()
+      console.log('[Holdings] ✅ Received', data.length, 'holdings from API')
+      
+      // Update cache with data
+      holdingsCache = {
+        data,
+        timestamp: Date.now(),
+        promise: null,
+      }
+      
+      return data
+    } catch (error) {
+      console.error('[Holdings] ❌ Failed to fetch holdings:', error)
+      
+      // Cache empty array to prevent retry storms
+      holdingsCache = {
+        data: [],
+        timestamp: Date.now(),
+        promise: null,
+      }
+      
+      throw error
+    }
+  })()
+  
+  // Store promise while fetching
+  holdingsCache.promise = fetchPromise
+  
+  return fetchPromise
 }
 
 export async function getPortfolioHoldings(): Promise<Holding[]> {
@@ -104,12 +174,11 @@ export async function getPortfolioHoldings(): Promise<Holding[]> {
     return getMockHoldings()
   }
 
-  // Fetch real holdings from /investments/holdings endpoint
+  // Fetch real holdings from /investments/holdings endpoint using cached function
   // Backend auto-resolves authenticated user's Plaid token
   // Falls back to mock data on error (e.g., no Plaid connection)
   try {
-    console.log('[Holdings] ✅ Fetching real data from API...')
-    const holdingsData = await _fetchInvestmentHoldings()
+    const holdingsData = await fetchHoldingsData()
     console.log('[Holdings] ✅ Received', holdingsData.length, 'holdings from API:', holdingsData)
     
     // Transform backend holdings to frontend Holding type
@@ -203,10 +272,10 @@ export async function getPortfolioAllocation() {
     if (!hasRealData) {
       console.log('[Allocation] ⚠️ Allocation API returned all zeros, calculating from holdings...')
       
-      // Try to calculate from holdings directly
+      // Try to calculate from holdings directly using cached fetch
       try {
-        console.log('[Allocation] About to call _fetchInvestmentHoldings()...')
-        const holdingsData = await _fetchInvestmentHoldings()
+        console.log('[Allocation] About to call fetchHoldingsData() (cached)...')
+        const holdingsData = await fetchHoldingsData()
         console.log('[Allocation] ✅ Fetched holdings for calculation:', holdingsData.length, 'holdings')
         console.log('[Allocation] Holdings data sample:', holdingsData.slice(0, 2))
         

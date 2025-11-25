@@ -5,6 +5,8 @@
  * authentication, and type safety.
  */
 
+import { dedupeRequest } from './dedupe'
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 /**
@@ -12,6 +14,23 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
  */
 async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_URL}${endpoint}`
+  
+  // Create a deduplication key based on endpoint and method
+  const method = options.method || 'GET'
+  const dedupeKey = `${method}:${endpoint}`
+  
+  // Deduplicate GET requests only (POST/PUT/DELETE should not be deduped)
+  if (method === 'GET') {
+    return dedupeRequest(dedupeKey, () => performFetch<T>(url, options))
+  }
+  
+  return performFetch<T>(url, options)
+}
+
+/**
+ * Perform the actual fetch request
+ */
+async function performFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   
   // Get auth token from localStorage if available
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null

@@ -40,25 +40,17 @@ export function useOfflineStatus(): OfflineStatus {
   useEffect(() => {
     const checkEnvironment = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL
-        if (!apiUrl) {
-          console.log('[Offline Demo] No API URL configured, demo mode disabled')
-          return
-        }
+        const { getAPIStatus } = await import('@/lib/api/status')
+        const data = await getAPIStatus()
+        const env = data.env as string
+        const isDev = env === 'local' || env === 'dev'
+        setIsDemoModeEnabled(isDev)
         
-        const res = await fetch(`${apiUrl}/v0/status`)
-        if (res.ok) {
-          const data = await res.json()
-          const env = data.env as string
-          const isDev = env === 'local' || env === 'dev'
-          setIsDemoModeEnabled(isDev)
-          
-          if (isDev) {
-            console.log(`[Offline Demo] ✅ Running in ${env} mode - manual toggle enabled`)
-            console.log('[Offline Demo] Press Cmd+Shift+O (Mac) or Ctrl+Shift+O (Windows/Linux) to toggle offline mode')
-          } else {
-            console.log(`[Offline Demo] Running in ${env} mode - manual toggle disabled for security`)
-          }
+        if (isDev) {
+          console.log(`[Offline Demo] ✅ Running in ${env} mode - manual toggle enabled`)
+          console.log('[Offline Demo] Press Cmd+Shift+O (Mac) or Ctrl+Shift+O (Windows/Linux) to toggle offline mode')
+        } else {
+          console.log(`[Offline Demo] Running in ${env} mode - manual toggle disabled for security`)
         }
       } catch (error) {
         console.log('[Offline Demo] Failed to check environment, demo mode disabled')
