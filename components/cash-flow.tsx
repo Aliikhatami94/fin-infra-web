@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMemo, useState, useEffect } from "react"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import type { ChartConfig } from "@/components/ui/chart"
-import { fetchCashFlowHistory } from "@/lib/api/client"
+import { fetchActivityFeed } from "@/lib/api/client"
 import { isMarketingMode } from "@/lib/marketingMode"
+import { parseISO, format, startOfMonth, subMonths, differenceInMonths } from "date-fns"
 
 interface CashFlowPoint {
   month: string
@@ -78,9 +79,50 @@ export function CashFlow() {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const response = await fetchCashFlowHistory(months)
-        console.log('Cash flow data received:', response.data)
-        setCashFlowData(response.data)
+        // Fetch activity feed for the period (approximate days = months * 30)
+        const days = months * 30
+        const response = await fetchActivityFeed(days, 'banking')
+        
+        // Calculate cash flow by month from banking transactions
+        const monthlyData = new Map<string, { income: number; expenses: number }>()
+        
+        // Initialize months
+        const now = new Date()
+        for (let i = 0; i < months; i++) {
+          const monthDate = subMonths(startOfMonth(now), months - i - 1)
+          const monthKey = format(monthDate, 'yyyy-MM')
+          monthlyData.set(monthKey, { income: 0, expenses: 0 })
+        }
+        
+        // Aggregate transactions by month
+        response.activities.forEach((activity) => {
+          if (!activity.date || !activity.amount) return
+          
+          const date = parseISO(activity.date)
+          const monthKey = format(startOfMonth(date), 'yyyy-MM')
+          
+          if (!monthlyData.has(monthKey)) return
+          
+          const data = monthlyData.get(monthKey)!
+          if (activity.amount > 0) {
+            data.income += activity.amount
+          } else {
+            data.expenses += Math.abs(activity.amount)
+          }
+        })
+        
+        // Convert to array format
+        const cashFlow: CashFlowPoint[] = []
+        monthlyData.forEach((data, monthKey) => {
+          cashFlow.push({
+            month: format(parseISO(monthKey + '-01'), 'MMM'),
+            income: data.income,
+            expenses: data.expenses,
+            net: data.income - data.expenses,
+          })
+        })
+        
+        setCashFlowData(cashFlow)
       } catch (error) {
         console.error("Failed to fetch cash flow history:", error)
         // Fallback to empty array if no banking connection

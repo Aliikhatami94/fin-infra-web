@@ -373,7 +373,7 @@ export function TransactionsWorkspace() {
         </div>
 
         {/* Compact Controls */}
-        <div className="flex items-center gap-2 flex-wrap mb-4">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px] max-w-xs">
             <Input
@@ -519,22 +519,6 @@ export function TransactionsWorkspace() {
               </div>
             </PopoverContent>
           </Popover>
-          
-          {/* Clear Filters Button */}
-          {(selectedAccount !== "All accounts" || selectedFilters.length > 0 || searchQuery) && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 gap-2"
-              onClick={() => {
-                setSelectedAccount("All accounts")
-                setSelectedFilters([])
-                setSearchQuery("")
-              }}
-            >
-              Clear filters
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -721,7 +705,7 @@ export function TransactionsWorkspace() {
           ) : (
             <>
               {/* Table Header - Minimal */}
-              <div className="grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b border-border/40 bg-muted/20 px-6 py-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wide">
+              <div className="grid grid-cols-[40px_200px_140px_1fr_140px] items-center gap-4 border-b border-border/40 bg-muted/20 px-6 py-2 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wide">
                 <div></div>
                 <div>Description</div>
                 <div>Date</div>

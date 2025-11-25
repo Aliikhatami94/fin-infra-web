@@ -452,39 +452,6 @@ export async function fetchInvestmentTransactions(startDate: string, endDate: st
     }),
   })
 }
-
-/**
- * Transactions summary
- */
-export async function fetchTransactionsSummary(days = 30) {
-  return apiFetch<{
-    period_days: number
-    start_date: string
-    end_date: string
-    total_spending: number
-    total_income: number
-    net_cash_flow: number
-    transaction_count: number
-    average_transaction: number
-    top_categories: Array<{ category: string; amount: number }>
-  }>(`/v0/transactions/summary?days=${days}`)
-}
-
-/**
- * Cash flow history (monthly breakdown)
- */
-export async function fetchCashFlowHistory(months = 12) {
-  return apiFetch<{
-    data: Array<{
-      month: string
-      income: number
-      expenses: number
-      net: number
-    }>
-    period_months: number
-  }>(`/v0/transactions/cash-flow-history?months=${months}`)
-}
-
 /**
  * Activity Feed - Unified timeline of all financial activities
  * GET /v0/activity/feed
