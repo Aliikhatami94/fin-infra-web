@@ -52,7 +52,7 @@ const BASE_DASHBOARD_NAVIGATION: NavigationItem[] = [
   { name: "Growth", href: "/dashboard/growth", icon: BarChart3, featureFlag: "growthDashboards", comingSoon: true },
   { name: "Documents", href: "/dashboard/documents", icon: Folder, comingSoon: true },
   { name: "Profile", href: "/dashboard/profile", icon: User },
-  { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
+  { name: "Billing", href: "/dashboard/billing", icon: CreditCard, comingSoon: true },
   { name: "Settings", href: "/dashboard/settings", icon: Settings, exact: true },
   { name: "Security Center", href: "/dashboard/settings/security", icon: Shield },
 ]

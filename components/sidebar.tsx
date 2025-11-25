@@ -147,7 +147,7 @@ export function Sidebar({
                 </div>
               )}
               {DASHBOARD_NAVIGATION.filter((item) => 
-                !["Profile", "Billing", "Settings", "Security Center"].includes(item.name)
+                !["Profile", "Settings", "Security Center"].includes(item.name)
               ).map((item) => {
                 const active = isActiveRoute(pathname, item.href, { exact: item.exact })
                 const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
@@ -221,7 +221,7 @@ export function Sidebar({
                   </div>
                 )}
                 {DASHBOARD_NAVIGATION.filter((item) => 
-                  ["Profile", "Billing", "Settings", "Security Center"].includes(item.name)
+                  ["Profile", "Settings", "Security Center"].includes(item.name)
                 ).map((item) => {
                   const active = isActiveRoute(pathname, item.href, { exact: item.exact })
                   const badgeTooltip = getBadgeTooltipCopy(item.name, item.badge, item.badgeTooltip)
