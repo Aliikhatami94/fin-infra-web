@@ -158,14 +158,6 @@ export function RecentActivity() {
       <Card className="card-standard">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Recent Activity</CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-xs h-8"
-            asChild
-          >
-            <a href="/dashboard/transactions">View all →</a>
-          </Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -276,20 +268,18 @@ export function RecentActivity() {
               </div>
             ))}
             
-            {/* Show more/less button */}
-            {hasMore && (
+            {/* Show more button - navigate to transactions page */}
+            {hasMore && !showAll && (
               <div className="pt-4 border-t">
                 <Button
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  onClick={() => setShowAll(!showAll)}
+                  asChild
                 >
-                  {showAll ? (
-                    <>Show less</>
-                  ) : (
-                    <>Show {activities.length - displayLimit} more activities</>
-                  )}
+                  <a href="/dashboard/transactions">
+                    Show {activities.length - displayLimit} more activities →
+                  </a>
                 </Button>
               </div>
             )}
