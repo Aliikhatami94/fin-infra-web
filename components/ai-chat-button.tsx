@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import {
   AI_PROVIDER_ORDER,
-  AI_PROVIDER_ICONS,
+  getProviderColorIcon,
+  getProviderIcon,
   AI_PROVIDER_NAMES,
   type AIProviderKey,
 } from "@/components/icons/ai-provider-icons"
@@ -23,6 +24,7 @@ interface AIChatButtonProps {
 /**
  * Floating AI Chat button that cycles through provider icons with a smooth animation.
  * Displays each AI provider's icon in sequence to showcase multi-provider support.
+ * Uses color icons for visual appeal.
  */
 export function AIChatButton({
   onClick,
@@ -44,7 +46,8 @@ export function AIChatButton({
   }, [animate, interval, nextProvider])
 
   const currentProvider = AI_PROVIDER_ORDER[currentIndex]
-  const CurrentIcon = AI_PROVIDER_ICONS[currentProvider]
+  // Use color icons for the floating button
+  const CurrentIcon = getProviderColorIcon(currentProvider)
 
   return (
     <Button
@@ -68,7 +71,7 @@ export function AIChatButton({
           }}
           className="flex items-center justify-center"
         >
-          <CurrentIcon className="h-6 w-6" />
+          {CurrentIcon && <CurrentIcon className="h-6 w-6" />}
         </motion.div>
       </AnimatePresence>
     </Button>
@@ -82,12 +85,15 @@ export function AIChatButtonStatic({
   onClick,
   className,
   provider,
+  useColor = true,
 }: {
   onClick: () => void
   className?: string
   provider: AIProviderKey
+  /** Whether to use color icon. Default true */
+  useColor?: boolean
 }) {
-  const Icon = AI_PROVIDER_ICONS[provider]
+  const Icon = useColor ? getProviderColorIcon(provider) : getProviderIcon(provider)
 
   return (
     <Button
@@ -99,7 +105,7 @@ export function AIChatButtonStatic({
       size="icon"
       aria-label={`Open chat - powered by ${AI_PROVIDER_NAMES[provider]}`}
     >
-      <Icon className="h-6 w-6" />
+      {Icon && <Icon className="h-6 w-6" />}
     </Button>
   )
 }

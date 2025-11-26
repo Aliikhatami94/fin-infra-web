@@ -6,10 +6,11 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from "@/components/ui/dropdown-menu"
 import { X, Plus, Sliders, ChevronUp, Clock } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Markdown } from "@/components/ui/markdown"
+import { getProviderIcon, AI_PROVIDER_NAMES, type AIProviderKey } from "@/components/icons/ai-provider-icons"
 import type { AIProvidersResponse } from "@/lib/api/client"
 
 export interface AIChatMessage {
@@ -525,42 +526,63 @@ export function AIChatSidebar({
                     <Button
                       type="button"
                       variant="ghost"
-                      className="h-8 w-8 rounded-md"
-                      aria-label="Settings"
+                      className="h-8 gap-1.5 px-2 rounded-md"
+                      aria-label="AI Provider Settings"
                     >
-                      <Sliders className="h-4 w-4" />
+                      {(() => {
+                        const ProviderIcon = getProviderIcon(selectedProvider)
+                        return ProviderIcon ? <ProviderIcon className="h-4 w-4" /> : <Sliders className="h-4 w-4" />
+                      })()}
+                      <span className="text-xs text-muted-foreground max-w-[80px] truncate">
+                        {providers?.providers[selectedProvider]?.models.find(m => m.id === selectedModel)?.name || selectedModel || "Model"}
+                      </span>
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
-                <TooltipContent>AI Provider Settings</TooltipContent>
+                <TooltipContent>AI Provider & Model</TooltipContent>
               </Tooltip>
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel>AI Provider</DropdownMenuLabel>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel>Select AI Provider</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {providers && (
-                  <DropdownMenuRadioGroup value={selectedProvider} onValueChange={(value) => {
-                    setSelectedProvider(value)
-                    // Reset to default model for this provider
-                    const providerData = providers.providers[value]
-                    if (providerData && providerData.models.length > 0) {
-                      setSelectedModel(providerData.models[0].id)
-                    }
-                  }}>
-                    {Object.entries(providers.providers).map(([key, provider]) => (
-                      <DropdownMenuRadioItem key={key} value={key}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{provider.name}</span>
-                          {key === selectedProvider && providers.providers[key].models.length > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              {providers.providers[key].models.find(m => m.id === selectedModel)?.description || 
-                               providers.providers[key].models[0].description}
-                            </span>
-                          )}
+                {providers && Object.entries(providers.providers).map(([key, provider]) => {
+                  const ProviderIcon = getProviderIcon(key)
+                  const isSelected = key === selectedProvider
+                  
+                  return (
+                    <DropdownMenuSub key={key}>
+                      <DropdownMenuSubTrigger className={isSelected ? "bg-accent" : ""}>
+                        <div className="flex items-center gap-2">
+                          {ProviderIcon && <ProviderIcon className="h-4 w-4" />}
+                          <span className={isSelected ? "font-medium" : ""}>{provider.name}</span>
                         </div>
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                )}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-56">
+                        <DropdownMenuLabel className="text-xs text-muted-foreground">
+                          {provider.name} Models
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {provider.models.map((model) => {
+                          const isModelSelected = key === selectedProvider && model.id === selectedModel
+                          return (
+                            <DropdownMenuItem
+                              key={model.id}
+                              className={isModelSelected ? "bg-accent" : ""}
+                              onClick={() => {
+                                setSelectedProvider(key)
+                                setSelectedModel(model.id)
+                              }}
+                            >
+                              <div className="flex flex-col gap-0.5">
+                                <span className={isModelSelected ? "font-medium" : ""}>{model.name}</span>
+                                <span className="text-xs text-muted-foreground">{model.description}</span>
+                              </div>
+                            </DropdownMenuItem>
+                          )
+                        })}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  )
+                })}
                 {!providers && (
                   <div className="px-2 py-1.5 text-sm text-muted-foreground">
                     Loading providers...
