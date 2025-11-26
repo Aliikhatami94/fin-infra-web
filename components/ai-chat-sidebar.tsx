@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from "@/components/ui/dropdown-menu"
-import { X, Plus, Sliders, ChevronUp, Clock } from "lucide-react"
+import { X, Plus, Sliders, ChevronUp, Clock, CheckIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Markdown } from "@/components/ui/markdown"
 import { getProviderIcon, AI_PROVIDER_NAMES, type AIProviderKey } from "@/components/icons/ai-provider-icons"
@@ -96,6 +96,40 @@ export function AIChatSidebar({
   const [providers, setProviders] = useState<AIProvidersResponse | null>(null)
   const [selectedProvider, setSelectedProvider] = useState<string>("")
   const [selectedModel, setSelectedModel] = useState<string>("")
+
+  // Resizable sidebar (large screens only)
+  const MIN_WIDTH = 320
+  const MAX_WIDTH = 560
+  const DEFAULT_WIDTH = 420
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH)
+  const isResizingRef = useRef(false)
+  const resizeHandleRef = useRef<HTMLDivElement>(null)
+
+  // Handle resize drag
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isResizingRef.current = true
+    document.body.style.cursor = 'ew-resize'
+    document.body.style.userSelect = 'none'
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return
+      // Calculate new width from right edge of viewport
+      const newWidth = window.innerWidth - e.clientX
+      setSidebarWidth(Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, newWidth)))
+    }
+    
+    const handleMouseUp = () => {
+      isResizingRef.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+    
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }, [])
 
   // Load providers on mount
   useEffect(() => {
@@ -364,8 +398,23 @@ export function AIChatSidebar({
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
-          className="fixed inset-y-0 right-0 w-full sm:w-[clamp(300px,85vw,380px)] md:w-[clamp(340px,42vw,400px)] lg:w-[clamp(360px,36vw,420px)] xl:w-[clamp(380px,32vw,440px)] bg-card border-l shadow-lg z-[120] flex flex-col"
+          style={{ width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? sidebarWidth : undefined }}
+          className="fixed inset-y-0 right-0 w-full sm:w-[clamp(300px,85vw,380px)] md:w-[clamp(340px,42vw,400px)] lg:w-auto bg-card border-l shadow-lg z-[120] flex flex-col"
         >
+          {/* Resize handle - visible on large screens only, positioned on the border */}
+          <div
+            ref={resizeHandleRef}
+            onMouseDown={handleResizeStart}
+            className="hidden lg:flex absolute -left-1.5 top-0 bottom-0 w-3 cursor-ew-resize z-10 items-center justify-center group"
+          >
+            {/* Gripper dots pattern - centered on the border line */}
+            <div className="flex flex-col gap-1 p-1 rounded bg-card border shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="w-0.5 h-1 rounded-full bg-muted-foreground" />
+              <div className="w-0.5 h-1 rounded-full bg-muted-foreground" />
+              <div className="w-0.5 h-1 rounded-full bg-muted-foreground" />
+            </div>
+          </div>
+          
           <div className="flex items-center justify-between px-3 py-2 border-b">
             <div className="flex items-center gap-2">
               {title ? <h2 className="text-sm font-semibold">{title}</h2> : null}
@@ -542,44 +591,52 @@ export function AIChatSidebar({
                 <TooltipContent>AI Provider & Model</TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuLabel>Select AI Provider</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">Select AI Provider</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {providers && Object.entries(providers.providers).map(([key, provider]) => {
                   const ProviderIcon = getProviderIcon(key)
                   const isSelected = key === selectedProvider
+                  const isAvailable = provider.available
                   
                   return (
                     <DropdownMenuSub key={key}>
-                      <DropdownMenuSubTrigger className={isSelected ? "bg-accent" : ""}>
-                        <div className="flex items-center gap-2">
+                      <DropdownMenuSubTrigger 
+                        className={`${isSelected ? "font-medium" : ""} ${!isAvailable ? "opacity-50 pointer-events-none" : ""}`}
+                        data-state={isSelected ? "checked" : undefined}
+                        disabled={!isAvailable}
+                      >
+                        <div className="flex items-center gap-2 flex-1">
                           {ProviderIcon && <ProviderIcon className="h-4 w-4" />}
-                          <span className={isSelected ? "font-medium" : ""}>{provider.name}</span>
+                          <span>{provider.name}</span>
                         </div>
+                        {isSelected && (
+                          <CheckIcon className="h-4 w-4 text-primary" />
+                        )}
                       </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="w-56">
-                        <DropdownMenuLabel className="text-xs text-muted-foreground">
-                          {provider.name} Models
-                        </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {provider.models.map((model) => {
-                          const isModelSelected = key === selectedProvider && model.id === selectedModel
-                          return (
-                            <DropdownMenuItem
-                              key={model.id}
-                              className={isModelSelected ? "bg-accent" : ""}
-                              onClick={() => {
-                                setSelectedProvider(key)
-                                setSelectedModel(model.id)
-                              }}
-                            >
-                              <div className="flex flex-col gap-0.5">
-                                <span className={isModelSelected ? "font-medium" : ""}>{model.name}</span>
-                                <span className="text-xs text-muted-foreground">{model.description}</span>
-                              </div>
-                            </DropdownMenuItem>
-                          )
-                        })}
-                      </DropdownMenuSubContent>
+                      {isAvailable && (
+                        <DropdownMenuSubContent className="w-56">
+                          {provider.models.map((model) => {
+                            const isModelSelected = key === selectedProvider && model.id === selectedModel
+                            return (
+                              <DropdownMenuItem
+                                key={model.id}
+                                data-state={isModelSelected ? "checked" : undefined}
+                                onClick={() => {
+                                  setSelectedProvider(key)
+                                  setSelectedModel(model.id)
+                                }}
+                              >
+                                <span className={`flex-1 lowercase ${isModelSelected ? "font-medium" : ""}`}>
+                                  {model.id}
+                                </span>
+                                {isModelSelected && (
+                                  <CheckIcon className="h-4 w-4 text-primary shrink-0" />
+                                )}
+                              </DropdownMenuItem>
+                            )
+                          })}
+                        </DropdownMenuSubContent>
+                      )}
                     </DropdownMenuSub>
                   )
                 })}

@@ -564,6 +564,7 @@ export async function healthCheck() {
 
 export interface AIProvider {
   name: string
+  available: boolean
   models: {
     id: string
     name: string
