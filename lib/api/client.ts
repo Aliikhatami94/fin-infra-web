@@ -557,3 +557,183 @@ export async function healthCheck() {
     timestamp: string
   }>('/v0/status/health')
 }
+
+// ============================================================================
+// AI Chat
+// ============================================================================
+
+export interface AIProvider {
+  name: string
+  models: {
+    id: string
+    name: string
+    description: string
+  }[]
+}
+
+export interface AIProvidersResponse {
+  providers: Record<string, AIProvider>
+  default: {
+    provider: string
+    model: string
+  }
+}
+
+/**
+ * Get available AI providers and models
+ */
+export async function fetchAIProviders(): Promise<AIProvidersResponse> {
+  return apiFetch<AIProvidersResponse>('/v0/ai/providers')
+}
+
+
+
+/**
+ * Get chat history for a user
+ */
+export async function fetchChatHistory(userId: string) {
+  return apiFetch<{
+    user_id: string
+    exchanges: Array<{
+      question: string
+      answer: string
+      timestamp: string | null
+    }>
+  }>(`/v0/ai/chat/history?user_id=${userId}`)
+}
+
+/**
+ * Clear chat history for a user
+ */
+export async function clearChatHistory(userId: string) {
+  return apiFetch<{
+    success: boolean
+    message: string
+  }>(`/v0/ai/chat/history?user_id=${userId}`, {
+    method: 'DELETE',
+  })
+}
+
+/**
+ * Stream AI chat responses token-by-token using Server-Sent Events
+ */
+export async function streamAIChat({
+  userId,
+  question,
+  provider,
+  model,
+  onToken,
+  onComplete,
+  onError,
+}: {
+  userId: string
+  question: string
+  provider?: string
+  model?: string
+  onToken: (token: string) => void
+  onComplete: () => void
+  onError?: (error: Error) => void
+}) {
+  const url = `${API_URL}/v0/ai/chat/stream`
+  
+  console.log('🚀 [streamAIChat] Starting request:', {
+    url,
+    userId,
+    question: question.substring(0, 50),
+    provider,
+    model,
+  })
+
+  try {
+    const body = JSON.stringify({
+      user_id: userId,
+      question,
+      provider,
+      model,
+    })
+    
+    console.log('📤 [streamAIChat] Request body:', body)
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body,
+    })
+
+    console.log('📡 [streamAIChat] Response status:', response.status, response.statusText)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ [streamAIChat] HTTP error:', response.status, errorText)
+      throw new Error(`HTTP ${response.status}: ${errorText}`)
+    }
+
+    if (!response.body) {
+      console.error('❌ [streamAIChat] No response body')
+      throw new Error('No response body')
+    }
+
+    console.log('✅ [streamAIChat] Starting to read stream...')
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let tokenCount = 0
+
+    while (true) {
+      const { done, value } = await reader.read()
+
+      if (done) {
+        console.log('🏁 [streamAIChat] Stream complete. Total tokens:', tokenCount)
+        break
+      }
+
+      const chunk = decoder.decode(value, { stream: true })
+      buffer += chunk
+
+      console.log('📦 [streamAIChat] Received chunk:', chunk.substring(0, 100))
+
+      // Process complete SSE messages (ending with \n\n)
+      const messages = buffer.split('\n\n')
+      buffer = messages.pop() || '' // Keep incomplete message in buffer
+
+      for (const message of messages) {
+        if (!message.trim() || !message.startsWith('data: ')) continue
+
+        const jsonStr = message.replace('data: ', '')
+        try {
+          const data = JSON.parse(jsonStr)
+          
+          if (tokenCount === 0) {
+            console.log('🎯 [streamAIChat] First token received:', data)
+          }
+
+          if (data.done) {
+            console.log('✨ [streamAIChat] Completion marker received')
+            onComplete()
+            return
+          }
+
+          if (data.token) {
+            tokenCount++
+            if (tokenCount <= 3) {
+              console.log(`  Token #${tokenCount}:`, JSON.stringify(data.token))
+            }
+            onToken(data.token)
+          }
+        } catch (e) {
+          console.error('❌ [streamAIChat] Failed to parse SSE message:', message, e)
+        }
+      }
+    }
+
+    console.log('✅ [streamAIChat] Stream ended naturally')
+    onComplete()
+  } catch (error) {
+    console.error('💥 [streamAIChat] Error:', error)
+    onError?.(error as Error)
+    throw error
+  }
+}

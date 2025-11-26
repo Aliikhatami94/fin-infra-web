@@ -6,9 +6,11 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
 import { X, Plus, Sliders, ChevronUp, Clock } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { Markdown } from "@/components/ui/markdown"
+import type { AIProvidersResponse } from "@/lib/api/client"
 
 export interface AIChatMessage {
   id: string
@@ -88,6 +90,27 @@ export function AIChatSidebar({
   // Do not save conversations until the user actually sends a message
   const [conversations, setConversations] = useState<AIConversation[]>([])
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
+
+  // AI Provider selection
+  const [providers, setProviders] = useState<AIProvidersResponse | null>(null)
+  const [selectedProvider, setSelectedProvider] = useState<string>("")
+  const [selectedModel, setSelectedModel] = useState<string>("")
+
+  // Load providers on mount
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        const { fetchAIProviders } = await import("@/lib/api/client")
+        const data = await fetchAIProviders()
+        setProviders(data)
+        setSelectedProvider(data.default.provider)
+        setSelectedModel(data.default.model)
+      } catch (error) {
+        console.error("Failed to load AI providers:", error)
+      }
+    }
+    loadProviders()
+  }, [])
 
   useEffect(() => {
     if (!initialMessages) return
@@ -209,7 +232,7 @@ export function AIChatSidebar({
     // scroll will happen via effect
   }
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return
 
     const userMessage: AIChatMessage = {
@@ -237,22 +260,80 @@ export function AIChatSidebar({
       return next
     })
     onSend?.(userMessage)
+    
+    const question = input
     setInput("")
-
-    // Simulate AI response with a brief typing delay
     setIsTyping(true)
-    const simulated = getAIResponse(input)
-    const delay = Math.min(1800, 400 + Math.floor(Math.min(160, simulated.length) * 12))
-    setTimeout(() => {
-      const aiMessage: AIChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: simulated,
-        timestamp: new Date(),
+
+    // Create placeholder AI message for streaming
+    const aiMessageId = (Date.now() + 1).toString()
+    const aiMessage: AIChatMessage = {
+      id: aiMessageId,
+      role: "assistant",
+      content: "",
+      timestamp: new Date(),
+    }
+    
+    setMessages((prev) => [...prev, aiMessage])
+
+    // Use real streaming if not in marketing mode, otherwise use mock
+    if (!_marketingMode && responseGenerator === undefined) {
+      // Real streaming from backend
+      const { streamAIChat } = await import("@/lib/api/client")
+      
+      try {
+        await streamAIChat({
+          userId: "user_123", // TODO: Get from auth context
+          question,
+          provider: selectedProvider,
+          model: selectedModel,
+          onToken: (token) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === aiMessageId
+                  ? { ...msg, content: msg.content + token }
+                  : msg
+              )
+            )
+          },
+          onComplete: () => {
+            setIsTyping(false)
+          },
+          onError: (error) => {
+            console.error("AI chat error:", error)
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === aiMessageId
+                  ? { 
+                      ...msg, 
+                      content: "I'm sorry, I encountered an error. Please try again." 
+                    }
+                  : msg
+              )
+            )
+            setIsTyping(false)
+          },
+        })
+      } catch (error) {
+        console.error("Failed to stream AI chat:", error)
+        setIsTyping(false)
       }
-      setMessages((prev) => [...prev, aiMessage])
-      setIsTyping(false)
-    }, delay)
+    } else {
+      // Mock response for marketing mode or when responseGenerator is provided
+      const simulated = getAIResponse(question)
+      const delay = Math.min(1800, 400 + Math.floor(Math.min(160, simulated.length) * 12))
+      
+      setTimeout(() => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMessageId
+              ? { ...msg, content: simulated }
+              : msg
+          )
+        )
+        setIsTyping(false)
+      }, delay)
+    }
   }
 
   const getAIResponse = (query: string): string => {
@@ -363,7 +444,7 @@ export function AIChatSidebar({
             <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               {message.role === "assistant" ? (
                 <div className="w-full space-y-2">
-                  <p className="text-sm leading-snug text-foreground">{message.content}</p>
+                  <Markdown content={message.content} className="text-sm" />
                   <p className="mt-0.5 text-[10px] leading-none opacity-60">
                     {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
@@ -437,19 +518,56 @@ export function AIChatSidebar({
               </TooltipTrigger>
               <TooltipContent>Add attachment</TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-8 w-8 rounded-md"
-                  aria-label="Settings"
-                >
-                  <Sliders className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Settings</TooltipContent>
-            </Tooltip>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-8 w-8 rounded-md"
+                      aria-label="Settings"
+                    >
+                      <Sliders className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>AI Provider Settings</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>AI Provider</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {providers && (
+                  <DropdownMenuRadioGroup value={selectedProvider} onValueChange={(value) => {
+                    setSelectedProvider(value)
+                    // Reset to default model for this provider
+                    const providerData = providers.providers[value]
+                    if (providerData && providerData.models.length > 0) {
+                      setSelectedModel(providerData.models[0].id)
+                    }
+                  }}>
+                    {Object.entries(providers.providers).map(([key, provider]) => (
+                      <DropdownMenuRadioItem key={key} value={key}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{provider.name}</span>
+                          {key === selectedProvider && providers.providers[key].models.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              {providers.providers[key].models.find(m => m.id === selectedModel)?.description || 
+                               providers.providers[key].models[0].description}
+                            </span>
+                          )}
+                        </div>
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                )}
+                {!providers && (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    Loading providers...
+                  </div>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <div className="flex items-center gap-x-4">
             <Tooltip>
