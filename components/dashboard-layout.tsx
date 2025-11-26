@@ -6,9 +6,8 @@ import { useEffect, useState, Suspense } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { TopBar } from "@/components/top-bar"
 import { ConnectivityProvider, useConnectivity } from "@/components/connectivity-provider"
-import { Button } from "@/components/ui/button"
-import { MessageSquare } from "lucide-react"
 import { DashboardBackToTop } from "@/components/dashboard-back-to-top"
+import { AIChatButton } from "@/components/ai-chat-button"
 import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -193,14 +192,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             <DashboardBackToTop />
 
             {/* Global AI chat trigger and sidebar */}
-            <Button
-              onClick={() => setIsChatOpen((v) => !v)}
-              className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg z-[110]"
-              size="icon"
-              aria-label="Open chat"
-            >
-              <MessageSquare className="h-6 w-6" />
-            </Button>
+            <AIChatButton onClick={() => setIsChatOpen((v) => !v)} />
             <AIChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} initialMessages={marketingInitialChat}
               // Marketing/demo props
               marketingMode={inMarketingMode}
